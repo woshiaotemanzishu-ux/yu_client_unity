@@ -1,0 +1,1161 @@
+{
+  "master_schema": 1,
+  "source_root": "output/ui_route_audit",
+  "policy": {
+    "read_only_sources": true,
+    "ledger_validation": "not-performed; this report is inventory, not completion proof",
+    "current_route_schema": 6,
+    "historical_route_schemas": [
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  "summary": {
+    "ledgers_discovered": 24,
+    "ledgers_parsed": 24,
+    "ledger_errors": 0,
+    "manifests_discovered": 28,
+    "route_manifests_parsed": 27,
+    "ignored_non_route_manifests": 1,
+    "routes_by_boundary": {
+      "current-schema": 11,
+      "historical-read-only": 13
+    },
+    "nodes_total": 1766,
+    "node_status_counts": {
+      "done": 394,
+      "blocked": 357,
+      "needs-runtime-verify": 450,
+      "baseline-only": 11,
+      "not-run": 554
+    },
+    "root_status_counts": {
+      "done": 5,
+      "blocked": 8,
+      "needs-runtime-verify": 5,
+      "baseline-only": 1,
+      "not-run": 5
+    },
+    "verification_environment_run_counts": {},
+    "duplicate_route_names": []
+  },
+  "routes": [
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_bag/route-ledger.json",
+      "route": "mainui.bag.window",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 107,
+      "status_counts": {
+        "blocked": 61,
+        "needs-runtime-verify": 46
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.bag.window",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_bag/route-manifest.json",
+          "sha256": "570054bdf23182922ee6ed61e6ce06654dd9055a07f6a47a86fb3580a547a34d",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_bag/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_chat/route-ledger.json",
+      "route": "mainui.chat.fullscreen",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 88,
+      "status_counts": {
+        "not-run": 88
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.chat.fullscreen",
+        "status": "not-run"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_chat/route-manifest.json",
+          "sha256": "d92c670806fe1e0cfc70216f6138429afd27e1e3f165c3fac49d9978891b4d74",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_chat/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_friend_email/route-ledger.json",
+      "route": "mainui.friend-email.shared",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 117,
+      "status_counts": {
+        "not-run": 117
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.friend-email.shared",
+        "status": "not-run"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_friend_email/route-manifest.json",
+          "sha256": "7a5d62761a0c4386d93124849458d0115666f19cdc8a5df671d4a64a1ac181df",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_friend_email/component-dependency-manifest.json",
+          "output/ui_route_audit/2026-08-09_friend_email/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_guild/route-ledger.json",
+      "route": "mainui.guild.route",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 134,
+      "status_counts": {
+        "not-run": 134
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.guild.route",
+        "status": "not-run"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_guild/route-manifest.json",
+          "sha256": "48d74ca30779df3950c45be1d74175fc8d0f89114904b00cd0035c10d29b3f98",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_guild/component-dependency-manifest.json",
+          "output/ui_route_audit/2026-08-09_guild/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_map/route-ledger.json",
+      "route": "mainui.map",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 49,
+      "status_counts": {
+        "blocked": 35,
+        "needs-runtime-verify": 14
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.map",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_map/route-manifest.json",
+          "sha256": "21e1ad06d78a9e72ab821d3805b53181d2a88e39cf9a3231517721e72abd7e38",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_map/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_role_outward/route-ledger.json",
+      "route": "mainui.role.outward",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 234,
+      "status_counts": {
+        "blocked": 143,
+        "needs-runtime-verify": 91
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.role.outward",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_role_outward/route-manifest.json",
+          "sha256": "2eaa37c850d921b58094b85e01cf803c86da5df801902479364d49f7b3de8da9",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_role_outward/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-08_role_achievement/route-ledger-v1.json",
+      "route": "mainui.role.person.achievement.v1",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-08T16:09:53+08:00",
+      "nodes_total": 55,
+      "status_counts": {
+        "blocked": 7,
+        "needs-runtime-verify": 48
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.role.person.achievement",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/route-manifest-v1.json",
+          "sha256": "f798e9b481b45322993d60b76754f5598d3b97a87564252080e5de24b343e000",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-08_role_achievement/route-manifest-v1.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-08_role_achievement/route-ledger-v2.json",
+      "route": "mainui.role.person.achievement.v2",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T13:15:12+08:00",
+      "nodes_total": 63,
+      "status_counts": {
+        "blocked": 10,
+        "needs-runtime-verify": 53
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.role.person.achievement",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/route-manifest-v2.json",
+          "sha256": "39b2d2c7e4fb1547d4b11e98bf5fcd62a5b257bfa87434411b0e8ed8a5ac5e92",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-08_role_achievement/route-manifest-v2.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_role_medal/route-ledger.json",
+      "route": "mainui.role.person.medal.v1",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T00:00:00+08:00",
+      "nodes_total": 20,
+      "status_counts": {
+        "blocked": 12,
+        "needs-runtime-verify": 8
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.role.person.medal",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_role_medal/route-manifest.json",
+          "sha256": "183560afe2c1cf8df4d95b65137bd3c63eb2353fb1aa672af9d5067cb1e75de3",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_role_medal/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_role_unreal/route-ledger.json",
+      "route": "mainui.role.unreal",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 57,
+      "status_counts": {
+        "blocked": 5,
+        "not-run": 52
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.role.unreal",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_role_unreal/route-manifest.json",
+          "sha256": "c63237aca14f1ba08689d919f7f9c1381f1085453bebea22854346e9202bac0c",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_role_unreal/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_task/route-ledger.json",
+      "route": "mainui.task.route",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 123,
+      "status_counts": {
+        "not-run": 123
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.task.route",
+        "status": "not-run"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_task/route-manifest.json",
+          "sha256": "9b8a3e501b3743b6f5a07e6666a8ea113ee0323f75747b980fc2a8b79a81e145",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_task/component-dependency-manifest.json",
+          "output/ui_route_audit/2026-08-09_task/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-05_bitmap-fonts/route-ledger.json",
+      "route": "global.bitmap-fonts",
+      "schema": 4,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 7,
+      "status_counts": {
+        "done": 7
+      },
+      "root": {
+        "count": 1,
+        "id": "global.bitmap-fonts",
+        "status": "done"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-05_bitmap-fonts/manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-06_bitmap-font-remediation/route-ledger.json",
+      "route": "global.bitmap-fonts.remediation-20260806",
+      "schema": 4,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 7,
+      "status_counts": {
+        "done": 1,
+        "needs-runtime-verify": 6
+      },
+      "root": {
+        "count": 1,
+        "id": "global.bitmap-fonts.remediation-20260806",
+        "status": "needs-runtime-verify"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-06_bitmap-font-remediation/manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/route-ledger.json",
+      "route": "mainui.onhook.boost-sweep",
+      "schema": 4,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 5,
+      "status_counts": {
+        "done": 2,
+        "needs-runtime-verify": 3
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.onhook",
+        "status": "needs-runtime-verify"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-04_mainui_notifications/route-ledger.json",
+      "route": "mainui.reported-defects",
+      "schema": 4,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 6,
+      "status_counts": {
+        "done": 6
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.reported-defects",
+        "status": "done"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-04_mainui_notifications/manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-04_role/role-route-ledger.json",
+      "route": "mainui.role",
+      "schema": 4,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 117,
+      "status_counts": {
+        "done": 72,
+        "blocked": 4,
+        "baseline-only": 11,
+        "not-run": 30
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.role",
+        "status": "baseline-only"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-04_role/manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-06_role_attribute_potion/route-ledger.json",
+      "route": "mainui.role.person.attribute-potion",
+      "schema": 4,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 84,
+      "status_counts": {
+        "done": 26,
+        "needs-runtime-verify": 58
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.role.person.attribute-potion",
+        "status": "needs-runtime-verify"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-06_role_attribute_potion/manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-06_role_instruction/route-ledger.json",
+      "route": "mainui.role.person.instruction",
+      "schema": 4,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 10,
+      "status_counts": {
+        "not-run": 10
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.role.person.instruction",
+        "status": "not-run"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-06_role_instruction/manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-07_resonance/route-ledger.json",
+      "route": "mainui.role.person.resonance",
+      "schema": 4,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": "2026-08-07T17:05:20+08:00",
+      "nodes_total": 458,
+      "status_counts": {
+        "done": 264,
+        "blocked": 80,
+        "needs-runtime-verify": 114
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.role.person.resonance",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-07_resonance/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/route-ledger.json",
+      "route": "mainui.settings.visual-reopen",
+      "schema": 2,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 8,
+      "status_counts": {
+        "done": 8
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.settings.visual-reopen",
+        "status": "done"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-06_designation_ghost/route-ledger.json",
+      "route": "scene.designation.main-follow",
+      "schema": 4,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 2,
+      "status_counts": {
+        "done": 2
+      },
+      "root": {
+        "count": 1,
+        "id": "scene.designation.main-follow",
+        "status": "done"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-06_designation_ghost/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-08_base_window_skin_shared/route-ledger.json",
+      "route": "shared.base-window-skin",
+      "schema": 5,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 4,
+      "status_counts": {
+        "needs-runtime-verify": 4
+      },
+      "root": {
+        "count": 1,
+        "id": "shared.base-window-skin",
+        "status": "needs-runtime-verify"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": []
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-07_shared_item_presentation/route-ledger.json",
+      "route": "shared.item.presentation",
+      "schema": 5,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 5,
+      "status_counts": {
+        "needs-runtime-verify": 5
+      },
+      "root": {
+        "count": 1,
+        "id": "shared.item.presentation",
+        "status": "needs-runtime-verify"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-07_shared_item_presentation/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-04_web-foundation/route-ledger.json",
+      "route": "web.foundation.loading-entry-adaptation",
+      "schema": 4,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 6,
+      "status_counts": {
+        "done": 6
+      },
+      "root": {
+        "count": 1,
+        "id": "web.foundation",
+        "status": "done"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-04_web-foundation/manifest.json"
+        ]
+      },
+      "issues": []
+    }
+  ],
+  "manifests": [
+    {
+      "path": "output/ui_route_audit/2026-08-05_bitmap-fonts/manifest.json",
+      "route": "global.bitmap-fonts",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 7
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-06_bitmap-font-remediation/manifest.json",
+      "route": "global.bitmap-fonts.remediation-20260806",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 7
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_bag/route-manifest.json",
+      "route": "mainui.bag.window",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 107
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_chat/route-manifest.json",
+      "route": "mainui.chat.fullscreen",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 88
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_equip/route-manifest.json",
+      "route": "mainui.equip.window",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 139
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_friend_email/component-dependency-manifest.json",
+      "route": "mainui.friend-email.shared",
+      "schema": null,
+      "kind": "route-metadata",
+      "node_count": null
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_friend_email/route-manifest.json",
+      "route": "mainui.friend-email.shared",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 117
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_guild/component-dependency-manifest.json",
+      "route": "mainui.guild.route",
+      "schema": null,
+      "kind": "route-metadata",
+      "node_count": null
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_guild/route-manifest.json",
+      "route": "mainui.guild.route",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 134
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_map/route-manifest.json",
+      "route": "mainui.map",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 49
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/manifest.json",
+      "route": "mainui.onhook.boost-sweep",
+      "schema": 4,
+      "kind": "route-metadata",
+      "node_count": null
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-04_mainui_notifications/manifest.json",
+      "route": "mainui.reported-defects",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 6
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-04_role/manifest.json",
+      "route": "mainui.role",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 48
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_role_outward/route-manifest.json",
+      "route": "mainui.role.outward",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 234
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-08_role_achievement/route-manifest-v1.json",
+      "route": "mainui.role.person.achievement.v1",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 55
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-08_role_achievement/route-manifest-v2.json",
+      "route": "mainui.role.person.achievement.v2",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 63
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-06_role_attribute_potion/manifest.json",
+      "route": "mainui.role.person.attribute-potion",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 84
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-06_role_instruction/manifest.json",
+      "route": "mainui.role.person.instruction",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 10
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_role_medal/route-manifest.json",
+      "route": "mainui.role.person.medal.v1",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 20
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-07_resonance/route-manifest.json",
+      "route": "mainui.role.person.resonance",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 458
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_role_unreal/route-manifest.json",
+      "route": "mainui.role.unreal",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 57
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/manifest.json",
+      "route": "mainui.settings.visual-reopen",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 8
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_task/component-dependency-manifest.json",
+      "route": "mainui.task.route",
+      "schema": null,
+      "kind": "route-metadata",
+      "node_count": null
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_task/route-manifest.json",
+      "route": "mainui.task.route",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 123
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-06_designation_ghost/route-manifest.json",
+      "route": "scene.designation.main-follow",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 2
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-07_shared_item_presentation/route-manifest.json",
+      "route": "shared.item.presentation",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 5
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-04_web-foundation/manifest.json",
+      "route": "web.foundation.loading-entry-adaptation",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 6
+    }
+  ],
+  "errors": {
+    "ledgers": [],
+    "manifests": []
+  },
+  "ignored_manifests": [
+    "output/ui_route_audit/2026-08-09_reward_fly_rgba_capture_03/legacy_rgba/capture-manifest.json"
+  ],
+  "source_files": [
+    "output/ui_route_audit/2026-08-04_mainui_notifications/manifest.json",
+    "output/ui_route_audit/2026-08-04_mainui_notifications/route-ledger.json",
+    "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/manifest.json",
+    "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/route-ledger.json",
+    "output/ui_route_audit/2026-08-04_role/manifest.json",
+    "output/ui_route_audit/2026-08-04_role/role-route-ledger.json",
+    "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/manifest.json",
+    "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/route-ledger.json",
+    "output/ui_route_audit/2026-08-04_web-foundation/manifest.json",
+    "output/ui_route_audit/2026-08-04_web-foundation/route-ledger.json",
+    "output/ui_route_audit/2026-08-05_bitmap-fonts/manifest.json",
+    "output/ui_route_audit/2026-08-05_bitmap-fonts/route-ledger.json",
+    "output/ui_route_audit/2026-08-06_bitmap-font-remediation/manifest.json",
+    "output/ui_route_audit/2026-08-06_bitmap-font-remediation/route-ledger.json",
+    "output/ui_route_audit/2026-08-06_designation_ghost/route-ledger.json",
+    "output/ui_route_audit/2026-08-06_designation_ghost/route-manifest.json",
+    "output/ui_route_audit/2026-08-06_role_attribute_potion/manifest.json",
+    "output/ui_route_audit/2026-08-06_role_attribute_potion/route-ledger.json",
+    "output/ui_route_audit/2026-08-06_role_instruction/manifest.json",
+    "output/ui_route_audit/2026-08-06_role_instruction/route-ledger.json",
+    "output/ui_route_audit/2026-08-07_resonance/route-ledger.json",
+    "output/ui_route_audit/2026-08-07_resonance/route-manifest.json",
+    "output/ui_route_audit/2026-08-07_shared_item_presentation/route-ledger.json",
+    "output/ui_route_audit/2026-08-07_shared_item_presentation/route-manifest.json",
+    "output/ui_route_audit/2026-08-08_base_window_skin_shared/route-ledger.json",
+    "output/ui_route_audit/2026-08-08_role_achievement/route-ledger-v1.json",
+    "output/ui_route_audit/2026-08-08_role_achievement/route-ledger-v2.json",
+    "output/ui_route_audit/2026-08-08_role_achievement/route-manifest-v1.json",
+    "output/ui_route_audit/2026-08-08_role_achievement/route-manifest-v2.json",
+    "output/ui_route_audit/2026-08-09_bag/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_bag/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_chat/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_chat/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_equip/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_friend_email/component-dependency-manifest.json",
+    "output/ui_route_audit/2026-08-09_friend_email/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_friend_email/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_guild/component-dependency-manifest.json",
+    "output/ui_route_audit/2026-08-09_guild/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_guild/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_map/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_map/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_reward_fly_rgba_capture_03/legacy_rgba/capture-manifest.json",
+    "output/ui_route_audit/2026-08-09_role_medal/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_role_medal/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_role_outward/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_role_outward/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_role_unreal/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_role_unreal/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_task/component-dependency-manifest.json",
+    "output/ui_route_audit/2026-08-09_task/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_task/route-manifest.json"
+  ]
+}

@@ -17,27 +17,31 @@ namespace Shenxiao.Module.Core.Daily
     public sealed class DailyResFindItem : DailyResFindItemBind
     {
         private DailyModel.ResFindVo _vo;
+        private int _moneyType = 2;
 
         protected override void OnInit()
         {
             BindClick(findBtn, () =>
             {
                 DailyResFindTipsView.Pending = _vo;
+                DailyResFindTipsView.PendingType = _moneyType;
                 DailyFlow.OpenSub("DailyResFindTipsView");
             });
             BindClick(doneBtn, () => GameLog.Info("Daily", "点击[资源找回·已完成] → 无剩余次数"));
         }
 
         /// <summary>填资源找回行(对标 SetData):次数文案(41900 回包);config_res_act 未导入,标题降级为 act 号。</summary>
-        public void SetData(DailyModel.ResFindVo vo)
+        public void SetData(DailyModel.ResFindVo vo, int moneyType = 2)
         {
             _vo = vo;
+            _moneyType = moneyType;
             if (title != null) title.text = "资源找回 " + vo.ActId + "@" + vo.ActSub;
-            bool canFind = vo.Lefttimes + vo.LefttimesVip > 0;
+            int times = moneyType == 1 ? vo.Lefttimes + vo.LefttimesVip : vo.Lefttimes;
+            bool canFind = times > 0;
             if (findBtn != null) findBtn.gameObject.SetActive(canFind);
             if (doneBtn != null) doneBtn.gameObject.SetActive(!canFind);
-            if (price != null) price.text = vo.Lefttimes + "+" + vo.LefttimesVip;
-            if (free_lb != null) free_lb.gameObject.SetActive(false);
+            if (price != null) price.text = moneyType == 1 ? vo.Lefttimes + "+" + vo.LefttimesVip : vo.Lefttimes.ToString();
+            if (free_lb != null) free_lb.gameObject.SetActive(moneyType == 2 && canFind);
         }
 
         /// <summary>兼容旧签名(标题占位,老端调用方尚未补齐前的降级路径)。</summary>

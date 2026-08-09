@@ -1,0 +1,22 @@
+{
+  "route": "mainui.onhook.complete",
+  "editable_prefab": false,
+  "current_player_ui": "Assets/Scripts/Module/Core/OnHook/OnHookShellView.cs runtime tree",
+  "read_only_entry_prefab": "Assets/Prefabs/UI/MainUI/Regions/HudOnHook.prefab",
+  "components": [
+    {"identity":"HudOnHook/MainUIOnHookView","owner":"MainUI read-only","consumers":["standard entry","legacy entry","addition entry","boost hint"],"state_matrix":["hidden below level","hidden non-field","standard","legacy fallback","maxed","buff active","no buff animated"]},
+    {"identity":"OnHookItem -> EquipmentItem","owner":"OnHook host + Common shared item","consumers":["all 13212 reward rows"],"state_matrix":["empty","currency","ordinary goods","equipment repeated count","quality variants","detail popup","first/last clipped"]},
+    {"identity":"OnHookAdditionItem -> EquipmentItem","owner":"OnHook host + Common shared item","consumers":["type450 VIP","type150 exp buff","type216 guard","type412 temple"],"state_matrix":["inactive","partial","maxed","timed","permanent","action","perfect"]},
+    {"identity":"CongratulationObtainView","owner":"Common read-only","consumers":["13216 success","13213 success"],"state_matrix":["single reward","multiple rewards","currency","equipment","old level progress","close"]},
+    {"identity":"RewardFlyService/legacy GETGOLDANI","owner":"Common/MainUI read-only","consumers":["13216 currency rewards"],"state_matrix":["gold","bound currency if present","normal completion","page closes mid-flight"]},
+    {"identity":"BatchUseView","owner":"Bag/Common read-only","consumers":["38070001 add-time","37020001 exp buff","37020002 exp buff"],"state_matrix":["no item","one","capacity clamp","cancel","success refresh"]},
+    {"identity":"ShopBulkPurchaseView","owner":"Shop read-only","consumers":["missing 38070001 add-time item"],"state_matrix":["capacity available","capacity full","quota","cancel","purchase success"]},
+    {"identity":"OnHook first-conversion prefab family","owner":"OnHook","consumers":["MainView","AdditionView","AdditionTips","OnHookItem","AdditionItem"],"state_matrix":["not yet created"]}
+  ],
+  "cross_island_blockers": [
+    "MainUI addition route is invoked but not registered.",
+    "TaskSystemAutoPilot directly calls OnHookController.Receive instead of opening the UI.",
+    "13213 requires Bag/Shop/currency/recharge/reward-result closure and remains hard-negative.",
+    "Generated bindings and Addressables registration are outside this batch."
+  ]
+}

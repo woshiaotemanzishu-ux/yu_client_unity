@@ -1,6 +1,7 @@
 using Shenxiao.Generated.UI.Daily;
 using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
+using Shenxiao.Framework.Res;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -29,6 +30,12 @@ namespace Shenxiao.Module.Core.Daily
             if (_lb_level != null) _lb_level.text = "Lv." + DailyConfigs.GetStrongLv(id);
             if (labelDisplay != null) labelDisplay.text = finishedToday ? "今日已完成" : "前往";
             if (_btn_go != null) _btn_go.gameObject.SetActive(!finishedToday);
+            if (_img_icon != null)
+                _ = ResManager.SetImageAsync(_img_icon, GameResPath.GetDailyIconPath(DailyConfigs.GetStrongIconId(id).ToString()), false, false);
+
+            int starCount = Mathf.Clamp(DailyConfigs.GetStrongStar(id), 0, 5);
+            if (star != null)
+                for (int i = 0; i < star.childCount; i++) star.GetChild(i).gameObject.SetActive(i < starCount);
         }
 
         private static void BindClick(Component target, System.Action onClick)

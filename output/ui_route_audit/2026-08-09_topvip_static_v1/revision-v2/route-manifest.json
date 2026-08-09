@@ -1,0 +1,1552 @@
+{
+  "route": "mainui.topvip.revision-v2",
+  "baseline": {
+    "audit_kind": "static-only",
+    "legacy_root": "E:/GitProject/yu_client/h5/src/topVip/TopVipBaseView.ts",
+    "unity_prefab_status": "only TopVipShopItem.prefab exists; full module/page prefabs missing",
+    "runtime_authority": "not collected",
+    "revision": 2,
+    "supersedes": "../route-ledger.json",
+    "reconciliation": "adds entry/tab condition leaves, AlertTypeTwo controls, shared skill-point popup, and ShopBulkPurchase/Calculator branches",
+    "config_snapshot": "6 skill stages x 8 skill tasks; 13 currency tasks; 5 permanent daily rewards"
+  },
+  "nodes": [
+    {
+      "id": "topvip.route",
+      "parent": null,
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "entry_gate",
+          "kind": "conditional-entry",
+          "child": "topvip.entry_gate"
+        },
+        {
+          "id": "tab_main",
+          "kind": "tab",
+          "child": "topvip.main"
+        },
+        {
+          "id": "tab_skill",
+          "kind": "tab",
+          "child": "topvip.skill"
+        },
+        {
+          "id": "tab_task",
+          "kind": "tab",
+          "child": "topvip.task"
+        },
+        {
+          "id": "tab_shop",
+          "kind": "tab",
+          "child": "topvip.shop"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "topvip.return"
+        },
+        {
+          "id": "entry_denied_message",
+          "kind": "conditional-message",
+          "child": "topvip.entry_denied"
+        },
+        {
+          "id": "tab_main_red",
+          "kind": "conditional-red-dot",
+          "child": "topvip.tab_red.main"
+        },
+        {
+          "id": "tab_skill_red",
+          "kind": "conditional-red-dot",
+          "child": "topvip.tab_red.skill"
+        },
+        {
+          "id": "tab_task_red",
+          "kind": "conditional-red-dot",
+          "child": "topvip.tab_red.task"
+        },
+        {
+          "id": "tab_shop_red",
+          "kind": "conditional-red-dot",
+          "child": "topvip.tab_red.shop"
+        }
+      ]
+    },
+    {
+      "id": "topvip.entry_gate",
+      "parent": "topvip.route",
+      "type": "read",
+      "risk": "read-only",
+      "note": "icon 451; vip_flag >= 4 and level >= 160; tab red-dot conditions"
+    },
+    {
+      "id": "topvip.main",
+      "parent": "topvip.route",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "vip_state",
+          "kind": "conditional-state",
+          "child": "topvip.main.state"
+        },
+        {
+          "id": "rights_grid",
+          "kind": "display-grid",
+          "child": "topvip.main.rights"
+        },
+        {
+          "id": "detail_img",
+          "kind": "button",
+          "child": "topvip.main.instruction"
+        },
+        {
+          "id": "update_vip_gp",
+          "kind": "conditional-button",
+          "child": "topvip.main.promotion"
+        },
+        {
+          "id": "exp_gp",
+          "kind": "transaction-button",
+          "child": "topvip.main.experience_confirm"
+        },
+        {
+          "id": "receive_gp",
+          "kind": "transaction-button",
+          "child": "topvip.main.daily_claim"
+        },
+        {
+          "id": "daily_award_items",
+          "kind": "dynamic-list",
+          "child": "topvip.main.daily_rewards"
+        },
+        {
+          "id": "activity_detail",
+          "kind": "conditional-popup",
+          "child": "topvip.main.activity_detail"
+        }
+      ]
+    },
+    {
+      "id": "topvip.main.state",
+      "parent": "topvip.main",
+      "type": "read",
+      "risk": "read-only",
+      "note": "experience/temporary/permanent, expiry, received, red-dot and 45109 promotion state"
+    },
+    {
+      "id": "topvip.main.rights",
+      "parent": "topvip.main",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "right-card",
+          "child": "topvip.main.right.identity"
+        },
+        {
+          "id": "shop",
+          "kind": "right-card",
+          "child": "topvip.main.right.shop"
+        },
+        {
+          "id": "boss_fatigue",
+          "kind": "right-card",
+          "child": "topvip.main.right.boss_fatigue"
+        },
+        {
+          "id": "boss_safety",
+          "kind": "conditional-right-card",
+          "child": "topvip.main.right.boss_safety"
+        },
+        {
+          "id": "synthesis",
+          "kind": "right-card",
+          "child": "topvip.main.right.synthesis"
+        },
+        {
+          "id": "drop_bonus",
+          "kind": "right-card",
+          "child": "topvip.main.right.drop_bonus"
+        },
+        {
+          "id": "exclusive_boss",
+          "kind": "right-card",
+          "child": "topvip.main.right.exclusive_boss"
+        }
+      ]
+    },
+    {
+      "id": "topvip.main.right.identity",
+      "parent": "topvip.main.rights",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.main.right.shop",
+      "parent": "topvip.main.rights",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.main.right.boss_fatigue",
+      "parent": "topvip.main.rights",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.main.right.boss_safety",
+      "parent": "topvip.main.rights",
+      "type": "read",
+      "risk": "read-only",
+      "note": "legacy source currently hides this card"
+    },
+    {
+      "id": "topvip.main.right.synthesis",
+      "parent": "topvip.main.rights",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.main.right.drop_bonus",
+      "parent": "topvip.main.rights",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.main.right.exclusive_boss",
+      "parent": "topvip.main.rights",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.main.instruction",
+      "parent": "topvip.main",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.main.promotion",
+      "parent": "topvip.main",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "recharge_progress",
+          "kind": "state",
+          "child": "topvip.promotion.progress"
+        },
+        {
+          "id": "recharge_day_1_7",
+          "kind": "state-matrix",
+          "child": "topvip.promotion.days"
+        },
+        {
+          "id": "recharge_gp",
+          "kind": "recharge-navigation",
+          "child": "topvip.promotion.recharge"
+        },
+        {
+          "id": "buy_gp",
+          "kind": "transaction-button",
+          "child": "topvip.promotion.buy_confirm"
+        },
+        {
+          "id": "close_img",
+          "kind": "return",
+          "child": "topvip.promotion.close"
+        },
+        {
+          "id": "background",
+          "kind": "return",
+          "child": "topvip.promotion.background_close"
+        }
+      ]
+    },
+    {
+      "id": "topvip.promotion.progress",
+      "parent": "topvip.main.promotion",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.promotion.days",
+      "parent": "topvip.main.promotion",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.promotion.recharge",
+      "parent": "topvip.main.promotion",
+      "type": "navigation",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "topvip.promotion.close",
+      "parent": "topvip.main.promotion",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.promotion.background_close",
+      "parent": "topvip.main.promotion",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.main.daily_claim",
+      "parent": "topvip.main",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "45108"
+    },
+    {
+      "id": "topvip.main.daily_rewards",
+      "parent": "topvip.main",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "reward_set",
+          "kind": "config-state",
+          "child": "topvip.main.daily_rewards.state"
+        },
+        {
+          "id": "reward_item_each",
+          "kind": "shared-item-navigation",
+          "child": "topvip.main.daily_rewards.item_detail"
+        }
+      ],
+      "note": "permanent VIP daily reward config contains 5 reward cells"
+    },
+    {
+      "id": "topvip.main.daily_rewards.state",
+      "parent": "topvip.main.daily_rewards",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.main.daily_rewards.item_detail",
+      "parent": "topvip.main.daily_rewards",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.main.activity_detail",
+      "parent": "topvip.main",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "vip_type_and_message",
+          "kind": "conditional-state",
+          "child": "topvip.activity_detail.state"
+        },
+        {
+          "id": "detail_rows",
+          "kind": "dynamic-list",
+          "child": "topvip.activity_detail.rows"
+        },
+        {
+          "id": "scroller",
+          "kind": "scroll",
+          "child": "topvip.activity_detail.scroll"
+        },
+        {
+          "id": "look_detail_gp",
+          "kind": "button",
+          "child": "topvip.activity_detail.instruction"
+        },
+        {
+          "id": "close_img",
+          "kind": "return",
+          "child": "topvip.activity_detail.close"
+        },
+        {
+          "id": "background",
+          "kind": "return",
+          "child": "topvip.activity_detail.background_close"
+        }
+      ]
+    },
+    {
+      "id": "topvip.activity_detail.state",
+      "parent": "topvip.main.activity_detail",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.activity_detail.rows",
+      "parent": "topvip.main.activity_detail",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.activity_detail.scroll",
+      "parent": "topvip.main.activity_detail",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.activity_detail.instruction",
+      "parent": "topvip.main.activity_detail",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.activity_detail.close",
+      "parent": "topvip.main.activity_detail",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.activity_detail.background_close",
+      "parent": "topvip.main.activity_detail",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill",
+      "parent": "topvip.route",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "skill_state",
+          "kind": "state",
+          "child": "topvip.skill.state"
+        },
+        {
+          "id": "skill_img",
+          "kind": "button",
+          "child": "topvip.skill.introduce"
+        },
+        {
+          "id": "skill_introduce_img",
+          "kind": "button",
+          "child": "topvip.skill.detail"
+        },
+        {
+          "id": "point_gp_0",
+          "kind": "button",
+          "child": "topvip.skill.point0"
+        },
+        {
+          "id": "point_gp_1",
+          "kind": "button",
+          "child": "topvip.skill.point1"
+        },
+        {
+          "id": "point_gp_2",
+          "kind": "button",
+          "child": "topvip.skill.point2"
+        },
+        {
+          "id": "point_gp_3",
+          "kind": "button",
+          "child": "topvip.skill.point3"
+        },
+        {
+          "id": "point_gp_4",
+          "kind": "button",
+          "child": "topvip.skill.point4"
+        },
+        {
+          "id": "point_gp_5",
+          "kind": "button",
+          "child": "topvip.skill.point5"
+        },
+        {
+          "id": "point_gp_6",
+          "kind": "button",
+          "child": "topvip.skill.point6"
+        },
+        {
+          "id": "point_gp_7",
+          "kind": "button",
+          "child": "topvip.skill.point7"
+        },
+        {
+          "id": "task_list",
+          "kind": "dynamic-list",
+          "child": "topvip.skill.tasks"
+        },
+        {
+          "id": "stage_effect",
+          "kind": "dynamic-effect",
+          "child": "topvip.skill.effect"
+        },
+        {
+          "id": "activation_popup",
+          "kind": "conditional-popup",
+          "child": "topvip.skill.activation"
+        },
+        {
+          "id": "point_popup",
+          "kind": "conditional-popup",
+          "child": "topvip.skill.point_popup"
+        }
+      ]
+    },
+    {
+      "id": "topvip.skill.state",
+      "parent": "topvip.skill",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.introduce",
+      "parent": "topvip.skill",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "skill_content",
+          "kind": "state",
+          "child": "topvip.skill.introduce.content"
+        },
+        {
+          "id": "scroller",
+          "kind": "scroll",
+          "child": "topvip.skill.introduce.scroll"
+        },
+        {
+          "id": "sure_btn",
+          "kind": "return",
+          "child": "topvip.skill.introduce.sure"
+        },
+        {
+          "id": "background",
+          "kind": "return",
+          "child": "topvip.skill.introduce.background_close"
+        }
+      ]
+    },
+    {
+      "id": "topvip.skill.introduce.content",
+      "parent": "topvip.skill.introduce",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.introduce.scroll",
+      "parent": "topvip.skill.introduce",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.introduce.sure",
+      "parent": "topvip.skill.introduce",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.introduce.background_close",
+      "parent": "topvip.skill.introduce",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.detail",
+      "parent": "topvip.skill",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "skill_rows",
+          "kind": "dynamic-list",
+          "child": "topvip.skill.detail.rows"
+        },
+        {
+          "id": "scroller",
+          "kind": "scroll",
+          "child": "topvip.skill.detail.scroll"
+        },
+        {
+          "id": "close_img",
+          "kind": "return",
+          "child": "topvip.skill.detail.close"
+        },
+        {
+          "id": "background",
+          "kind": "return",
+          "child": "topvip.skill.detail.background_close"
+        }
+      ]
+    },
+    {
+      "id": "topvip.skill.detail.rows",
+      "parent": "topvip.skill.detail",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.detail.scroll",
+      "parent": "topvip.skill.detail",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.detail.close",
+      "parent": "topvip.skill.detail",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.detail.background_close",
+      "parent": "topvip.skill.detail",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.point0",
+      "parent": "topvip.skill",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "TopVipSkillPointView stage point 0 and background close"
+    },
+    {
+      "id": "topvip.skill.point1",
+      "parent": "topvip.skill",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.point2",
+      "parent": "topvip.skill",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.point3",
+      "parent": "topvip.skill",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.point4",
+      "parent": "topvip.skill",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.point5",
+      "parent": "topvip.skill",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.point6",
+      "parent": "topvip.skill",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.point7",
+      "parent": "topvip.skill",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.tasks",
+      "parent": "topvip.skill",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "scroller",
+          "kind": "scroll",
+          "child": "topvip.skill.tasks.scroll"
+        },
+        {
+          "id": "row_state_each",
+          "kind": "state-matrix",
+          "child": "topvip.skill.tasks.state"
+        },
+        {
+          "id": "go_gp_each",
+          "kind": "button-matrix",
+          "child": "topvip.skill.tasks.go"
+        },
+        {
+          "id": "receive_gp_each",
+          "kind": "transaction-matrix",
+          "child": "topvip.skill.tasks.claim"
+        },
+        {
+          "id": "reward_item_each",
+          "kind": "shared-item-navigation",
+          "child": "topvip.skill.tasks.reward_detail"
+        }
+      ],
+      "note": "48 config rows: 6 stages x 8; each row has state/go/45103/reward leaves"
+    },
+    {
+      "id": "topvip.skill.tasks.scroll",
+      "parent": "topvip.skill.tasks",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.tasks.state",
+      "parent": "topvip.skill.tasks",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.tasks.go",
+      "parent": "topvip.skill.tasks",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.tasks.claim",
+      "parent": "topvip.skill.tasks",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "45103"
+    },
+    {
+      "id": "topvip.skill.tasks.reward_detail",
+      "parent": "topvip.skill.tasks",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.effect",
+      "parent": "topvip.skill",
+      "type": "read",
+      "risk": "read-only",
+      "note": "UI_2011 and activation lifecycle need two-timepoint pixels"
+    },
+    {
+      "id": "topvip.skill.activation",
+      "parent": "topvip.skill",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "skill_content",
+          "kind": "conditional-state",
+          "child": "topvip.skill.activation.content"
+        },
+        {
+          "id": "effect",
+          "kind": "dynamic-effect",
+          "child": "topvip.skill.activation.effect"
+        },
+        {
+          "id": "auto_close_5s",
+          "kind": "timed-return",
+          "child": "topvip.skill.activation.auto_close"
+        },
+        {
+          "id": "background",
+          "kind": "return",
+          "child": "topvip.skill.activation.background_close"
+        }
+      ]
+    },
+    {
+      "id": "topvip.skill.activation.content",
+      "parent": "topvip.skill.activation",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.activation.effect",
+      "parent": "topvip.skill.activation",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.activation.auto_close",
+      "parent": "topvip.skill.activation",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.activation.background_close",
+      "parent": "topvip.skill.activation",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.task",
+      "parent": "topvip.route",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "reset_and_red_state",
+          "kind": "state",
+          "child": "topvip.task.state"
+        },
+        {
+          "id": "task_list",
+          "kind": "dynamic-list",
+          "child": "topvip.task.list"
+        }
+      ]
+    },
+    {
+      "id": "topvip.task.state",
+      "parent": "topvip.task",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.task.list",
+      "parent": "topvip.task",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "scroller",
+          "kind": "scroll",
+          "child": "topvip.task.list.scroll"
+        },
+        {
+          "id": "row_state_each",
+          "kind": "state-matrix",
+          "child": "topvip.task.list.state"
+        },
+        {
+          "id": "go_gp_each",
+          "kind": "button-matrix",
+          "child": "topvip.task.list.go"
+        },
+        {
+          "id": "receive_gp_each",
+          "kind": "transaction-matrix",
+          "child": "topvip.task.list.claim"
+        },
+        {
+          "id": "reward_item_each",
+          "kind": "shared-item-navigation",
+          "child": "topvip.task.list.reward_detail"
+        }
+      ],
+      "note": "13 config rows (101-113) with level-conditional visibility and 2-4 reward cells"
+    },
+    {
+      "id": "topvip.task.list.scroll",
+      "parent": "topvip.task.list",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.task.list.state",
+      "parent": "topvip.task.list",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.task.list.go",
+      "parent": "topvip.task.list",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.task.list.claim",
+      "parent": "topvip.task.list",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "45105"
+    },
+    {
+      "id": "topvip.task.list.reward_detail",
+      "parent": "topvip.task.list",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.shop",
+      "parent": "topvip.route",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "currency_and_countdown",
+          "kind": "state",
+          "child": "topvip.shop.state"
+        },
+        {
+          "id": "shop_list",
+          "kind": "dynamic-list",
+          "child": "topvip.shop.list"
+        }
+      ]
+    },
+    {
+      "id": "topvip.shop.state",
+      "parent": "topvip.shop",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.shop.list",
+      "parent": "topvip.shop",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "scroller",
+          "kind": "scroll",
+          "child": "topvip.shop.list.scroll"
+        },
+        {
+          "id": "forecast_available_sold",
+          "kind": "state-matrix",
+          "child": "topvip.shop.list.row_state"
+        },
+        {
+          "id": "award_item_each",
+          "kind": "shared-item-navigation",
+          "child": "topvip.shop.list.item_detail"
+        },
+        {
+          "id": "buy_gp_each",
+          "kind": "transaction-matrix",
+          "child": "topvip.shop.list.buy"
+        },
+        {
+          "id": "bulk_purchase",
+          "kind": "transaction-popup",
+          "child": "topvip.shop.list.bulk_buy"
+        },
+        {
+          "id": "buyed_gp",
+          "kind": "button-matrix",
+          "child": "topvip.shop.list.sold_out"
+        }
+      ]
+    },
+    {
+      "id": "topvip.shop.list.scroll",
+      "parent": "topvip.shop.list",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.shop.list.row_state",
+      "parent": "topvip.shop.list",
+      "type": "read",
+      "risk": "read-only",
+      "note": "existing TopVipShopItem prefab is only a static island"
+    },
+    {
+      "id": "topvip.shop.list.item_detail",
+      "parent": "topvip.shop.list",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.shop.list.buy",
+      "parent": "topvip.shop.list",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "15302"
+    },
+    {
+      "id": "topvip.shop.list.bulk_buy",
+      "parent": "topvip.shop.list",
+      "type": "page",
+      "risk": "read-only",
+      "note": "shared ShopBulkPurchaseView; route is enumerated but popup remains outside writable island",
+      "control_inventory": [
+        {
+          "id": "goods_icon",
+          "kind": "shared-item",
+          "child": "topvip.shop.bulk.goods"
+        },
+        {
+          "id": "cost_icon",
+          "kind": "shared-item",
+          "child": "topvip.shop.bulk.cost"
+        },
+        {
+          "id": "limit_and_price",
+          "kind": "state",
+          "child": "topvip.shop.bulk.state"
+        },
+        {
+          "id": "minus_ten",
+          "kind": "local-write",
+          "child": "topvip.shop.bulk.minus10"
+        },
+        {
+          "id": "minus_one",
+          "kind": "local-write",
+          "child": "topvip.shop.bulk.minus1"
+        },
+        {
+          "id": "cur_show_num",
+          "kind": "calculator-popup",
+          "child": "topvip.shop.bulk.calculator"
+        },
+        {
+          "id": "add_one",
+          "kind": "local-write",
+          "child": "topvip.shop.bulk.plus1"
+        },
+        {
+          "id": "add_ten",
+          "kind": "local-write",
+          "child": "topvip.shop.bulk.plus10"
+        },
+        {
+          "id": "confirmBtn",
+          "kind": "conditional-transaction",
+          "child": "topvip.shop.bulk.confirm_routes"
+        },
+        {
+          "id": "cancleBtn",
+          "kind": "return",
+          "child": "topvip.shop.bulk.cancel"
+        },
+        {
+          "id": "closeBtn",
+          "kind": "return",
+          "child": "topvip.shop.bulk.close"
+        },
+        {
+          "id": "background",
+          "kind": "return",
+          "child": "topvip.shop.bulk.background_close"
+        }
+      ]
+    },
+    {
+      "id": "topvip.shop.list.sold_out",
+      "parent": "topvip.shop.list",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.return",
+      "parent": "topvip.route",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.entry_denied",
+      "parent": "topvip.route",
+      "type": "read",
+      "risk": "read-only",
+      "note": "OPEN_TOP_VIP_BASE_VIEW below VIP4 shows denial message"
+    },
+    {
+      "id": "topvip.tab_red.main",
+      "parent": "topvip.route",
+      "type": "read",
+      "risk": "read-only",
+      "note": "daily reward red"
+    },
+    {
+      "id": "topvip.tab_red.skill",
+      "parent": "topvip.route",
+      "type": "read",
+      "risk": "read-only",
+      "note": "skill task red"
+    },
+    {
+      "id": "topvip.tab_red.task",
+      "parent": "topvip.route",
+      "type": "read",
+      "risk": "read-only",
+      "note": "currency task red"
+    },
+    {
+      "id": "topvip.tab_red.shop",
+      "parent": "topvip.route",
+      "type": "read",
+      "risk": "read-only",
+      "note": "shop affordable/quota red"
+    },
+    {
+      "id": "topvip.main.experience_confirm",
+      "parent": "topvip.main",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "content",
+          "kind": "confirmation-text",
+          "child": "topvip.main.experience_confirm.content"
+        },
+        {
+          "id": "ok_btn",
+          "kind": "transaction-button",
+          "child": "topvip.main.experience_confirm.confirm"
+        },
+        {
+          "id": "cancel_btn",
+          "kind": "return",
+          "child": "topvip.main.experience_confirm.cancel"
+        },
+        {
+          "id": "close_btn",
+          "kind": "return",
+          "child": "topvip.main.experience_confirm.close"
+        },
+        {
+          "id": "background",
+          "kind": "return",
+          "child": "topvip.main.experience_confirm.background_close"
+        }
+      ]
+    },
+    {
+      "id": "topvip.main.experience_confirm.content",
+      "parent": "topvip.main.experience_confirm",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.main.experience_confirm.confirm",
+      "parent": "topvip.main.experience_confirm",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "45106"
+    },
+    {
+      "id": "topvip.main.experience_confirm.cancel",
+      "parent": "topvip.main.experience_confirm",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.main.experience_confirm.close",
+      "parent": "topvip.main.experience_confirm",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.main.experience_confirm.background_close",
+      "parent": "topvip.main.experience_confirm",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.promotion.buy_confirm",
+      "parent": "topvip.main.promotion",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "content",
+          "kind": "confirmation-text",
+          "child": "topvip.promotion.buy_confirm.content"
+        },
+        {
+          "id": "ok_btn",
+          "kind": "transaction-button",
+          "child": "topvip.promotion.buy_confirm.confirm"
+        },
+        {
+          "id": "cancel_btn",
+          "kind": "return",
+          "child": "topvip.promotion.buy_confirm.cancel"
+        },
+        {
+          "id": "close_btn",
+          "kind": "return",
+          "child": "topvip.promotion.buy_confirm.close"
+        },
+        {
+          "id": "background",
+          "kind": "return",
+          "child": "topvip.promotion.buy_confirm.background_close"
+        }
+      ]
+    },
+    {
+      "id": "topvip.promotion.buy_confirm.content",
+      "parent": "topvip.promotion.buy_confirm",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.promotion.buy_confirm.confirm",
+      "parent": "topvip.promotion.buy_confirm",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "45107"
+    },
+    {
+      "id": "topvip.promotion.buy_confirm.cancel",
+      "parent": "topvip.promotion.buy_confirm",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.promotion.buy_confirm.close",
+      "parent": "topvip.promotion.buy_confirm",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.promotion.buy_confirm.background_close",
+      "parent": "topvip.promotion.buy_confirm",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.skill.point_popup",
+      "parent": "topvip.skill",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "attribute_lb",
+          "kind": "config-text",
+          "child": "topvip.skill.point_popup.content"
+        },
+        {
+          "id": "tip_gp",
+          "kind": "positioned-panel",
+          "child": "topvip.skill.point_popup.position"
+        },
+        {
+          "id": "bg",
+          "kind": "return",
+          "child": "topvip.skill.point_popup.close"
+        }
+      ]
+    },
+    {
+      "id": "topvip.skill.point_popup.content",
+      "parent": "topvip.skill.point_popup",
+      "type": "read",
+      "risk": "read-only",
+      "note": "8 stage/sub-stage attribute variants"
+    },
+    {
+      "id": "topvip.skill.point_popup.position",
+      "parent": "topvip.skill.point_popup",
+      "type": "read",
+      "risk": "read-only",
+      "note": "opens relative to clicked point with y offset -40"
+    },
+    {
+      "id": "topvip.skill.point_popup.close",
+      "parent": "topvip.skill.point_popup",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.shop.bulk.goods",
+      "parent": "topvip.shop.list.bulk_buy",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "BaseAwardItem goods detail"
+    },
+    {
+      "id": "topvip.shop.bulk.cost",
+      "parent": "topvip.shop.list.bulk_buy",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "BaseAwardItem cost detail"
+    },
+    {
+      "id": "topvip.shop.bulk.state",
+      "parent": "topvip.shop.list.bulk_buy",
+      "type": "read",
+      "risk": "read-only",
+      "note": "quota, current quantity, total price, enough/insufficient color"
+    },
+    {
+      "id": "topvip.shop.bulk.minus10",
+      "parent": "topvip.shop.list.bulk_buy",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "topvip.shop.bulk.minus1",
+      "parent": "topvip.shop.list.bulk_buy",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "topvip.shop.bulk.plus1",
+      "parent": "topvip.shop.list.bulk_buy",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "topvip.shop.bulk.plus10",
+      "parent": "topvip.shop.list.bulk_buy",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "topvip.shop.bulk.calculator",
+      "parent": "topvip.shop.list.bulk_buy",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "key_0_9",
+          "kind": "numeric-key-matrix",
+          "child": "topvip.shop.bulk.calculator.digits"
+        },
+        {
+          "id": "key_11",
+          "kind": "backspace",
+          "child": "topvip.shop.bulk.calculator.back"
+        },
+        {
+          "id": "key_12",
+          "kind": "return",
+          "child": "topvip.shop.bulk.calculator.confirm"
+        },
+        {
+          "id": "click_bg",
+          "kind": "return",
+          "child": "topvip.shop.bulk.calculator.background_close"
+        }
+      ]
+    },
+    {
+      "id": "topvip.shop.bulk.calculator.digits",
+      "parent": "topvip.shop.bulk.calculator",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "note": "keys 0-9 and max-count clamp"
+    },
+    {
+      "id": "topvip.shop.bulk.calculator.back",
+      "parent": "topvip.shop.bulk.calculator",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "topvip.shop.bulk.calculator.confirm",
+      "parent": "topvip.shop.bulk.calculator",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.shop.bulk.calculator.background_close",
+      "parent": "topvip.shop.bulk.calculator",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.shop.bulk.confirm_routes",
+      "parent": "topvip.shop.list.bulk_buy",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "direct_15302",
+          "kind": "transaction-branch",
+          "child": "topvip.shop.bulk.confirm.direct"
+        },
+        {
+          "id": "bound_currency_substitute",
+          "kind": "conditional-alert",
+          "child": "topvip.shop.bulk.confirm.substitute"
+        },
+        {
+          "id": "quick_use_overflow",
+          "kind": "conditional-alert",
+          "child": "topvip.shop.bulk.confirm.quickuse"
+        },
+        {
+          "id": "diamond_insufficient",
+          "kind": "conditional-navigation",
+          "child": "topvip.shop.bulk.confirm.recharge"
+        },
+        {
+          "id": "other_currency_insufficient",
+          "kind": "conditional-message",
+          "child": "topvip.shop.bulk.confirm.insufficient"
+        }
+      ]
+    },
+    {
+      "id": "topvip.shop.bulk.confirm.direct",
+      "parent": "topvip.shop.bulk.confirm_routes",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "15302 key_id + quantity"
+    },
+    {
+      "id": "topvip.shop.bulk.confirm.substitute",
+      "parent": "topvip.shop.bulk.confirm_routes",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "content",
+          "kind": "confirmation-text",
+          "child": "topvip.shop.bulk.substitute.content"
+        },
+        {
+          "id": "check",
+          "kind": "checkbox",
+          "child": "topvip.shop.bulk.substitute.check"
+        },
+        {
+          "id": "ok_btn",
+          "kind": "transaction-button",
+          "child": "topvip.shop.bulk.substitute.confirm"
+        },
+        {
+          "id": "cancel_btn",
+          "kind": "return",
+          "child": "topvip.shop.bulk.substitute.cancel"
+        },
+        {
+          "id": "close_btn",
+          "kind": "return",
+          "child": "topvip.shop.bulk.substitute.close"
+        },
+        {
+          "id": "background",
+          "kind": "return",
+          "child": "topvip.shop.bulk.substitute.background_close"
+        }
+      ]
+    },
+    {
+      "id": "topvip.shop.bulk.substitute.content",
+      "parent": "topvip.shop.bulk.confirm.substitute",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.shop.bulk.substitute.check",
+      "parent": "topvip.shop.bulk.confirm.substitute",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "topvip.shop.bulk.substitute.confirm",
+      "parent": "topvip.shop.bulk.confirm.substitute",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "15302 after bound-currency substitution"
+    },
+    {
+      "id": "topvip.shop.bulk.substitute.cancel",
+      "parent": "topvip.shop.bulk.confirm.substitute",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.shop.bulk.substitute.close",
+      "parent": "topvip.shop.bulk.confirm.substitute",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.shop.bulk.substitute.background_close",
+      "parent": "topvip.shop.bulk.confirm.substitute",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.shop.bulk.confirm.quickuse",
+      "parent": "topvip.shop.bulk.confirm_routes",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "content",
+          "kind": "confirmation-text",
+          "child": "topvip.shop.bulk.quickuse.content"
+        },
+        {
+          "id": "ok_btn",
+          "kind": "transaction-button",
+          "child": "topvip.shop.bulk.quickuse.confirm"
+        },
+        {
+          "id": "cancel_btn",
+          "kind": "return",
+          "child": "topvip.shop.bulk.quickuse.cancel"
+        },
+        {
+          "id": "close_btn",
+          "kind": "return",
+          "child": "topvip.shop.bulk.quickuse.close"
+        },
+        {
+          "id": "background",
+          "kind": "return",
+          "child": "topvip.shop.bulk.quickuse.background_close"
+        }
+      ]
+    },
+    {
+      "id": "topvip.shop.bulk.quickuse.content",
+      "parent": "topvip.shop.bulk.confirm.quickuse",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.shop.bulk.quickuse.confirm",
+      "parent": "topvip.shop.bulk.confirm.quickuse",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "15302 quick-use branch"
+    },
+    {
+      "id": "topvip.shop.bulk.quickuse.cancel",
+      "parent": "topvip.shop.bulk.confirm.quickuse",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.shop.bulk.quickuse.close",
+      "parent": "topvip.shop.bulk.confirm.quickuse",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.shop.bulk.quickuse.background_close",
+      "parent": "topvip.shop.bulk.confirm.quickuse",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.shop.bulk.confirm.recharge",
+      "parent": "topvip.shop.bulk.confirm_routes",
+      "type": "navigation",
+      "risk": "destructive-write",
+      "note": "NotEnougnDiamond / recharge route"
+    },
+    {
+      "id": "topvip.shop.bulk.confirm.insufficient",
+      "parent": "topvip.shop.bulk.confirm_routes",
+      "type": "read",
+      "risk": "read-only",
+      "note": "insufficient-currency message"
+    },
+    {
+      "id": "topvip.shop.bulk.cancel",
+      "parent": "topvip.shop.list.bulk_buy",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "topvip.shop.bulk.close",
+      "parent": "topvip.shop.list.bulk_buy",
+      "type": "return",
+      "risk": "read-only",
+      "note": "shared popup uses dedicated CLOSE sound"
+    },
+    {
+      "id": "topvip.shop.bulk.background_close",
+      "parent": "topvip.shop.list.bulk_buy",
+      "type": "return",
+      "risk": "read-only"
+    }
+  ]
+}

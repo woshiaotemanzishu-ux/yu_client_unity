@@ -1,0 +1,122 @@
+{
+  "route": "mainui.daily.route",
+  "generated_at": "2026-08-09T00:00:00+08:00",
+  "scope": {
+    "owned": [
+      "Assets/Scripts/Module/Core/Daily/**",
+      "Assets/Prefabs/UI/Daily/**",
+      "output/ui_route_audit/2026-08-09_daily/**"
+    ],
+    "read_only_dependencies": [
+      "Assets/Prefabs/UI/BrightSea/BrightSeaModule.prefab",
+      "Assets/Scripts/Module/Core/BrightSea/**",
+      "Assets/Prefabs/UI/Deposit/DepositModule.prefab",
+      "Assets/Scripts/Module/Core/Deposit/**",
+      "Assets/Prefabs/UI/Common/BaseWindowSkin.prefab",
+      "Assets/Scripts/Module/Core/Common/**"
+    ]
+  },
+  "host_chain": [
+    {
+      "owner": "DailyFlow",
+      "prefab": "common/BaseWindowSkin",
+      "role": "共享六页签窗口壳、标题、背景、关闭链",
+      "policy": "本路线只消费，不修改"
+    },
+    {
+      "owner": "DailyFlow",
+      "prefab": "daily/DailyModule",
+      "role": "tab0/1/3/5 与 Daily 子弹窗的可编辑 Prefab 源",
+      "policy": "人工 Prefab 为视觉事实源，只做增量"
+    },
+    {
+      "owner": "DailyFlow",
+      "prefab": "brightSea/BrightSeaModule",
+      "role": "tab2 BrightSeaEnterView 跨模块内容源",
+      "policy": "跨岛只读；缺口报告给 BrightSea 路线"
+    },
+    {
+      "owner": "DailyFlow",
+      "prefab": "deposit/DepositModule",
+      "role": "tab4 DepositView 跨模块内容源",
+      "policy": "跨岛只读；缺口报告给 Deposit 路线"
+    }
+  ],
+  "components": [
+    {
+      "id": "daily-bottom",
+      "identity": [
+        "DailyTaskView._tpl_DailyBottomView",
+        "DailyLimitActivityView._tpl_DailyBottomView",
+        "DepositView._tpl_DailyBottomView",
+        "Assets/Prefabs/UI/Daily/DailyBottomView.prefab"
+      ],
+      "legacy_owner": "DailyBottomView",
+      "consumers": ["每日任务", "限时活动", "托管中心"],
+      "state_matrix": [
+        "15703 未到/已到",
+        "活跃度 0/阈值间/满值",
+        "四宝箱 不可领/可领/已领",
+        "离线时间 0/正值",
+        "形象可升级/不可升级",
+        "周卡提示开/关"
+      ],
+      "current_gap": "三个消费者当前均隐藏模板；底栏业务类未接入，是共享根缺口，未在本轮伪装完成"
+    },
+    {
+      "id": "activity-row",
+      "identity": ["DailyTaskItem", "DailyLimitActivityItem"],
+      "legacy_owner": "两个不同语义的行项，不应合并为同一业务组件",
+      "consumers": ["每日任务列表", "限时活动列表"],
+      "state_matrix": ["短/长标题", "未开放/开放/结束", "可领取/已领取", "预约未订/已订/可领奖"],
+      "current_fix": "所有动态克隆显式调用 BaseView.Show 后再 SetData，恢复 EnsureBound/OnInit"
+    },
+    {
+      "id": "shared-reward-item",
+      "identity": [
+        "DailyLivenessRewardItem._tpl_BaseAwardItem",
+        "DailyLimitActivityTipsView._tpl_BaseAwardItem",
+        "DailyReservationView._tpl_BaseAwardItem",
+        "DailyActTipView._tpl_EquipmentItem",
+        "DailyResFindItem 的奖励列表"
+      ],
+      "consumers": ["活跃度宝箱", "限时详情", "预约成功", "活动提醒", "资源找回"],
+      "state_matrix": ["空/有数据", "1/2/3+ 项", "可领/已领", "品质特效开/关", "详情点击"],
+      "current_gap": "大部分消费者只有模板 Bind 或未实例化；需要 Common 物品组件路线抽样，不在 Daily 独占范围内复制树"
+    },
+    {
+      "id": "stronger-tab",
+      "identity": ["DailyStrongerView._tpl_DailyStrongerTab"],
+      "consumers": ["我要经验", "我要绑玉", "我要装备"],
+      "state_matrix": ["选中/未选中", "空列表/有列表", "切换回顶"],
+      "current_fix": "复用同一模板创建三页签，按 config_to_be_strong.type 过滤并按老端分值排序"
+    },
+    {
+      "id": "resource-find-selector",
+      "identity": ["DailyResFindView.checkBtn0", "DailyResFindView.checkBtn1"],
+      "consumers": ["单条找回", "一键找回", "列表排序", "确认弹窗"],
+      "state_matrix": ["绑玉/免费", "有次数/无次数", "单条/一键", "确认/取消"],
+      "current_fix": "默认免费；切换同步排序、行次数、确认类型，所有 41903/41904 写入前增加确认"
+    },
+    {
+      "id": "brightsea-cross-island",
+      "identity": ["BrightSeaEnterView", "BrightSeaModel", "BrightSeaController", "BrightSeaRoleItem"],
+      "consumers": ["Daily tab2", "MainUI brightsea 快捷入口", "GuildHelp 18916"],
+      "state_matrix": ["普通/跨服", "0/1..8 航线", "巡航/掠夺", "倒计时", "红点"],
+      "current_gap": "18900/18901/18902/18915/18916/18917 只读快照已存在，但 Daily 包装页未消费；按钮与角色项仍日志降级"
+    },
+    {
+      "id": "deposit-cross-island",
+      "identity": ["DepositView", "DepositModel", "DepositController", "DepositItem"],
+      "consumers": ["Daily tab4", "GameStart 19201"],
+      "state_matrix": ["无数据/有数据", "托管勾选开/关", "日收益/挂机收益", "兑换", "记录空/有"],
+      "current_gap": "19201/19206/19208 模型已存在，但 Daily 包装页未消费；列表、兑换、记录仍日志降级"
+    }
+  ],
+  "cross_island_blockers": [
+    "BrightSea 缺业务 View/事件刷新/角色项/巡航与掠夺子页，不能在 Daily 文件内复制实现",
+    "Deposit 缺业务 View/事件刷新/兑换/记录/托管设置子页，不能越界修改 Deposit 模块",
+    "DailyBottom 的 Common 物品格、活跃度模型/特效、离线挂机 BatchUse、KfStage 与首充入口需要各自共享依赖抽查",
+    "OpenFun jump_id 路由属于公共导航映射，DailyTask/DailyStronger 的 go 按钮仍只能报告"
+  ]
+}

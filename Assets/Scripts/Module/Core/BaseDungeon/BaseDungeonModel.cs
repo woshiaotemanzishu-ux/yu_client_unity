@@ -1,9 +1,12 @@
+using System;
+using System.Collections.Generic;
+
 namespace Shenxiao.Module.Core.BaseDungeon
 {
     /// <summary>
-    /// 限时爬塔数据(对标老客户端 BaseDungeonModel 的限时爬塔部分)。BaseDungeon 本是大副本系统,
-    /// 本期只承载「限时爬塔」活动图标(331@97)所需字段,副本/爬塔玩法逻辑(挑战/扫荡/领奖 61118 等)一律不移植。
-    /// 61117 下发 round/over_time/reward_mode,决定主界面限时塔图标显隐(带倒计时 over_time)。
+    /// 限时爬塔数据(对标老客户端 BaseDungeonModel 的限时爬塔部分)。61117 下发
+    /// round/over_time/reward_mode/pass_list，驱动入口、面板状态与倒计时；61118 成功后即时切换大奖态。
+    /// 关卡目录、奖励和挑战进入依赖缺失配置及 Dungeon 跨岛链，本模型不猜测或复制这些职责。
     /// </summary>
     public sealed class BaseDungeonModel
     {
@@ -24,11 +27,30 @@ namespace Shenxiao.Module.Core.BaseDungeon
         /// </summary>
         public bool IsContinueShow;
 
-        public void SetTowerInfo(int round, long overTime, int rewardMode)
+        private readonly HashSet<uint> _passedDungeonIds = new HashSet<uint>();
+
+        public IReadOnlyCollection<uint> PassedDungeonIds => _passedDungeonIds;
+        public event Action TowerInfoChanged;
+
+        public void SetTowerInfo(int round, long overTime, int rewardMode, IEnumerable<uint> passedDungeonIds)
         {
             Round = round;
             OverTime = overTime;
             RewardMode = rewardMode;
+            _passedDungeonIds.Clear();
+            if (passedDungeonIds != null)
+            {
+                foreach (uint dungeonId in passedDungeonIds) _passedDungeonIds.Add(dungeonId);
+            }
+            TowerInfoChanged?.Invoke();
+        }
+
+        public bool IsTowerDungeonPassed(uint dungeonId) => _passedDungeonIds.Contains(dungeonId);
+
+        public void MarkBigRewardClaimed()
+        {
+            RewardMode = 2;
+            TowerInfoChanged?.Invoke();
         }
 
         /// <summary>大奖领取态(对标老端 GetTowerRewardState():dungeon_tower_scmd.reward_mode || 0)。</summary>
@@ -65,12 +87,24 @@ namespace Shenxiao.Module.Core.BaseDungeon
             return "33197_" + (round == 0 ? 1 : round);
         }
 
+        public string GetLimitTowerName()
+        {
+            switch (Round)
+            {
+                case 2: return "荒川之途";
+                case 3: return "御灵之途";
+                default: return "崇天之途";
+            }
+        }
+
         public void Reset()
         {
             Round = 0;
             OverTime = 0;
             RewardMode = 0;
             IsContinueShow = false;
+            _passedDungeonIds.Clear();
+            TowerInfoChanged?.Invoke();
         }
     }
 }

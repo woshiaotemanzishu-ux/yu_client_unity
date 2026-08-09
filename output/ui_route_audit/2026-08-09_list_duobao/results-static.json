@@ -1,0 +1,57 @@
+{
+  "nodes": [
+    {"id":"mainui.list-duobao.entry.parent","status":"needs-runtime-verify","runtime_gap":"需在共享 331@110 已注册/未注册两态验证不抢占父容器且可达。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.entry.special","status":"needs-runtime-verify","runtime_gap":"需真实活动入口点击验证精确 key 331@116@0。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.entry.condition","status":"needs-runtime-verify","runtime_gap":"需活动开/关、不同 subtype 与不可用提示真实状态。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.entry.reads","status":"needs-runtime-verify","runtime_gap":"需真实 33252/33253 回包、次序与即时刷新。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+
+    {"id":"mainui.list-duobao.main.visual","status":"needs-runtime-verify","runtime_gap":"需同账号老 H5/Unity Web 背景、标题、特效和几何像素对比。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.main.timer","status":"needs-runtime-verify","runtime_gap":"需服务器 etime 真实倒计时、归零与重开验证。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.main.pool","status":"needs-runtime-verify","runtime_gap":"需 1..12 槽真实图标、数量、品质、详情和布局。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.main.rank-preview","status":"blocked","blocked_reason":"老端主页使用 ListRankItemBig 内嵌排行并滚到本人；当前 Unity 无等价业务组件，且新增组件需更多真实布局证据。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.main.rank-open","status":"needs-runtime-verify","runtime_gap":"需三个真实点击面分别打开同一准确排行页并保持父页。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.main.help","status":"needs-runtime-verify","runtime_gap":"需点击核对 332116 的准确 InstructionView 内容与关闭链。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.main.record-open","status":"needs-runtime-verify","runtime_gap":"需点击、33197 回包和记录弹窗层级验证。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.main.costs","status":"needs-runtime-verify","runtime_gap":"需 one/ten 不同消耗、充足/不足、长数字和充值入口状态。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.main.draw-one","status":"blocked","blocked_reason":"33191 单抽会消耗账号资产；本轮禁止执行。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.main.draw-ten","status":"blocked","blocked_reason":"33191 十抽会消耗账号资产；本轮禁止执行。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.main.draw-result","status":"blocked","blocked_reason":"33803 结果只能由未授权的 33191 写事务触发，不能用静态或伪回包冒充。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.main.red","status":"needs-runtime-verify","runtime_gap":"需首次进入、可领取、领取后和重进红点状态。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.main.btn4","status":"needs-runtime-verify","runtime_gap":"需真实射线验证老端非点击装饰不产生错误打开行为。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+
+    {"id":"mainui.list-duobao.main.stage.state","status":"needs-runtime-verify","runtime_gap":"需未达成/可领取/已领取、总积分与最后档真实状态。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.main.stage.reward-open","status":"needs-runtime-verify","runtime_gap":"需不可领取态点击打开阶段奖励页并保持父页即时状态。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.main.stage.claim","status":"blocked","blocked_reason":"33254 阶段领取是账号写事务；本轮禁止执行。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+
+    {"id":"mainui.list-duobao.rank.visual","status":"needs-runtime-verify","runtime_gap":"需排行页背景、页签、徽章和页面根坐标像素对比。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.rank.close","status":"needs-runtime-verify","runtime_gap":"需真实点击关闭且不穿透/关闭父页。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.rank.tabs","status":"needs-runtime-verify","runtime_gap":"需个人/全服来回切换，图片、颜色、tips 和回顶验证。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.rank.personal","status":"needs-runtime-verify","runtime_gap":"需真实个人榜覆盖空位、前三、长名单和区服前缀。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.rank.server","status":"needs-runtime-verify","runtime_gap":"需真实全服榜覆盖空位、前三、长名单和区服前缀。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.rank.summary","status":"needs-runtime-verify","runtime_gap":"需未上榜、前三、四名后以及个人/本区分数摘要。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.rank.my-reward","status":"needs-runtime-verify","runtime_gap":"需个人已上榜/未上榜及全服页签三态奖励显隐。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.rank.scroll","status":"needs-runtime-verify","runtime_gap":"需两纵向列表和横向奖励真实拖动、裁剪与末项。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+
+    {"id":"mainui.list-duobao.reward.visual","status":"needs-runtime-verify","runtime_gap":"需奖励页背景、标题、行高和间距像素对比。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.reward.close","status":"needs-runtime-verify","runtime_gap":"需真实点击关闭且父页保持。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.reward.sort","status":"needs-runtime-verify","runtime_gap":"需已领取后置和同组阶段顺序真实数据验证。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.reward.rows","status":"needs-runtime-verify","runtime_gap":"需进度、已领取遮罩、奖励格和每格详情运行验证。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.reward.scroll","status":"needs-runtime-verify","runtime_gap":"需 GraphicRaycaster 拖动、裁剪、Content 高度和末行可达。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+
+    {"id":"mainui.list-duobao.record.visual","status":"needs-runtime-verify","runtime_gap":"需记录页背景、标题、字体、行宽和间距像素对比。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.record.close","status":"needs-runtime-verify","runtime_gap":"需真实点击关闭且父页保持。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.record.global","status":"needs-runtime-verify","runtime_gap":"需真实 LogList 多条、长名称与多奖励语义。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.record.self","status":"needs-runtime-verify","runtime_gap":"需真实 SelfList 多条、长名称与当前玩家记录。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.record.empty-scroll","status":"needs-runtime-verify","runtime_gap":"需空态与长列表 content/clipping/末项可达验证。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+
+    {"id":"mainui.list-duobao.shared.identity","status":"needs-runtime-verify","runtime_gap":"需独立 ListGoodsItem.prefab 与模块内嵌实例的同组件/GUID/像素抽查。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.shared.clones","status":"needs-runtime-verify","runtime_gap":"需点击与字段探针证明 Rank/Reward/Goods 克隆均已绑定且无重复。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.shared.award","status":"needs-runtime-verify","runtime_gap":"需 BaseAwardItem 图标、数量、品质、效果、详情和关闭链。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.shared.matrix","status":"needs-runtime-verify","runtime_gap":"需空/有数据、1/2/3 奖励、个人/全服、领取态与两档 viewport。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+
+    {"id":"mainui.list-duobao.lifecycle.cold","status":"needs-runtime-verify","runtime_gap":"需真实 Web 冷开、配置/回包/资源 ready 多时点证据。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.lifecycle.warm","status":"needs-runtime-verify","runtime_gap":"需主页面/三个弹窗顺序开关和重开零重复/零残影。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.lifecycle.viewports","status":"needs-runtime-verify","runtime_gap":"需 720x1280 与 1920x1080 老 H5/Unity Web 比较。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]},
+    {"id":"mainui.list-duobao.lifecycle.performance","status":"needs-runtime-verify","runtime_gap":"需 cold/warm 耗时、配置加载、列表分配和关闭清理。","evidence":["output/ui_route_audit/2026-08-09_list_duobao/static-audit.md"]}
+  ]
+}

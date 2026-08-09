@@ -1,0 +1,1024 @@
+{
+    "nodes":  [
+                  {
+                      "id":  "mainui.friend-invite.shell.identity",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "Static implementation was checked, but Unity and real Web were not run; clicks, lifecycle, late-arrival cleanup, resources, sounds, and old-client comparison remain unverified.",
+                      "note":  "Static evidence only; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shell.count",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "Static implementation was checked, but Unity and real Web were not run; clicks, lifecycle, late-arrival cleanup, resources, sounds, and old-client comparison remain unverified.",
+                      "note":  "Static evidence only; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shell.preview",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shell.instruction",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shell.close",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "Static implementation was checked, but Unity and real Web were not run; clicks, lifecycle, late-arrival cleanup, resources, sounds, and old-client comparison remain unverified.",
+                      "note":  "Static evidence only; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shell.background-close",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.tabs.recourse",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.tabs.help",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.tabs.level",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.tabs.boost",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.tabs.red-dot",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shared-action.daily-limit",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shared-action.cooldown",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shared-action.not-fire",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shared-action.share",
+                      "status":  "blocked",
+                      "blocked_reason":  "No authorization for sharing, claiming, exchanging, or other account writes; enumerated only and no transaction packet was sent.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "authorization"
+                                           ],
+                      "gates":  {
+                                    "authorization":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shared-action.daily-claim",
+                      "status":  "blocked",
+                      "blocked_reason":  "No authorization for sharing, claiming, exchanging, or other account writes; enumerated only and no transaction packet was sent.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "authorization"
+                                           ],
+                      "gates":  {
+                                    "authorization":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shared-action.boost-claim",
+                      "status":  "blocked",
+                      "blocked_reason":  "No authorization for sharing, claiming, exchanging, or other account writes; enumerated only and no transaction packet was sent.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "authorization"
+                                           ],
+                      "gates":  {
+                                    "authorization":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.recourse.progress",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.recourse.list",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.recourse.item-detail",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.recourse.claim",
+                      "status":  "blocked",
+                      "blocked_reason":  "No authorization for sharing, claiming, exchanging, or other account writes; enumerated only and no transaction packet was sent.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "authorization"
+                                           ],
+                      "gates":  {
+                                    "authorization":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.recourse.shop",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.help.progress",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.help.progress-preview",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.help.progress-claim",
+                      "status":  "blocked",
+                      "blocked_reason":  "No authorization for sharing, claiming, exchanging, or other account writes; enumerated only and no transaction packet was sent.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "authorization"
+                                           ],
+                      "gates":  {
+                                    "authorization":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.help.slots",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.help.shop",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.level.slots",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.level.shop",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.boost.currency",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.boost.exchange",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.boost.claim-or-share",
+                      "status":  "blocked",
+                      "blocked_reason":  "No authorization for sharing, claiming, exchanging, or other account writes; enumerated only and no transaction packet was sent.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "authorization"
+                                           ],
+                      "gates":  {
+                                    "authorization":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.welfare.identity",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.welfare.reward-list",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.welfare.hook",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.welfare.claim-share",
+                      "status":  "blocked",
+                      "blocked_reason":  "No authorization for sharing, claiming, exchanging, or other account writes; enumerated only and no transaction packet was sent.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "authorization"
+                                           ],
+                      "gates":  {
+                                    "authorization":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.welfare.close",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shop.identity",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shop.tabs",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shop.currency",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shop.list",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shop.item-detail",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shop.exchange",
+                      "status":  "blocked",
+                      "blocked_reason":  "No authorization for sharing, claiming, exchanging, or other account writes; enumerated only and no transaction packet was sent.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "authorization"
+                                           ],
+                      "gates":  {
+                                    "authorization":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shop.close",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.sdk-share.overlay",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.sdk-share.callback",
+                      "status":  "blocked",
+                      "blocked_reason":  "No authorization for sharing, claiming, exchanging, or other account writes; enumerated only and no transaction packet was sent.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "authorization"
+                                           ],
+                      "gates":  {
+                                    "authorization":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.sdk-share.wx-count",
+                      "status":  "blocked",
+                      "blocked_reason":  "11301 is a read-only semantic leaf but remains hard-negative with no current constant, registration, model field, or runtime consumer.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.sdk-share.wx-reward",
+                      "status":  "blocked",
+                      "blocked_reason":  "No authorization for sharing, claiming, exchanging, or other account writes; enumerated only and no transaction packet was sent.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "authorization"
+                                           ],
+                      "gates":  {
+                                    "authorization":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.sdk-share.close",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shared-components.tab-item.render",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shared-components.tab-item.selected",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shared-components.tab-item.main-four-pages",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shared-components.tab-item.shop-consumer",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shared-components.help-item.state0",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shared-components.help-item.state1",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shared-components.help-item.state2",
+                      "status":  "blocked",
+                      "blocked_reason":  "No authorization for sharing, claiming, exchanging, or other account writes; enumerated only and no transaction packet was sent.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "authorization"
+                                           ],
+                      "gates":  {
+                                    "authorization":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.shared-components.help-item.state3",
+                      "status":  "blocked",
+                      "blocked_reason":  "The control/page/component branch is hidden or not implemented; static presence cannot substitute for a real runtime route.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.route-state.startup",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "Static implementation was checked, but Unity and real Web were not run; clicks, lifecycle, late-arrival cleanup, resources, sounds, and old-client comparison remain unverified.",
+                      "note":  "Static evidence only; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.route-state.level-change",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "Static implementation was checked, but Unity and real Web were not run; clicks, lifecycle, late-arrival cleanup, resources, sounds, and old-client comparison remain unverified.",
+                      "note":  "Static evidence only; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.route-state.kill-34010",
+                      "status":  "blocked",
+                      "blocked_reason":  "Protocol is intentionally KILL/absent and must not be registered, sent, or exposed by UI.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.route-state.kill-34011",
+                      "status":  "blocked",
+                      "blocked_reason":  "Protocol is intentionally KILL/absent and must not be registered, sent, or exposed by UI.",
+                      "note":  "Explicitly blocked; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.route-state.disconnect-reset",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "Static implementation was checked, but Unity and real Web were not run; clicks, lifecycle, late-arrival cleanup, resources, sounds, and old-client comparison remain unverified.",
+                      "note":  "Static evidence only; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.route-state.late-arrival",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "Static implementation was checked, but Unity and real Web were not run; clicks, lifecycle, late-arrival cleanup, resources, sounds, and old-client comparison remain unverified.",
+                      "note":  "Static evidence only; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.route-state.subscription-unbind",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "Static implementation was checked, but Unity and real Web were not run; clicks, lifecycle, late-arrival cleanup, resources, sounds, and old-client comparison remain unverified.",
+                      "note":  "Static evidence only; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.route-state.sounds",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "Static implementation was checked, but Unity and real Web were not run; clicks, lifecycle, late-arrival cleanup, resources, sounds, and old-client comparison remain unverified.",
+                      "note":  "Static evidence only; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.route-state.resources",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "Static implementation was checked, but Unity and real Web were not run; clicks, lifecycle, late-arrival cleanup, resources, sounds, and old-client comparison remain unverified.",
+                      "note":  "Static evidence only; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.route-state.cold-warm",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "Static implementation was checked, but Unity and real Web were not run; clicks, lifecycle, late-arrival cleanup, resources, sounds, and old-client comparison remain unverified.",
+                      "note":  "Static evidence only; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "mainui.friend-invite.route-state.viewports",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "Static implementation was checked, but Unity and real Web were not run; clicks, lifecycle, late-arrival cleanup, resources, sounds, and old-client comparison remain unverified.",
+                      "note":  "Static evidence only; no runtime completion claim.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_friendinvite_static_v2/static-audit.md"
+                                   ]
+                  }
+              ]
+}

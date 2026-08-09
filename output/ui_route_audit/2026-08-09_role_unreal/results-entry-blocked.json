@@ -1,0 +1,33 @@
+{
+  "nodes": [
+    {
+      "id": "mainui.role.unreal.entry.visible",
+      "status": "blocked",
+      "blocked_reason": "Current old EquipmentView serializes _Group6 as visible=false and account 111111 (Lv.260) cannot expose the level-360 Unreal route.",
+      "note": "Read-only old-client capture proved the Role control hidden; no account mutation or synthetic click was used.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_unreal/old_readonly_v4/blocked.json",
+        "output/ui_route_audit/2026-08-09_role_unreal/old_readonly_v4/shots/20_role_person.png"
+      ]
+    },
+    {
+      "id": "mainui.role.unreal.entry.openfun113",
+      "status": "blocked",
+      "blocked_reason": "OpenFun 113 remains in source but its current Role control is hidden, so there is no authorized real-pointer path for this account/state.",
+      "note": "The code path is implementation evidence only and cannot substitute for current runtime reachability.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_unreal/old_readonly_v4/blocked.json"
+      ]
+    },
+    {
+      "id": "mainui.role.unreal.entry.openfun195",
+      "status": "blocked",
+      "blocked_reason": "The item-use OpenFun 195 route requires a real Unreal item and an eligible state; neither was prepared because no reversible dedicated-account recipe or write authorization is available.",
+      "note": "Do not GM the target result or inject OpenFun from page JavaScript; re-run through a real visible item-use control.",
+      "evidence": [
+        "Tools/ModuleManifest/unreal.manifest.json",
+        "output/ui_route_audit/2026-08-09_role_unreal/old_readonly_v4/blocked.json"
+      ]
+    }
+  ]
+}

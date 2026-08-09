@@ -15,12 +15,22 @@ namespace Shenxiao.Module.Core.Medal
         {
             RegisterProtocal(Proto.MEDAL_ERROR, On13400);
             RegisterProtocal(Proto.MEDAL_INFO, On13401);
+            RegisterProtocal(Proto.MEDAL_UPGRADE, On13402);
             RegisterProtocal(Proto.MEDAL_TITLE_SNAPSHOT, On13405);
+        }
+        public void RequestInfo()
+        {
+            SendEmpty(Proto.MEDAL_INFO);
         }
         public void RequestStartup()
         {
-            SendEmpty(Proto.MEDAL_INFO);
+            RequestInfo();
             SendEmpty(Proto.MEDAL_TITLE_SNAPSHOT);
+        }
+        /// <summary>严格空包。只允许 MedalFlow 在真实点击且全部前置条件满足后调用。</summary>
+        public void RequestUpgrade()
+        {
+            SendEmpty(Proto.MEDAL_UPGRADE);
         }
         private void SendEmpty(int protoId)
         {
@@ -37,6 +47,10 @@ namespace Shenxiao.Module.Core.Medal
         private void On13401(NetReader r)
         {
             MedalModel.Instance.ReplaceData(r.ReadU32(), r.ReadU32(), r.ReadU32(), unchecked((ulong)r.ReadU64()), r.ReadU32(), r.ReadU32());
+        }
+        private void On13402(NetReader r)
+        {
+            MedalModel.Instance.ApplyUpgrade(r.ReadU32(), unchecked((ulong)r.ReadU64()));
         }
         private void On13405(NetReader r)
         {

@@ -1,0 +1,47 @@
+{
+  "schema_target": 6,
+  "route": "marriage",
+  "topology_revision": 3,
+  "supersedes": "../2026-08-09_marriage_v2/route-ledger.json",
+  "checks": {
+    "stable_logical_route_identity": true,
+    "v1_is_marked_superseded": true,
+    "v2_is_marked_superseded": true,
+    "unique_node_ids": true,
+    "single_root": true,
+    "page_control_inventory_matches_direct_children": true,
+    "results_exactly_cover_leaves": true,
+    "only_blocked_or_needs_runtime_verify": true,
+    "no_done_or_not_run_leaf": true,
+    "all_leaf_reasons_present": true,
+    "query_leaf_set_complete": true,
+    "background_close_leaf_set_complete": true,
+    "dun_tips_gray_leaf_present": true,
+    "help_placeholders_are_blocked": true,
+    "legacy_boundaries_complete": true,
+    "legacy_ts_exactly_mapped": true,
+    "mapped_route_nodes_exist": true,
+    "dead_views_map_to_boundary_nodes": true,
+    "ring_uses_outward_changed": true,
+    "ring_change_open_is_commented": true,
+    "tag_string_open_exists_but_import_is_commented": true,
+    "unity_match_send_is_absent": true,
+    "unity_match_receivers_are_defensive_only": true
+  },
+  "metrics": {
+    "nodes": 217,
+    "pages": 30,
+    "leaves": 187,
+    "legacy_ts_count": 48,
+    "mapped_ts_count": 48,
+    "query_leaf_count": 7,
+    "background_close_leaf_count": 12,
+    "dead_or_replaced_boundary_count": 4
+  },
+  "source_sha256": {
+    "legacy_marriage_ring_view": "9dd38f5bac11b231dfcc11af9d4e1147f82656fc52dfd99b3ebd87f606fd5c02",
+    "legacy_marriage_issue_view": "132ef14d4564149ee4d1821fdd970c125c8729226e1b056f92858aba84697b1a",
+    "legacy_marriage_controller": "22fa2ab9c62772ade43bc4516b26b06ad0a54703b351e93e802dfaf2e3701155",
+    "unity_marriage_controller": "208af647d77a9f35b126c9fc1053de1dd681838ca459120706f816bd11e8fb96"
+  }
+}

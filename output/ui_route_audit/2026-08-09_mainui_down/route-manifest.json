@@ -1,0 +1,1207 @@
+{
+  "route": "mainui.bottom.fixed",
+  "baseline": {
+    "authority": "当前老客户端同账号、同状态、同 viewport 的真实运行结果；本轮按禁令只做老端源码、Unity Prefab/Bind/View/Flow/Router/协议静态闭包，不启动 Unity 或浏览器。",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/mainUI/MainUIDownView.ts",
+      "E:/GitProject/yu_client/h5/src/mainUI/MainUIChatView.ts",
+      "E:/GitProject/yu_client/h5/src/mainUI/MainFuncIconItem.ts",
+      "E:/GitProject/yu_client/h5/src/mainUI/MainUIModel.ts",
+      "E:/GitProject/yu_client/h5/src/mainUI/ActivityIcon.ts"
+    ],
+    "unity_sources": [
+      "Assets/Prefabs/UI/MainUI/Regions/HudNavBar.prefab",
+      "Assets/Prefabs/UI/MainUI/Regions/HudChatBar.prefab",
+      "Assets/Scripts/Generated/UI/MainUI/MainUIDownViewBind.cs",
+      "Assets/Scripts/Generated/UI/MainUI/MainUIChatViewBind.cs",
+      "Assets/Scripts/Module/Core/MainUI/Views/MainUIDownView.cs",
+      "Assets/Scripts/Module/Core/MainUI/Views/MainUIChatView.cs",
+      "Assets/Scripts/Module/Core/MainUI/Views/MainFuncIconItem.cs",
+      "Assets/Scripts/Module/Core/MainUI/Views/ActivityIcon.cs",
+      "Assets/Scripts/Module/Core/MainUI/MainUIModel.cs",
+      "Assets/Scripts/Module/Core/MainUI/MainUIRouter.cs"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "mainui.bottom.fixed",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        {
+          "id": "bottom-navigation",
+          "kind": "region",
+          "child": "mainui.bottom.fixed.nav"
+        },
+        {
+          "id": "chat-and-fixed-entries",
+          "kind": "region",
+          "child": "mainui.bottom.fixed.chatbar"
+        }
+      ]
+    },
+    {
+      "id": "mainui.bottom.fixed.nav",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed",
+      "control_inventory": [
+        {
+          "id": "navbar-background",
+          "kind": "visual",
+          "child": "mainui.bottom.fixed.nav.background"
+        },
+        {
+          "id": "experience-bar",
+          "kind": "status-block",
+          "child": "mainui.bottom.fixed.nav.experience"
+        },
+        {
+          "id": "line-flip",
+          "kind": "button",
+          "child": "mainui.bottom.fixed.nav.flip"
+        },
+        {
+          "id": "story-guide",
+          "kind": "conditional-effect",
+          "child": "mainui.bottom.fixed.nav.guide"
+        },
+        {
+          "id": "角色-role",
+          "kind": "conditional-entry",
+          "child": "mainui.bottom.fixed.nav.role"
+        },
+        {
+          "id": "背包-bag",
+          "kind": "conditional-entry",
+          "child": "mainui.bottom.fixed.nav.bag"
+        },
+        {
+          "id": "灵宠-pet",
+          "kind": "conditional-entry",
+          "child": "mainui.bottom.fixed.nav.pet"
+        },
+        {
+          "id": "装备-equip",
+          "kind": "conditional-entry",
+          "child": "mainui.bottom.fixed.nav.equip"
+        },
+        {
+          "id": "秘宝-treasure",
+          "kind": "conditional-entry",
+          "child": "mainui.bottom.fixed.nav.treasure"
+        },
+        {
+          "id": "锻造红装-red",
+          "kind": "conditional-entry",
+          "child": "mainui.bottom.fixed.nav.red"
+        },
+        {
+          "id": "情缘-love",
+          "kind": "conditional-entry",
+          "child": "mainui.bottom.fixed.nav.love"
+        },
+        {
+          "id": "公会-guild",
+          "kind": "conditional-entry",
+          "child": "mainui.bottom.fixed.nav.guild"
+        },
+        {
+          "id": "合成-composite",
+          "kind": "conditional-entry",
+          "child": "mainui.bottom.fixed.nav.composite"
+        },
+        {
+          "id": "神降/帮助-232",
+          "kind": "conditional-entry",
+          "child": "mainui.bottom.fixed.nav.help232"
+        }
+      ]
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.background",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.experience",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav",
+      "control_inventory": [
+        {
+          "id": "exp-fill",
+          "kind": "progress",
+          "child": "mainui.bottom.fixed.nav.experience.progress"
+        },
+        {
+          "id": "exp-label",
+          "kind": "text",
+          "child": "mainui.bottom.fixed.nav.experience.label"
+        },
+        {
+          "id": "ui-expbar",
+          "kind": "dynamic-effect",
+          "child": "mainui.bottom.fixed.nav.experience.effect"
+        }
+      ]
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.experience.progress",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.experience"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.experience.label",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.experience"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.experience.effect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.experience"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.flip",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav",
+      "control_inventory": [
+        {
+          "id": "level-65-unlock",
+          "kind": "conditional-state",
+          "child": "mainui.bottom.fixed.nav.flip.unlock"
+        },
+        {
+          "id": "line-0-1-image",
+          "kind": "state-visual",
+          "child": "mainui.bottom.fixed.nav.flip.visual"
+        },
+        {
+          "id": "hidden-line-red",
+          "kind": "red-dot",
+          "child": "mainui.bottom.fixed.nav.flip.red"
+        },
+        {
+          "id": "flip-button",
+          "kind": "button",
+          "child": "mainui.bottom.fixed.nav.flip.toggle"
+        }
+      ]
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.flip.unlock",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.flip"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.flip.visual",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.flip"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.flip.red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.flip"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.flip.toggle",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.flip"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.guide",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.role",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav",
+      "control_inventory": [
+        {
+          "id": "function-open",
+          "kind": "conditional-state",
+          "child": "mainui.bottom.fixed.nav.role.visibility"
+        },
+        {
+          "id": "icon",
+          "kind": "visual",
+          "child": "mainui.bottom.fixed.nav.role.visual"
+        },
+        {
+          "id": "red-dot",
+          "kind": "red-dot",
+          "child": "mainui.bottom.fixed.nav.role.red"
+        },
+        {
+          "id": "route-role",
+          "kind": "button",
+          "child": "mainui.bottom.fixed.nav.role.open"
+        },
+        {
+          "id": "return-to-mainui",
+          "kind": "return",
+          "child": "mainui.bottom.fixed.nav.role.return"
+        }
+      ]
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.role.visibility",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.role"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.role.visual",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.role"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.role.red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.role"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.role.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.role"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.role.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.role"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.bag",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav",
+      "control_inventory": [
+        {
+          "id": "function-open",
+          "kind": "conditional-state",
+          "child": "mainui.bottom.fixed.nav.bag.visibility"
+        },
+        {
+          "id": "icon",
+          "kind": "visual",
+          "child": "mainui.bottom.fixed.nav.bag.visual"
+        },
+        {
+          "id": "red-dot",
+          "kind": "red-dot",
+          "child": "mainui.bottom.fixed.nav.bag.red"
+        },
+        {
+          "id": "route-bag",
+          "kind": "button",
+          "child": "mainui.bottom.fixed.nav.bag.open"
+        },
+        {
+          "id": "return-to-mainui",
+          "kind": "return",
+          "child": "mainui.bottom.fixed.nav.bag.return"
+        }
+      ]
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.bag.visibility",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.bag"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.bag.visual",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.bag"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.bag.red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.bag"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.bag.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.bag"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.bag.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.bag"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.pet",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav",
+      "control_inventory": [
+        {
+          "id": "function-open",
+          "kind": "conditional-state",
+          "child": "mainui.bottom.fixed.nav.pet.visibility"
+        },
+        {
+          "id": "icon",
+          "kind": "visual",
+          "child": "mainui.bottom.fixed.nav.pet.visual"
+        },
+        {
+          "id": "red-dot",
+          "kind": "red-dot",
+          "child": "mainui.bottom.fixed.nav.pet.red"
+        },
+        {
+          "id": "route-pet",
+          "kind": "button",
+          "child": "mainui.bottom.fixed.nav.pet.open"
+        },
+        {
+          "id": "return-to-mainui",
+          "kind": "return",
+          "child": "mainui.bottom.fixed.nav.pet.return"
+        }
+      ]
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.pet.visibility",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.pet"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.pet.visual",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.pet"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.pet.red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.pet"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.pet.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.pet"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.pet.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.pet"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.equip",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav",
+      "control_inventory": [
+        {
+          "id": "function-open",
+          "kind": "conditional-state",
+          "child": "mainui.bottom.fixed.nav.equip.visibility"
+        },
+        {
+          "id": "icon",
+          "kind": "visual",
+          "child": "mainui.bottom.fixed.nav.equip.visual"
+        },
+        {
+          "id": "red-dot",
+          "kind": "red-dot",
+          "child": "mainui.bottom.fixed.nav.equip.red"
+        },
+        {
+          "id": "route-equip",
+          "kind": "button",
+          "child": "mainui.bottom.fixed.nav.equip.open"
+        },
+        {
+          "id": "return-to-mainui",
+          "kind": "return",
+          "child": "mainui.bottom.fixed.nav.equip.return"
+        }
+      ]
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.equip.visibility",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.equip"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.equip.visual",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.equip"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.equip.red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.equip"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.equip.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.equip"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.equip.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.equip"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.treasure",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav",
+      "control_inventory": [
+        {
+          "id": "function-open",
+          "kind": "conditional-state",
+          "child": "mainui.bottom.fixed.nav.treasure.visibility"
+        },
+        {
+          "id": "icon",
+          "kind": "visual",
+          "child": "mainui.bottom.fixed.nav.treasure.visual"
+        },
+        {
+          "id": "red-dot",
+          "kind": "red-dot",
+          "child": "mainui.bottom.fixed.nav.treasure.red"
+        },
+        {
+          "id": "route-treasure",
+          "kind": "button",
+          "child": "mainui.bottom.fixed.nav.treasure.open"
+        },
+        {
+          "id": "return-to-mainui",
+          "kind": "return",
+          "child": "mainui.bottom.fixed.nav.treasure.return"
+        }
+      ]
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.treasure.visibility",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.treasure"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.treasure.visual",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.treasure"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.treasure.red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.treasure"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.treasure.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.treasure"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.treasure.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.treasure"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.red",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav",
+      "control_inventory": [
+        {
+          "id": "function-open",
+          "kind": "conditional-state",
+          "child": "mainui.bottom.fixed.nav.red.visibility"
+        },
+        {
+          "id": "icon",
+          "kind": "visual",
+          "child": "mainui.bottom.fixed.nav.red.visual"
+        },
+        {
+          "id": "red-dot",
+          "kind": "red-dot",
+          "child": "mainui.bottom.fixed.nav.red.red"
+        },
+        {
+          "id": "route-red",
+          "kind": "button",
+          "child": "mainui.bottom.fixed.nav.red.open"
+        },
+        {
+          "id": "return-to-mainui",
+          "kind": "return",
+          "child": "mainui.bottom.fixed.nav.red.return"
+        }
+      ]
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.red.visibility",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.red"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.red.visual",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.red"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.red.red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.red"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.red.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.red"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.red.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.red"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.love",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav",
+      "control_inventory": [
+        {
+          "id": "function-open",
+          "kind": "conditional-state",
+          "child": "mainui.bottom.fixed.nav.love.visibility"
+        },
+        {
+          "id": "icon",
+          "kind": "visual",
+          "child": "mainui.bottom.fixed.nav.love.visual"
+        },
+        {
+          "id": "red-dot",
+          "kind": "red-dot",
+          "child": "mainui.bottom.fixed.nav.love.red"
+        },
+        {
+          "id": "route-love",
+          "kind": "button",
+          "child": "mainui.bottom.fixed.nav.love.open"
+        },
+        {
+          "id": "return-to-mainui",
+          "kind": "return",
+          "child": "mainui.bottom.fixed.nav.love.return"
+        }
+      ]
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.love.visibility",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.love"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.love.visual",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.love"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.love.red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.love"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.love.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.love"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.love.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.love"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.guild",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav",
+      "control_inventory": [
+        {
+          "id": "function-open",
+          "kind": "conditional-state",
+          "child": "mainui.bottom.fixed.nav.guild.visibility"
+        },
+        {
+          "id": "icon",
+          "kind": "visual",
+          "child": "mainui.bottom.fixed.nav.guild.visual"
+        },
+        {
+          "id": "red-dot",
+          "kind": "red-dot",
+          "child": "mainui.bottom.fixed.nav.guild.red"
+        },
+        {
+          "id": "route-guild",
+          "kind": "button",
+          "child": "mainui.bottom.fixed.nav.guild.open"
+        },
+        {
+          "id": "return-to-mainui",
+          "kind": "return",
+          "child": "mainui.bottom.fixed.nav.guild.return"
+        }
+      ]
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.guild.visibility",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.guild"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.guild.visual",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.guild"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.guild.red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.guild"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.guild.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.guild"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.guild.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.guild"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.composite",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav",
+      "control_inventory": [
+        {
+          "id": "function-open",
+          "kind": "conditional-state",
+          "child": "mainui.bottom.fixed.nav.composite.visibility"
+        },
+        {
+          "id": "icon",
+          "kind": "visual",
+          "child": "mainui.bottom.fixed.nav.composite.visual"
+        },
+        {
+          "id": "red-dot",
+          "kind": "red-dot",
+          "child": "mainui.bottom.fixed.nav.composite.red"
+        },
+        {
+          "id": "route-composite",
+          "kind": "button",
+          "child": "mainui.bottom.fixed.nav.composite.open"
+        },
+        {
+          "id": "return-to-mainui",
+          "kind": "return",
+          "child": "mainui.bottom.fixed.nav.composite.return"
+        }
+      ]
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.composite.visibility",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.composite"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.composite.visual",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.composite"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.composite.red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.composite"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.composite.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.composite"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.composite.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.composite"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.help232",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav",
+      "control_inventory": [
+        {
+          "id": "function-open",
+          "kind": "conditional-state",
+          "child": "mainui.bottom.fixed.nav.help232.visibility"
+        },
+        {
+          "id": "icon",
+          "kind": "visual",
+          "child": "mainui.bottom.fixed.nav.help232.visual"
+        },
+        {
+          "id": "red-dot",
+          "kind": "red-dot",
+          "child": "mainui.bottom.fixed.nav.help232.red"
+        },
+        {
+          "id": "route-232",
+          "kind": "button",
+          "child": "mainui.bottom.fixed.nav.help232.open"
+        },
+        {
+          "id": "return-to-mainui",
+          "kind": "return",
+          "child": "mainui.bottom.fixed.nav.help232.return"
+        }
+      ]
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.help232.visibility",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.help232"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.help232.visual",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.help232"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.help232.red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.help232"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.help232.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.help232"
+    },
+    {
+      "id": "mainui.bottom.fixed.nav.help232.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.nav.help232"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed",
+      "control_inventory": [
+        {
+          "id": "chatbar-background",
+          "kind": "visual",
+          "child": "mainui.bottom.fixed.chatbar.background"
+        },
+        {
+          "id": "chat-system-messages",
+          "kind": "list-region",
+          "child": "mainui.bottom.fixed.chatbar.messages"
+        },
+        {
+          "id": "setting",
+          "kind": "fixed-entry",
+          "child": "mainui.bottom.fixed.chatbar.setting"
+        },
+        {
+          "id": "friend-mail",
+          "kind": "fixed-entry",
+          "child": "mainui.bottom.fixed.chatbar.friend"
+        },
+        {
+          "id": "shop",
+          "kind": "fixed-entry",
+          "child": "mainui.bottom.fixed.chatbar.shop"
+        },
+        {
+          "id": "stronger-158",
+          "kind": "fixed-entry",
+          "child": "mainui.bottom.fixed.chatbar.stronger"
+        }
+      ]
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.background",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.messages",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar",
+      "control_inventory": [
+        {
+          "id": "normal-chat-list",
+          "kind": "list",
+          "child": "mainui.bottom.fixed.chatbar.messages.normal-list"
+        },
+        {
+          "id": "normal-chat-scroll",
+          "kind": "scroll",
+          "child": "mainui.bottom.fixed.chatbar.messages.normal-scroll"
+        },
+        {
+          "id": "system-message-list",
+          "kind": "list",
+          "child": "mainui.bottom.fixed.chatbar.messages.system-list"
+        },
+        {
+          "id": "system-message-scroll",
+          "kind": "scroll",
+          "child": "mainui.bottom.fixed.chatbar.messages.system-scroll"
+        },
+        {
+          "id": "open-chat",
+          "kind": "button",
+          "child": "mainui.bottom.fixed.chatbar.messages.open"
+        },
+        {
+          "id": "return-to-mainui",
+          "kind": "return",
+          "child": "mainui.bottom.fixed.chatbar.messages.return"
+        }
+      ]
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.messages.normal-list",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.messages"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.messages.normal-scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.messages"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.messages.system-list",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.messages"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.messages.system-scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.messages"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.messages.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.messages"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.messages.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.messages"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.setting",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar",
+      "control_inventory": [
+        {
+          "id": "setting-icon",
+          "kind": "visual",
+          "child": "mainui.bottom.fixed.chatbar.setting.visual"
+        },
+        {
+          "id": "open-setting",
+          "kind": "button",
+          "child": "mainui.bottom.fixed.chatbar.setting.open"
+        },
+        {
+          "id": "return-to-mainui",
+          "kind": "return",
+          "child": "mainui.bottom.fixed.chatbar.setting.return"
+        }
+      ]
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.setting.visual",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.setting"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.setting.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.setting"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.setting.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.setting"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.friend",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar",
+      "control_inventory": [
+        {
+          "id": "friend-icon",
+          "kind": "visual",
+          "child": "mainui.bottom.fixed.chatbar.friend.visual"
+        },
+        {
+          "id": "friend-mail-aggregate",
+          "kind": "red-dot",
+          "child": "mainui.bottom.fixed.chatbar.friend.red"
+        },
+        {
+          "id": "friend-vs-email",
+          "kind": "conditional-route",
+          "child": "mainui.bottom.fixed.chatbar.friend.branch"
+        },
+        {
+          "id": "open-friend",
+          "kind": "button",
+          "child": "mainui.bottom.fixed.chatbar.friend.open-friend"
+        },
+        {
+          "id": "open-email",
+          "kind": "button",
+          "child": "mainui.bottom.fixed.chatbar.friend.open-email"
+        },
+        {
+          "id": "return-to-mainui",
+          "kind": "return",
+          "child": "mainui.bottom.fixed.chatbar.friend.return"
+        }
+      ]
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.friend.visual",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.friend"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.friend.red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.friend"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.friend.branch",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.friend"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.friend.open-friend",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.friend"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.friend.open-email",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.friend"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.friend.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.friend"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.shop",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar",
+      "control_inventory": [
+        {
+          "id": "shop-icon",
+          "kind": "visual",
+          "child": "mainui.bottom.fixed.chatbar.shop.visual"
+        },
+        {
+          "id": "shop-red",
+          "kind": "red-dot",
+          "child": "mainui.bottom.fixed.chatbar.shop.red"
+        },
+        {
+          "id": "limited-shop-effect",
+          "kind": "dynamic-effect",
+          "child": "mainui.bottom.fixed.chatbar.shop.limited-effect"
+        },
+        {
+          "id": "open-shop",
+          "kind": "button",
+          "child": "mainui.bottom.fixed.chatbar.shop.open"
+        },
+        {
+          "id": "return-to-mainui",
+          "kind": "return",
+          "child": "mainui.bottom.fixed.chatbar.shop.return"
+        }
+      ]
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.shop.visual",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.shop"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.shop.red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.shop"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.shop.limited-effect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.shop"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.shop.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.shop"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.shop.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.shop"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.stronger",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar",
+      "control_inventory": [
+        {
+          "id": "activity-icon-158",
+          "kind": "visual",
+          "child": "mainui.bottom.fixed.chatbar.stronger.visual"
+        },
+        {
+          "id": "red-or-countdown",
+          "kind": "conditional-state",
+          "child": "mainui.bottom.fixed.chatbar.stronger.badge"
+        },
+        {
+          "id": "open-mainui-stronger",
+          "kind": "button",
+          "child": "mainui.bottom.fixed.chatbar.stronger.open"
+        },
+        {
+          "id": "return-to-mainui",
+          "kind": "return",
+          "child": "mainui.bottom.fixed.chatbar.stronger.return"
+        }
+      ]
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.stronger.visual",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.stronger"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.stronger.badge",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.stronger"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.stronger.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.stronger"
+    },
+    {
+      "id": "mainui.bottom.fixed.chatbar.stronger.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bottom.fixed.chatbar.stronger"
+    }
+  ]
+}
+

@@ -1,0 +1,57 @@
+{
+  "nodes": [
+    {
+      "id": "mainui.rank.entry.route",
+      "status": "blocked",
+      "blocked_reason": "activity_rank 路由静态存在，但 RankEntView Prefab 缺失；本批禁止 Unity/浏览器，不能验证真实入口。"
+    },
+    {
+      "id": "mainui.rank.entry.deep-link",
+      "status": "blocked",
+      "blocked_reason": "老端 OPEN_RANK_VIEW 支持 SetDefaultIndex/SetIndexParameter/SetBackId，RankView.CustomMehod 可按参数选榜；Unity 当前只有无参 Toggle 且页面缺失，深链与返回 NVR。"
+    },
+    {
+      "id": "mainui.rank.entry.game-start-prefetch",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "老端 GAME_START 自动 requestRankData(0)，Unity 明确偏离为开窗后才请求；未运行比较首次打开时延、缓存命中和状态新鲜度。",
+      "note": "偏离已静态确认，是否保留需运行证据。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.content-visual",
+      "status": "blocked",
+      "blocked_reason": "RankView 的 _stage/_Group1/_img_left_bg/_img_right_bg/_bottom_bg/_bottom_left_bg/_item_line/_Image1 等装饰层已逐项核对；Unity RankView Prefab 与对应资源闭包缺失，像素层级 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.tab-title-dormant",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "_gp_title/_title_img 分支仅 selectTab==0 且 config title_id>0 才可能显示；当前 11 个可见配置 title_id 均为0，源码还对非0索引提前 return。未运行确认所有入口参数下始终休眠。",
+      "note": "当前配置不应生成可见标题特效。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.data-not-ready",
+      "status": "blocked",
+      "blocked_reason": "RankView.initItem 在 getRankDate 返回空时直接 return，可能保留加载前/旧页状态；Unity 页面缺失，350ms/1000ms/ready 与切页残影 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.lifecycle.cache",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "老端按 rank_type 缓存10秒，10秒内直接派发旧数据；Unity 打开时从 start=1 BeginQuery 清页并重拉。cold/warm 请求数、即时新鲜度和关闭重开行为未运行比较。",
+      "note": "v1 仅覆盖分页，漏记了缓存时序。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.lifecycle.reopen",
+      "status": "blocked",
+      "blocked_reason": "老端 ReOpen_callback 会按保存的 vo 重建榜首模型；Unity 页面/模型宿主缺失，隐藏再开后的模型恢复与重复实例 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.lifecycle.cleanup",
+      "status": "blocked",
+      "blocked_reason": "老端 DeleteMe 清 title_effect_gp、tab/item loop manager、本人头像；RankItem 还清行称号特效，Unity Flow 释放根实例。页面缺失，关页零残留和异步后到 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.role-menu.placement",
+      "status": "blocked",
+      "blocked_reason": "老端菜单位于 Activity 层，根尺寸183×140，按榜首/行点击的全局 point 设置 x/y，并有透明全屏背景；Unity 弹窗 Prefab/层级/坐标换算缺失，边缘定位、遮挡和穿透 NVR。"
+    }
+  ]
+}

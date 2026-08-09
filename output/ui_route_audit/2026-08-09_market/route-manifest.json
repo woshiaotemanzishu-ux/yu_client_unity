@@ -1,0 +1,4666 @@
+{
+  "route": "mainui.market",
+  "baseline": {
+    "authority": "Current old H5 under the same account, state and viewport is final authority. This manifest freezes static topology only and claims no runtime gate.",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/commonController/MarketController.ts",
+      "E:/GitProject/yu_client/h5/src/commonModel/MarketModel.ts",
+      "E:/GitProject/yu_client/h5/src/market/*.ts",
+      "E:/GitProject/yu_client/cdn/resource/config/client/ConfigMarket.json",
+      "E:/GitProject/yu_client/cdn/resource/config/server/config_goods_sell.json",
+      "E:/GitProject/yu_client/cdn/resource/config/server/config_goods_sell_type.json",
+      "E:/GitProject/yu_client/cdn/resource/config/server/config_goods_sell_subtype.json"
+    ],
+    "unity_sources": [
+      "Assets/Scripts/Module/Core/Market/MarketController.cs",
+      "Assets/Scripts/Module/Core/Market/MarketModel.cs",
+      "Assets/Prefabs/UI/Market/MarketPlzShowItem.prefab",
+      "Assets/Scripts/Generated/UI/Market/MarketPlzShowItemBind.cs (read-only)",
+      "Assets/Prefabs/UI/Chat/ChatModule.prefab (read-only consumer)"
+    ],
+    "static_counts": {
+      "visible_primary_tabs": 3,
+      "top_categories": 8,
+      "buy_subtype_cells": 69,
+      "plz_subtype_cells": 61,
+      "quality_options": 6,
+      "stage_options": 17,
+      "star_options": 6
+    },
+    "protocol_inventory": {
+      "read_or_passive": [
+        "15100",
+        "15101",
+        "15102",
+        "15109",
+        "15112",
+        "15114",
+        "15118",
+        "15119",
+        "15120",
+        "15121"
+      ],
+      "writes": [
+        "15106",
+        "15108",
+        "15111",
+        "15115",
+        "15116",
+        "15117",
+        "15122"
+      ],
+      "excluded": [
+        "15103",
+        "15104",
+        "15105",
+        "15107",
+        "15110",
+        "15113"
+      ],
+      "note": "No account write or Market protocol request was executed in this pass."
+    },
+    "component_dependencies": [
+      {
+        "component": "MarketPlzShowItem.prefab",
+        "consumers": [
+          "old MarketPlzListView",
+          "Unity ChatModule._tpl_MarketPlzShowItem"
+        ],
+        "scope": "Existing Market-path Prefab is cross-route shared; no evidence-backed mutation in this pass."
+      },
+      {
+        "component": "EquipmentItem",
+        "consumers": [
+          "MarketShowItem",
+          "MarketPlzShowItem",
+          "MarketPlzGoodsItem",
+          "MarketSellItem",
+          "MarketSellGoodsItem",
+          "MarketSellCtrlView",
+          "MarketSellTipView"
+        ],
+        "scope": "Common shared component; read-only outside this edit island."
+      },
+      {
+        "component": "DownDropBtn / CalculatorView / typed tooltips",
+        "consumers": [
+          "MarketBuyCtrlView",
+          "MarketPlzView",
+          "MarketPlzCtrlView",
+          "MarketSellCtrlView",
+          "Market list item details"
+        ],
+        "scope": "Common runtime dependency; read-only outside this edit island."
+      },
+      {
+        "component": "BaseWindowComponent",
+        "consumers": [
+          "MarketBaseView"
+        ],
+        "scope": "Shared shell; Unity page Prefab/runtime owner is missing."
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "mainui.market",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        {
+          "id": "entry",
+          "kind": "entry",
+          "child": "mainui.market.entry"
+        },
+        {
+          "id": "shell",
+          "kind": "window-shell",
+          "child": "mainui.market.shell"
+        },
+        {
+          "id": "buy",
+          "kind": "tab-page",
+          "child": "mainui.market.buy"
+        },
+        {
+          "id": "plz",
+          "kind": "tab-page",
+          "child": "mainui.market.plz"
+        },
+        {
+          "id": "sell",
+          "kind": "tab-page",
+          "child": "mainui.market.sell"
+        },
+        {
+          "id": "legacy",
+          "kind": "conditional-routes",
+          "child": "mainui.market.legacy"
+        },
+        {
+          "id": "shared-item",
+          "kind": "shared-component",
+          "child": "mainui.market.shared-item"
+        },
+        {
+          "id": "protocols",
+          "kind": "data-contract",
+          "child": "mainui.market.protocols"
+        },
+        {
+          "id": "lifecycle",
+          "kind": "route-lifecycle",
+          "child": "mainui.market.lifecycle"
+        }
+      ],
+      "note": "当前老 H5 市场完整静态拓扑；真实玩家运行事实仍待采集。"
+    },
+    {
+      "id": "mainui.market.entry",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market",
+      "control_inventory": [
+        {
+          "id": "icon-local",
+          "kind": "conditional-icon",
+          "child": "mainui.market.entry.icon-local"
+        },
+        {
+          "id": "icon-kf",
+          "kind": "conditional-icon",
+          "child": "mainui.market.entry.icon-kf"
+        },
+        {
+          "id": "level-gate",
+          "kind": "condition",
+          "child": "mainui.market.entry.level-gate"
+        },
+        {
+          "id": "kf-time",
+          "kind": "condition",
+          "child": "mainui.market.entry.kf-time"
+        },
+        {
+          "id": "open",
+          "kind": "navigation",
+          "child": "mainui.market.entry.open"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.entry.icon-local",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.entry",
+      "note": "未到跨服开放时间显示图标 151。"
+    },
+    {
+      "id": "mainui.market.entry.icon-kf",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.entry",
+      "note": "到达 open_time 后显示图标 151@1，并删除 151。"
+    },
+    {
+      "id": "mainui.market.entry.level-gate",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.entry",
+      "note": "服务端 open_lv=90；90 级以下 151xx 静默无回包。"
+    },
+    {
+      "id": "mainui.market.entry.kf-time",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.entry",
+      "note": "15121 open_time、跨天和等级变化刷新入口图标。"
+    },
+    {
+      "id": "mainui.market.entry.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.entry",
+      "note": "真实图标点击应打开 MarketBaseView；Unity 页面路由缺失。"
+    },
+    {
+      "id": "mainui.market.shell",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market",
+      "control_inventory": [
+        {
+          "id": "title",
+          "kind": "conditional-title",
+          "child": "mainui.market.shell.title"
+        },
+        {
+          "id": "background",
+          "kind": "visual",
+          "child": "mainui.market.shell.background"
+        },
+        {
+          "id": "currency",
+          "kind": "state",
+          "child": "mainui.market.shell.currency"
+        },
+        {
+          "id": "tab-buy",
+          "kind": "tab",
+          "child": "mainui.market.shell.tab-buy"
+        },
+        {
+          "id": "tab-plz",
+          "kind": "tab",
+          "child": "mainui.market.shell.tab-plz"
+        },
+        {
+          "id": "tab-sell",
+          "kind": "tab",
+          "child": "mainui.market.shell.tab-sell"
+        },
+        {
+          "id": "tab-auction",
+          "kind": "hidden-tab",
+          "child": "mainui.market.shell.tab-auction"
+        },
+        {
+          "id": "tab-record",
+          "kind": "hidden-tab",
+          "child": "mainui.market.shell.tab-record"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.market.shell.close"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.shell.title",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.shell",
+      "note": "本服 market.uisc_001；跨服 market.uisc_001_kf。"
+    },
+    {
+      "id": "mainui.market.shell.background",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.shell",
+      "note": "三个现行页签均使用 ui_bg_1.jpg。"
+    },
+    {
+      "id": "mainui.market.shell.currency",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.shell",
+      "note": "外窗 money_list=[2,1,0]。"
+    },
+    {
+      "id": "mainui.market.shell.tab-buy",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.market.shell",
+      "note": "购买，现行 index=0。"
+    },
+    {
+      "id": "mainui.market.shell.tab-plz",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.market.shell",
+      "note": "求购，现行 index=1。"
+    },
+    {
+      "id": "mainui.market.shell.tab-sell",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.market.shell",
+      "note": "出售，现行 index=2。"
+    },
+    {
+      "id": "mainui.market.shell.tab-auction",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.shell",
+      "note": "拍卖代码/页签已注释，当前运行态不应出现。"
+    },
+    {
+      "id": "mainui.market.shell.tab-record",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.shell",
+      "note": "记录页签已从 viewClassList/tabStrList 注释移除。"
+    },
+    {
+      "id": "mainui.market.shell.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.market.shell",
+      "note": "关闭 MarketBaseView 并返回主界面。"
+    },
+    {
+      "id": "mainui.market.buy",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market",
+      "control_inventory": [
+        {
+          "id": "categories",
+          "kind": "category-list",
+          "child": "mainui.market.buy.categories"
+        },
+        {
+          "id": "subtypes",
+          "kind": "subtype-list",
+          "child": "mainui.market.buy.subtypes"
+        },
+        {
+          "id": "filters",
+          "kind": "filters",
+          "child": "mainui.market.buy.filters"
+        },
+        {
+          "id": "list-state",
+          "kind": "item-list",
+          "child": "mainui.market.buy.list-state"
+        },
+        {
+          "id": "item",
+          "kind": "shared-item",
+          "child": "mainui.market.buy.item"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.buy.categories",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.buy",
+      "control_inventory": [
+        {
+          "id": "type-1",
+          "kind": "category",
+          "child": "mainui.market.buy.categories.type-1"
+        },
+        {
+          "id": "type-5",
+          "kind": "category",
+          "child": "mainui.market.buy.categories.type-5"
+        },
+        {
+          "id": "type-6",
+          "kind": "category",
+          "child": "mainui.market.buy.categories.type-6"
+        },
+        {
+          "id": "type-4",
+          "kind": "category",
+          "child": "mainui.market.buy.categories.type-4"
+        },
+        {
+          "id": "type-2",
+          "kind": "category",
+          "child": "mainui.market.buy.categories.type-2"
+        },
+        {
+          "id": "type-3",
+          "kind": "category",
+          "child": "mainui.market.buy.categories.type-3"
+        },
+        {
+          "id": "type-7",
+          "kind": "category",
+          "child": "mainui.market.buy.categories.type-7"
+        },
+        {
+          "id": "type-8",
+          "kind": "category",
+          "child": "mainui.market.buy.categories.type-8"
+        }
+      ],
+      "note": "ConfigMarket.type_radio_cfg 的 8 个横向大类。"
+    },
+    {
+      "id": "mainui.market.buy.categories.type-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.categories",
+      "note": "男性装备; id=1。"
+    },
+    {
+      "id": "mainui.market.buy.categories.type-5",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.categories",
+      "note": "女性装备; id=5。"
+    },
+    {
+      "id": "mainui.market.buy.categories.type-6",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.categories",
+      "note": "饰品装备; id=6。"
+    },
+    {
+      "id": "mainui.market.buy.categories.type-4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.categories",
+      "note": "圣印装备; id=4。"
+    },
+    {
+      "id": "mainui.market.buy.categories.type-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.categories",
+      "note": "共鸣材料; id=2。"
+    },
+    {
+      "id": "mainui.market.buy.categories.type-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.categories",
+      "note": "其他材料; id=3。"
+    },
+    {
+      "id": "mainui.market.buy.categories.type-7",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.categories",
+      "note": "神契装备; id=7。"
+    },
+    {
+      "id": "mainui.market.buy.categories.type-8",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.categories",
+      "note": "启示圣铠; id=8。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.buy",
+      "control_inventory": [
+        {
+          "id": "t1-s0",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t1-s0"
+        },
+        {
+          "id": "t1-s1",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t1-s1"
+        },
+        {
+          "id": "t1-s2",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t1-s2"
+        },
+        {
+          "id": "t1-s3",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t1-s3"
+        },
+        {
+          "id": "t1-s4",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t1-s4"
+        },
+        {
+          "id": "t1-s5",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t1-s5"
+        },
+        {
+          "id": "t1-s6",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t1-s6"
+        },
+        {
+          "id": "t5-s0",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t5-s0"
+        },
+        {
+          "id": "t5-s1",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t5-s1"
+        },
+        {
+          "id": "t5-s2",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t5-s2"
+        },
+        {
+          "id": "t5-s3",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t5-s3"
+        },
+        {
+          "id": "t5-s4",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t5-s4"
+        },
+        {
+          "id": "t5-s5",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t5-s5"
+        },
+        {
+          "id": "t5-s6",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t5-s6"
+        },
+        {
+          "id": "t6-s0",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t6-s0"
+        },
+        {
+          "id": "t6-s1",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t6-s1"
+        },
+        {
+          "id": "t6-s2",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t6-s2"
+        },
+        {
+          "id": "t6-s3",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t6-s3"
+        },
+        {
+          "id": "t6-s4",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t6-s4"
+        },
+        {
+          "id": "t4-s0",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t4-s0"
+        },
+        {
+          "id": "t4-s1",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t4-s1"
+        },
+        {
+          "id": "t4-s2",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t4-s2"
+        },
+        {
+          "id": "t4-s3",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t4-s3"
+        },
+        {
+          "id": "t4-s4",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t4-s4"
+        },
+        {
+          "id": "t4-s5",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t4-s5"
+        },
+        {
+          "id": "t4-s6",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t4-s6"
+        },
+        {
+          "id": "t4-s7",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t4-s7"
+        },
+        {
+          "id": "t4-s8",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t4-s8"
+        },
+        {
+          "id": "t4-s9",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t4-s9"
+        },
+        {
+          "id": "t4-s10",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t4-s10"
+        },
+        {
+          "id": "t4-s11",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t4-s11"
+        },
+        {
+          "id": "t2-s0",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t2-s0"
+        },
+        {
+          "id": "t2-s1",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t2-s1"
+        },
+        {
+          "id": "t2-s2",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t2-s2"
+        },
+        {
+          "id": "t2-s3",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t2-s3"
+        },
+        {
+          "id": "t2-s4",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t2-s4"
+        },
+        {
+          "id": "t2-s5",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t2-s5"
+        },
+        {
+          "id": "t2-s6",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t2-s6"
+        },
+        {
+          "id": "t2-s7",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t2-s7"
+        },
+        {
+          "id": "t3-s0",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t3-s0"
+        },
+        {
+          "id": "t3-s1",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t3-s1"
+        },
+        {
+          "id": "t3-s3",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t3-s3"
+        },
+        {
+          "id": "t3-s5",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t3-s5"
+        },
+        {
+          "id": "t3-s6",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t3-s6"
+        },
+        {
+          "id": "t3-s8",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t3-s8"
+        },
+        {
+          "id": "t3-s9",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t3-s9"
+        },
+        {
+          "id": "t3-s10",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t3-s10"
+        },
+        {
+          "id": "t3-s11",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t3-s11"
+        },
+        {
+          "id": "t3-s12",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t3-s12"
+        },
+        {
+          "id": "t3-s13",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t3-s13"
+        },
+        {
+          "id": "t3-s14",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t3-s14"
+        },
+        {
+          "id": "t3-s15",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t3-s15"
+        },
+        {
+          "id": "t3-s16",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t3-s16"
+        },
+        {
+          "id": "t7-s0",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t7-s0"
+        },
+        {
+          "id": "t7-s1",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t7-s1"
+        },
+        {
+          "id": "t7-s2",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t7-s2"
+        },
+        {
+          "id": "t7-s3",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t7-s3"
+        },
+        {
+          "id": "t7-s4",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t7-s4"
+        },
+        {
+          "id": "t8-s0",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t8-s0"
+        },
+        {
+          "id": "t8-s1",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t8-s1"
+        },
+        {
+          "id": "t8-s2",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t8-s2"
+        },
+        {
+          "id": "t8-s3",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t8-s3"
+        },
+        {
+          "id": "t8-s4",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t8-s4"
+        },
+        {
+          "id": "t8-s5",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t8-s5"
+        },
+        {
+          "id": "t8-s6",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t8-s6"
+        },
+        {
+          "id": "t8-s7",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t8-s7"
+        },
+        {
+          "id": "t8-s8",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t8-s8"
+        },
+        {
+          "id": "t8-s9",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t8-s9"
+        },
+        {
+          "id": "t8-s10",
+          "kind": "list-cell",
+          "child": "mainui.market.buy.subtypes.t8-s10"
+        }
+      ],
+      "note": "config_goods_sell_subtype 当前 66 个购买二级格，含各类‘全部’。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t1-s0",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=1, subtype=0, 全部；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t1-s1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=1, subtype=1, 武器；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t1-s2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=1, subtype=2, 铠甲；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t1-s3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=1, subtype=3, 头盔；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t1-s4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=1, subtype=4, 裤子；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t1-s5",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=1, subtype=5, 护腕；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t1-s6",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=1, subtype=6, 鞋子；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t5-s0",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=5, subtype=0, 全部；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t5-s1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=5, subtype=1, 武器；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t5-s2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=5, subtype=2, 衣服；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t5-s3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=5, subtype=3, 发饰；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t5-s4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=5, subtype=4, 裤裙；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t5-s5",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=5, subtype=5, 护手；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t5-s6",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=5, subtype=6, 鞋子；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t6-s0",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=6, subtype=0, 全部；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t6-s1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=6, subtype=1, 项链；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t6-s2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=6, subtype=2, 护符；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t6-s3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=6, subtype=3, 手镯；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t6-s4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=6, subtype=4, 戒指；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s0",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=4, subtype=0, 全部；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=4, subtype=1, 足部；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=4, subtype=2, 头盔；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=4, subtype=3, 护腿；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=4, subtype=4, 护腕；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s5",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=4, subtype=5, 铠甲；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s6",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=4, subtype=6, 武器；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s7",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=4, subtype=7, 晶核；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s8",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=4, subtype=8, 脸具；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s9",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=4, subtype=9, 项链；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s10",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=4, subtype=10, 戒指；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s11",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=4, subtype=11, 圣器；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t2-s0",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=2, subtype=0, 全部；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t2-s1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=2, subtype=1, 共鸣石(男)；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t2-s2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=2, subtype=2, 共鸣石(女)；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t2-s3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=2, subtype=3, 战魂共鸣石；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t2-s4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=2, subtype=4, 饰品共鸣石；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t2-s5",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=2, subtype=5, 万物共鸣石；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t2-s6",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=2, subtype=6, 神之源核；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t2-s7",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=2, subtype=7, 灵之源核；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s0",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=3, subtype=0, 全部；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=3, subtype=1, 垂神翼影幻化；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=3, subtype=3, 神兵幻化；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s5",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=3, subtype=5, 古法符相幻化；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s6",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=3, subtype=6, 经验符；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s8",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=3, subtype=8, 神巫幻化；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s9",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=3, subtype=9, 地境晋升；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s10",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=3, subtype=10, 图谱；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s11",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=3, subtype=11, 剑魄同修碎片；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s12",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=3, subtype=12, 兑换材料；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s13",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=3, subtype=13, 道具碎片；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s14",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=3, subtype=14, 妖灵升级；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s15",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=3, subtype=15, 妖灵碎片；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s16",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=3, subtype=16, 妖灵技能书；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t7-s0",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=7, subtype=0, 全部；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t7-s1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=7, subtype=1, 武器；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t7-s2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=7, subtype=2, 头盔；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t7-s3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=7, subtype=3, 铠甲；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t7-s4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=7, subtype=4, 饰品；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s0",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=8, subtype=0, 全部；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=8, subtype=1, 武器；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=8, subtype=2, 头盔；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=8, subtype=3, 项链；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=8, subtype=4, 上衣；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s5",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=8, subtype=5, 护符；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s6",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=8, subtype=6, 下装；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s7",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=8, subtype=7, 手镯；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s8",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=8, subtype=8, 护手；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s9",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=8, subtype=9, 戒指；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s10",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.subtypes",
+      "note": "type=8, subtype=10, 鞋子；显示挂单数量并进入商品列表。"
+    },
+    {
+      "id": "mainui.market.buy.filters",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.buy",
+      "control_inventory": [
+        {
+          "id": "quality",
+          "kind": "dropdown",
+          "child": "mainui.market.buy.filters.quality"
+        },
+        {
+          "id": "stage",
+          "kind": "dropdown",
+          "child": "mainui.market.buy.filters.stage"
+        },
+        {
+          "id": "star",
+          "kind": "dropdown",
+          "child": "mainui.market.buy.filters.star"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.quality",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters",
+      "control_inventory": [
+        {
+          "id": "cond-99",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.quality.cond-99"
+        },
+        {
+          "id": "cond-3",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.quality.cond-3"
+        },
+        {
+          "id": "cond-4",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.quality.cond-4"
+        },
+        {
+          "id": "cond-5",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.quality.cond-5"
+        },
+        {
+          "id": "cond-6",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.quality.cond-6"
+        },
+        {
+          "id": "cond-7",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.quality.cond-7"
+        }
+      ],
+      "note": "品质下拉 6 项。"
+    },
+    {
+      "id": "mainui.market.buy.filters.quality.cond-99",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.quality",
+      "note": "品质; cond=99."
+    },
+    {
+      "id": "mainui.market.buy.filters.quality.cond-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.quality",
+      "note": "紫色; cond=3."
+    },
+    {
+      "id": "mainui.market.buy.filters.quality.cond-4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.quality",
+      "note": "橙色; cond=4."
+    },
+    {
+      "id": "mainui.market.buy.filters.quality.cond-5",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.quality",
+      "note": "红色; cond=5."
+    },
+    {
+      "id": "mainui.market.buy.filters.quality.cond-6",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.quality",
+      "note": "暗金; cond=6."
+    },
+    {
+      "id": "mainui.market.buy.filters.quality.cond-7",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.quality",
+      "note": "粉色; cond=7."
+    },
+    {
+      "id": "mainui.market.buy.filters.stage",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters",
+      "control_inventory": [
+        {
+          "id": "cond-99",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.stage.cond-99"
+        },
+        {
+          "id": "cond-1",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.stage.cond-1"
+        },
+        {
+          "id": "cond-2",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.stage.cond-2"
+        },
+        {
+          "id": "cond-3",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.stage.cond-3"
+        },
+        {
+          "id": "cond-4",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.stage.cond-4"
+        },
+        {
+          "id": "cond-5",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.stage.cond-5"
+        },
+        {
+          "id": "cond-6",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.stage.cond-6"
+        },
+        {
+          "id": "cond-7",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.stage.cond-7"
+        },
+        {
+          "id": "cond-8",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.stage.cond-8"
+        },
+        {
+          "id": "cond-9",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.stage.cond-9"
+        },
+        {
+          "id": "cond-10",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.stage.cond-10"
+        },
+        {
+          "id": "cond-11",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.stage.cond-11"
+        },
+        {
+          "id": "cond-12",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.stage.cond-12"
+        },
+        {
+          "id": "cond-13",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.stage.cond-13"
+        },
+        {
+          "id": "cond-14",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.stage.cond-14"
+        },
+        {
+          "id": "cond-15",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.stage.cond-15"
+        },
+        {
+          "id": "cond-16",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.stage.cond-16"
+        }
+      ],
+      "note": "阶数下拉 17 项。"
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-99",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.stage",
+      "note": "阶数; cond=99."
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.stage",
+      "note": "1阶; cond=1."
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.stage",
+      "note": "2阶; cond=2."
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.stage",
+      "note": "3阶; cond=3."
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.stage",
+      "note": "4阶; cond=4."
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-5",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.stage",
+      "note": "5阶; cond=5."
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-6",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.stage",
+      "note": "6阶; cond=6."
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-7",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.stage",
+      "note": "7阶; cond=7."
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-8",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.stage",
+      "note": "8阶; cond=8."
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-9",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.stage",
+      "note": "9阶; cond=9."
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-10",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.stage",
+      "note": "10阶; cond=10."
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-11",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.stage",
+      "note": "11阶; cond=11."
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-12",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.stage",
+      "note": "12阶; cond=12."
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-13",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.stage",
+      "note": "13阶; cond=13."
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-14",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.stage",
+      "note": "14阶; cond=14."
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-15",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.stage",
+      "note": "15阶; cond=15."
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-16",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.stage",
+      "note": "16阶; cond=16."
+    },
+    {
+      "id": "mainui.market.buy.filters.star",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters",
+      "control_inventory": [
+        {
+          "id": "cond-99",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.star.cond-99"
+        },
+        {
+          "id": "cond-0",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.star.cond-0"
+        },
+        {
+          "id": "cond-1",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.star.cond-1"
+        },
+        {
+          "id": "cond-2",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.star.cond-2"
+        },
+        {
+          "id": "cond-3",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.star.cond-3"
+        },
+        {
+          "id": "cond-4",
+          "kind": "option",
+          "child": "mainui.market.buy.filters.star.cond-4"
+        }
+      ],
+      "note": "星级下拉 6 项。"
+    },
+    {
+      "id": "mainui.market.buy.filters.star.cond-99",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.star",
+      "note": "星级; cond=99."
+    },
+    {
+      "id": "mainui.market.buy.filters.star.cond-0",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.star",
+      "note": "0星; cond=0."
+    },
+    {
+      "id": "mainui.market.buy.filters.star.cond-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.star",
+      "note": "1星; cond=1."
+    },
+    {
+      "id": "mainui.market.buy.filters.star.cond-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.star",
+      "note": "2星; cond=2."
+    },
+    {
+      "id": "mainui.market.buy.filters.star.cond-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.star",
+      "note": "3星; cond=3."
+    },
+    {
+      "id": "mainui.market.buy.filters.star.cond-4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.filters.star",
+      "note": "4星; cond=4."
+    },
+    {
+      "id": "mainui.market.buy.list-state",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.buy",
+      "control_inventory": [
+        {
+          "id": "structure",
+          "kind": "scroll",
+          "child": "mainui.market.buy.list-state.structure"
+        },
+        {
+          "id": "scroll",
+          "kind": "interaction",
+          "child": "mainui.market.buy.list-state.scroll"
+        },
+        {
+          "id": "empty",
+          "kind": "state",
+          "child": "mainui.market.buy.list-state.empty"
+        },
+        {
+          "id": "kf-tip",
+          "kind": "conditional-text",
+          "child": "mainui.market.buy.list-state.kf-tip"
+        },
+        {
+          "id": "price-sort",
+          "kind": "sort",
+          "child": "mainui.market.buy.list-state.price-sort"
+        },
+        {
+          "id": "buy-times",
+          "kind": "state",
+          "child": "mainui.market.buy.list-state.buy-times"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.buy.list-state.structure",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.list-state",
+      "note": "分类/商品两级动态列表、Viewport/Mask/Content 身份。"
+    },
+    {
+      "id": "mainui.market.buy.list-state.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.list-state",
+      "note": "真实拖动、裁剪、末项可达、切换分类回顶。"
+    },
+    {
+      "id": "mainui.market.buy.list-state.empty",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.list-state",
+      "note": "无商品显示 _group_empty；有商品显示 _group_title。"
+    },
+    {
+      "id": "mainui.market.buy.list-state.kf-tip",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.list-state",
+      "note": "跨服未开且 dayCount>0 时显示 N天后开启跨服交易。"
+    },
+    {
+      "id": "mainui.market.buy.list-state.price-sort",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.list-state",
+      "note": "价格标题点击在升/降序间切换并旋转箭头。"
+    },
+    {
+      "id": "mainui.market.buy.list-state.buy-times",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.list-state",
+      "note": "15114 times_list[0] 显示购买次数/上限。"
+    },
+    {
+      "id": "mainui.market.buy.item",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.buy",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "item-template",
+          "child": "mainui.market.buy.item.identity"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.market.buy.item.detail"
+        },
+        {
+          "id": "name-stage",
+          "kind": "text",
+          "child": "mainui.market.buy.item.name-stage"
+        },
+        {
+          "id": "wear-state",
+          "kind": "conditional-state",
+          "child": "mainui.market.buy.item.wear-state"
+        },
+        {
+          "id": "seller",
+          "kind": "conditional-text",
+          "child": "mainui.market.buy.item.seller"
+        },
+        {
+          "id": "buy",
+          "kind": "transaction",
+          "child": "mainui.market.buy.item.buy"
+        },
+        {
+          "id": "sell",
+          "kind": "conditional-transaction",
+          "child": "mainui.market.buy.item.sell"
+        },
+        {
+          "id": "repeal",
+          "kind": "conditional-transaction",
+          "child": "mainui.market.buy.item.repeal"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.buy.item.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.item",
+      "note": "MarketShowItem + EquipmentItem；列表每个可见格均需独立核对。"
+    },
+    {
+      "id": "mainui.market.buy.item.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.item",
+      "note": "按物品类型打开装备/圣印/神装/启示/龙狼/时装/普通详情。"
+    },
+    {
+      "id": "mainui.market.buy.item.name-stage",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.item",
+      "note": "名称、数量、阶数、单价。"
+    },
+    {
+      "id": "mainui.market.buy.item.wear-state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.item",
+      "note": "装备 up/down/ban 条件图。"
+    },
+    {
+      "id": "mainui.market.buy.item.seller",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.buy.item",
+      "note": "指定交易 role_name 条件文本；当前 P2P 主链已死。"
+    },
+    {
+      "id": "mainui.market.buy.item.buy",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.market.buy.item",
+      "note": "15111 购买并核对成功/失败、次数刷新、当前列表和重开。"
+    },
+    {
+      "id": "mainui.market.buy.item.sell",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.market.buy.item",
+      "note": "role_name 且非本人时直接 15117 出售给求购单。"
+    },
+    {
+      "id": "mainui.market.buy.item.repeal",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.market.buy.item",
+      "note": "本人挂单显示撤销并发送 15108。"
+    },
+    {
+      "id": "mainui.market.plz",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market",
+      "control_inventory": [
+        {
+          "id": "tabs",
+          "kind": "sub-tabs",
+          "child": "mainui.market.plz.tabs"
+        },
+        {
+          "id": "list",
+          "kind": "list-page",
+          "child": "mainui.market.plz.list"
+        },
+        {
+          "id": "create",
+          "kind": "create-page",
+          "child": "mainui.market.plz.create"
+        },
+        {
+          "id": "sell-tip",
+          "kind": "popup",
+          "child": "mainui.market.plz.sell-tip"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.plz.tabs",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.plz",
+      "control_inventory": [
+        {
+          "id": "list",
+          "kind": "tab",
+          "child": "mainui.market.plz.tabs.list"
+        },
+        {
+          "id": "create",
+          "kind": "tab",
+          "child": "mainui.market.plz.tabs.create"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.plz.tabs.list",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.tabs",
+      "note": "求购列表。"
+    },
+    {
+      "id": "mainui.market.plz.tabs.create",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.tabs",
+      "note": "我要求购。"
+    },
+    {
+      "id": "mainui.market.plz.list",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.plz",
+      "control_inventory": [
+        {
+          "id": "scope",
+          "kind": "scope-tabs",
+          "child": "mainui.market.plz.list.scope"
+        },
+        {
+          "id": "price-sort",
+          "kind": "sort",
+          "child": "mainui.market.plz.list.price-sort"
+        },
+        {
+          "id": "structure",
+          "kind": "scroll",
+          "child": "mainui.market.plz.list.structure"
+        },
+        {
+          "id": "scroll",
+          "kind": "interaction",
+          "child": "mainui.market.plz.list.scroll"
+        },
+        {
+          "id": "empty",
+          "kind": "state",
+          "child": "mainui.market.plz.list.empty"
+        },
+        {
+          "id": "item",
+          "kind": "shared-item",
+          "child": "mainui.market.plz.list.item"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.plz.list.scope",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.list",
+      "control_inventory": [
+        {
+          "id": "all",
+          "kind": "radio",
+          "child": "mainui.market.plz.list.scope.all"
+        },
+        {
+          "id": "mine",
+          "kind": "radio",
+          "child": "mainui.market.plz.list.scope.mine"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.plz.list.scope.all",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.list.scope",
+      "note": "全部：15118 page=1,size=999。"
+    },
+    {
+      "id": "mainui.market.plz.list.scope.mine",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.list.scope",
+      "note": "我的：15119 空请求。"
+    },
+    {
+      "id": "mainui.market.plz.list.price-sort",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.list",
+      "note": "求购单价升/降序。"
+    },
+    {
+      "id": "mainui.market.plz.list.structure",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.list",
+      "note": "MarketPlzShowItem 纵向列表、Viewport/Mask/Content。"
+    },
+    {
+      "id": "mainui.market.plz.list.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.list",
+      "note": "真实拖动、裁剪与末项可达。"
+    },
+    {
+      "id": "mainui.market.plz.list.empty",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.list",
+      "note": "空/有数据互斥 _group_empty/_group_title。"
+    },
+    {
+      "id": "mainui.market.plz.list.item",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.list",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "item-template",
+          "child": "mainui.market.plz.list.item.identity"
+        },
+        {
+          "id": "name-stage",
+          "kind": "text",
+          "child": "mainui.market.plz.list.item.name-stage"
+        },
+        {
+          "id": "player",
+          "kind": "conditional-text",
+          "child": "mainui.market.plz.list.item.player"
+        },
+        {
+          "id": "sell",
+          "kind": "conditional-popup",
+          "child": "mainui.market.plz.list.item.sell"
+        },
+        {
+          "id": "repeal",
+          "kind": "conditional-transaction",
+          "child": "mainui.market.plz.list.item.repeal"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.plz.list.item.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.list.item",
+      "note": "MarketPlzShowItem + EquipmentItem；现有 Unity Prefab 仅 Generated Bind。"
+    },
+    {
+      "id": "mainui.market.plz.list.item.name-stage",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.list.item",
+      "note": "名称、阶数、数量、单价。"
+    },
+    {
+      "id": "mainui.market.plz.list.item.player",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.list.item",
+      "note": "role_name 条件显示；点击玩家菜单代码当前注释为空操作。"
+    },
+    {
+      "id": "mainui.market.plz.list.item.sell",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.list.item",
+      "note": "非本人且库存足够时打开 MarketSellTipView；不足提示拥有物品不足。"
+    },
+    {
+      "id": "mainui.market.plz.list.item.repeal",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.market.plz.list.item",
+      "note": "本人求购单撤销，发送 15116。"
+    },
+    {
+      "id": "mainui.market.plz.create",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.plz",
+      "control_inventory": [
+        {
+          "id": "categories",
+          "kind": "category-list",
+          "child": "mainui.market.plz.create.categories"
+        },
+        {
+          "id": "subtypes",
+          "kind": "subtype-list",
+          "child": "mainui.market.plz.create.subtypes"
+        },
+        {
+          "id": "filters",
+          "kind": "filters",
+          "child": "mainui.market.plz.create.filters"
+        },
+        {
+          "id": "goods",
+          "kind": "goods-list",
+          "child": "mainui.market.plz.create.goods"
+        },
+        {
+          "id": "price",
+          "kind": "price-controls",
+          "child": "mainui.market.plz.create.price"
+        },
+        {
+          "id": "count",
+          "kind": "count-controls",
+          "child": "mainui.market.plz.create.count"
+        },
+        {
+          "id": "summary",
+          "kind": "state",
+          "child": "mainui.market.plz.create.summary"
+        },
+        {
+          "id": "confirm",
+          "kind": "transaction",
+          "child": "mainui.market.plz.create.confirm"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.categories",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create",
+      "control_inventory": [
+        {
+          "id": "type-1",
+          "kind": "category",
+          "child": "mainui.market.plz.create.categories.type-1"
+        },
+        {
+          "id": "type-5",
+          "kind": "category",
+          "child": "mainui.market.plz.create.categories.type-5"
+        },
+        {
+          "id": "type-6",
+          "kind": "category",
+          "child": "mainui.market.plz.create.categories.type-6"
+        },
+        {
+          "id": "type-4",
+          "kind": "category",
+          "child": "mainui.market.plz.create.categories.type-4"
+        },
+        {
+          "id": "type-2",
+          "kind": "category",
+          "child": "mainui.market.plz.create.categories.type-2"
+        },
+        {
+          "id": "type-3",
+          "kind": "category",
+          "child": "mainui.market.plz.create.categories.type-3"
+        },
+        {
+          "id": "type-7",
+          "kind": "category",
+          "child": "mainui.market.plz.create.categories.type-7"
+        },
+        {
+          "id": "type-8",
+          "kind": "category",
+          "child": "mainui.market.plz.create.categories.type-8"
+        }
+      ],
+      "note": "我要求购的 8 个横向大类。"
+    },
+    {
+      "id": "mainui.market.plz.create.categories.type-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.categories",
+      "note": "男性装备; id=1。"
+    },
+    {
+      "id": "mainui.market.plz.create.categories.type-5",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.categories",
+      "note": "女性装备; id=5。"
+    },
+    {
+      "id": "mainui.market.plz.create.categories.type-6",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.categories",
+      "note": "饰品装备; id=6。"
+    },
+    {
+      "id": "mainui.market.plz.create.categories.type-4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.categories",
+      "note": "圣印装备; id=4。"
+    },
+    {
+      "id": "mainui.market.plz.create.categories.type-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.categories",
+      "note": "共鸣材料; id=2。"
+    },
+    {
+      "id": "mainui.market.plz.create.categories.type-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.categories",
+      "note": "其他材料; id=3。"
+    },
+    {
+      "id": "mainui.market.plz.create.categories.type-7",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.categories",
+      "note": "神契装备; id=7。"
+    },
+    {
+      "id": "mainui.market.plz.create.categories.type-8",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.categories",
+      "note": "启示圣铠; id=8。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create",
+      "control_inventory": [
+        {
+          "id": "t1-s1",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t1-s1"
+        },
+        {
+          "id": "t1-s2",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t1-s2"
+        },
+        {
+          "id": "t1-s3",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t1-s3"
+        },
+        {
+          "id": "t1-s4",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t1-s4"
+        },
+        {
+          "id": "t1-s5",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t1-s5"
+        },
+        {
+          "id": "t1-s6",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t1-s6"
+        },
+        {
+          "id": "t5-s1",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t5-s1"
+        },
+        {
+          "id": "t5-s2",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t5-s2"
+        },
+        {
+          "id": "t5-s3",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t5-s3"
+        },
+        {
+          "id": "t5-s4",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t5-s4"
+        },
+        {
+          "id": "t5-s5",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t5-s5"
+        },
+        {
+          "id": "t5-s6",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t5-s6"
+        },
+        {
+          "id": "t6-s1",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t6-s1"
+        },
+        {
+          "id": "t6-s2",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t6-s2"
+        },
+        {
+          "id": "t6-s3",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t6-s3"
+        },
+        {
+          "id": "t6-s4",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t6-s4"
+        },
+        {
+          "id": "t4-s1",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t4-s1"
+        },
+        {
+          "id": "t4-s2",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t4-s2"
+        },
+        {
+          "id": "t4-s3",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t4-s3"
+        },
+        {
+          "id": "t4-s4",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t4-s4"
+        },
+        {
+          "id": "t4-s5",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t4-s5"
+        },
+        {
+          "id": "t4-s6",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t4-s6"
+        },
+        {
+          "id": "t4-s7",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t4-s7"
+        },
+        {
+          "id": "t4-s8",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t4-s8"
+        },
+        {
+          "id": "t4-s9",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t4-s9"
+        },
+        {
+          "id": "t4-s10",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t4-s10"
+        },
+        {
+          "id": "t4-s11",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t4-s11"
+        },
+        {
+          "id": "t2-s1",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t2-s1"
+        },
+        {
+          "id": "t2-s2",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t2-s2"
+        },
+        {
+          "id": "t2-s3",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t2-s3"
+        },
+        {
+          "id": "t2-s4",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t2-s4"
+        },
+        {
+          "id": "t2-s5",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t2-s5"
+        },
+        {
+          "id": "t2-s6",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t2-s6"
+        },
+        {
+          "id": "t2-s7",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t2-s7"
+        },
+        {
+          "id": "t3-s1",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t3-s1"
+        },
+        {
+          "id": "t3-s3",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t3-s3"
+        },
+        {
+          "id": "t3-s5",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t3-s5"
+        },
+        {
+          "id": "t3-s6",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t3-s6"
+        },
+        {
+          "id": "t3-s8",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t3-s8"
+        },
+        {
+          "id": "t3-s9",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t3-s9"
+        },
+        {
+          "id": "t3-s10",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t3-s10"
+        },
+        {
+          "id": "t3-s11",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t3-s11"
+        },
+        {
+          "id": "t3-s12",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t3-s12"
+        },
+        {
+          "id": "t3-s13",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t3-s13"
+        },
+        {
+          "id": "t3-s14",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t3-s14"
+        },
+        {
+          "id": "t3-s15",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t3-s15"
+        },
+        {
+          "id": "t3-s16",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t3-s16"
+        },
+        {
+          "id": "t7-s1",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t7-s1"
+        },
+        {
+          "id": "t7-s2",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t7-s2"
+        },
+        {
+          "id": "t7-s3",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t7-s3"
+        },
+        {
+          "id": "t7-s4",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t7-s4"
+        },
+        {
+          "id": "t8-s1",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t8-s1"
+        },
+        {
+          "id": "t8-s2",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t8-s2"
+        },
+        {
+          "id": "t8-s3",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t8-s3"
+        },
+        {
+          "id": "t8-s4",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t8-s4"
+        },
+        {
+          "id": "t8-s5",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t8-s5"
+        },
+        {
+          "id": "t8-s6",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t8-s6"
+        },
+        {
+          "id": "t8-s7",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t8-s7"
+        },
+        {
+          "id": "t8-s8",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t8-s8"
+        },
+        {
+          "id": "t8-s9",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t8-s9"
+        },
+        {
+          "id": "t8-s10",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.subtypes.t8-s10"
+        }
+      ],
+      "note": "GetTypeCfgAll(start_index=2) 当前 58 个可求购二级格，不含‘全部’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t1-s1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=1, subtype=1, 武器；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t1-s2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=1, subtype=2, 铠甲；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t1-s3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=1, subtype=3, 头盔；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t1-s4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=1, subtype=4, 裤子；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t1-s5",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=1, subtype=5, 护腕；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t1-s6",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=1, subtype=6, 鞋子；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t5-s1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=5, subtype=1, 武器；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t5-s2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=5, subtype=2, 衣服；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t5-s3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=5, subtype=3, 发饰；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t5-s4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=5, subtype=4, 裤裙；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t5-s5",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=5, subtype=5, 护手；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t5-s6",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=5, subtype=6, 鞋子；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t6-s1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=6, subtype=1, 项链；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t6-s2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=6, subtype=2, 护符；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t6-s3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=6, subtype=3, 手镯；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t6-s4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=6, subtype=4, 戒指；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=4, subtype=1, 足部；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=4, subtype=2, 头盔；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=4, subtype=3, 护腿；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=4, subtype=4, 护腕；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s5",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=4, subtype=5, 铠甲；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s6",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=4, subtype=6, 武器；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s7",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=4, subtype=7, 晶核；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s8",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=4, subtype=8, 脸具；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s9",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=4, subtype=9, 项链；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s10",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=4, subtype=10, 戒指；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s11",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=4, subtype=11, 圣器；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t2-s1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=2, subtype=1, 共鸣石(男)；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t2-s2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=2, subtype=2, 共鸣石(女)；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t2-s3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=2, subtype=3, 战魂共鸣石；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t2-s4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=2, subtype=4, 饰品共鸣石；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t2-s5",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=2, subtype=5, 万物共鸣石；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t2-s6",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=2, subtype=6, 神之源核；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t2-s7",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=2, subtype=7, 灵之源核；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=3, subtype=1, 垂神翼影幻化；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=3, subtype=3, 神兵幻化；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s5",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=3, subtype=5, 古法符相幻化；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s6",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=3, subtype=6, 经验符；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s8",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=3, subtype=8, 神巫幻化；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s9",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=3, subtype=9, 地境晋升；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s10",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=3, subtype=10, 图谱；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s11",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=3, subtype=11, 剑魄同修碎片；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s12",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=3, subtype=12, 兑换材料；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s13",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=3, subtype=13, 道具碎片；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s14",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=3, subtype=14, 妖灵升级；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s15",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=3, subtype=15, 妖灵碎片；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s16",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=3, subtype=16, 妖灵技能书；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t7-s1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=7, subtype=1, 武器；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t7-s2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=7, subtype=2, 头盔；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t7-s3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=7, subtype=3, 铠甲；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t7-s4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=7, subtype=4, 饰品；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t8-s1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=8, subtype=1, 武器；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t8-s2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=8, subtype=2, 头盔；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t8-s3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=8, subtype=3, 项链；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t8-s4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=8, subtype=4, 上衣；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t8-s5",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=8, subtype=5, 护符；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t8-s6",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=8, subtype=6, 下装；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t8-s7",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=8, subtype=7, 手镯；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t8-s8",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=8, subtype=8, 护手；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t8-s9",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=8, subtype=9, 戒指；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t8-s10",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.subtypes",
+      "note": "type=8, subtype=10, 鞋子；无候选提示‘没有物品可供求购’。"
+    },
+    {
+      "id": "mainui.market.plz.create.filters",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create",
+      "control_inventory": [
+        {
+          "id": "quality",
+          "kind": "dropdown",
+          "child": "mainui.market.plz.create.filters.quality"
+        },
+        {
+          "id": "stage",
+          "kind": "dropdown",
+          "child": "mainui.market.plz.create.filters.stage"
+        },
+        {
+          "id": "star",
+          "kind": "dropdown",
+          "child": "mainui.market.plz.create.filters.star"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.quality",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters",
+      "control_inventory": [
+        {
+          "id": "cond-99",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.quality.cond-99"
+        },
+        {
+          "id": "cond-3",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.quality.cond-3"
+        },
+        {
+          "id": "cond-4",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.quality.cond-4"
+        },
+        {
+          "id": "cond-5",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.quality.cond-5"
+        },
+        {
+          "id": "cond-6",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.quality.cond-6"
+        },
+        {
+          "id": "cond-7",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.quality.cond-7"
+        }
+      ],
+      "note": "品质下拉 6 项。"
+    },
+    {
+      "id": "mainui.market.plz.create.filters.quality.cond-99",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.quality",
+      "note": "品质; cond=99."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.quality.cond-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.quality",
+      "note": "紫色; cond=3."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.quality.cond-4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.quality",
+      "note": "橙色; cond=4."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.quality.cond-5",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.quality",
+      "note": "红色; cond=5."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.quality.cond-6",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.quality",
+      "note": "暗金; cond=6."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.quality.cond-7",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.quality",
+      "note": "粉色; cond=7."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters",
+      "control_inventory": [
+        {
+          "id": "cond-99",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.stage.cond-99"
+        },
+        {
+          "id": "cond-1",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.stage.cond-1"
+        },
+        {
+          "id": "cond-2",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.stage.cond-2"
+        },
+        {
+          "id": "cond-3",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.stage.cond-3"
+        },
+        {
+          "id": "cond-4",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.stage.cond-4"
+        },
+        {
+          "id": "cond-5",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.stage.cond-5"
+        },
+        {
+          "id": "cond-6",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.stage.cond-6"
+        },
+        {
+          "id": "cond-7",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.stage.cond-7"
+        },
+        {
+          "id": "cond-8",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.stage.cond-8"
+        },
+        {
+          "id": "cond-9",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.stage.cond-9"
+        },
+        {
+          "id": "cond-10",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.stage.cond-10"
+        },
+        {
+          "id": "cond-11",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.stage.cond-11"
+        },
+        {
+          "id": "cond-12",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.stage.cond-12"
+        },
+        {
+          "id": "cond-13",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.stage.cond-13"
+        },
+        {
+          "id": "cond-14",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.stage.cond-14"
+        },
+        {
+          "id": "cond-15",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.stage.cond-15"
+        },
+        {
+          "id": "cond-16",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.stage.cond-16"
+        }
+      ],
+      "note": "阶数下拉 17 项。"
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-99",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.stage",
+      "note": "阶数; cond=99."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.stage",
+      "note": "1阶; cond=1."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.stage",
+      "note": "2阶; cond=2."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.stage",
+      "note": "3阶; cond=3."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.stage",
+      "note": "4阶; cond=4."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-5",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.stage",
+      "note": "5阶; cond=5."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-6",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.stage",
+      "note": "6阶; cond=6."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-7",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.stage",
+      "note": "7阶; cond=7."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-8",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.stage",
+      "note": "8阶; cond=8."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-9",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.stage",
+      "note": "9阶; cond=9."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-10",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.stage",
+      "note": "10阶; cond=10."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-11",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.stage",
+      "note": "11阶; cond=11."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-12",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.stage",
+      "note": "12阶; cond=12."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-13",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.stage",
+      "note": "13阶; cond=13."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-14",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.stage",
+      "note": "14阶; cond=14."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-15",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.stage",
+      "note": "15阶; cond=15."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-16",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.stage",
+      "note": "16阶; cond=16."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.star",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters",
+      "control_inventory": [
+        {
+          "id": "cond-99",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.star.cond-99"
+        },
+        {
+          "id": "cond-0",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.star.cond-0"
+        },
+        {
+          "id": "cond-1",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.star.cond-1"
+        },
+        {
+          "id": "cond-2",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.star.cond-2"
+        },
+        {
+          "id": "cond-3",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.star.cond-3"
+        },
+        {
+          "id": "cond-4",
+          "kind": "option",
+          "child": "mainui.market.plz.create.filters.star.cond-4"
+        }
+      ],
+      "note": "星级下拉 6 项。"
+    },
+    {
+      "id": "mainui.market.plz.create.filters.star.cond-99",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.star",
+      "note": "星级; cond=99."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.star.cond-0",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.star",
+      "note": "0星; cond=0."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.star.cond-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.star",
+      "note": "1星; cond=1."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.star.cond-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.star",
+      "note": "2星; cond=2."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.star.cond-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.star",
+      "note": "3星; cond=3."
+    },
+    {
+      "id": "mainui.market.plz.create.filters.star.cond-4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.filters.star",
+      "note": "4星; cond=4."
+    },
+    {
+      "id": "mainui.market.plz.create.goods",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create",
+      "control_inventory": [
+        {
+          "id": "structure",
+          "kind": "scroll",
+          "child": "mainui.market.plz.create.goods.structure"
+        },
+        {
+          "id": "scroll",
+          "kind": "interaction",
+          "child": "mainui.market.plz.create.goods.scroll"
+        },
+        {
+          "id": "select",
+          "kind": "list-cell",
+          "child": "mainui.market.plz.create.goods.select"
+        },
+        {
+          "id": "empty",
+          "kind": "state",
+          "child": "mainui.market.plz.create.goods.empty"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.goods.structure",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.goods",
+      "note": "MarketPlzGoodsItem 候选列表与选中框。"
+    },
+    {
+      "id": "mainui.market.plz.create.goods.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.goods",
+      "note": "真实滚动、裁剪、末项可达。"
+    },
+    {
+      "id": "mainui.market.plz.create.goods.select",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.goods",
+      "note": "选择 type_id，刷新价格/数量上限。"
+    },
+    {
+      "id": "mainui.market.plz.create.goods.empty",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.goods",
+      "note": "无候选隐藏控制区并显示空态。"
+    },
+    {
+      "id": "mainui.market.plz.create.price",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create",
+      "control_inventory": [
+        {
+          "id": "fixed",
+          "kind": "conditional-state",
+          "child": "mainui.market.plz.create.price.fixed"
+        },
+        {
+          "id": "custom",
+          "kind": "conditional-input",
+          "child": "mainui.market.plz.create.price.custom"
+        },
+        {
+          "id": "minus",
+          "kind": "stepper",
+          "child": "mainui.market.plz.create.price.minus"
+        },
+        {
+          "id": "plus",
+          "kind": "stepper",
+          "child": "mainui.market.plz.create.price.plus"
+        },
+        {
+          "id": "calculator",
+          "kind": "popup",
+          "child": "mainui.market.plz.create.price.calculator"
+        },
+        {
+          "id": "ratio",
+          "kind": "state",
+          "child": "mainui.market.plz.create.price.ratio"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.price.fixed",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.price",
+      "note": "固定价显示单位价与相对基准百分比。"
+    },
+    {
+      "id": "mainui.market.plz.create.price.custom",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.price",
+      "note": "if_custom_price 分支输入总价并钳制 min/max。"
+    },
+    {
+      "id": "mainui.market.plz.create.price.minus",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.price",
+      "note": "-10% 基准单位价；低于最小提示。"
+    },
+    {
+      "id": "mainui.market.plz.create.price.plus",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.price",
+      "note": "+10% 基准单位价；高于最大提示。"
+    },
+    {
+      "id": "mainui.market.plz.create.price.calculator",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.price",
+      "note": "自定义价格打开共享 CalculatorView。"
+    },
+    {
+      "id": "mainui.market.plz.create.price.ratio",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.price",
+      "note": "价格比率、总价与 VIP 税额即时变化。"
+    },
+    {
+      "id": "mainui.market.plz.create.count",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create",
+      "control_inventory": [
+        {
+          "id": "minus",
+          "kind": "stepper",
+          "child": "mainui.market.plz.create.count.minus"
+        },
+        {
+          "id": "plus",
+          "kind": "stepper",
+          "child": "mainui.market.plz.create.count.plus"
+        },
+        {
+          "id": "calculator",
+          "kind": "popup",
+          "child": "mainui.market.plz.create.count.calculator"
+        },
+        {
+          "id": "limit",
+          "kind": "state",
+          "child": "mainui.market.plz.create.count.limit"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.count.minus",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.count",
+      "note": "数量 -1，最小 1。"
+    },
+    {
+      "id": "mainui.market.plz.create.count.plus",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.count",
+      "note": "数量 +1，不超过配置上限。"
+    },
+    {
+      "id": "mainui.market.plz.create.count.calculator",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.count",
+      "note": "数量文本打开共享 CalculatorView。"
+    },
+    {
+      "id": "mainui.market.plz.create.count.limit",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create.count",
+      "note": "上限<=1 时 +/- 和数量输入禁用并置灰。"
+    },
+    {
+      "id": "mainui.market.plz.create.summary",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.create",
+      "note": "总价、VIP 市场税率/税额、货币图标与充足/不足。"
+    },
+    {
+      "id": "mainui.market.plz.create.confirm",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.market.plz.create",
+      "note": "15115 发起求购，消费货币；验证结果、两份列表即时头插和重开。"
+    },
+    {
+      "id": "mainui.market.plz.sell-tip",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.plz",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "popup",
+          "child": "mainui.market.plz.sell-tip.identity"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.market.plz.sell-tip.close"
+        },
+        {
+          "id": "item",
+          "kind": "shared-item",
+          "child": "mainui.market.plz.sell-tip.item"
+        },
+        {
+          "id": "goods",
+          "kind": "state",
+          "child": "mainui.market.plz.sell-tip.goods"
+        },
+        {
+          "id": "vip-tax",
+          "kind": "state",
+          "child": "mainui.market.plz.sell-tip.vip-tax"
+        },
+        {
+          "id": "confirm",
+          "kind": "transaction",
+          "child": "mainui.market.plz.sell-tip.confirm"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.plz.sell-tip.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.sell-tip",
+      "note": "MarketSellTipView，UI 层背景遮罩、居中、点击背景关闭。"
+    },
+    {
+      "id": "mainui.market.plz.sell-tip.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.sell-tip",
+      "note": "关闭仅收起当前出售确认弹窗。"
+    },
+    {
+      "id": "mainui.market.plz.sell-tip.item",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.sell-tip",
+      "note": "EquipmentItem 及目标物品。"
+    },
+    {
+      "id": "mainui.market.plz.sell-tip.goods",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.sell-tip",
+      "note": "名称×数量、求购价。"
+    },
+    {
+      "id": "mainui.market.plz.sell-tip.vip-tax",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.plz.sell-tip",
+      "note": "VIP、税率与扣税后收益。"
+    },
+    {
+      "id": "mainui.market.plz.sell-tip.confirm",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.market.plz.sell-tip",
+      "note": "15117 出售给求购单，消耗背包物品；验证成功/失败、列表即时刷新和重开。"
+    },
+    {
+      "id": "mainui.market.sell",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market",
+      "control_inventory": [
+        {
+          "id": "bag-tabs",
+          "kind": "radio-tabs",
+          "child": "mainui.market.sell.bag-tabs"
+        },
+        {
+          "id": "bag",
+          "kind": "bag-list",
+          "child": "mainui.market.sell.bag"
+        },
+        {
+          "id": "shelf",
+          "kind": "shelf-list",
+          "child": "mainui.market.sell.shelf"
+        },
+        {
+          "id": "sell-popup",
+          "kind": "popup",
+          "child": "mainui.market.sell.sell-popup"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.sell.bag-tabs",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.sell",
+      "control_inventory": [
+        {
+          "id": "equipment",
+          "kind": "tab",
+          "child": "mainui.market.sell.bag-tabs.equipment"
+        },
+        {
+          "id": "goods",
+          "kind": "tab",
+          "child": "mainui.market.sell.bag-tabs.goods"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.sell.bag-tabs.equipment",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.bag-tabs",
+      "note": "神装/装备类可交易且未绑定物品。"
+    },
+    {
+      "id": "mainui.market.sell.bag-tabs.goods",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.bag-tabs",
+      "note": "普通/圣印/启示/妖灵天赋等可交易且未绑定物品。"
+    },
+    {
+      "id": "mainui.market.sell.bag",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.sell",
+      "control_inventory": [
+        {
+          "id": "structure",
+          "kind": "scroll",
+          "child": "mainui.market.sell.bag.structure"
+        },
+        {
+          "id": "scroll",
+          "kind": "interaction",
+          "child": "mainui.market.sell.bag.scroll"
+        },
+        {
+          "id": "empty",
+          "kind": "state",
+          "child": "mainui.market.sell.bag.empty"
+        },
+        {
+          "id": "item",
+          "kind": "shared-item",
+          "child": "mainui.market.sell.bag.item"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.market.sell.bag.detail"
+        },
+        {
+          "id": "up-shelf",
+          "kind": "popup",
+          "child": "mainui.market.sell.bag.up-shelf"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.sell.bag.structure",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.bag",
+      "note": "5 列 MarketSellItem 背包格列表。"
+    },
+    {
+      "id": "mainui.market.sell.bag.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.bag",
+      "note": "真实拖动、裁剪、末项可达与切页回顶。"
+    },
+    {
+      "id": "mainui.market.sell.bag.empty",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.bag",
+      "note": "当前筛选没有可交易物品时显示 _group_bag_empty。"
+    },
+    {
+      "id": "mainui.market.sell.bag.item",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.bag",
+      "note": "EquipmentItem、数量/锁定、up/down/ban 条件。"
+    },
+    {
+      "id": "mainui.market.sell.bag.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.bag",
+      "note": "按物品类型打开共享详情，携带 upShelf 操作。"
+    },
+    {
+      "id": "mainui.market.sell.bag.up-shelf",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.bag",
+      "note": "详情中的上架动作打开 MarketSellCtrlView。"
+    },
+    {
+      "id": "mainui.market.sell.shelf",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.sell",
+      "control_inventory": [
+        {
+          "id": "count",
+          "kind": "state",
+          "child": "mainui.market.sell.shelf.count"
+        },
+        {
+          "id": "structure",
+          "kind": "scroll",
+          "child": "mainui.market.sell.shelf.structure"
+        },
+        {
+          "id": "scroll",
+          "kind": "interaction",
+          "child": "mainui.market.sell.shelf.scroll"
+        },
+        {
+          "id": "empty",
+          "kind": "state",
+          "child": "mainui.market.sell.shelf.empty"
+        },
+        {
+          "id": "item",
+          "kind": "shared-item",
+          "child": "mainui.market.sell.shelf.item"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.sell.shelf.count",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.shelf",
+      "note": "已上架物品 N/market_max_sell_num；当前配置最大 1。"
+    },
+    {
+      "id": "mainui.market.sell.shelf.structure",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.shelf",
+      "note": "2 列 MarketSellGoodsItem 列表。"
+    },
+    {
+      "id": "mainui.market.sell.shelf.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.shelf",
+      "note": "真实滚动、裁剪与末项可达。"
+    },
+    {
+      "id": "mainui.market.sell.shelf.empty",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.shelf",
+      "note": "无上架物品显示 _group_item_empty。"
+    },
+    {
+      "id": "mainui.market.sell.shelf.item",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.shelf",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "item-template",
+          "child": "mainui.market.sell.shelf.item.identity"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.market.sell.shelf.item.detail"
+        },
+        {
+          "id": "wear-state",
+          "kind": "conditional-state",
+          "child": "mainui.market.sell.shelf.item.wear-state"
+        },
+        {
+          "id": "shout",
+          "kind": "transaction",
+          "child": "mainui.market.sell.shelf.item.shout"
+        },
+        {
+          "id": "down-shelf",
+          "kind": "transaction",
+          "child": "mainui.market.sell.shelf.item.down-shelf"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.sell.shelf.item.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.shelf.item",
+      "note": "MarketSellGoodsItem + EquipmentItem、名称、单价。"
+    },
+    {
+      "id": "mainui.market.sell.shelf.item.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.shelf.item",
+      "note": "打开对应类型共享详情并携带 outShelf 操作。"
+    },
+    {
+      "id": "mainui.market.sell.shelf.item.wear-state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.shelf.item",
+      "note": "装备 up/down/ban 条件图。"
+    },
+    {
+      "id": "mainui.market.sell.shelf.item.shout",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.market.sell.shelf.item",
+      "note": "15122 市场喊话，写入公共/单物品冷却。"
+    },
+    {
+      "id": "mainui.market.sell.shelf.item.down-shelf",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.market.sell.shelf.item",
+      "note": "15108 下架并验证当前列表/背包即时刷新和重开。"
+    },
+    {
+      "id": "mainui.market.sell.sell-popup",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.sell",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "popup",
+          "child": "mainui.market.sell.sell-popup.identity"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.market.sell.sell-popup.close"
+        },
+        {
+          "id": "item",
+          "kind": "shared-item",
+          "child": "mainui.market.sell.sell-popup.item"
+        },
+        {
+          "id": "own",
+          "kind": "state",
+          "child": "mainui.market.sell.sell-popup.own"
+        },
+        {
+          "id": "shout-toggle",
+          "kind": "toggle",
+          "child": "mainui.market.sell.sell-popup.shout-toggle"
+        },
+        {
+          "id": "price",
+          "kind": "price-controls",
+          "child": "mainui.market.sell.sell-popup.price"
+        },
+        {
+          "id": "count",
+          "kind": "count-controls",
+          "child": "mainui.market.sell.sell-popup.count"
+        },
+        {
+          "id": "vip-tax",
+          "kind": "state",
+          "child": "mainui.market.sell.sell-popup.vip-tax"
+        },
+        {
+          "id": "confirm",
+          "kind": "transaction",
+          "child": "mainui.market.sell.sell-popup.confirm"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.sell-popup",
+      "note": "MarketSellCtrlView，Activity 层、背景遮罩、居中、点击背景关闭。"
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.sell-popup",
+      "note": "关闭当前上架弹窗，底层市场保持。"
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.item",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.sell-popup",
+      "note": "EquipmentItem、名称与拥有数量。"
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.own",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.sell-popup",
+      "note": "当前可出售拥有量。"
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.shout-toggle",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.sell-popup",
+      "note": "check/toggle：是否在上架时喊话，默认 1。"
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.price",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.sell-popup",
+      "control_inventory": [
+        {
+          "id": "fixed",
+          "kind": "conditional-state",
+          "child": "mainui.market.sell.sell-popup.price.fixed"
+        },
+        {
+          "id": "custom",
+          "kind": "conditional-input",
+          "child": "mainui.market.sell.sell-popup.price.custom"
+        },
+        {
+          "id": "minus",
+          "kind": "stepper",
+          "child": "mainui.market.sell.sell-popup.price.minus"
+        },
+        {
+          "id": "plus",
+          "kind": "stepper",
+          "child": "mainui.market.sell.sell-popup.price.plus"
+        },
+        {
+          "id": "calculator",
+          "kind": "popup",
+          "child": "mainui.market.sell.sell-popup.price.calculator"
+        },
+        {
+          "id": "ratio",
+          "kind": "state",
+          "child": "mainui.market.sell.sell-popup.price.ratio"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.price.fixed",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.sell-popup.price",
+      "note": "固定价单价与百分比。"
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.price.custom",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.sell-popup.price",
+      "note": "自定义总价并钳制上下限。"
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.price.minus",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.sell-popup.price",
+      "note": "价格 -10% 基准。"
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.price.plus",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.sell-popup.price",
+      "note": "价格 +10% 基准。"
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.price.calculator",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.sell-popup.price",
+      "note": "打开共享 CalculatorView 输入价格。"
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.price.ratio",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.sell-popup.price",
+      "note": "价格百分比、总价与税费同步。"
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.count",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.sell-popup",
+      "control_inventory": [
+        {
+          "id": "minus",
+          "kind": "stepper",
+          "child": "mainui.market.sell.sell-popup.count.minus"
+        },
+        {
+          "id": "plus",
+          "kind": "stepper",
+          "child": "mainui.market.sell.sell-popup.count.plus"
+        },
+        {
+          "id": "calculator",
+          "kind": "popup",
+          "child": "mainui.market.sell.sell-popup.count.calculator"
+        },
+        {
+          "id": "limit",
+          "kind": "state",
+          "child": "mainui.market.sell.sell-popup.count.limit"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.count.minus",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.sell-popup.count",
+      "note": "数量 -1。"
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.count.plus",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.sell-popup.count",
+      "note": "数量 +1。"
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.count.calculator",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.sell-popup.count",
+      "note": "打开共享 CalculatorView，最大为可卖数量。"
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.count.limit",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.sell-popup.count",
+      "note": "数量受拥有量与配置上限约束；上限<=1 时禁用。"
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.vip-tax",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.sell.sell-popup",
+      "note": "当前 VIP、税率、总价、税额。"
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.confirm",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.market.sell.sell-popup",
+      "note": "15106 上架，消耗/锁定背包实例；验证成功/失败、背包和上架列表即时刷新、重开。"
+    },
+    {
+      "id": "mainui.market.legacy",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market",
+      "control_inventory": [
+        {
+          "id": "auction",
+          "kind": "disabled-route",
+          "child": "mainui.market.legacy.auction"
+        },
+        {
+          "id": "record",
+          "kind": "disabled-route",
+          "child": "mainui.market.legacy.record"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.legacy.auction",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.legacy",
+      "note": "拍卖 imports/viewClassList/tabStrList 均注释；仅残留 scene 资产，不是现行可见路线。"
+    },
+    {
+      "id": "mainui.market.legacy.record",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market.legacy",
+      "control_inventory": [
+        {
+          "id": "gate",
+          "kind": "disabled-tab",
+          "child": "mainui.market.legacy.record.gate"
+        },
+        {
+          "id": "request",
+          "kind": "read-protocol",
+          "child": "mainui.market.legacy.record.request"
+        },
+        {
+          "id": "list",
+          "kind": "item-list",
+          "child": "mainui.market.legacy.record.list"
+        },
+        {
+          "id": "empty",
+          "kind": "state",
+          "child": "mainui.market.legacy.record.empty"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.legacy.record.gate",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.legacy.record",
+      "note": "MarketBaseView 当前移除了记录页签。"
+    },
+    {
+      "id": "mainui.market.legacy.record.request",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.legacy.record",
+      "note": "MarketRecordDealView 代码可发 15112，但当前无入口。"
+    },
+    {
+      "id": "mainui.market.legacy.record.list",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.legacy.record",
+      "note": "MarketRecordItem 按 time 降序，买入/卖出条件组。"
+    },
+    {
+      "id": "mainui.market.legacy.record.empty",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.legacy.record",
+      "note": "record_list 为空时显示 _group_empty。"
+    },
+    {
+      "id": "mainui.market.shared-item",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market",
+      "control_inventory": [
+        {
+          "id": "prefab",
+          "kind": "prefab-identity",
+          "child": "mainui.market.shared-item.prefab"
+        },
+        {
+          "id": "bind",
+          "kind": "binding",
+          "child": "mainui.market.shared-item.bind"
+        },
+        {
+          "id": "equipment",
+          "kind": "nested-shared",
+          "child": "mainui.market.shared-item.equipment"
+        },
+        {
+          "id": "chat-consumer",
+          "kind": "consumer",
+          "child": "mainui.market.shared-item.chat-consumer"
+        },
+        {
+          "id": "runtime-owner",
+          "kind": "lifecycle",
+          "child": "mainui.market.shared-item.runtime-owner"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.shared-item.prefab",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.shared-item",
+      "note": "Assets/Prefabs/UI/Market/MarketPlzShowItem.prefab 是 Market 岛唯一现有 Prefab。"
+    },
+    {
+      "id": "mainui.market.shared-item.bind",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.shared-item",
+      "note": "根仅挂 Generated MarketPlzShowItemBind；Generated 只读。"
+    },
+    {
+      "id": "mainui.market.shared-item.equipment",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.shared-item",
+      "note": "嵌套 Common EquipmentItem Prefab，属于共享组件。"
+    },
+    {
+      "id": "mainui.market.shared-item.chat-consumer",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.shared-item",
+      "note": "ChatModule.prefab 直接把该 Prefab 作为 _tpl_MarketPlzShowItem 消费；Chat 岛只读。"
+    },
+    {
+      "id": "mainui.market.shared-item.runtime-owner",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.shared-item",
+      "note": "Market 岛没有业务子类负责数据、按钮显隐、15116/15117 与生命周期。"
+    },
+    {
+      "id": "mainui.market.protocols",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market",
+      "control_inventory": [
+        {
+          "id": "15100",
+          "kind": "read-protocol",
+          "child": "mainui.market.protocols.p15100"
+        },
+        {
+          "id": "15101",
+          "kind": "read-protocol",
+          "child": "mainui.market.protocols.p15101"
+        },
+        {
+          "id": "15102",
+          "kind": "read-protocol",
+          "child": "mainui.market.protocols.p15102"
+        },
+        {
+          "id": "15106",
+          "kind": "write-protocol",
+          "child": "mainui.market.protocols.p15106"
+        },
+        {
+          "id": "15108",
+          "kind": "write-protocol",
+          "child": "mainui.market.protocols.p15108"
+        },
+        {
+          "id": "15109",
+          "kind": "read-protocol",
+          "child": "mainui.market.protocols.p15109"
+        },
+        {
+          "id": "15111",
+          "kind": "write-protocol",
+          "child": "mainui.market.protocols.p15111"
+        },
+        {
+          "id": "15112",
+          "kind": "read-protocol",
+          "child": "mainui.market.protocols.p15112"
+        },
+        {
+          "id": "15114",
+          "kind": "read-protocol",
+          "child": "mainui.market.protocols.p15114"
+        },
+        {
+          "id": "15115",
+          "kind": "write-protocol",
+          "child": "mainui.market.protocols.p15115"
+        },
+        {
+          "id": "15116",
+          "kind": "write-protocol",
+          "child": "mainui.market.protocols.p15116"
+        },
+        {
+          "id": "15117",
+          "kind": "write-protocol",
+          "child": "mainui.market.protocols.p15117"
+        },
+        {
+          "id": "15118",
+          "kind": "read-protocol",
+          "child": "mainui.market.protocols.p15118"
+        },
+        {
+          "id": "15119",
+          "kind": "read-protocol",
+          "child": "mainui.market.protocols.p15119"
+        },
+        {
+          "id": "15120",
+          "kind": "read-protocol",
+          "child": "mainui.market.protocols.p15120"
+        },
+        {
+          "id": "15121",
+          "kind": "read-protocol",
+          "child": "mainui.market.protocols.p15121"
+        },
+        {
+          "id": "15122",
+          "kind": "write-protocol",
+          "child": "mainui.market.protocols.p15122"
+        },
+        {
+          "id": "exclusions",
+          "kind": "negative-contract",
+          "child": "mainui.market.protocols.exclusions"
+        }
+      ],
+      "note": "Unity Controller/Model 的 151xx 静态覆盖；不等于页面完成。"
+    },
+    {
+      "id": "mainui.market.protocols.p15100",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.protocols",
+      "note": "15100 S2C错误推送；Controller/Model 静态实现存在，待玩家运行验证。"
+    },
+    {
+      "id": "mainui.market.protocols.p15101",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.protocols",
+      "note": "15101 一级分类挂单数量；Controller/Model 静态实现存在，待玩家运行验证。"
+    },
+    {
+      "id": "mainui.market.protocols.p15102",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.protocols",
+      "note": "15102 二级商品列表；Controller/Model 静态实现存在，待玩家运行验证。"
+    },
+    {
+      "id": "mainui.market.protocols.p15106",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.market.protocols",
+      "note": "15106 上架；本轮禁止发送。"
+    },
+    {
+      "id": "mainui.market.protocols.p15108",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.market.protocols",
+      "note": "15108 下架；本轮禁止发送。"
+    },
+    {
+      "id": "mainui.market.protocols.p15109",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.protocols",
+      "note": "15109 我的上架列表；Controller/Model 静态实现存在，待玩家运行验证。"
+    },
+    {
+      "id": "mainui.market.protocols.p15111",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.market.protocols",
+      "note": "15111 购买；本轮禁止发送。"
+    },
+    {
+      "id": "mainui.market.protocols.p15112",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.protocols",
+      "note": "15112 交易记录；Controller/Model 静态实现存在，待玩家运行验证。"
+    },
+    {
+      "id": "mainui.market.protocols.p15114",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.protocols",
+      "note": "15114 购买次数；Controller/Model 静态实现存在，待玩家运行验证。"
+    },
+    {
+      "id": "mainui.market.protocols.p15115",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.market.protocols",
+      "note": "15115 发起求购；本轮禁止发送。"
+    },
+    {
+      "id": "mainui.market.protocols.p15116",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.market.protocols",
+      "note": "15116 撤销求购；本轮禁止发送。"
+    },
+    {
+      "id": "mainui.market.protocols.p15117",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.market.protocols",
+      "note": "15117 出售给求购单；本轮禁止发送。"
+    },
+    {
+      "id": "mainui.market.protocols.p15118",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.protocols",
+      "note": "15118 全部求购；Controller/Model 静态实现存在，待玩家运行验证。"
+    },
+    {
+      "id": "mainui.market.protocols.p15119",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.protocols",
+      "note": "15119 我的求购；Controller/Model 静态实现存在，待玩家运行验证。"
+    },
+    {
+      "id": "mainui.market.protocols.p15120",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.protocols",
+      "note": "15120 删除推送；Controller/Model 静态实现存在，待玩家运行验证。"
+    },
+    {
+      "id": "mainui.market.protocols.p15121",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.protocols",
+      "note": "15121 跨服开放时间/图标；Controller/Model 静态实现存在，待玩家运行验证。"
+    },
+    {
+      "id": "mainui.market.protocols.p15122",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.market.protocols",
+      "note": "15122 市场喊话；本轮禁止发送。"
+    },
+    {
+      "id": "mainui.market.protocols.exclusions",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.protocols",
+      "note": "15103/15104/15105/15107/15110/15113 为定义缺失、老端空消费或死链，Unity 明确不注册/不发送。"
+    },
+    {
+      "id": "mainui.market.lifecycle",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.market",
+      "control_inventory": [
+        {
+          "id": "open-close",
+          "kind": "route-lifecycle",
+          "child": "mainui.market.lifecycle.open-close"
+        },
+        {
+          "id": "cold-warm",
+          "kind": "performance",
+          "child": "mainui.market.lifecycle.cold-warm"
+        },
+        {
+          "id": "viewports",
+          "kind": "visual",
+          "child": "mainui.market.lifecycle.viewports"
+        },
+        {
+          "id": "scroll-clipping",
+          "kind": "interaction",
+          "child": "mainui.market.lifecycle.scroll-clipping"
+        },
+        {
+          "id": "state-refresh",
+          "kind": "state",
+          "child": "mainui.market.lifecycle.state-refresh"
+        },
+        {
+          "id": "resource-stability",
+          "kind": "resource",
+          "child": "mainui.market.lifecycle.resource-stability"
+        }
+      ]
+    },
+    {
+      "id": "mainui.market.lifecycle.open-close",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.lifecycle",
+      "note": "默认购买页、页签互斥、弹窗优先关闭、热重开零重复回调。"
+    },
+    {
+      "id": "mainui.market.lifecycle.cold-warm",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.lifecycle",
+      "note": "click→first-visible/interactive-ready 冷热耗时。"
+    },
+    {
+      "id": "mainui.market.lifecycle.viewports",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.lifecycle",
+      "note": "720x1280 与 1920x1080 老 H5/Unity 真实 Web old/unity/overlay/diff。"
+    },
+    {
+      "id": "mainui.market.lifecycle.scroll-clipping",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.lifecycle",
+      "note": "分类、商品、背包、上架、求购候选列表的真实拖动与祖先裁剪。"
+    },
+    {
+      "id": "mainui.market.lifecycle.state-refresh",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.lifecycle",
+      "note": "成功/失败、父页即时刷新、关闭重开与被动 15120。"
+    },
+    {
+      "id": "mainui.market.lifecycle.resource-stability",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.market.lifecycle",
+      "note": "首轮/二轮资源预检、二轮 imported=0/configured=0、点击后零新增。"
+    }
+  ]
+}

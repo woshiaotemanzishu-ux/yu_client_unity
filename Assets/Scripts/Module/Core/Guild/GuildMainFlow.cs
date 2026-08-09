@@ -3,7 +3,9 @@ using System.Threading.Tasks;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
+using Shenxiao.Generated.UI.Guild;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Game;
 using Shenxiao.Module.Core.Guild.Views;
 using UnityEngine;
 
@@ -17,7 +19,8 @@ namespace Shenxiao.Module.Core.Guild
     /// 以老端真实结构 GuildMainBaseView.ts/GuildMemberView.ts 为准(偏差记入工单 summary)。
     ///
     /// 本轮:信息(GuildMainView)/成员(GuildMemberView)/宝箱(GuildRewardBoxView,轮13b)真接线;
-    /// 排行(HolyTerritoryGuildView,圣域模块跨包)留 TODO(TabSpec.Enabled=false,不建按钮)。
+    /// 开服第5天后的“其他”复用 GuildJoinView 真接线；前4天排行(HolyTerritoryGuildView,圣域模块跨包)
+    /// 仍留 TODO(TabSpec.Enabled=false,不建按钮)，不得在 Guild 岛伪造圣域页面。
     /// 仓库(GuildDepotView)/捐献选择(GuildDepotSelectView)是从"结社仓库"main_func 格子触发的弹层
     /// (同 <see cref="OpenApplyLook"/> 套路),非 tab。
     /// </summary>
@@ -40,6 +43,8 @@ namespace Shenxiao.Module.Core.Guild
         private static GuildRewardBoxView _boxView;
         private static GuildDepotView _depotView;
         private static GuildDepotSelectView _depotSelectView;
+        private static GuildJoinViewBind _joinView;
+        private static GuildJoinRuntime _joinRuntime;
         private static bool _loading;
 
         public static void Toggle()
@@ -108,6 +113,8 @@ namespace Shenxiao.Module.Core.Guild
             _boxView = _contentRoot.GetComponentInChildren<GuildRewardBoxView>(true);
             _depotView = _contentRoot.GetComponentInChildren<GuildDepotView>(true);
             _depotSelectView = _contentRoot.GetComponentInChildren<GuildDepotSelectView>(true);
+            _joinView = _contentRoot.GetComponentInChildren<GuildJoinViewBind>(true);
+            _joinRuntime = _joinView != null ? new GuildJoinRuntime(_joinView) : null;
 
             var specs = new List<TabSpec>
             {
@@ -125,20 +132,45 @@ namespace Shenxiao.Module.Core.Guild
                     BackgroundImagePath = GameResPath.GetBigBgPath("daily_bg.jpg"),
                     ContentFactory = _memberView != null ? (System.Func<RectTransform, BaseView>)(p => Reparent(_memberView, p)) : null,
                 },
-                new TabSpec { Enabled = false, Label = "排行" }, // HolyTerritoryGuildView,圣域模块跨包,TODO
-                new TabSpec
-                {
-                    Enabled = _boxView != null,
-                    Label = "宝箱",
-                    BackgroundImagePath = GameResPath.GetBigBgPath("daily_bg.jpg"),
-                    ContentFactory = _boxView != null ? (System.Func<RectTransform, BaseView>)(p => Reparent(_boxView, p)) : null,
-                },
             };
+
+            // 对标 GuildMainBaseView.Open 的真实开服日拓扑：<=4 为 信息/成员/排行/宝箱；>4 为
+            // 信息/成员/宝箱/其他。box_index 变化意味着不能用固定的第三/第四页顺序。
+            if (ServerTimeModel.GetOpenServerDay() <= 4)
+            {
+                specs.Add(new TabSpec { Enabled = false, Label = "排行" }); // HolyTerritory 跨岛 TODO
+                specs.Add(BoxTabSpec());
+            }
+            else
+            {
+                specs.Add(BoxTabSpec());
+                specs.Add(new TabSpec
+                {
+                    Enabled = _joinView != null,
+                    Label = "其他",
+                    BackgroundImagePath = GameResPath.GetBigBgPath("daily_bg.jpg"),
+                    ContentFactory = _joinView != null
+                        ? (System.Func<RectTransform, BaseView>)(p => ReparentJoin(_joinView, p)) : null,
+                });
+            }
 
             _window.Show();
             _window.Configure(specs, TAB_INFO);
             GuildController.Instance.RequestBaseInfo();
-            GameLog.Info("Guild", "公会主界面打开(信息/成员/宝箱真接线,排行 TODO)");
+            GameLog.Info("Guild", "公会主界面打开(openDay={0},信息/成员/宝箱真接线,其他按天接线,排行跨岛 TODO)",
+                ServerTimeModel.GetOpenServerDay());
+        }
+
+        private static TabSpec BoxTabSpec()
+        {
+            return new TabSpec
+            {
+                Enabled = _boxView != null,
+                Label = "宝箱",
+                BackgroundImagePath = GameResPath.GetBigBgPath("daily_bg.jpg"),
+                ContentFactory = _boxView != null
+                    ? (System.Func<RectTransform, BaseView>)(p => Reparent(_boxView, p)) : null,
+            };
         }
 
         private static BaseView Reparent(BaseView view, RectTransform parent)
@@ -147,6 +179,13 @@ namespace Shenxiao.Module.Core.Guild
             view.transform.SetParent(parent, false);
             view.gameObject.SetActive(true);
             return view;
+        }
+
+        private static BaseView ReparentJoin(GuildJoinViewBind view, RectTransform parent)
+        {
+            BaseView result = Reparent(view, parent);
+            _joinRuntime?.Prepare();
+            return result;
         }
 
         /// <summary>由 GuildMemberView"查看申请"驱动打开(GuildApplyLookView 是弹层,非 tab,留在
@@ -201,6 +240,9 @@ namespace Shenxiao.Module.Core.Guild
             _boxView = null;
             _depotView = null;
             _depotSelectView = null;
+            _joinRuntime?.Dispose();
+            _joinRuntime = null;
+            _joinView = null;
             _loading = false;
         }
     }

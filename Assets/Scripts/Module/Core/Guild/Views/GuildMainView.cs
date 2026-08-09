@@ -46,6 +46,11 @@ namespace Shenxiao.Module.Core.Guild.Views
             foreach (JToken row in rows)
             {
                 int id = row["id"]?.Value<int>() ?? 0;
+                // 对标老端 InitItems 的条件过滤：解散仅会长、合并按开服天、善缘商店/武魂共用神像开放门槛。
+                // 这些是“是否构建格子”的拓扑条件，不能只在点击后 toast，否则当前页会多出老端不存在的控件。
+                if (id == 8 && !GuildModel.IsGuildMaster()) continue;
+                if (id == 13 && !GuildModel.IsMergeOpen()) continue;
+                if ((id == 11 || id == 12) && !GuildModel.IsGuildIdolOpen()) continue;
                 string title = row["title"]?.ToString() ?? "";
                 string icon = row["icon"]?.ToString() ?? "";
                 GameObject go = Object.Instantiate(_tpl_GuildMainItem, _group_item.content);

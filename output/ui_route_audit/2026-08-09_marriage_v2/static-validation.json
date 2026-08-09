@@ -1,0 +1,27 @@
+{
+  "schema_target": 6,
+  "route": "marriage_v2",
+  "supersedes": "../2026-08-09_marriage/route-ledger.json",
+  "checks": {
+    "v1_manifest_ledger_preserved": true,
+    "unique_node_ids": true,
+    "single_root": true,
+    "page_control_inventory_matches_direct_children": true,
+    "results_exactly_cover_leaves": true,
+    "only_blocked_or_needs_runtime_verify": true,
+    "query_leaf_set_complete": true,
+    "background_close_leaf_set_complete": true,
+    "dun_tips_gray_leaf_present": true,
+    "help_placeholders_blocked": true,
+    "legacy_ts_exactly_mapped": true,
+    "mapped_route_nodes_exist": true,
+    "dead_views_map_to_explicit_boundaries": true
+  },
+  "metrics": {
+    "legacy_ts_count": 48,
+    "mapped_ts_count": 48,
+    "query_leaf_count": 7,
+    "background_close_leaf_count": 12,
+    "dead_or_replaced_boundary_count": 4
+  }
+}

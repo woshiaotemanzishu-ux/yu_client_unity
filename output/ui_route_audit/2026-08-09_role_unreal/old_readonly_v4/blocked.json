@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "route": "role.equipment.unreal-entry",
+  "account": "111111",
+  "url": "http://127.0.0.1:8091/index.html",
+  "viewport": {
+    "width": 720,
+    "height": 1280
+  },
+  "captured_at": "2026-08-09T06:00:12.191Z",
+  "read_only": true,
+  "outcome": "blocked-precondition",
+  "blocker": {
+    "code": "old-client-unreal-entry-hidden",
+    "control": {
+      "view": "BaseWindowSkin",
+      "name": "_Group6",
+      "type": "Image",
+      "path": [
+        2,
+        1,
+        3,
+        0,
+        2,
+        0,
+        9,
+        2,
+        6,
+        1,
+        0
+      ],
+      "text": "",
+      "x": 401,
+      "y": 598,
+      "width": 61,
+      "height": 70,
+      "cx": 432,
+      "cy": 633
+    },
+    "observed_levels": [
+      "260级"
+    ],
+    "required_level": 360,
+    "evidence": [
+      "ConfigFuncOpenCondition.UnrealBagView.open_lv=360",
+      "current EquipmentView.json serializes _Group6 visible=false"
+    ]
+  },
+  "actions": [
+    {
+      "label": "login",
+      "account": "111111",
+      "clicked": true
+    },
+    {
+      "label": "open role",
+      "control": "MainUIDown.role",
+      "clicked": true
+    }
+  ],
+  "captures": [
+    {
+      "kind": "screenshot",
+      "file": "shots/10_city_ready.png"
+    },
+    {
+      "kind": "screenshot",
+      "file": "shots/20_role_person.png"
+    },
+    {
+      "kind": "state",
+      "label": "role_person",
+      "file": "states/role_person.json",
+      "views": [
+        "ActivityIcon#1",
+        "ActivityIcon#2",
+        "ActivityIcon#3",
+        "ActivityIcon#4",
+        "ActivityIcon#5",
+        "ActivityIcon#6",
+        "BaseWindowSkin",
+        "FuncBoardView",
+        "FunctionOpenIcon",
+        "MainUIActivityView",
+        "MainUIAutoBrushView",
+        "MainUIChatView",
+        "MainUIDownView",
+        "MainUISecondaryView",
+        "MainUISkillView",
+        "MainUITaskTeamView",
+        "MainUITopView",
+        "NameBoard#1",
+        "NameBoard#2",
+        "UIJoyStick",
+        "MessageItem#1",
+        "MessageItem#2",
+        "WaitforOpenViewLoading"
+      ]
+    }
+  ],
+  "skipped_transactions": [
+    14901,
+    14902,
+    14903,
+    14905,
+    "GoodsModel.RESOLVE_GOODS"
+  ]
+}

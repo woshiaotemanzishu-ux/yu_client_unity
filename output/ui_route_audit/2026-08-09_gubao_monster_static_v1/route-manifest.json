@@ -1,0 +1,103 @@
+{
+  "route": "autobrush.gubao.monster.static-v1",
+  "baseline": {
+    "observed_at": "2026-08-09T00:00:00+08:00",
+    "evidence_level": "static-three-way-reconciliation-only",
+    "legacy_parent": "AutoBrushBaseView",
+    "legacy_page": "MonsterMainView",
+    "legacy_tab": "EnumAutoBrushTabType.eSoap",
+    "legacy_task_entry": "TaskTipType.ActiveSoap (89)",
+    "unity_entry": "TaskModel TIP_ACTIVE_SOAP -> GuBaoShellView.Show",
+    "unity_page": "GuBaoShellView(TempShell), runtime-created uGUI without editable Prefab",
+    "scope_boundary": "Only GuBao-owned code and this output directory are in scope; AutoBrush, Task, shared views, configs, models and resources are read-only dependencies",
+    "runtime_boundary": "Unity, browser, build, real account, GM and write transactions are prohibited for this batch"
+  },
+  "nodes": [
+    {
+      "id": "autobrush.gubao.monster",
+      "type": "page",
+      "risk": "read-only",
+      "note": "Old MonsterMainView is the GuBao page inside AutoBrushBaseView; Unity currently exposes only a hard-coded temporary shell.",
+      "control_inventory": [
+        { "id": "parent-tab", "kind": "tab", "child": "autobrush.gubao.monster.parent-tab" },
+        { "id": "parent-return", "kind": "button", "child": "autobrush.gubao.monster.parent-return" },
+        { "id": "properties", "kind": "button", "child": "autobrush.gubao.monster.properties" },
+        { "id": "previous-soap", "kind": "button", "child": "autobrush.gubao.monster.previous-soap" },
+        { "id": "next-soap", "kind": "button", "child": "autobrush.gubao.monster.next-soap" },
+        { "id": "soap-state", "kind": "conditional", "child": "autobrush.gubao.monster.soap-state" },
+        { "id": "fragment-list", "kind": "list", "child": "autobrush.gubao.monster.fragment-list" },
+        { "id": "fragment-detail", "kind": "conditional-page", "child": "autobrush.gubao.monster.fragment-detail" },
+        { "id": "total-attributes", "kind": "list", "child": "autobrush.gubao.monster.total-attributes" },
+        { "id": "inactive-jump", "kind": "button", "child": "autobrush.gubao.monster.inactive-jump" },
+        { "id": "combat", "kind": "read", "child": "autobrush.gubao.monster.combat" },
+        { "id": "model", "kind": "dynamic-render", "child": "autobrush.gubao.monster.model" },
+        { "id": "guide-red-state", "kind": "conditional", "child": "autobrush.gubao.monster.guide-red-state" },
+        { "id": "protocol-state", "kind": "conditional", "child": "autobrush.gubao.monster.protocol-state" },
+        { "id": "full-activation-result", "kind": "conditional-popup", "child": "autobrush.gubao.monster.full-activation-result" }
+      ]
+    },
+    { "id": "autobrush.gubao.monster.parent-tab", "parent": "autobrush.gubao.monster", "type": "navigation", "risk": "read-only", "note": "AutoBrushBaseView index eSoap selects MonsterMainView; parent container is outside the GuBao island." },
+    { "id": "autobrush.gubao.monster.parent-return", "parent": "autobrush.gubao.monster", "type": "return", "risk": "read-only", "note": "Shared BaseWindowComponent return button closes the AutoBrush container; guide callback also targets this button." },
+    {
+      "id": "autobrush.gubao.monster.properties",
+      "parent": "autobrush.gubao.monster",
+      "type": "page",
+      "risk": "read-only",
+      "note": "attrImg opens Activity-layer MonsterPropertyView with background-click close.",
+      "control_inventory": [
+        { "id": "attribute-list", "kind": "scroll-list", "child": "autobrush.gubao.monster.properties.attribute-list" },
+        { "id": "empty-state", "kind": "conditional", "child": "autobrush.gubao.monster.properties.empty-state" },
+        { "id": "backdrop-close", "kind": "button", "child": "autobrush.gubao.monster.properties.backdrop-close" }
+      ]
+    },
+    { "id": "autobrush.gubao.monster.properties.attribute-list", "parent": "autobrush.gubao.monster.properties", "type": "read", "risk": "read-only", "note": "Vertical LoopScrowViewMgr of aggregated activated-fragment attributes using MonsterPropertyItem." },
+    { "id": "autobrush.gubao.monster.properties.empty-state", "parent": "autobrush.gubao.monster.properties", "type": "read", "risk": "read-only", "note": "attrsList and none_conta are mutually visible for non-empty/empty accumulated attributes." },
+    { "id": "autobrush.gubao.monster.properties.backdrop-close", "parent": "autobrush.gubao.monster.properties", "type": "return", "risk": "read-only", "note": "use_background + click_bg_toClose; close must return to the same GuBao selection." },
+    { "id": "autobrush.gubao.monster.previous-soap", "parent": "autobrush.gubao.monster", "type": "navigation", "risk": "read-only", "note": "lImg selects the previous showable soap, hidden at the first item; lRedImg reports actionable items to the left." },
+    { "id": "autobrush.gubao.monster.next-soap", "parent": "autobrush.gubao.monster", "type": "navigation", "risk": "read-only", "note": "rImg selects the next showable soap, hidden at the last item; rRedImg reports actionable items to the right." },
+    { "id": "autobrush.gubao.monster.soap-state", "parent": "autobrush.gubao.monster", "type": "read", "risk": "read-only", "note": "Dynamic showable sequence from 26 soap configs; name, active/inactive image, first-red/default-unactivated selection and 2/4-fragment layout." },
+    {
+      "id": "autobrush.gubao.monster.fragment-list",
+      "parent": "autobrush.gubao.monster",
+      "type": "page",
+      "risk": "read-only",
+      "note": "Two or four MonsterIconItem slots; each item is a clickable fragment selector.",
+      "control_inventory": [
+        { "id": "select-item", "kind": "list-item", "child": "autobrush.gubao.monster.fragment-list.select-item" },
+        { "id": "item-state", "kind": "conditional", "child": "autobrush.gubao.monster.fragment-list.item-state" },
+        { "id": "layout", "kind": "conditional-layout", "child": "autobrush.gubao.monster.fragment-list.layout" }
+      ]
+    },
+    { "id": "autobrush.gubao.monster.fragment-list.select-item", "parent": "autobrush.gubao.monster.fragment-list", "type": "tab", "risk": "read-only", "note": "Every visible icon fires TAB_SELECT, updates selection and slides the fragment detail panel in." },
+    { "id": "autobrush.gubao.monster.fragment-list.item-state", "parent": "autobrush.gubao.monster.fragment-list", "type": "read", "risk": "read-only", "note": "Per item: real goods icon, activated gray/unlock state, gate label, selected frame and sufficient-material red dot." },
+    { "id": "autobrush.gubao.monster.fragment-list.layout", "parent": "autobrush.gubao.monster.fragment-list", "type": "read", "risk": "read-only", "note": "First soap has two centered fragments; later soaps use four slots. All items must preserve click and selection identity." },
+    {
+      "id": "autobrush.gubao.monster.fragment-detail",
+      "parent": "autobrush.gubao.monster",
+      "type": "page",
+      "risk": "read-only",
+      "note": "Animated 200 ms fragment panel replaces totalBox after fragment selection.",
+      "control_inventory": [
+        { "id": "return", "kind": "button", "child": "autobrush.gubao.monster.fragment-detail.return" },
+        { "id": "cost-item", "kind": "item", "child": "autobrush.gubao.monster.fragment-detail.cost-item" },
+        { "id": "cost-text", "kind": "conditional-text", "child": "autobrush.gubao.monster.fragment-detail.cost-text" },
+        { "id": "attribute-list", "kind": "list", "child": "autobrush.gubao.monster.fragment-detail.attribute-list" },
+        { "id": "jump", "kind": "button", "child": "autobrush.gubao.monster.fragment-detail.jump" },
+        { "id": "activate", "kind": "button", "child": "autobrush.gubao.monster.fragment-detail.activate" }
+      ]
+    },
+    { "id": "autobrush.gubao.monster.fragment-detail.return", "parent": "autobrush.gubao.monster.fragment-detail", "type": "return", "risk": "read-only", "note": "returnImg hides fragmentsBox, clears selection and restores totalBox." },
+    { "id": "autobrush.gubao.monster.fragment-detail.cost-item", "parent": "autobrush.gubao.monster.fragment-detail", "type": "read", "risk": "read-only", "note": "Shared BaseAwardItem displays the configured fragment goods at 85x85; dependency is outside GuBao." },
+    { "id": "autobrush.gubao.monster.fragment-detail.cost-text", "parent": "autobrush.gubao.monster.fragment-detail", "type": "read", "risk": "read-only", "note": "Owned/required count changes green/red according to material sufficiency." },
+    { "id": "autobrush.gubao.monster.fragment-detail.attribute-list", "parent": "autobrush.gubao.monster.fragment-detail", "type": "read", "risk": "read-only", "note": "Vertical list of the selected fragment's parsed attributes." },
+    { "id": "autobrush.gubao.monster.fragment-detail.jump", "parent": "autobrush.gubao.monster.fragment-detail", "type": "navigation", "risk": "read-only", "note": "When inactive and materials are insufficient, jumpBox opens AutoBrushBaseView eAutoBrush; outside GuBao island." },
+    { "id": "autobrush.gubao.monster.fragment-detail.activate", "parent": "autobrush.gubao.monster.fragment-detail", "type": "transaction", "risk": "destructive-write", "note": "When inactive and materials suffice, mosaicBox sends 13321 format hh with current soap/debris; success must refresh combat, state and current panel immediately." },
+    { "id": "autobrush.gubao.monster.total-attributes", "parent": "autobrush.gubao.monster", "type": "read", "risk": "read-only", "note": "totalBox/attrsList shows all configured attributes for the selected soap and is hidden while fragment detail is open." },
+    { "id": "autobrush.gubao.monster.inactive-jump", "parent": "autobrush.gubao.monster", "type": "navigation", "risk": "read-only", "note": "jump1Box is visible while the selected soap is incomplete and opens AutoBrushBaseView eAutoBrush." },
+    { "id": "autobrush.gubao.monster.combat", "parent": "autobrush.gubao.monster", "type": "read", "risk": "read-only", "note": "FightingShowSmallItem renders 13320 combat and updates after successful 13321." },
+    { "id": "autobrush.gubao.monster.model", "parent": "autobrush.gubao.monster", "type": "read", "risk": "read-only", "note": "CustomActivityModel.ShowViewModel renders model_id [18,n,1] in modelBox and clears the prior model on selection change." },
+    { "id": "autobrush.gubao.monster.guide-red-state", "parent": "autobrush.gubao.monster", "type": "read", "risk": "read-only", "note": "Task finger steps, tab red dot, soap/arrow/item red dots, locked predecessor rule and GoodsModel live-count changes depend on Task/AutoBrush/shared state." },
+    { "id": "autobrush.gubao.monster.protocol-state", "parent": "autobrush.gubao.monster", "type": "read", "risk": "read-only", "note": "13320 full combat/soap/debris snapshot; 13321 success/failure, authoritative immediate refresh and close/reopen persistence." },
+    { "id": "autobrush.gubao.monster.full-activation-result", "parent": "autobrush.gubao.monster", "type": "navigation", "risk": "read-only", "note": "Completing all fragments opens shared OutwardChangedView with UI_MODEL_TYPE.GUBAO and configured model/name; shared popup is outside GuBao." }
+  ]
+}

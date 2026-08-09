@@ -56,11 +56,27 @@ namespace Shenxiao.EditorTools.ConfigGen
             "ConfigGuildAct",       // 公会晚宴(GuildActivity,pt_402)客户端展示表:fire_pos_cfg/fire_cfg/
                                     // evening_intro_cfg/evening_stage_cfg/evening_main_cfg 共5组,自动循环 轮22 PK1
             "ConfigConstellation",  // 星宿(StarEquip)客户端专属星图坐标表(star_point_cfg,UI 用),轮23 PK1
+            "ClientAchv",           // 成就总览 1..6 阶标题(AchvTotalItem)
         };
 
         // 登录链路用到的服务端表(头像=config_dress_up_cfg type5 的 screen 字段)
         private static readonly string[] SYNC_LIST_SERVER =
         {
+            "config_achievement",              // 成就条目/条件/奖励
+            "config_achievement_star_reward",  // 成就阶段属性与升阶点数
+            "config_achievement_category",     // category→type/subtype 分类
+            "config_achievement_type_new",     // 七个顶级页签及子类列表
+            "config_achievement_stage_reward", // 子类名称
+            "config_decoration_kv",            // 九霄冥饰杂项 KV/背包容量等
+            "config_decoration_attr",          // 九霄冥饰部位属性定义
+            "config_decoration_level_max",     // 九霄冥饰强化等级上限
+            "config_decoration_level",         // 九霄冥饰强化等级属性与消耗
+            "config_decoration_stage",         // 九霄冥饰进阶属性与消耗
+            "config_decoration_stage_max",     // 九霄冥饰进阶上限
+            "config_dec_unlock_cell",          // 九霄冥饰部位解锁条件
+            "config_goods_decompose",          // 九霄冥饰分解返还
+            "config_soul_attr_num",            // 分解属性数量区间
+            "GoodsSubtype",                    // 九霄冥饰六个部位名称(type=55,subtype=1..6)
             "config_attr_medicament", // 属性药剂物品→等级权威表(pt_217)
             "config_attr_medicament_use_count", // 属性药剂等级段日/总次数权威表(pt_217)
             "config_baby_equip", // 宝宝装备 goods_id→pos/stage/color/skills 穿戴门禁

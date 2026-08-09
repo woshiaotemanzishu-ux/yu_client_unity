@@ -22,17 +22,16 @@ namespace Shenxiao.Module.Core.Equip
     /// 保持烤图原样,不臆造节点;<see cref="EquipJewelItem"/> 类已按 <see cref="EquipJewelBagView"/> 联动写好
     /// 真实点击/数据逻辑,待未来补烤模板即可直接铺用。
     ///
-    /// btnStrAll 简化为"一键升级"单一模式(老端另有"一键镶嵌"模式,需 config_equip_stone_inlay 自动选材,未移植
-    /// 跳过):对标 EquipStrenView.BindStren 先例,无"当前选中装备位"数据源 → 固定读武器槽(equip_type=1,
-    /// <see cref="EquipAutoWear.GetWorn"/>)的已镶嵌宝石,取第一个调 15215(upgrade_type=1,一键低级宝石)。
+    /// btnStrAll 当前仅保留"一键升级"语义(老端另有"一键镶嵌"模式,需 config_equip_stone_inlay 自动选材)；
+    /// 装备位列表未落地时保持无选中态并阻断 15215，禁止固定读取武器槽。
     /// </summary>
     public sealed class EquipJewelView : EquipJewelViewBind
     {
         /// <summary>骸珀镶嵌大师(全身奖励)type(对标老端 EquipDefine.JEWEL_WHOLE_TYPE=3)。</summary>
         private const int JewelWholeType = 3;
 
-        /// <summary>TODO:无当前选中装备位数据源,暂固定武器槽,同 EquipStrenView.BindStren 既有先例。</summary>
-        private const int CurrentEquipType = 1;
+        private int _selectedEquipType;
+        private long _selectedGoodsId;
 
         protected override void OnInit()
         {
@@ -55,13 +54,19 @@ namespace Shenxiao.Module.Core.Equip
 
         protected override void OnShow(object args)
         {
+            _selectedEquipType = 0;
+            _selectedGoodsId = 0;
             EventDispatcher.On(GlobalEvent.EVT_EQUIP_WHOLE_UPDATE, RefreshGrade);
             GameLog.Info("Equip", "EquipJewelView 打开 → 装备位列表/镶嵌槽渲染待补烤模板(见类注释),战力(15254)本轮不接");
             RefreshGrade();
+        }
 
-            // 预热武器槽详情缓存,供一键升级按钮判断 stone_list(对标 EquipWashView 既有先例)。
-            BagGoods worn = EquipAutoWear.GetWorn(CurrentEquipType);
-            if (worn != null) GoodsDynamicModel.Instance.RequestDetail(worn.GoodsId);
+        /// <summary>由真实装备位列表点击建立选择；列表尚未落地时不得退化到固定武器槽。</summary>
+        public void SelectEquipment(int equipType, long goodsId)
+        {
+            _selectedEquipType = equipType > 0 && goodsId > 0 ? equipType : 0;
+            _selectedGoodsId = _selectedEquipType > 0 ? goodsId : 0;
+            if (_selectedGoodsId > 0) GoodsDynamicModel.Instance.RequestDetail(_selectedGoodsId);
         }
 
         protected override void OnHide()
@@ -91,23 +96,23 @@ namespace Shenxiao.Module.Core.Equip
             HideNode(_group_eff);
         }
 
-        /// <summary>btnStrAll → 一键升级(简化版,见类注释):固定武器槽,取第一个已镶嵌宝石调 15215(type=1)。</summary>
+        /// <summary>btnStrAll → 一键升级。必须先由真实装备位点击建立选择。</summary>
         private void OnClickUpgradeAll()
         {
-            BagGoods worn = EquipAutoWear.GetWorn(CurrentEquipType);
-            if (worn == null)
+            if (_selectedEquipType <= 0 || _selectedGoodsId <= 0)
             {
-                TipsManager.Toast("暂无可升级宝石");
+                TipsManager.Toast("请先选择已穿戴装备");
+                GameLog.Warn("Equip", "点击[一键升级]被阻止：装备位列表尚未建立真实选中态");
                 return;
             }
-            GoodsDetailVo vo = GoodsDynamicModel.Instance.Peek(worn.GoodsId);
+            GoodsDetailVo vo = GoodsDynamicModel.Instance.Peek(_selectedGoodsId);
             if (vo?.StoneList != null)
             {
                 foreach (GoodsStoneSlot slot in vo.StoneList)
                 {
                     if (slot.TypeId <= 0) continue;
-                    GameLog.Info("Equip", "点击[一键升级] → UpgradeStone(equip_type={0},pos={1},type=1)", CurrentEquipType, slot.Pos);
-                    EquipJewelController.Instance.UpgradeStone(CurrentEquipType, slot.Pos, 1);
+                    GameLog.Info("Equip", "点击[一键升级] → UpgradeStone(equip_type={0},pos={1},type=1)", _selectedEquipType, slot.Pos);
+                    EquipJewelController.Instance.UpgradeStone(_selectedEquipType, slot.Pos, 1);
                     return;
                 }
             }

@@ -67,8 +67,23 @@ namespace Shenxiao.Module.Core.Shop
 
         private void Refresh()
         {
-            foreach (GameObject go in _cells) if (go != null) Object.Destroy(go);
+            foreach (GameObject go in _cells)
+            {
+                if (go == null) continue;
+                go.GetComponent<Shenxiao.Framework.UI.BaseView>()?.Hide();
+                Object.Destroy(go);
+            }
             _cells.Clear();
+            if (_scroll != null)
+            {
+                _scroll.StopMovement();
+                _scroll.verticalNormalizedPosition = 1f;
+            }
+            if (_dgp_item != null)
+            {
+                _dgp_item.StopMovement();
+                _dgp_item.verticalNormalizedPosition = 1f;
+            }
 
             ShopModel.VieInfoVo data = ShopModel.Instance.GetVieInfo();
             if (data == null)
@@ -81,8 +96,13 @@ namespace Shenxiao.Module.Core.Shop
                 foreach (ShopModel.VieGoodVo vo in data.IdList)
                 {
                     GameObject cellGo = Object.Instantiate(_tpl_ShopVieItem, _dgp_item.content);
-                    cellGo.SetActive(true);
-                    cellGo.GetComponent<ShopVieItem>()?.SetData(vo);
+                    ShopVieItem cell = cellGo.GetComponent<ShopVieItem>();
+                    if (cell != null)
+                    {
+                        cell.Show();
+                        cell.SetData(vo);
+                    }
+                    else cellGo.SetActive(true);
                     _cells.Add(cellGo);
                 }
             }

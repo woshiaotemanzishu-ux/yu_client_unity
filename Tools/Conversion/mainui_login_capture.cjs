@@ -4,6 +4,8 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const crypto = require('crypto');
+const zlib = require('zlib');
 const { chromium } = require('e:/GitProject/yu_client_unity/output/node_modules/playwright');
 
 const ACC = process.argv[2] || '123123';
@@ -33,6 +35,152 @@ function safeStringify(root) {
     return out;
   };
   return JSON.stringify(helper(root));
+}
+
+let crcTable;
+function crc32(buffer) {
+  if (!crcTable) {
+    crcTable = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+      crcTable[n] = c >>> 0;
+    }
+  }
+  let c = 0xffffffff;
+  for (const value of buffer) c = crcTable[(c ^ value) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+function pngChunk(type, data) {
+  const tag = Buffer.from(type, 'ascii');
+  const body = data || Buffer.alloc(0);
+  const chunk = Buffer.concat([tag, body]);
+  const out = Buffer.alloc(12 + body.length);
+  out.writeUInt32BE(body.length, 0);
+  chunk.copy(out, 4);
+  out.writeUInt32BE(crc32(chunk), 8 + body.length);
+  return out;
+}
+
+function encodeRgbaPng(width, height, rgba) {
+  if (rgba.length !== width * height * 4) throw new Error(`bad RGBA byte count: ${rgba.length}`);
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(width, 0);
+  ihdr.writeUInt32BE(height, 4);
+  ihdr[8] = 8;
+  ihdr[9] = 6;
+  const stride = width * 4;
+  const filtered = Buffer.alloc((stride + 1) * height);
+  for (let y = 0; y < height; y++) rgba.copy(filtered, y * (stride + 1) + 1, y * stride, (y + 1) * stride);
+  return Buffer.concat([
+    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+    pngChunk('IHDR', ihdr),
+    pngChunk('IDAT', zlib.deflateSync(filtered, { level: 9 })),
+    pngChunk('IEND'),
+  ]);
+}
+
+function sha256(buffer) {
+  return crypto.createHash('sha256').update(buffer).digest('hex');
+}
+
+function packLegacyEffectCapture(capture, outputDir) {
+  const frameWidth = capture.width;
+  const frameHeight = capture.height;
+  const frameCount = capture.frames.length;
+  const columns = 12;
+  const padding = 2;
+  const cellWidth = frameWidth + padding * 2;
+  const cellHeight = frameHeight + padding * 2;
+  const rows = Math.ceil(frameCount / columns);
+  const atlasWidth = columns * cellWidth;
+  const atlasHeight = rows * cellHeight;
+  const atlas = Buffer.alloc(atlasWidth * atlasHeight * 4);
+  const rawFrames = capture.frames.map(frame => Buffer.from(frame, 'base64'));
+
+  const copyPixel = (source, sx, sy, dx, dy) => {
+    const si = (sy * frameWidth + sx) * 4;
+    const di = (dy * atlasWidth + dx) * 4;
+    source.copy(atlas, di, si, si + 4);
+  };
+
+  rawFrames.forEach((frame, index) => {
+    if (frame.length !== frameWidth * frameHeight * 4) {
+      throw new Error(`${capture.effectName} frame ${index} has ${frame.length} bytes`);
+    }
+    const cellX = (index % columns) * cellWidth;
+    const cellY = Math.floor(index / columns) * cellHeight;
+    for (let y = 0; y < frameHeight; y++) {
+      // RenderTexture.getData follows the WebGL framebuffer origin (bottom-left).
+      // PNG rows are top-left, so each isolated 100x100 frame is flipped once here.
+      const sourceY = frameHeight - 1 - y;
+      for (let x = 0; x < frameWidth; x++) copyPixel(frame, x, sourceY, cellX + padding + x, cellY + padding + y);
+      for (let p = 0; p < padding; p++) {
+        copyPixel(frame, 0, sourceY, cellX + p, cellY + padding + y);
+        copyPixel(frame, frameWidth - 1, sourceY, cellX + padding + frameWidth + p, cellY + padding + y);
+      }
+    }
+    const paddedRowBytes = cellWidth * 4;
+    const firstRow = (cellY + padding) * atlasWidth * 4 + cellX * 4;
+    const lastRow = (cellY + padding + frameHeight - 1) * atlasWidth * 4 + cellX * 4;
+    for (let p = 0; p < padding; p++) {
+      atlas.copy(atlas, (cellY + p) * atlasWidth * 4 + cellX * 4, firstRow, firstRow + paddedRowBytes);
+      atlas.copy(atlas, (cellY + padding + frameHeight + p) * atlasWidth * 4 + cellX * 4,
+        lastRow, lastRow + paddedRowBytes);
+    }
+  });
+
+  const rgba = Buffer.concat(rawFrames);
+  const png = encodeRgbaPng(atlasWidth, atlasHeight, atlas);
+  const base = path.join(outputDir, capture.effectName);
+  fs.writeFileSync(base + '.rgba', rgba);
+  fs.writeFileSync(base + '_atlas.png', png);
+
+  const previewIndex = Math.min(30, frameCount - 1);
+  const preview = Buffer.alloc(frameWidth * frameHeight * 4);
+  const previewSource = rawFrames[previewIndex];
+  for (let y = 0; y < frameHeight; y++) {
+    const sourceY = frameHeight - 1 - y;
+    previewSource.copy(preview, y * frameWidth * 4, sourceY * frameWidth * 4, (sourceY + 1) * frameWidth * 4);
+  }
+  fs.writeFileSync(base + `_frame_${String(previewIndex).padStart(3, '0')}.png`,
+    encodeRgbaPng(frameWidth, frameHeight, preview));
+
+  let alphaNonZero = 0;
+  let transparentRgbNonZero = 0;
+  for (let i = 0; i < rgba.length; i += 4) {
+    if (rgba[i + 3] !== 0) alphaNonZero++;
+    else if (rgba[i] !== 0 || rgba[i + 1] !== 0 || rgba[i + 2] !== 0) transparentRgbNonZero++;
+  }
+  const metadata = {
+    schema: 1,
+    effectName: capture.effectName,
+    source: 'old-laya-runtime-rendertexture-rgba',
+    sourceOrigin: 'bottom-left',
+    width: frameWidth,
+    height: frameHeight,
+    frameCount,
+    frameRate: 60,
+    durationSeconds: 2,
+    frameTimesMs: capture.frameTimesMs,
+    atlas: { width: atlasWidth, height: atlasHeight, columns, rows, padding, cellWidth, cellHeight },
+    rgbaSha256: sha256(rgba),
+    atlasPngSha256: sha256(png),
+    alphaNonZeroPixels: alphaNonZero,
+    transparentRgbNonZeroPixels: transparentRgbNonZero,
+  };
+  fs.writeFileSync(base + '_atlas.json', JSON.stringify(metadata, null, 2) + '\n', 'utf8');
+  return metadata;
+}
+
+function readCurrentGmPassword() {
+  if (process.env.SX_GM_PASSWORD) return process.env.SX_GM_PASSWORD;
+  const configPath = 'E:/GitProject/yu_server/config/gsrv.config';
+  const content = fs.readFileSync(configPath, 'utf8');
+  const match = content.match(/\{\s*gm_password\s*,\s*"([^"]*)"\s*\}/);
+  if (!match) throw new Error(`gm_password not found in ${configPath}`);
+  return match[1];
 }
 
 (async () => {
@@ -174,6 +322,239 @@ function safeStringify(root) {
 
   await page.waitForTimeout(5000);
   await shot('50_city.png');
+
+  // 非写入的奖励飞行动画基线：直接调用老端公共表现入口，只用于逐帧核对
+  // ui_bangyu 的单实例足迹、缓存复用、散开与收束；不发送领取协议、不改变账号。
+  if (ROUTE === 'reward-fly-baseline') {
+    const result = await page.evaluate(() => {
+      const controllerClass = window.MainUIController;
+      if (!controllerClass || typeof controllerClass.GetInstance !== 'function') {
+        return { ok: false, reason: 'MainUIController missing' };
+      }
+      const controller = controllerClass.GetInstance();
+      if (!controller || typeof controller.ShowDiamond !== 'function') {
+        return { ok: false, reason: 'ShowDiamond missing' };
+      }
+      controller.ShowDiamond(2, 10, { x: 520, y: 300 });
+      return { ok: true };
+    });
+    console.log('REWARD FLY BASELINE', JSON.stringify(result));
+    if (!result.ok) throw new Error(result.reason);
+
+    await shot('60_reward_fly_000ms.png');
+    const frameDelays = [80, 170, 200, 300, 400, 350];
+    const frameNames = ['080ms', '250ms', '450ms', '750ms', '1150ms', '1500ms'];
+    for (let i = 0; i < frameDelays.length; i++) {
+      await page.waitForTimeout(frameDelays[i]);
+      await shot(`60_reward_fly_${frameNames[i]}.png`);
+    }
+  }
+
+  // 旧端 UIEffect 的真实透明 RT 序列。这里隔离单个 100x100 source，不截整页、不反推粒子参数；
+  // 产物供 Unity 复播同一份 RGBA，再由多个 2D presenter 复用，拓扑与老端一致。
+  if (ROUTE === 'reward-fly-rgba') {
+    const captureOne = async (effectName) => page.evaluate(async ({ effectName, frameCount }) => {
+      const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+      const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
+      const toBase64 = bytes => {
+        let value = '';
+        const chunk = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunk) {
+          value += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(bytes.length, i + chunk)));
+        }
+        return btoa(value);
+      };
+
+      if (!window.UIEffect || !window.Laya || !Laya.stage) {
+        return { ok: false, reason: 'UIEffect/Laya.stage missing' };
+      }
+
+      const holder = new Laya.Box();
+      holder.name = `__legacy_rgba_capture_${effectName}`;
+      holder.width = holder.height = 100;
+      holder.anchorX = holder.anchorY = 0.5;
+      holder.pos(Laya.stage.width * 0.5, Laya.stage.height * 0.5);
+      Laya.stage.addChild(holder);
+      const effect = new window.UIEffect();
+      effect.AddUIEffect(effectName, holder, null, 14);
+      const key = `${effectName}@0@0@14@14@14@100@100`;
+
+      let info = null;
+      for (let i = 0; i < 300; i++) {
+        info = window.UIEffect.ALL_UIEFFECT_DIC[key];
+        if (info && info.loaded && info.render_texture && info.gameObject) break;
+        await sleep(50);
+      }
+      if (!info || !info.loaded || !info.render_texture || !info.gameObject) {
+        effect.ResetUIEffect();
+        holder.removeSelf();
+        holder.destroy(true);
+        return { ok: false, reason: `effect source not ready: ${key}` };
+      }
+
+      const rt = info.render_texture;
+      const width = Number(rt.width || rt._width || 0);
+      const height = Number(rt.height || rt._height || 0);
+      if (width !== 100 || height !== 100) {
+        effect.ResetUIEffect();
+        holder.removeSelf();
+        holder.destroy(true);
+        return { ok: false, reason: `unexpected RT size ${width}x${height}` };
+      }
+
+      // Laya 项目自身也用 active false->true 重播粒子；在此锁定 phase=0 后连续取 120 帧。
+      info.gameObject.active = false;
+      await nextFrame();
+      info.gameObject.active = true;
+      const frames = [];
+      const frameTimesMs = [];
+      const startedAt = performance.now();
+      const read = time => {
+        // This project uses Laya.RenderTexture (3D), whose getData overload requires
+        // the caller-provided output buffer; RenderTexture2D's four-argument overload
+        // would silently return an empty value here.
+        const pixels = rt.getData(0, 0, width, height, new Uint8Array(width * height * 4));
+        if (!pixels || pixels.length !== width * height * 4) {
+          throw new Error(`RenderTexture.getData returned ${pixels ? pixels.length : 0} bytes`);
+        }
+        frames.push(toBase64(pixels));
+        frameTimesMs.push(Number((time - startedAt).toFixed(3)));
+      };
+      read(startedAt);
+      while (frames.length < frameCount) {
+        const time = await nextFrame();
+        // Headless Edge may expose the host's 120/144Hz rAF cadence, while this Laya
+        // project declares 60fps. Sample the RT on the legacy game's 60Hz timeline.
+        const targetTime = frames.length * (1000 / 60);
+        if (time - startedAt + 0.25 >= targetTime) read(time);
+      }
+
+      effect.ResetUIEffect();
+      holder.removeSelf();
+      holder.destroy(true);
+      return { ok: true, effectName, width, height, frames, frameTimesMs };
+    }, { effectName, frameCount: 120 });
+
+    const captureDir = path.join(OUT, 'legacy_rgba');
+    fs.mkdirSync(captureDir, { recursive: true });
+    const captures = [];
+    for (const effectName of ['ui_bangyu_1', 'ui_bangyu_2']) {
+      const capture = await captureOne(effectName);
+      if (!capture.ok) throw new Error(capture.reason);
+      const elapsed = capture.frameTimesMs[capture.frameTimesMs.length - 1];
+      if (elapsed < 1800 || elapsed > 2300) {
+        throw new Error(`${effectName} capture cadence drifted: 120 frames in ${elapsed}ms`);
+      }
+      const metadata = packLegacyEffectCapture(capture, captureDir);
+      captures.push(metadata);
+      console.log('LEGACY RGBA', JSON.stringify({
+        effectName,
+        frameCount: metadata.frameCount,
+        elapsedMs: elapsed,
+        atlasPngSha256: metadata.atlasPngSha256,
+      }));
+    }
+    fs.writeFileSync(path.join(captureDir, 'capture-manifest.json'),
+      JSON.stringify({ schema: 1, capturedAt: new Date().toISOString(), captures }, null, 2) + '\n', 'utf8');
+  }
+
+  // 为真实领取链准备一条“已达成、未领取”的成就。只完成一个当前未达成系列，
+  // 不调用 clearachv、不代替玩家点击 40905，也不批量领取任何奖励。
+  if (ROUTE === 'achievement-gm-ready') {
+    const gmPassword = readCurrentGmPassword();
+    const result = await page.evaluate(async ({ gmPassword }) => {
+      const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+      if (!window.achvModel || !window.CheatModel) {
+        return { ok: false, reason: 'achvModel/CheatModel missing' };
+      }
+      const model = window.achvModel.GetInstance();
+      const cheat = window.CheatModel.GetInstance();
+      const snapshot = () => {
+        const source = model.GetAchvDataList && model.GetAchvDataList();
+        const list = [];
+        if (source) {
+          for (const key of Object.keys(source)) {
+            const value = source[key];
+            if (!value || !Number.isFinite(Number(value.category))) continue;
+            list.push({
+              category: Number(value.category),
+              id: Number(value.id || 0),
+              status: Number(value.status || 0),
+              progress: Number(value.progress || 0),
+            });
+          }
+        }
+        return list.sort((a, b) => a.category - b.category);
+      };
+      const send = command => cheat.Fire(window.CheatModel.SEND_CHEAT_TO_SERVER, command);
+
+      for (let i = 0; i < 80; i++) {
+        if (snapshot().length) break;
+        await sleep(100);
+      }
+      const before = snapshot();
+      if (!before.length) return { ok: false, reason: 'achievement summary not ready' };
+
+      const categoryCfg = model.AcCategoryCfg || {};
+      const candidates = before.filter(value => {
+        const cfg = categoryCfg[value.category];
+        return value.category > 0 && value.status === 0 && (!cfg || cfg.lv === undefined || Number(cfg.lv) <= 999999);
+      });
+      if (!candidates.length) {
+        return {
+          ok: false,
+          reason: 'no unfinished achievement category on this role',
+          before,
+          existingClaimable: before.filter(value => value.status === 1),
+        };
+      }
+
+      // 优先补当前编号最靠前的一条，控制改动面；领取仍留给 Unity 真实 UI。
+      const selected = candidates[0];
+      if (gmPassword) {
+        send(`setgmpassword_${gmPassword}`);
+        await sleep(250);
+      }
+      send(`completeachv_${selected.category}`);
+
+      let after = snapshot();
+      for (let i = 0; i < 80; i++) {
+        const current = after.find(value => value.category === selected.category);
+        if (current && current.status === 1) break;
+        await sleep(100);
+        after = snapshot();
+      }
+      const prepared = after.find(value => value.category === selected.category);
+      return {
+        ok: !!prepared && prepared.status === 1,
+        selectedCategory: selected.category,
+        before: selected,
+        after: prepared || null,
+        claimableCategories: after.filter(value => value.status === 1).map(value => value.category),
+      };
+    }, { gmPassword });
+
+    const evidence = {
+      schema: 1,
+      account: ACC,
+      command: result.selectedCategory ? `completeachv_${result.selectedCategory}` : null,
+      destructiveResetUsed: false,
+      claimProtocolSent: false,
+      observedAt: new Date().toISOString(),
+      result,
+    };
+    fs.writeFileSync(path.join(OUT, 'achievement-gm-ready.json'),
+      JSON.stringify(evidence, null, 2) + '\n', 'utf8');
+    console.log('ACHIEVEMENT GM READY', JSON.stringify({
+      ok: result.ok,
+      selectedCategory: result.selectedCategory || null,
+      before: result.before || null,
+      after: result.after || null,
+      claimableCategories: result.claimableCategories || [],
+      reason: result.reason || null,
+    }));
+    if (!result.ok) throw new Error(result.reason || 'achievement GM preparation failed');
+  }
 
   // 可选真实点击路线：主界面[角色] → 人物页[属性说明]，用于日常 UI 精修基线。
   // 坐标来自 720x1280 运行态快照；两次点击都由页面自己的命中链处理，不直接调用业务事件。

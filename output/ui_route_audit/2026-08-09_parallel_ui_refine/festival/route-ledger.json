@@ -1,0 +1,648 @@
+{
+  "schema": 6,
+  "route": "mainui.festival",
+  "baseline": {
+    "legacy_runtime": "not-collected-this-run: browser and account operations explicitly prohibited",
+    "legacy_source": "E:/GitProject/yu_client/h5/src/festival plus commonModel/FestivalModel.ts and commonController/FestivalController.ts",
+    "unity_source": "Assets/Scripts/Module/Core/Festival plus Assets/Prefabs/UI/Festival and read-only Generated/UI/Festival binds",
+    "state_recipe_id": "none-no-account-mutation-authorized"
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_parallel_ui_refine/festival/route-manifest.json",
+    "sha256": "5f15f1365dab8ed138d813f28f98b39a8a743e7c9cc5311ac3aec1aad8a4539a"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "mainui.festival",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "entry-223",
+          "kind": "conditional-button",
+          "child": "mainui.festival.open"
+        }
+      ],
+      "parent": null,
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.festival.open"
+    },
+    {
+      "id": "mainui.festival.open",
+      "parent": "mainui.festival",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.festival.open.first-check, mainui.festival.window"
+    },
+    {
+      "id": "mainui.festival.open.async-lifecycle",
+      "parent": "mainui.festival.open",
+      "type": "read",
+      "risk": "read-only",
+      "note": "Private deterministic lifecycle fix applied",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "FestivalFlow generation guard is static-only; requires real close-during-load, reset-during-load, reopen, and zero-late-instance Unity verification"
+    },
+    {
+      "id": "mainui.festival.open.first-check",
+      "parent": "mainui.festival.open",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "goto-advance",
+          "kind": "button",
+          "child": "mainui.festival.open.first-check.goto-advance"
+        },
+        {
+          "id": "background-dismiss",
+          "kind": "dismiss",
+          "child": "mainui.festival.open.first-check.dismiss"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.festival.open.first-check.goto-advance, mainui.festival.open.first-check.dismiss"
+    },
+    {
+      "id": "mainui.festival.open.first-check.goto-advance",
+      "parent": "mainui.festival.open.first-check",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Unity Festival has no first-check/page router consumer; real browser/Unity use is prohibited this run"
+    },
+    {
+      "id": "mainui.festival.open.first-check.dismiss",
+      "parent": "mainui.festival.open.first-check",
+      "type": "return",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Unity Festival has no first-check BaseView lifecycle consumer"
+    },
+    {
+      "id": "mainui.festival.window",
+      "parent": "mainui.festival.open",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "tab-task",
+          "kind": "tab",
+          "child": "mainui.festival.window.task"
+        },
+        {
+          "id": "tab-award",
+          "kind": "tab",
+          "child": "mainui.festival.window.award"
+        },
+        {
+          "id": "tab-advance",
+          "kind": "tab",
+          "child": "mainui.festival.window.advance"
+        },
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "mainui.festival.window.close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.festival.window.task, mainui.festival.window.award, mainui.festival.window.advance"
+    },
+    {
+      "id": "mainui.festival.window.task",
+      "parent": "mainui.festival.window",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "task-tab-day",
+          "kind": "tab",
+          "child": "mainui.festival.window.task.day"
+        },
+        {
+          "id": "task-tab-week",
+          "kind": "tab",
+          "child": "mainui.festival.window.task.week"
+        },
+        {
+          "id": "task-tab-season",
+          "kind": "tab",
+          "child": "mainui.festival.window.task.season"
+        },
+        {
+          "id": "task-list",
+          "kind": "list",
+          "child": "mainui.festival.window.task.list"
+        },
+        {
+          "id": "task-item-jump",
+          "kind": "conditional-button",
+          "child": "mainui.festival.window.task.item-jump"
+        },
+        {
+          "id": "task-item-claim",
+          "kind": "conditional-button",
+          "child": "mainui.festival.window.task.item-claim"
+        },
+        {
+          "id": "claim-all",
+          "kind": "conditional-button",
+          "child": "mainui.festival.window.task.claim-all"
+        },
+        {
+          "id": "level-up",
+          "kind": "button",
+          "child": "mainui.festival.window.task.level-up"
+        },
+        {
+          "id": "advance",
+          "kind": "button",
+          "child": "mainui.festival.window.task.advance"
+        },
+        {
+          "id": "countdown",
+          "kind": "conditional-state",
+          "child": "mainui.festival.window.task.countdown"
+        },
+        {
+          "id": "red-dots",
+          "kind": "conditional-state",
+          "child": "mainui.festival.window.task.red-dots"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.festival.window.task.day, mainui.festival.window.task.week, mainui.festival.window.task.season, mainui.festival.window.task.list, mainui.festival.window.task.item-jump, mainui.festival.window.task.item-claim, mainui.festival.window.task.claim-all, mainui.festival.window.task.level-up, mainui.festival.window.task.advance, mainui.festival.window.task.countdown, mainui.festival.window.task.red-dots"
+    },
+    {
+      "id": "mainui.festival.window.task.day",
+      "parent": "mainui.festival.window.task",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Missing Unity config_fiesta task-tab consumer and runtime evidence"
+    },
+    {
+      "id": "mainui.festival.window.task.week",
+      "parent": "mainui.festival.window.task",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Missing Unity config_fiesta task-tab consumer and runtime evidence"
+    },
+    {
+      "id": "mainui.festival.window.task.season",
+      "parent": "mainui.festival.window.task",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Missing Unity config_fiesta task-tab consumer and runtime evidence"
+    },
+    {
+      "id": "mainui.festival.window.task.list",
+      "parent": "mainui.festival.window.task",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "No Festival task config/list renderer; ScrollRect structure and drag were not runtime verified"
+    },
+    {
+      "id": "mainui.festival.window.task.item-jump",
+      "parent": "mainui.festival.window.task",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "No Festival task config/OpenFun consumer; browser/Unity navigation prohibited"
+    },
+    {
+      "id": "mainui.festival.window.task.item-claim",
+      "parent": "mainui.festival.window.task",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "19404 reward claim is an unauthorized account write and Unity has no task item consumer"
+    },
+    {
+      "id": "mainui.festival.window.task.claim-all",
+      "parent": "mainui.festival.window.task",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "19404 claim-all is an unauthorized account write and immediate/reopen evidence is unavailable"
+    },
+    {
+      "id": "mainui.festival.window.task.level-up",
+      "parent": "mainui.festival.window.task",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {
+          "id": "slider",
+          "kind": "slider",
+          "child": "mainui.festival.window.task.level-up.slider"
+        },
+        {
+          "id": "buy",
+          "kind": "button",
+          "child": "mainui.festival.window.task.level-up.buy"
+        },
+        {
+          "id": "cancel",
+          "kind": "button",
+          "child": "mainui.festival.window.task.level-up.cancel"
+        },
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "mainui.festival.window.task.level-up.close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.festival.window.task.level-up.slider, mainui.festival.window.task.level-up.buy, mainui.festival.window.task.level-up.cancel, mainui.festival.window.task.level-up.close"
+    },
+    {
+      "id": "mainui.festival.window.task.level-up.slider",
+      "parent": "mainui.festival.window.task.level-up",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "No Festival UpLevel runtime consumer; slider interaction not run"
+    },
+    {
+      "id": "mainui.festival.window.task.level-up.buy",
+      "parent": "mainui.festival.window.task.level-up",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Shop purchase is an unauthorized asset transaction and shared Shop chain is outside the file island"
+    },
+    {
+      "id": "mainui.festival.window.task.level-up.cancel",
+      "parent": "mainui.festival.window.task.level-up",
+      "type": "return",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "No Festival UpLevel BaseView lifecycle consumer"
+    },
+    {
+      "id": "mainui.festival.window.task.level-up.close",
+      "parent": "mainui.festival.window.task.level-up",
+      "type": "return",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "No Festival UpLevel BaseView lifecycle consumer"
+    },
+    {
+      "id": "mainui.festival.window.task.advance",
+      "parent": "mainui.festival.window.task",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "No Festival three-tab window router consumer"
+    },
+    {
+      "id": "mainui.festival.window.task.countdown",
+      "parent": "mainui.festival.window.task",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "No Festival task refresh-time runtime consumer"
+    },
+    {
+      "id": "mainui.festival.window.task.red-dots",
+      "parent": "mainui.festival.window.task",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "No Festival task page/tab runtime consumer; icon-only red-dot code is insufficient"
+    },
+    {
+      "id": "mainui.festival.window.award",
+      "parent": "mainui.festival.window",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "level-list",
+          "kind": "list",
+          "child": "mainui.festival.window.award.list"
+        },
+        {
+          "id": "claim-one",
+          "kind": "conditional-button",
+          "child": "mainui.festival.window.award.claim-one"
+        },
+        {
+          "id": "claim-all",
+          "kind": "conditional-button",
+          "child": "mainui.festival.window.award.claim-all"
+        },
+        {
+          "id": "level-up",
+          "kind": "button",
+          "child": "mainui.festival.window.award.level-up"
+        },
+        {
+          "id": "advance",
+          "kind": "button",
+          "child": "mainui.festival.window.award.advance"
+        },
+        {
+          "id": "red-dots",
+          "kind": "conditional-state",
+          "child": "mainui.festival.window.award.red-dots"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.festival.window.award.list, mainui.festival.window.award.claim-one, mainui.festival.window.award.claim-all, mainui.festival.window.award.level-up, mainui.festival.window.award.advance, mainui.festival.window.award.red-dots"
+    },
+    {
+      "id": "mainui.festival.window.award.list",
+      "parent": "mainui.festival.window.award",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Missing config_fiesta_lv_exp renderer and runtime list/scroll evidence"
+    },
+    {
+      "id": "mainui.festival.window.award.claim-one",
+      "parent": "mainui.festival.window.award",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "19402 reward claim is an unauthorized account write and no item consumer exists"
+    },
+    {
+      "id": "mainui.festival.window.award.claim-all",
+      "parent": "mainui.festival.window.award",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "19402 claim-all is an unauthorized account write and immediate/reopen evidence is unavailable"
+    },
+    {
+      "id": "mainui.festival.window.award.level-up",
+      "parent": "mainui.festival.window.award",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "No Festival window/popup router consumer"
+    },
+    {
+      "id": "mainui.festival.window.award.advance",
+      "parent": "mainui.festival.window.award",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "No Festival window tab router consumer"
+    },
+    {
+      "id": "mainui.festival.window.award.red-dots",
+      "parent": "mainui.festival.window.award",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "No Festival award page consumer or player-state evidence"
+    },
+    {
+      "id": "mainui.festival.window.advance",
+      "parent": "mainui.festival.window",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {
+          "id": "luxury-info",
+          "kind": "item",
+          "child": "mainui.festival.window.advance.luxury-info"
+        },
+        {
+          "id": "supreme-info",
+          "kind": "item",
+          "child": "mainui.festival.window.advance.supreme-info"
+        },
+        {
+          "id": "luxury-purchase",
+          "kind": "button",
+          "child": "mainui.festival.window.advance.luxury-purchase"
+        },
+        {
+          "id": "supreme-purchase",
+          "kind": "button",
+          "child": "mainui.festival.window.advance.supreme-purchase"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.festival.window.advance.reward-list"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.festival.window.advance.luxury-info, mainui.festival.window.advance.supreme-info, mainui.festival.window.advance.luxury-purchase, mainui.festival.window.advance.supreme-purchase, mainui.festival.window.advance.reward-list"
+    },
+    {
+      "id": "mainui.festival.window.advance.luxury-info",
+      "parent": "mainui.festival.window.advance",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Shared item tooltip and config_fiesta_act consumers are outside the writable island"
+    },
+    {
+      "id": "mainui.festival.window.advance.supreme-info",
+      "parent": "mainui.festival.window.advance",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Shared item tooltip and config_fiesta_act consumers are outside the writable island"
+    },
+    {
+      "id": "mainui.festival.window.advance.luxury-purchase",
+      "parent": "mainui.festival.window.advance",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "19405/payment purchase is an unauthorized asset transaction; no authoritative refresh/receipt consumer exists"
+    },
+    {
+      "id": "mainui.festival.window.advance.supreme-purchase",
+      "parent": "mainui.festival.window.advance",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "19405/payment purchase is an unauthorized asset transaction; no authoritative refresh/receipt consumer exists"
+    },
+    {
+      "id": "mainui.festival.window.advance.reward-list",
+      "parent": "mainui.festival.window.advance",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Missing fiesta config and shared BaseAwardItem consumer; no scroll/runtime evidence"
+    },
+    {
+      "id": "mainui.festival.window.close",
+      "parent": "mainui.festival.window",
+      "type": "return",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Close during loaded and in-flight states needs real BaseView/window lifecycle and reopen verification"
+    }
+  ],
+  "summary": {
+    "total": 37,
+    "status_counts": {
+      "blocked": 35,
+      "needs-runtime-verify": 2
+    }
+  }
+}

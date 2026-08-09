@@ -1,0 +1,625 @@
+{
+  "updated_at": "2026-08-09T00:00:00+08:00",
+  "summary_details": {
+    "runtime_policy": "no Unity, no browser, no transaction, no build",
+    "conversion": "blocked-before-convert: no legacy runtime snapshot and Unity execution forbidden"
+  },
+  "nodes": [
+    {
+      "id": "mainui.activity.sevenday.snapshot.open",
+      "status": "baseline-only",
+      "note": "老端17500与Unity现有只读解析/缓存静态一致；本轮未运行真实客户端。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.snapshot.merge",
+      "status": "baseline-only",
+      "note": "老端17502与Unity现有只读解析/缓存静态一致；本轮未运行真实客户端。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.refresh.level",
+      "status": "baseline-only",
+      "note": "等级真变化重拉17500/17502的静态链已存在；本轮未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.refresh.task",
+      "status": "baseline-only",
+      "note": "普通七日任务门槛跨越只重拉17500的静态链已存在；本轮未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.icon.lifecycle",
+      "status": "baseline-only",
+      "note": "三入口互斥、明天可领文案与开放门仅有源码/配置对照，未做运行验证。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.icon.red-dot",
+      "status": "needs-runtime-verify",
+      "note": "增量补齐status=1入口红点派生，并在删图标前清理共享红点缓存。",
+      "runtime_gap": "禁止启动Unity/浏览器；尚未验证175、175@8、175_1三入口的显示、切换、跨天与重开红点。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.tab.day-1",
+      "status": "defect",
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.tab.day-2",
+      "status": "defect",
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.tab.day-3",
+      "status": "defect",
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.tab.day-4",
+      "status": "defect",
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.tab.day-5",
+      "status": "defect",
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.tab.day-6",
+      "status": "defect",
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.tab.day-7",
+      "status": "defect",
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.dynamic-presentation",
+      "status": "defect",
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.reward-list",
+      "status": "defect",
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.reward-detail.slot-1",
+      "status": "defect",
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.reward-detail.slot-2",
+      "status": "defect",
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.reward-detail.slot-3",
+      "status": "defect",
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.reward-detail.slot-4",
+      "status": "defect",
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.claim.unavailable",
+      "status": "defect",
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.claim.received",
+      "status": "defect",
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.red-dot",
+      "status": "defect",
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.close",
+      "status": "defect",
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.claim.available.protocol",
+      "status": "blocked",
+      "blocked_reason": "17501是真实背包/邮件发奖并持久化领取态的hard-negative；本轮无写事务授权，且三页/配置/单飞/错误/奖励链未闭环。",
+      "note": "禁止添加常量、sender、handler、乐观领取态、本地发奖或盲重试。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.claim.available.immediate-refresh",
+      "status": "blocked",
+      "blocked_reason": "只能在权威领取成功链后验证；本轮禁止真实领取，且17501/17503仍为hard-negative。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.claim.available.success-popup",
+      "status": "blocked",
+      "blocked_reason": "只能在权威领取成功链后验证；本轮禁止真实领取，且17501/17503仍为hard-negative。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.claim.available.reopen",
+      "status": "blocked",
+      "blocked_reason": "只能在权威领取成功链后验证；本轮禁止真实领取，且17501/17503仍为hard-negative。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.tab.day-8",
+      "status": "defect",
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.tab.day-9",
+      "status": "defect",
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.tab.day-10",
+      "status": "defect",
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.tab.day-11",
+      "status": "defect",
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.tab.day-12",
+      "status": "defect",
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.tab.day-13",
+      "status": "defect",
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.tab.day-14",
+      "status": "defect",
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.dynamic-presentation",
+      "status": "defect",
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.reward-list",
+      "status": "defect",
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.reward-detail.slot-1",
+      "status": "defect",
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.reward-detail.slot-2",
+      "status": "defect",
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.reward-detail.slot-3",
+      "status": "defect",
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.reward-detail.slot-4",
+      "status": "defect",
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.claim.unavailable",
+      "status": "defect",
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.claim.received",
+      "status": "defect",
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.red-dot",
+      "status": "defect",
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.close",
+      "status": "defect",
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.claim.available.protocol",
+      "status": "blocked",
+      "blocked_reason": "17501是真实背包/邮件发奖并持久化领取态的hard-negative；本轮无写事务授权，且三页/配置/单飞/错误/奖励链未闭环。",
+      "note": "禁止添加常量、sender、handler、乐观领取态、本地发奖或盲重试。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.claim.available.immediate-refresh",
+      "status": "blocked",
+      "blocked_reason": "只能在权威领取成功链后验证；本轮禁止真实领取，且17501/17503仍为hard-negative。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.claim.available.success-popup",
+      "status": "blocked",
+      "blocked_reason": "只能在权威领取成功链后验证；本轮禁止真实领取，且17501/17503仍为hard-negative。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.claim.available.reopen",
+      "status": "blocked",
+      "blocked_reason": "只能在权威领取成功链后验证；本轮禁止真实领取，且17501/17503仍为hard-negative。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.tab.day-1",
+      "status": "defect",
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.tab.day-2",
+      "status": "defect",
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.tab.day-3",
+      "status": "defect",
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.tab.day-4",
+      "status": "defect",
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.tab.day-5",
+      "status": "defect",
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.tab.day-6",
+      "status": "defect",
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.tab.day-7",
+      "status": "defect",
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.dynamic-presentation",
+      "status": "defect",
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.reward-list",
+      "status": "defect",
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.reward-detail.slot-1",
+      "status": "defect",
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.reward-detail.slot-2",
+      "status": "defect",
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.reward-detail.slot-3",
+      "status": "defect",
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.reward-detail.slot-4",
+      "status": "defect",
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.claim.unavailable",
+      "status": "defect",
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.claim.received",
+      "status": "defect",
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.red-dot",
+      "status": "defect",
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.close",
+      "status": "defect",
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.claim.available.protocol",
+      "status": "blocked",
+      "blocked_reason": "17503是真实背包/邮件发奖并持久化领取态的hard-negative；本轮无写事务授权，且三页/配置/单飞/错误/奖励链未闭环。",
+      "note": "禁止添加常量、sender、handler、乐观领取态、本地发奖或盲重试。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.claim.available.immediate-refresh",
+      "status": "blocked",
+      "blocked_reason": "只能在权威领取成功链后验证；本轮禁止真实领取，且17501/17503仍为hard-negative。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.claim.available.success-popup",
+      "status": "blocked",
+      "blocked_reason": "只能在权威领取成功链后验证；本轮禁止真实领取，且17501/17503仍为hard-negative。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.claim.available.reopen",
+      "status": "blocked",
+      "blocked_reason": "只能在权威领取成功链后验证；本轮禁止真实领取，且17501/17503仍为hard-negative。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ]
+    }
+  ]
+}

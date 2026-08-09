@@ -275,6 +275,51 @@ namespace Shenxiao.Module.Core.Tasks
         }
 
         /// <summary>
+        /// 完整任务页的数据源（对标老端 TaskModel.GetTaskData）：只展示已接任务，按
+        /// 主线/转生/支线/仙宗/日常的旧端顺序排列。HUD 列表会按引导态过滤主线，
+        /// 不能复用为 TaskView 数据源，否则任务页会漏掉当前唯一主线。
+        /// </summary>
+        public List<TaskEntry> GetTaskListForTaskView()
+        {
+            var result = new List<TaskEntry>();
+            foreach (KeyValuePair<int, List<TaskVo>> kv in _hasReceiveTaskList)
+            {
+                if (kv.Value == null || kv.Value.Count == 0) continue;
+                TaskVo task = kv.Value[0];
+                if (task == null) continue;
+                if (task.TaskType != MAIN_LINE
+                    && task.TaskType != REINCARNATION
+                    && task.TaskType != EXTENSION_LINE
+                    && task.TaskType != GUILD
+                    && task.TaskType != DAILY
+                    && task.TaskType != NORMAL_DAILY) continue;
+                // 老端 GetTaskData 只在主角未满 4 转时展示转生任务。
+                if (task.TaskType == REINCARNATION && (RoleModel.Instance.Figure?.turn ?? 0) >= 4) continue;
+
+                result.Add(new TaskEntry
+                {
+                    TaskId = kv.Key,
+                    SortIndex = GetTaskViewSortIndex(task.TaskType),
+                    SortSubIndex = task.TaskId,
+                    SameTypeOrderIndex = 0,
+                    TipsList = kv.Value,
+                });
+            }
+
+            result.Sort(CompareTaskEntry);
+            return result;
+        }
+
+        private static int GetTaskViewSortIndex(int taskType)
+        {
+            if (taskType == MAIN_LINE) return 1;
+            if (taskType == REINCARNATION) return 3;
+            if (taskType == GUILD) return 6;
+            if (taskType == DAILY || taskType == NORMAL_DAILY) return 7;
+            return 8; // EXTENSION_LINE
+        }
+
+        /// <summary>
         /// 主线引导任务条目(对标老端 SetMainLineTask:当 MainLineTaskNeedShowArrow 时,主线任务从
         /// 面板列表里排除,改放 _box_main_line 单独渲染)。返回主线任务的 TaskEntry(含 tips 列表),无则 null。
         /// </summary>
@@ -502,6 +547,9 @@ namespace Shenxiao.Module.Core.Tasks
             // 对标 TaskModel.ts:2966-2972 IsFindNpcTask:Talk/StartTalk/EndTalk 三类为"找 NPC 对话"任务。
             return taskTipsType == TIP_TALK || taskTipsType == TIP_START_TALK || taskTipsType == TIP_END_TALK;
         }
+
+        /// <summary>任务页按钮需要复用与 DoTask 相同的找 NPC 判定，避免复制类型分支。</summary>
+        public static bool IsFindNpcTaskType(int taskTipsType) => IsFindNpcTask(taskTipsType);
 
         private bool ShouldAutoContinueTask(TaskVo task)
         {

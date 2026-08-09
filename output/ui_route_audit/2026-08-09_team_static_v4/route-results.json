@@ -1,0 +1,559 @@
+{
+  "nodes": [
+    {
+      "id": "mainui.team.view.close",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.small-desc.content",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.small-desc.geometry",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.small-desc.close",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.change-target.close",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.create",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.hall.query",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.hall.scroll",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.hall.row-render",
+      "status": "blocked",
+      "blocked_reason": "24012 展示字段、复用清理与双方野外附近语义已静态实现；但 CustomHeadItem 自定义头像/头像框位于 Common 跨文件岛，且缺 Unity/真实 Web 列表复用与像素证据，组合行保持 blocked。"
+    },
+    {
+      "id": "mainui.team.view.hall.apply",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.hall.avatar-menu-dead",
+      "status": "blocked",
+      "blocked_reason": "24011 为已证实的死客户端流，老端 ShowPlayerMenu 为空；不得新增 Unity 入口。"
+    },
+    {
+      "id": "mainui.team.view.members.row-render",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.members.quit",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.members.kick",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.members.avatar-menu-dead",
+      "status": "blocked",
+      "blocked_reason": "24011 为已证实的死客户端流，老端 ShowPlayerMenu 为空；不得新增 Unity 入口。"
+    },
+    {
+      "id": "mainui.team.view.members.scroll",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.close",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.scroll",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.empty",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.send",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.invite.friend.query",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.friend.scroll",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.friend.empty",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.friend.send",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.invite.guild.query",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.guild.scroll",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.guild.empty",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.guild.send",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.world-shout",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.apply.close",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.apply.auto-accept",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.apply.clear",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.apply.list.scroll",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.apply.list.row-render",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.apply.list.accept",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.apply.list.refuse",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.apply.list.shield",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.apply.empty",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.apply-red-dot",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.empty-state",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.be-invited.close",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.be-invited.list.scroll",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.be-invited.list.row-render",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.be-invited.list.accept",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.be-invited.list.refuse",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.be-invited.auto-close",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.match.cancel",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.match.timer",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.match.timeout-cancel",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.vote.members",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.vote.timer",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.vote.agree",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.vote.refuse",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.vote.duplicate-guard",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.vote.result-close",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.vote.close-graphic",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.vote.tutorial",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.dead-24011",
+      "status": "blocked",
+      "blocked_reason": "24011 为已证实的死客户端流，老端 ShowPlayerMenu 为空；不得新增 Unity 入口。"
+    },
+    {
+      "id": "mainui.team.dead-24042",
+      "status": "blocked",
+      "blocked_reason": "24042 无老端发送点且回包仅解码丢弃，保持死读流边界。"
+    },
+    {
+      "id": "mainui.team.sound",
+      "status": "blocked",
+      "blocked_reason": "缺少页面级真实运行实例核对专属声音消费与关闭生命周期。"
+    },
+    {
+      "id": "mainui.team.prefab-resource-closure",
+      "status": "blocked",
+      "blocked_reason": "Team 页面级 Prefab 大量缺失，convert-module 依赖本轮禁止的 Unity 与运行快照。"
+    },
+    {
+      "id": "mainui.team.view.initial-query-24010",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.background-close",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.target-summary",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.button-groups.with-team",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.button-groups.without-team",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.non-leader-prompts.target",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.non-leader-prompts.world-shout",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.non-leader-prompts.apply-list",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.auto-create-on-open",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.world-shout-state.countdown-text",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.world-shout-state.cooldown-click",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.world-shout-state.expiry-reset",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.members.action-visibility",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.tab-strip.row-render",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.tab-strip.selected-state",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.row-render",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.friend.row-render",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.guild.row-render",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.apply.open-query-24047",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.apply.join-type-check-state",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.be-invited.reset-list",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.change-target.list.role-level-filter",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.change-target.list.scroll",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.change-target.list.row-render",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.change-target.list.selected-state",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.change-target.down-level-click",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.change-target.up-level-click",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.open-event",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.value-change",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.close-callback",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.validation.min-below-config",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.validation.min-above-config-or-current-max",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.validation.max-above-config",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.validation.max-below-config-or-current-min",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.match.sentient-alert.open",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.match.sentient-alert.auto-cancel-match",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.match.sentient-alert.confirm.find-way",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.match.sentient-alert.confirm.request-24108",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.match.sentient-alert.cancel",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab/View 或真实状态未落地；本轮禁止 Unity、浏览器和前台程序，静态源码不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.change-target.confirm.existing-team-24017",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.change-target.confirm.no-team-change-target-success",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队或导航状态；用户要求真实写事务只枚举，未新增绑定或发包。"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.query.current-scene-request-24053",
+      "status": "blocked",
+      "blocked_reason": "老端当前 scene 首查、野外条件、0.1s timer、GetAllFieldScene 遍历、跳过当前 scene、逐个 24053 及遍历/Remove 清理已静态枚举；Unity TeamInviteView 未落地且本轮禁止运行验证。"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.query.field-scene-fanout.current-scene-is-field",
+      "status": "blocked",
+      "blocked_reason": "老端当前 scene 首查、野外条件、0.1s timer、GetAllFieldScene 遍历、跳过当前 scene、逐个 24053 及遍历/Remove 清理已静态枚举；Unity TeamInviteView 未落地且本轮禁止运行验证。"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.query.field-scene-fanout.clear-existing-timer",
+      "status": "blocked",
+      "blocked_reason": "老端当前 scene 首查、野外条件、0.1s timer、GetAllFieldScene 遍历、跳过当前 scene、逐个 24053 及遍历/Remove 清理已静态枚举；Unity TeamInviteView 未落地且本轮禁止运行验证。"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.query.field-scene-fanout.period-timer-0.1s",
+      "status": "blocked",
+      "blocked_reason": "老端当前 scene 首查、野外条件、0.1s timer、GetAllFieldScene 遍历、跳过当前 scene、逐个 24053 及遍历/Remove 清理已静态枚举；Unity TeamInviteView 未落地且本轮禁止运行验证。"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.query.field-scene-fanout.traversal.get-all-field-scenes",
+      "status": "blocked",
+      "blocked_reason": "老端当前 scene 首查、野外条件、0.1s timer、GetAllFieldScene 遍历、跳过当前 scene、逐个 24053 及遍历/Remove 清理已静态枚举；Unity TeamInviteView 未落地且本轮禁止运行验证。"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.query.field-scene-fanout.traversal.skip-current-scene",
+      "status": "blocked",
+      "blocked_reason": "老端当前 scene 首查、野外条件、0.1s timer、GetAllFieldScene 遍历、跳过当前 scene、逐个 24053 及遍历/Remove 清理已静态枚举；Unity TeamInviteView 未落地且本轮禁止运行验证。"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.query.field-scene-fanout.traversal.request-each-other-scene-24053",
+      "status": "blocked",
+      "blocked_reason": "老端当前 scene 首查、野外条件、0.1s timer、GetAllFieldScene 遍历、跳过当前 scene、逐个 24053 及遍历/Remove 清理已静态枚举；Unity TeamInviteView 未落地且本轮禁止运行验证。"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.query.field-scene-fanout.traversal.complete-clear-timer",
+      "status": "blocked",
+      "blocked_reason": "老端当前 scene 首查、野外条件、0.1s timer、GetAllFieldScene 遍历、跳过当前 scene、逐个 24053 及遍历/Remove 清理已静态枚举；Unity TeamInviteView 未落地且本轮禁止运行验证。"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.query.remove-clear-timer",
+      "status": "blocked",
+      "blocked_reason": "老端当前 scene 首查、野外条件、0.1s timer、GetAllFieldScene 遍历、跳过当前 scene、逐个 24053 及遍历/Remove 清理已静态枚举；Unity TeamInviteView 未落地且本轮禁止运行验证。"
+    }
+  ]
+}

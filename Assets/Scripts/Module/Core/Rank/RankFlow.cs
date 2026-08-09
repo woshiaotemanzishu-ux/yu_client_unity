@@ -54,6 +54,10 @@ namespace Shenxiao.Module.Core.Rank
             GameObject go = null;
             try
             {
+                // RequestRankFirstPage 依赖 config_ranking.rank_max 决定是否继续拉取后续页。
+                // 全仓没有其他 RankConfigs.EnsureLoaded 调用点，因此必须在内容实例化前完成配置加载；
+                // 否则未来 Prefab 落地后会静默退化为 ONE_MAX(20) 条，而战力榜配置上限是 100。
+                await RankConfigs.EnsureLoaded();
                 go = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Window));
             }
             catch (Exception e)

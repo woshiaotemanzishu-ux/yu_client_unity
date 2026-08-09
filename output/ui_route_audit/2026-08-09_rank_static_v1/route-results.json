@@ -1,0 +1,288 @@
+{
+  "nodes": [
+    {
+      "id": "mainui.rank.entry",
+      "status": "blocked",
+      "blocked_reason": "activity_rank 静态路由已登记，但目标 RankEntView Prefab 不存在；当前流程只会加载失败后降级提示，本批又禁止 Unity/浏览器，无法把入口记为可用。"
+    },
+    {
+      "id": "mainui.rank.window.close",
+      "status": "blocked",
+      "blocked_reason": "Rank 窗口 Prefab/Bind 缺失，关闭按钮没有可运行宿主；本批未启动 Unity/浏览器验证关闭后主界面恢复。"
+    },
+    {
+      "id": "mainui.rank.window.back-chain",
+      "status": "blocked",
+      "blocked_reason": "老端 SetBackId→关闭→OpenFun 返回链已静态枚举，但 Unity RankFlow 只有 Toggle/Close 且没有 Rank 窗口 Prefab；实际返回链 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.shell-visual",
+      "status": "blocked",
+      "blocked_reason": "老端标题 rank.rank_title、背景 uiphb_001.jpg 和 BaseWindowSkin 依赖已枚举；Unity Rank 页面 Prefab 缺失且共享 BaseWindow 资源不在本文件岛。"
+    },
+    {
+      "id": "mainui.rank.window.shell-tab",
+      "status": "blocked",
+      "blocked_reason": "老端外层单页签“榜单”已枚举，但 Unity Rank 页面 Prefab/Bind 缺失，无法验证点击、选中态和关闭重开。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.tabs.scroll",
+      "status": "blocked",
+      "blocked_reason": "11 个页签总高度超过 470px 视口，必须真实拖动验证末项可达；Unity tabScroller/Viewport/Content 均未落 Prefab，本批禁止运行。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.tabs.fight",
+      "status": "blocked",
+      "blocked_reason": "战力榜(200)配置与 22101 请求语义已静态对齐，但页签 Prefab、点击绑定、榜首/列表/本人区即时刷新和重开均不存在或 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.tabs.level",
+      "status": "blocked",
+      "blocked_reason": "等级榜(300)配置与等级/转生显示分支已枚举，但页签 Prefab、点击绑定、即时刷新和重开均不存在或 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.tabs.achievement",
+      "status": "blocked",
+      "blocked_reason": "成就榜(400)配置与成就等级显示分支已枚举，但页签 Prefab、点击绑定、即时刷新和重开均不存在或 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.tabs.equip",
+      "status": "blocked",
+      "blocked_reason": "装备榜(608)配置与 22101 数据分支已枚举，但页签 Prefab、点击绑定、即时刷新和重开均不存在或 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.tabs.horse",
+      "status": "blocked",
+      "blocked_reason": "坐骑榜(601)还要求榜首切换为可旋转坐骑模型；页面/模型宿主 Prefab 缺失，模型出帧、姿态与清理 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.tabs.partner",
+      "status": "blocked",
+      "blocked_reason": "剑魄同修榜(604)配置与 22101 数据分支已枚举，但页签 Prefab、点击绑定、即时刷新和重开均不存在或 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.tabs.wing",
+      "status": "blocked",
+      "blocked_reason": "垂神翼影榜(603)配置与角色模型翼外观依赖已枚举，但页签/模型 Prefab 缺失，实际外观与刷新 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.tabs.competition",
+      "status": "blocked",
+      "blocked_reason": "问鼎云台榜(500)的反向 rank_limit 语义已静态枚举，但页签 Prefab、点击绑定、即时刷新和重开均不存在或 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.tabs.pyx",
+      "status": "blocked",
+      "blocked_reason": "殒锋天刃榜(607)配置与 22101 数据分支已枚举，但页签 Prefab、点击绑定、即时刷新和重开均不存在或 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.tabs.god",
+      "status": "blocked",
+      "blocked_reason": "古法符相榜(606)配置与 22101 数据分支已枚举，但页签 Prefab、点击绑定、即时刷新和重开均不存在或 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.tabs.onhook",
+      "status": "blocked",
+      "blocked_reason": "挂机收益榜(700)的每分钟格式分支已静态枚举，但末页签滚动可达、点击、即时刷新和重开均不存在或 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.tabs.selected",
+      "status": "blocked",
+      "blocked_reason": "老端选中/未选中切换 com_rect_btn1/ui_button_mid_1 与描边色；Unity RankTabButton Prefab/Bind 缺失，像素状态 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.tabs.red-dot-dead",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "静态检索显示 RankModel.rankRedDot/RankTabButton.redDisplay 无有效消费链，22103/22104 服务端处理也被注释；未运行老端确认红点在所有账号状态始终不出现。",
+      "note": "保持不迁移，不新增红点逻辑。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.featured.empty-full",
+      "status": "blocked",
+      "blocked_reason": "老端榜首有数据/空位切换已枚举；Unity RankView Prefab 与运行数据宿主缺失，空榜和有榜状态 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.featured.model",
+      "status": "blocked",
+      "blocked_reason": "榜首需要角色或坐骑模型真实出帧、姿态、切页替换与关闭清理；Unity 模型宿主 Prefab 缺失，本批禁止 Unity，不能用静态加载代码代替画面。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.featured.identity",
+      "status": "blocked",
+      "blocked_reason": "名次/VIP 隐私态/姓名/等级/转生/境界图标条件已枚举，但 Unity 对应节点与绑定不存在，视觉和数据状态 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.featured.title-medal",
+      "status": "blocked",
+      "blocked_reason": "老端称号特效与勋章互斥、尺寸/scale/清理链已定位；Unity title_effect_gp/_img_medal 不存在，双帧动态、归属和清理 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.featured.metric",
+      "status": "blocked",
+      "blocked_reason": "不同 rank_type 的战力/等级/成就/挂机等格式已枚举，但 Unity 标签节点、布局和真实长短值状态未落地。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.featured.open-menu",
+      "status": "blocked",
+      "blocked_reason": "老端榜首点击需先取 Friend MENU_DATA 再开 RankMenuView，并对本人禁开；Unity RankView/RankMenuView 均缺失，点击链 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.list.query",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Unity 22101 解析和 config 驱动 20 条分页在代码上与当前 pt_221/config_ranking 对齐，且 RankFlow 已补齐打开前 EnsureLoaded；未实发协议，未验证页签切换时正确清页、继续拉取、回包驱动即时刷新或服务端空页终止。",
+      "note": "配置加载与协议/模型仅为静态绿灯，不代表列表 UI 可用。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.list.scroll",
+      "status": "blocked",
+      "blocked_reason": "老端 itemScroller 为 549×370 纵向列表；Unity ScrollRect→Viewport→Content 结构与行模板均不存在，真实拖动、裁剪、末项可达 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.list.row",
+      "status": "blocked",
+      "blocked_reason": "RankItem 行模板 Prefab/Bind 不存在；头像、姓名、数值、背景、行高、异步资源 ready 和复用池状态均无法静态完成。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.list.placeholder",
+      "status": "blocked",
+      "blocked_reason": "老端 player_id==0 显示“虚位以待”并隐藏 info_group；Unity 行模板缺失，真实占位页与池复用 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.list.top3",
+      "status": "blocked",
+      "blocked_reason": "老端前 3 名显示 rank_icon_1/2/3，其余数字；Unity 仅有 rank_icon_1 资源且无行模板，资源闭包与条件切换未落地。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.list.vip",
+      "status": "blocked",
+      "blocked_reason": "普通 VIP/SVIP 与隐私 VIP-x/SVIP-x 条件已枚举，但依赖 MainUI 共享资源和缺失行模板，状态矩阵 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.list.title-medal",
+      "status": "blocked",
+      "blocked_reason": "列表行称号特效/勋章互斥及 ClearUIEffect 生命周期已枚举；Unity title_gp/_img_medal 不存在，动态、裁剪与复用清理 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.list.metric",
+      "status": "blocked",
+      "blocked_reason": "等级转生/境界图标、挂机格式和各榜指标条件已枚举；Unity 行标签、布局和长短文案状态未落地。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.list.open-menu",
+      "status": "blocked",
+      "blocked_reason": "真实行点击应取好友菜单数据再开角色菜单，占位行和本人不得打开；Unity 行点击面与弹窗均不存在，交互 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.self.head",
+      "status": "blocked",
+      "blocked_reason": "本人头像依赖 CustomHeadItem 共享组件；Rank Prefab 不存在且共享组件不在本文件岛，异步加载/缩放/重开 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.self.rank",
+      "status": "blocked",
+      "blocked_reason": "本人名次含未上榜、rank_max+、真实名次分支；Unity self 区节点不存在，配置阈值与实际回包组合 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.self.metric",
+      "status": "blocked",
+      "blocked_reason": "本人指标按 rank_type 格式化并含等级境界图标；Unity self 区节点/布局不存在，真实数据状态 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.role-menu.close",
+      "status": "blocked",
+      "blocked_reason": "老端 RankMenuView 点透明背景关闭并保持父榜单；Unity RankMenuView Prefab/遮罩/层级缺失，关闭与穿透 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.role-menu.toggle",
+      "status": "blocked",
+      "blocked_reason": "老端同一目标再次触发关闭、不同目标更新弹窗；Unity 菜单单例与目标身份链未落地，切换 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.role-menu.info",
+      "status": "blocked",
+      "blocked_reason": "查看信息应请求玩家信息并关闭菜单；Unity RankMenuView 不存在，本批也未发协议，目标详情类型/cold-warm/返回链 NVR。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.role-menu.add-friend",
+      "status": "blocked",
+      "blocked_reason": "加好友是账号写事务；本批禁止真实账号写入且菜单 Prefab 缺失，未点击、未发包、未伪造即时刷新。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.role-menu.complain",
+      "status": "blocked",
+      "blocked_reason": "自定义头像条件下举报属于外部弹窗/潜在写事务；老端源码的第三按钮还存在无条件隐藏和循环边界静态风险，必须以老端运行态裁决，本批未执行。"
+    },
+    {
+      "id": "mainui.rank.window.rank-view.role-menu.self-guard",
+      "status": "blocked",
+      "blocked_reason": "老端本人榜首/行不打开角色菜单；Unity 点击宿主与身份判断未落地，无法真实验证。"
+    },
+    {
+      "id": "mainui.rank.protocol.22101",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "静态核对确认 Unity 注册/请求 22101，字段宽度与 pt_221 一致，分页由 rank_max 驱动；RankFlow 已补齐打开前 EnsureLoaded。未连接服务器、未抓包、未验证 11 类型真实回包和即时 UI 刷新。",
+      "note": "协议静态对齐。"
+    },
+    {
+      "id": "mainui.rank.protocol.22100",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Unity 与老端均保留 22100 错误壳，当前服务端未见发送调用；未运行确认是否永不触发以及 toast 文案。",
+      "note": "防御性注册，不等于服务端存活流。"
+    },
+    {
+      "id": "mainui.rank.protocol.dead-22102-22104",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "当前 pp_common_rank.erl 中 22102/22103/22104 handler 整段注释，Unity 未注册/未发送；未在线探测，且按本轮安全规则不发送死协议。",
+      "note": "保持死亡边界，不迁移结社榜/点赞/膜拜。"
+    },
+    {
+      "id": "mainui.rank.protocol.skip-22105",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "服务端 22105 存活，但老端 RankController 没有 RegisterProtocal/发送消费；Unity 按老端事实跳过。未运行老端确认没有其他动态注入路径。",
+      "note": "不因服务端存在而新增 UI。"
+    },
+    {
+      "id": "mainui.rank.config.visible-order",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "config_ranking 静态得出 11 个 show==1 页签及 sortid 顺序；未运行确认当前老端实际加载版本、功能开放条件和滚动后的可见顺序。",
+      "note": "静态顺序为 200,300,400,608,601,604,603,500,607,606,700。"
+    },
+    {
+      "id": "mainui.rank.config.hidden-types",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "config_ranking 静态显示 100/602/605/609 隐藏；未运行确认账号或平台分支没有覆盖 show 状态。",
+      "note": "不得擅自生成隐藏页签。"
+    },
+    {
+      "id": "mainui.rank.config.hash",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "老端与 Unity 文件中的 config_ranking/config_medal SHA-256 分别完全一致；未验证当前 Player/catalog 实际加载的 Addressable 内容哈希。",
+      "note": "文件同源不代替运行时 catalog 证据。"
+    },
+    {
+      "id": "mainui.rank.resources.prefab-bind",
+      "status": "blocked",
+      "blocked_reason": "Assets/Prefabs/UI/Rank 与 Assets/Scripts/Generated/UI/Rank 均不存在，RankEntView/RankView/RankItem/RankTabButton/RankMenuView 无可编辑 Prefab/Bind。"
+    },
+    {
+      "id": "mainui.rank.resources.rank-assets",
+      "status": "blocked",
+      "blocked_reason": "Rank 自有闭包仅 rank_texture.spriteatlas 与 rank_icon_1.png；老端还需要 rank_icon_2/3、背景、按钮、头像底等多张 Rank 资源，不能凭单图完成。"
+    },
+    {
+      "id": "mainui.rank.resources.shared-dependencies",
+      "status": "blocked",
+      "blocked_reason": "BaseWindowSkin、Common/MainUI 纹理、CustomHeadItem、FriendModel/角色菜单、UIEffect、角色/坐骑模型链均为共享依赖；本文件岛禁止修改 Common/MainUI/Generated/Addressables，闭包未获授权。"
+    },
+    {
+      "id": "mainui.rank.resources.convert-boundary",
+      "status": "blocked",
+      "blocked_reason": "首次 convert-module 会生成/修改 Prefab、Generated Bind、资源与 Addressables，并要求 Unity Editor 及老端/Unity 快照；这些写区和运行工具均被本轮明确禁止，故没有执行大转换。"
+    },
+    {
+      "id": "mainui.rank.sound",
+      "status": "blocked",
+      "blocked_reason": "老端外层 BaseWindow 页签消费通用点击音，RankView 未发现页面专属声音；Unity Rank 页面不存在，触发时机、切页/关闭生命周期和是否应只用通用音均 NVR。"
+    }
+  ]
+}

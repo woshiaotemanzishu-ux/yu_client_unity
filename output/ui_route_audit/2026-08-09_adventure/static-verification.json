@@ -1,0 +1,141 @@
+{
+  "verdict": "pass",
+  "checks": [
+    {
+      "name": "bootstrap-route-a",
+      "pass": true,
+      "detail": "Assets/Scripts/Module/Core/Adventure/AdventureBootstrap.cs contains ICON_TYPE_A, AdventureFlow.Toggle"
+    },
+    {
+      "name": "bootstrap-route-b",
+      "pass": true,
+      "detail": "Assets/Scripts/Module/Core/Adventure/AdventureBootstrap.cs contains ICON_TYPE_B, AdventureFlow.Toggle"
+    },
+    {
+      "name": "flow-prefab",
+      "pass": true,
+      "detail": "Assets/Scripts/Module/Core/Adventure/AdventureFlow.cs contains AdventureModule"
+    },
+    {
+      "name": "flow-hides-board-template",
+      "pass": true,
+      "detail": "Assets/Scripts/Module/Core/Adventure/AdventureFlow.cs contains GetComponentsInChildren\u003CAdventureItem\u003E"
+    },
+    {
+      "name": "flow-hides-shop-template",
+      "pass": true,
+      "detail": "Assets/Scripts/Module/Core/Adventure/AdventureFlow.cs contains GetComponentsInChildren\u003CAdventureShopItem\u003E"
+    },
+    {
+      "name": "main-safe-throw",
+      "pass": true,
+      "detail": "Assets/Scripts/Module/Core/Adventure/AdventureMainView.cs contains \u6295\u63B7\u4E8B\u52A1\u5C1A\u672A\u5B8C\u6210\u5B89\u5168\u63A5\u5165"
+    },
+    {
+      "name": "main-safe-reset",
+      "pass": true,
+      "detail": "Assets/Scripts/Module/Core/Adventure/AdventureMainView.cs contains \u91CD\u7F6E\u4E8B\u52A1\u5C1A\u672A\u5B8C\u6210\u5B89\u5168\u63A5\u5165"
+    },
+    {
+      "name": "main-ended-guard",
+      "pass": true,
+      "detail": "Assets/Scripts/Module/Core/Adventure/AdventureMainView.cs contains \u6D3B\u52A8\u5DF2\u7ECF\u7ED3\u675F"
+    },
+    {
+      "name": "main-reset-placeholder",
+      "pass": true,
+      "detail": "Assets/Scripts/Module/Core/Adventure/AdventureMainView.cs contains \u5269\u4F59\u91CD\u7F6E\u6B21\u6570:--"
+    },
+    {
+      "name": "shop-safe-refresh",
+      "pass": true,
+      "detail": "Assets/Scripts/Module/Core/Adventure/AdventureShopView.cs contains \u5546\u5E97\u5237\u65B0\u4E8B\u52A1\u5C1A\u672A\u5B8C\u6210\u5B89\u5168\u63A5\u5165"
+    },
+    {
+      "name": "model-current-free",
+      "pass": true,
+      "detail": "Assets/Scripts/Module/Core/Adventure/AdventureModel.cs contains CURRENT_BASE_FREE_THROW_TIMES = 4"
+    },
+    {
+      "name": "model-endpoint-no-red",
+      "pass": true,
+      "detail": "Assets/Scripts/Module/Core/Adventure/AdventureModel.cs contains HasFreeThrowRed =\u003E HasBoardState \u0026\u0026 !IsAtResetPosition \u0026\u0026 HasFreeAction"
+    },
+    {
+      "name": "controller-board-read",
+      "pass": true,
+      "detail": "Assets/Scripts/Module/Core/Adventure/AdventureController.cs contains RegisterProtocal(Proto.ADVENTURE_BOARD_STATE"
+    },
+    {
+      "name": "controller-red-semantics",
+      "pass": true,
+      "detail": "Assets/Scripts/Module/Core/Adventure/AdventureController.cs contains model.HasFreeThrowRed"
+    },
+    {
+      "name": "no-write-send",
+      "pass": true,
+      "detail": "no SendFmt(42702/42703/42705/42706)"
+    },
+    {
+      "name": "main-business-guid",
+      "pass": true,
+      "detail": "77160b1021d0483cb77a24940140dc47"
+    },
+    {
+      "name": "shop-business-guid",
+      "pass": true,
+      "detail": "c9d08b16cf654c06952fcf8d88f5cfd4"
+    },
+    {
+      "name": "board-item-business-guid",
+      "pass": true,
+      "detail": "1fc883dbc57747b394a02d55290d153f"
+    },
+    {
+      "name": "shop-item-business-guid",
+      "pass": true,
+      "detail": "dacd186b40cd4ed0bde37fec6efd47d2"
+    },
+    {
+      "name": "legacy-config-kv",
+      "pass": true,
+      "detail": "expected=14 actual=14"
+    },
+    {
+      "name": "legacy-config-rand",
+      "pass": true,
+      "detail": "expected=2 actual=2"
+    },
+    {
+      "name": "legacy-config-reward",
+      "pass": true,
+      "detail": "expected=32 actual=32"
+    },
+    {
+      "name": "legacy-config-loc",
+      "pass": true,
+      "detail": "expected=600 actual=600"
+    },
+    {
+      "name": "schema-topology-node-count",
+      "pass": true,
+      "detail": "nodes=423"
+    },
+    {
+      "name": "schema-leaf-count",
+      "pass": true,
+      "detail": "leaves=334"
+    },
+    {
+      "name": "all-leaves-explicit",
+      "pass": true,
+      "detail": "no done/not-run leaves"
+    }
+  ],
+  "topology": {
+    "node_count": 423,
+    "leaf_count": 334,
+    "blocked": 313,
+    "needs_runtime_verify": 21
+  }
+}

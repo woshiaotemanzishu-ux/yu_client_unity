@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -56,6 +57,29 @@ namespace Shenxiao.Module.Core.Bag
 
         public static string GetLevelAttrs(int level) =>
             (_levels?[level.ToString()] as JObject)?["attr_list"]?.ToString() ?? "";
+
+        /// <summary>解析熔炼累计属性，格式为 [{"0":attrId,"1":value},...]。</summary>
+        public static IReadOnlyList<(int attrId, long value)> GetLevelAttrValues(int level)
+        {
+            var result = new List<(int attrId, long value)>();
+            string raw = GetLevelAttrs(level);
+            if (string.IsNullOrWhiteSpace(raw)) return result;
+            try
+            {
+                foreach (JToken token in JArray.Parse(raw))
+                {
+                    if (!(token is JObject item)) continue;
+                    int attrId = item.Value<int?>("0") ?? 0;
+                    long value = item.Value<long?>("1") ?? 0L;
+                    if (attrId > 0) result.Add((attrId, value));
+                }
+            }
+            catch (Newtonsoft.Json.JsonException e)
+            {
+                GameLog.Warn("Bag", "熔炼属性配置解析失败 level={0}: {1}", level, e.Message);
+            }
+            return result;
+        }
 
         public static void Clear()
         {

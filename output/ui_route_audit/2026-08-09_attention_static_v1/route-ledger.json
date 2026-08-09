@@ -1,0 +1,567 @@
+{
+  "schema": 6,
+  "route": "mainui.attention",
+  "baseline": {
+    "scope": "Attention/关注 static route: generic ClientAttention page and SDK attention reward page",
+    "legacy_authority": "yu_client h5/src/commonModel/AttentionModel.ts, commonController/AttentionController.ts, attention/AttentionView*.ts and cdn/resource/game/attention",
+    "unity_scope": "Assets/Scripts/Module/Core/Attention and Assets/Prefabs/UI/Attention; Generated inspected read-only",
+    "runtime_policy": "static only; no Unity, browser, build, GM or account writes",
+    "topology_note": "Icon 113 and 113113 are independent routes; the SDK page owns external subscribe and destructive reward claim branches"
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_attention_static_v1/route-manifest.json",
+    "sha256": "45ae1e04b96138f2f6f180952e14ab61ed3574283b6e9b070a41e2cf643f4f6a"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "mainui.attention",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {
+          "id": "startup-lifecycle",
+          "kind": "lifecycle",
+          "child": "mainui.attention.startup"
+        },
+        {
+          "id": "generic-icon-113",
+          "kind": "conditional-navigation",
+          "child": "mainui.attention.generic"
+        },
+        {
+          "id": "sdk-icon-113113",
+          "kind": "conditional-navigation",
+          "child": "mainui.attention.sdk"
+        }
+      ],
+      "parent": null,
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.attention.startup, mainui.attention.generic, mainui.attention.sdk"
+    },
+    {
+      "id": "mainui.attention.startup",
+      "parent": "mainui.attention",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端启动链会查询 SDK enabled、检查关注状态并消费 CustomActivity(70,1)；Unity 仅重置本地字段并以 null 复评图标，真实 SDK/活动态调用方属于禁止修改的共享平台与活动域。"
+    },
+    {
+      "id": "mainui.attention.generic",
+      "parent": "mainui.attention",
+      "type": "page",
+      "risk": "reversible-write",
+      "control_inventory": [
+        {
+          "id": "entry-gates",
+          "kind": "conditional-block",
+          "child": "mainui.attention.generic.gates"
+        },
+        {
+          "id": "main-background",
+          "kind": "image",
+          "child": "mainui.attention.generic.background"
+        },
+        {
+          "id": "title",
+          "kind": "image",
+          "child": "mainui.attention.generic.title"
+        },
+        {
+          "id": "qr-link",
+          "kind": "dynamic-image",
+          "child": "mainui.attention.generic.qr"
+        },
+        {
+          "id": "description",
+          "kind": "dynamic-text",
+          "child": "mainui.attention.generic.description"
+        },
+        {
+          "id": "reward-strip",
+          "kind": "dynamic-list",
+          "child": "mainui.attention.generic.rewards"
+        },
+        {
+          "id": "copy-button",
+          "kind": "button",
+          "child": "mainui.attention.generic.copy"
+        },
+        {
+          "id": "close-button",
+          "kind": "return",
+          "child": "mainui.attention.generic.close"
+        },
+        {
+          "id": "resource-ready",
+          "kind": "conditional-block",
+          "child": "mainui.attention.generic.resource-ready"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.attention.generic.gates, mainui.attention.generic.resource-ready"
+    },
+    {
+      "id": "mainui.attention.generic.gates",
+      "parent": "mainui.attention.generic",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "113 入口依赖 MainUI ActivityIcon、ClientConfig.attention_open 注入、plat_name 对应 ClientAttention 配置、开服天与等级；AttentionOpen 当前无写入者，跨模块入口/配置注入禁止修改。"
+    },
+    {
+      "id": "mainui.attention.generic.background",
+      "parent": "mainui.attention.generic",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.attention.generic.title",
+      "parent": "mainui.attention.generic",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.attention.generic.qr",
+      "parent": "mainui.attention.generic",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.attention.generic.description",
+      "parent": "mainui.attention.generic",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.attention.generic.rewards",
+      "parent": "mainui.attention.generic",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "reward-list-layout",
+          "kind": "dynamic-list",
+          "child": "mainui.attention.generic.rewards.list"
+        },
+        {
+          "id": "reward-item-render",
+          "kind": "list-item",
+          "child": "mainui.attention.generic.rewards.item"
+        }
+      ],
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.attention.generic.rewards.list",
+      "parent": "mainui.attention.generic.rewards",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.attention.generic.rewards.item",
+      "parent": "mainui.attention.generic.rewards",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.attention.generic.copy",
+      "parent": "mainui.attention.generic",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.attention.generic.close",
+      "parent": "mainui.attention.generic",
+      "type": "return",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.attention.generic.resource-ready",
+      "parent": "mainui.attention.generic",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端 QR/描述/奖励由 ClientAttention 渠道配置动态决定；Unity 只有生成配置访问器和 com_empty 骨架，实际配置资产/Addressables 与点击前资源闭包未在本模块内证明，且禁止触碰 Addressables。"
+    },
+    {
+      "id": "mainui.attention.sdk",
+      "parent": "mainui.attention",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {
+          "id": "entry-gates",
+          "kind": "conditional-block",
+          "child": "mainui.attention.sdk.gates"
+        },
+        {
+          "id": "main-background",
+          "kind": "image",
+          "child": "mainui.attention.sdk.background"
+        },
+        {
+          "id": "reward-strip",
+          "kind": "dynamic-list",
+          "child": "mainui.attention.sdk.rewards"
+        },
+        {
+          "id": "attention-action",
+          "kind": "conditional-button",
+          "child": "mainui.attention.sdk.action"
+        },
+        {
+          "id": "attention-red-dot",
+          "kind": "conditional-image",
+          "child": "mainui.attention.sdk.red-dot"
+        },
+        {
+          "id": "background-close",
+          "kind": "return",
+          "child": "mainui.attention.sdk.background-close"
+        },
+        {
+          "id": "scene-change-close",
+          "kind": "return",
+          "child": "mainui.attention.sdk.scene-close"
+        },
+        {
+          "id": "resource-ready",
+          "kind": "conditional-block",
+          "child": "mainui.attention.sdk.resource-ready"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.attention.sdk.gates, mainui.attention.sdk.action, mainui.attention.sdk.resource-ready"
+    },
+    {
+      "id": "mainui.attention.sdk.gates",
+      "parent": "mainui.attention.sdk",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "113113 入口依赖爱疯平台判定、native subscribe enabled、CustomActivity(70,1)奖励态及 MainUI 图标；四者均跨越本轮唯一写者范围。"
+    },
+    {
+      "id": "mainui.attention.sdk.background",
+      "parent": "mainui.attention.sdk",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Prefab 静态背景 Sprite 已绑定，但页面无可达业务 View，且本轮禁止 Unity/Web 视觉、遮罩、页面根坐标和 ready 复验。"
+    },
+    {
+      "id": "mainui.attention.sdk.rewards",
+      "parent": "mainui.attention.sdk",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "reward-list-layout",
+          "kind": "dynamic-list",
+          "child": "mainui.attention.sdk.rewards.list"
+        },
+        {
+          "id": "reward-item-render",
+          "kind": "list-item",
+          "child": "mainui.attention.sdk.rewards.item"
+        }
+      ],
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.attention.sdk.rewards.list",
+      "parent": "mainui.attention.sdk.rewards",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.attention.sdk.rewards.item",
+      "parent": "mainui.attention.sdk.rewards",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.attention.sdk.action",
+      "parent": "mainui.attention.sdk",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {
+          "id": "button-label-state",
+          "kind": "conditional-text",
+          "child": "mainui.attention.sdk.action.label"
+        },
+        {
+          "id": "one-second-throttle",
+          "kind": "conditional-block",
+          "child": "mainui.attention.sdk.action.throttle"
+        },
+        {
+          "id": "unfollowed-ask-show",
+          "kind": "button-state",
+          "child": "mainui.attention.sdk.action.ask-show"
+        },
+        {
+          "id": "subscribe-callback",
+          "kind": "external-callback",
+          "child": "mainui.attention.sdk.action.subscribe-callback"
+        },
+        {
+          "id": "followed-unclaimed-claim",
+          "kind": "button-state",
+          "child": "mainui.attention.sdk.action.claim-33105"
+        },
+        {
+          "id": "claimed-message",
+          "kind": "button-state",
+          "child": "mainui.attention.sdk.action.claimed"
+        },
+        {
+          "id": "post-claim-refresh-close",
+          "kind": "result-state",
+          "child": "mainui.attention.sdk.action.post-claim"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.attention.sdk.action.ask-show, mainui.attention.sdk.action.subscribe-callback, mainui.attention.sdk.action.claim-33105, mainui.attention.sdk.action.post-claim"
+    },
+    {
+      "id": "mainui.attention.sdk.action.label",
+      "parent": "mainui.attention.sdk.action",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.attention.sdk.action.throttle",
+      "parent": "mainui.attention.sdk.action",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.attention.sdk.action.ask-show",
+      "parent": "mainui.attention.sdk.action",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "未关注分支会调用平台 subscribe(apiType=askShow)，属于真实外部 SDK 操作且无 Unity 桥/本轮授权；禁止伪回调。"
+    },
+    {
+      "id": "mainui.attention.sdk.action.subscribe-callback",
+      "parent": "mainui.attention.sdk.action",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "关注成功依赖 native isSubscribe/askShow 回调并更新 sdk_attention_state/red；共享平台桥不存在且禁止越界实现。"
+    },
+    {
+      "id": "mainui.attention.sdk.action.claim-33105",
+      "parent": "mainui.attention.sdk.action",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "已关注未领奖分支通过 CustomActivity 发 33105(base_type=70,sub_type=1,id=1)领取真实奖励；本轮禁止账号写事务，且 CustomActivity/协议所有权属于禁止共享域。"
+    },
+    {
+      "id": "mainui.attention.sdk.action.claimed",
+      "parent": "mainui.attention.sdk.action",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.attention.sdk.action.post-claim",
+      "parent": "mainui.attention.sdk.action",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端权威回包后刷新奖励、红点、按钮并关闭页面/删除入口；需要 CustomActivity 即时刷新、重开与真实账号证据，本轮均禁止。"
+    },
+    {
+      "id": "mainui.attention.sdk.red-dot",
+      "parent": "mainui.attention.sdk",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.attention.sdk.background-close",
+      "parent": "mainui.attention.sdk",
+      "type": "return",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.attention.sdk.scene-close",
+      "parent": "mainui.attention.sdk",
+      "type": "return",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.attention.sdk.resource-ready",
+      "parent": "mainui.attention.sdk",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "奖励物品格依赖 Common EquipmentItem/GoodsModel 和活动奖励配置；共享组件身份、资源闭包及真实 ready 均无法在 Attention 文件岛独立证明。"
+    }
+  ],
+  "summary": {
+    "total": 32,
+    "status_counts": {
+      "blocked": 13,
+      "defect": 18,
+      "needs-runtime-verify": 1
+    },
+    "details": {
+      "mode": "static-only",
+      "initial_dirty": "Attention module and Attention prefab closure were clean before this route",
+      "implemented": "No code or prefab mutation: missing business views depend on prohibited MainUI/SDK/CustomActivity/Common ownership and cannot be safely completed inside the Attention island",
+      "known_gap": "AttentionModule.prefab contains generated Bind components for two views, but Assets/Scripts/Module/Core/Attention contains only Model/Controller icon-state code and no business View; no runtime opening consumer was found",
+      "runtime": "not executed by explicit user boundary"
+    }
+  },
+  "updated_at": "2026-08-09T18:35:00+08:00"
+}

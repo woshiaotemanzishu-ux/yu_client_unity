@@ -60,7 +60,11 @@ namespace Shenxiao.Module.Core.Daily
                 GameObject cellGo = Object.Instantiate(_tpl_DailyTaskItem, _list_item_con.content);
                 cellGo.SetActive(true);
                 DailyTaskItem item = cellGo.GetComponent<DailyTaskItem>();
-                if (item != null) item.SetData(vo);
+                if (item != null)
+                {
+                    item.Show();
+                    item.SetData(vo);
+                }
                 _cells.Add(cellGo);
             }
             GameLog.Info("Daily", "每日任务列表刷新 count={0}", data.AcList.Count);

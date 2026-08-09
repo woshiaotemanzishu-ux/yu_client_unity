@@ -33,6 +33,11 @@ namespace Shenxiao.Module.Core.Composite
             "CompositeRevelationView", "CompositeGuardView", "GodCourtComView",
             "CompositeLonglangView"
         };
+        private static readonly string[] TabLabels =
+        {
+            "道具合成", "熔魄铸魂", "影骸战衣合成", "遗骸铸合", "九霄冥饰合成",
+            "天骨铸灵", "启示铠铸", "灵宠炼合", "御府铸仪", "天殒铸灵"
+        };
         // 已写内容(CompositeModule 顶层有该视图 + View.cs 已写)才开放
         private static readonly bool[] TabEnabled =
         {
@@ -115,6 +120,7 @@ namespace Shenxiao.Module.Core.Composite
                 specs.Add(new TabSpec
                 {
                     Enabled = enabled,
+                    Label = TabLabels[i],
                     ContentFactory = enabled ? (Func<RectTransform, BaseView>)(parent => ReparentContent(viewName, parent)) : null,
                 });
             }

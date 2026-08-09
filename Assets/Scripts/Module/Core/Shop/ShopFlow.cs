@@ -58,13 +58,13 @@ namespace Shenxiao.Module.Core.Shop
         // 窗底大图(对标老端 bg_list:除九天神祭[LonglangEx]走 "ui_bg_1.jpg" 特例外均 "ui_Shop_bg1.jpg"。
         // ConfigureShared 背景是整窗单值,非逐标签——tab9[LonglangEx]专属 override 未接[r11_unity #8 TODO],
         // 本轮暂统一用 "ui_Shop_bg1.jpg",偏差记汇报)。
-        private static readonly string WindowBg = GameResPath.GetBigBgPath("ui_Shop_bg1.jpg");
         private const int DefaultTab = 0;
 
         private static GameObject _frameRoot;
         private static GameObject _contentRoot;
         private static BaseWindowSkinView _window;
         private static ShopCommonView _commonView;
+        private static ShopBulkPurchaseView _bulkPurchaseView;
         private static bool _loading;
 
         public static void Toggle()
@@ -77,7 +77,30 @@ namespace Shenxiao.Module.Core.Shop
 
         public static void Close()
         {
+            if (_bulkPurchaseView != null) _bulkPurchaseView.Hide();
             if (_window != null) _window.Hide();
+        }
+
+        public static void OpenBulkPurchase(ShopModel.GoodsVo goods)
+        {
+            if (goods == null || _contentRoot == null) return;
+            if (_bulkPurchaseView == null)
+            {
+                Transform t = _contentRoot.transform.Find("ShopBulkPurchaseView");
+                if (t == null)
+                {
+                    GameLog.Warn("Shop", "ShopBulkPurchaseView 不在 ShopModule 顶层");
+                    return;
+                }
+                _bulkPurchaseView = t.GetComponent<ShopBulkPurchaseView>();
+                if (_bulkPurchaseView == null)
+                {
+                    GameLog.Warn("Shop", "ShopBulkPurchaseView 缺少运行时 View 绑定");
+                    return;
+                }
+                t.SetParent(ViewManager.GetLayer(UILayer.Popup), false);
+            }
+            _bulkPurchaseView.Show(goods);
         }
 
         /// <summary>打开商城模块内子窗(抢购 ShopVieView/神秘 ShopMysteriousView/批量 ShopBulkPurchaseView…),按 View 子类名在内容源查找并 Show。未移植 → 日志降级。</summary>
@@ -147,13 +170,24 @@ namespace Shenxiao.Module.Core.Shop
             var overrides = new Dictionary<int, Func<RectTransform, BaseView>> { { 3, ReparentVie } };
             string[] upImages = new string[ShopTabUpIcons.Length];
             string[] downImages = new string[ShopTabDownIcons.Length];
+            string[] backgroundImages = new string[ShopTabs.Length];
             for (int i = 0; i < ShopTabUpIcons.Length; i++) upImages[i] = GameResPath.GetIcon("shop", ShopTabUpIcons[i]);
             for (int i = 0; i < ShopTabDownIcons.Length; i++) downImages[i] = GameResPath.GetIcon("shop", ShopTabDownIcons[i]);
+            for (int i = 0; i < backgroundImages.Length; i++) backgroundImages[i] = GameResPath.GetBigBgPath("ui_Shop_bg1.jpg");
+            // 老端 bg_list 的九天神祭页签使用独立底图。
+            backgroundImages[9] = GameResPath.GetBigBgPath("ui_bg_1.jpg");
 
             _window.Show();
-            _window.ConfigureShared(ShopTabs.Length, ReparentCommon, OnShopTab, DefaultTab, null, overrides,
-                ShopTabs, null, WindowBg, null, upImages, downImages);
+            _window.ConfigureShared(ShopTabs.Length, ReparentCommon, OnShopTab, DefaultTab, IsShopTabEnabled, overrides,
+                ShopTabs, null, backgroundImages[DefaultTab], null, upImages, downImages, backgroundImages);
             GameLog.Info("Shop", "商城多标签窗打开(BaseWindowSkinView 共享内容,{0} 标签,默认 tab{1} {2})", ShopTabs.Length, DefaultTab, ShopTabs[DefaultTab]);
+        }
+
+        private static bool IsShopTabEnabled(int index)
+        {
+            // 当前老端 ShopView.tab_new_cond[3] 明确返回 false；不得把未开放的抢购页静态暴露出来。
+            // 其余功能开放条件依赖公会/战场/跨服等模块，留给运行态门禁判定，Shop 层不猜状态。
+            return index != 3;
         }
 
         private static void OnShopTab(int index)
@@ -208,12 +242,18 @@ namespace Shenxiao.Module.Core.Shop
 
         internal static void Reset()
         {
+            if (_bulkPurchaseView != null && _contentRoot != null)
+            {
+                _bulkPurchaseView.Hide();
+                _bulkPurchaseView.transform.SetParent(_contentRoot.transform, false);
+            }
             if (_frameRoot != null) ResManager.ReleaseInstance(_frameRoot);
             if (_contentRoot != null) ResManager.ReleaseInstance(_contentRoot);
             _frameRoot = null;
             _contentRoot = null;
             _window = null;
             _commonView = null;
+            _bulkPurchaseView = null;
             _loading = false;
         }
 

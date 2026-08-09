@@ -1,0 +1,2042 @@
+{
+  "schema": 6,
+  "route": "mainui.task.route",
+  "baseline": {
+    "authority": "当前老客户端同账号、同状态、同 viewport 的真实运行结果；本轮只完成老端源码、Unity Prefab/Bind/Flow/协议静态调和，未启动 Unity 或浏览器。",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/mainUI/MainUITaskTeamView.ts",
+      "E:/GitProject/yu_client/h5/src/mainUI/MainUITaskItem.ts",
+      "E:/GitProject/yu_client/h5/src/commonController/TaskController.ts",
+      "E:/GitProject/yu_client/h5/src/commonModel/TaskModel.ts",
+      "E:/GitProject/yu_client/h5/src/task/TaskView.ts",
+      "E:/GitProject/yu_client/h5/src/task/TaskBarItem.ts",
+      "E:/GitProject/yu_client/h5/src/task/TaskContentSubView.ts",
+      "E:/GitProject/yu_client/h5/src/task/TaskFinishView.ts",
+      "E:/GitProject/yu_client/h5/src/task/TaskCircleFinishView.ts",
+      "E:/GitProject/yu_client/h5/src/task/TaskUpAlertView.ts",
+      "E:/GitProject/yu_client/h5/src/task/TaskUpAlertItem.ts",
+      "E:/GitProject/yu_client/h5/src/task/TaskAutoSettingView.ts"
+    ],
+    "unity_sources": [
+      "Assets/Prefabs/UI/Task/TaskModule.prefab",
+      "Assets/Scripts/Module/Core/Task/TaskFlow.cs",
+      "Assets/Scripts/Module/Core/Task/TaskFinishView.cs",
+      "Assets/Scripts/Module/Core/Task/TaskController.cs",
+      "Assets/Scripts/Module/Core/Task/TaskModel.cs",
+      "Assets/Scripts/Module/Core/Task/TaskReward.cs",
+      "Assets/Scripts/Generated/UI/Task"
+    ]
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_task/route-manifest.json",
+    "sha256": "9b8a3e501b3743b6f5a07e6666a8ea113ee0323f75747b980fc2a8b79a81e145"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "mainui.task.route",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        {
+          "id": "hud-task-tab-entry",
+          "kind": "button",
+          "child": "mainui.task.route.overview"
+        },
+        {
+          "id": "hud-task-row-execute",
+          "kind": "conditional-list-item",
+          "child": "mainui.task.route.execute"
+        },
+        {
+          "id": "normal-finish-popup",
+          "kind": "conditional-popup",
+          "child": "mainui.task.route.finish"
+        },
+        {
+          "id": "circle-finish-popup",
+          "kind": "conditional-popup",
+          "child": "mainui.task.route.circle"
+        },
+        {
+          "id": "level-up-alert-popup",
+          "kind": "conditional-popup",
+          "child": "mainui.task.route.up-alert"
+        },
+        {
+          "id": "first-login-auto-setting",
+          "kind": "conditional-popup",
+          "child": "mainui.task.route.auto-setting"
+        },
+        {
+          "id": "task-runtime-lifecycle",
+          "kind": "lifecycle",
+          "child": "mainui.task.route.lifecycle"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.task.route",
+      "control_inventory": [
+        {
+          "id": "second-task-tab-click",
+          "kind": "button",
+          "child": "mainui.task.route.overview.open"
+        },
+        {
+          "id": "background-close",
+          "kind": "background",
+          "child": "mainui.task.route.overview.background-close"
+        },
+        {
+          "id": "top-close",
+          "kind": "button",
+          "child": "mainui.task.route.overview.close"
+        },
+        {
+          "id": "task-scroll-list",
+          "kind": "scroll-list",
+          "child": "mainui.task.route.overview.list"
+        },
+        {
+          "id": "30000-30001-live-refresh",
+          "kind": "state",
+          "child": "mainui.task.route.overview.refresh"
+        },
+        {
+          "id": "return-to-hud",
+          "kind": "return",
+          "child": "mainui.task.route.overview.return"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.overview",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.background-close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.task.route.overview",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.task.route.overview",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.refresh",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.overview",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.task.route.overview",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.list",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.task.route.overview",
+      "control_inventory": [
+        {
+          "id": "vertical-scroll",
+          "kind": "scroll-drag",
+          "child": "mainui.task.route.overview.list.scroll"
+        },
+        {
+          "id": "empty-state",
+          "kind": "conditional-state",
+          "child": "mainui.task.route.overview.list.empty"
+        },
+        {
+          "id": "task-row",
+          "kind": "list-item",
+          "child": "mainui.task.route.overview.list.row"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.list.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.overview.list",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.list.empty",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.overview.list",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.list.row",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.task.route.overview.list",
+      "control_inventory": [
+        {
+          "id": "tab-hit-area",
+          "kind": "button",
+          "child": "mainui.task.route.overview.list.row.toggle"
+        },
+        {
+          "id": "type-and-name",
+          "kind": "state",
+          "child": "mainui.task.route.overview.list.row.title"
+        },
+        {
+          "id": "expand-arrow",
+          "kind": "state",
+          "child": "mainui.task.route.overview.list.row.arrow"
+        },
+        {
+          "id": "red-dot",
+          "kind": "conditional-state",
+          "child": "mainui.task.route.overview.list.row.red-dot"
+        },
+        {
+          "id": "expanded-content",
+          "kind": "conditional-container",
+          "child": "mainui.task.route.overview.list.row.content"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.list.row.toggle",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.task.route.overview.list.row",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.list.row.title",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.overview.list.row",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.list.row.arrow",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.overview.list.row",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.list.row.red-dot",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.overview.list.row",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.list.row.content",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.task.route.overview.list.row",
+      "control_inventory": [
+        {
+          "id": "task-description",
+          "kind": "text",
+          "child": "mainui.task.route.overview.list.row.content.desc"
+        },
+        {
+          "id": "task-target-progress",
+          "kind": "conditional-rich-text",
+          "child": "mainui.task.route.overview.list.row.content.target"
+        },
+        {
+          "id": "finished-unfinished-state",
+          "kind": "conditional-state",
+          "child": "mainui.task.route.overview.list.row.content.state"
+        },
+        {
+          "id": "reward-horizontal-scroll",
+          "kind": "conditional-scroll-list",
+          "child": "mainui.task.route.overview.list.row.content.rewards"
+        },
+        {
+          "id": "finish-button",
+          "kind": "conditional-button",
+          "child": "mainui.task.route.overview.list.row.content.finish"
+        },
+        {
+          "id": "go-button",
+          "kind": "conditional-button",
+          "child": "mainui.task.route.overview.list.row.content.go"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.list.row.content.desc",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.overview.list.row.content",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.list.row.content.target",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.overview.list.row.content",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.list.row.content.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.overview.list.row.content",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.list.row.content.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.task.route.overview.list.row.content",
+      "control_inventory": [
+        {
+          "id": "reward-scroll",
+          "kind": "scroll-drag",
+          "child": "mainui.task.route.overview.list.row.content.rewards.scroll"
+        },
+        {
+          "id": "equipment-item",
+          "kind": "shared-component",
+          "child": "mainui.task.route.overview.list.row.content.rewards.item"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.list.row.content.rewards.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.overview.list.row.content.rewards",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.list.row.content.rewards.item",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.overview.list.row.content.rewards",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.list.row.content.finish",
+      "type": "destructive-write",
+      "risk": "destructive-write",
+      "parent": "mainui.task.route.overview.list.row.content",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.overview.list.row.content.go",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.overview.list.row.content",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.task.route",
+      "control_inventory": [
+        {
+          "id": "selected-row-state",
+          "kind": "state",
+          "child": "mainui.task.route.execute.select"
+        },
+        {
+          "id": "completed-task-route",
+          "kind": "conditional-route",
+          "child": "mainui.task.route.execute.complete"
+        },
+        {
+          "id": "find-npc-dialogue",
+          "kind": "conditional-route",
+          "child": "mainui.task.route.execute.find-npc"
+        },
+        {
+          "id": "system-panel-route",
+          "kind": "conditional-route",
+          "child": "mainui.task.route.execute.system"
+        },
+        {
+          "id": "same-scene-pathfind",
+          "kind": "conditional-route",
+          "child": "mainui.task.route.execute.same-scene"
+        },
+        {
+          "id": "cross-scene-fly-shoe",
+          "kind": "conditional-route",
+          "child": "mainui.task.route.execute.cross-scene"
+        },
+        {
+          "id": "welcome-no-op",
+          "kind": "conditional-route",
+          "child": "mainui.task.route.execute.welcome"
+        },
+        {
+          "id": "unknown-tip-degrade",
+          "kind": "conditional-route",
+          "child": "mainui.task.route.execute.unknown"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.select",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.task.route.execute",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.complete",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.find-npc",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.same-scene",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.cross-scene",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.welcome",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.unknown",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.system",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute",
+      "control_inventory": [
+        {
+          "id": "mount-partner-level",
+          "kind": "conditional-navigation",
+          "child": "mainui.task.route.execute.system.mount"
+        },
+        {
+          "id": "outward-wing-artifact",
+          "kind": "conditional-navigation",
+          "child": "mainui.task.route.execute.system.outward"
+        },
+        {
+          "id": "onhook-income",
+          "kind": "conditional-navigation",
+          "child": "mainui.task.route.execute.system.onhook"
+        },
+        {
+          "id": "rune-wear-strengthen",
+          "kind": "conditional-navigation",
+          "child": "mainui.task.route.execute.system.rune"
+        },
+        {
+          "id": "compose-red-equip",
+          "kind": "conditional-navigation",
+          "child": "mainui.task.route.execute.system.compose"
+        },
+        {
+          "id": "jjc",
+          "kind": "conditional-navigation",
+          "child": "mainui.task.route.execute.system.jjc"
+        },
+        {
+          "id": "suit-collect",
+          "kind": "conditional-navigation",
+          "child": "mainui.task.route.execute.system.suit"
+        },
+        {
+          "id": "rush-level-gift",
+          "kind": "conditional-navigation",
+          "child": "mainui.task.route.execute.system.rush-gift"
+        },
+        {
+          "id": "equip-strengthen",
+          "kind": "conditional-navigation",
+          "child": "mainui.task.route.execute.system.equip"
+        },
+        {
+          "id": "temple-awaken",
+          "kind": "conditional-navigation",
+          "child": "mainui.task.route.execute.system.awaken"
+        },
+        {
+          "id": "gubao",
+          "kind": "conditional-navigation",
+          "child": "mainui.task.route.execute.system.gubao"
+        },
+        {
+          "id": "dungeon-rune",
+          "kind": "conditional-navigation",
+          "child": "mainui.task.route.execute.system.dungeon"
+        },
+        {
+          "id": "guild-join",
+          "kind": "conditional-navigation",
+          "child": "mainui.task.route.execute.system.guild"
+        },
+        {
+          "id": "level-up-alert",
+          "kind": "conditional-navigation",
+          "child": "mainui.task.route.execute.system.level"
+        },
+        {
+          "id": "fusion-equip",
+          "kind": "conditional-navigation",
+          "child": "mainui.task.route.execute.system.fusion"
+        },
+        {
+          "id": "gem-strengthen",
+          "kind": "conditional-navigation",
+          "child": "mainui.task.route.execute.system.gem"
+        },
+        {
+          "id": "boss-challenge",
+          "kind": "conditional-navigation",
+          "child": "mainui.task.route.execute.system.boss"
+        },
+        {
+          "id": "orange-equip",
+          "kind": "conditional-navigation",
+          "child": "mainui.task.route.execute.system.orange"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.system.mount",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute.system",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.system.outward",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute.system",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.system.onhook",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute.system",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.system.rune",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute.system",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.system.compose",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute.system",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.system.jjc",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute.system",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.system.suit",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute.system",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.system.rush-gift",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute.system",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.system.equip",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute.system",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.system.awaken",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute.system",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.system.gubao",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute.system",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.system.dungeon",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute.system",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.system.guild",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute.system",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.system.level",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute.system",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.system.fusion",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute.system",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.system.gem",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute.system",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.system.boss",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute.system",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.execute.system.orange",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.execute.system",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.finish",
+      "type": "page",
+      "risk": "destructive-write",
+      "parent": "mainui.task.route",
+      "control_inventory": [
+        {
+          "id": "task-title",
+          "kind": "text",
+          "child": "mainui.task.route.finish.title"
+        },
+        {
+          "id": "task-description",
+          "kind": "text",
+          "child": "mainui.task.route.finish.desc"
+        },
+        {
+          "id": "task-target",
+          "kind": "rich-text",
+          "child": "mainui.task.route.finish.target"
+        },
+        {
+          "id": "reward-list",
+          "kind": "conditional-scroll-list",
+          "child": "mainui.task.route.finish.rewards"
+        },
+        {
+          "id": "claim-or-submit",
+          "kind": "button",
+          "child": "mainui.task.route.finish.submit"
+        },
+        {
+          "id": "close-icon",
+          "kind": "button",
+          "child": "mainui.task.route.finish.close"
+        },
+        {
+          "id": "background-close",
+          "kind": "background",
+          "child": "mainui.task.route.finish.background-close"
+        },
+        {
+          "id": "auto-countdown",
+          "kind": "conditional-timer",
+          "child": "mainui.task.route.finish.countdown"
+        },
+        {
+          "id": "scene-change-defer",
+          "kind": "conditional-lifecycle",
+          "child": "mainui.task.route.finish.scene-change"
+        },
+        {
+          "id": "30004-success",
+          "kind": "transaction-result",
+          "child": "mainui.task.route.finish.success"
+        },
+        {
+          "id": "30004-failure",
+          "kind": "transaction-result",
+          "child": "mainui.task.route.finish.failure"
+        },
+        {
+          "id": "parent-refresh-and-reopen",
+          "kind": "state",
+          "child": "mainui.task.route.finish.refresh"
+        },
+        {
+          "id": "success-effect",
+          "kind": "dynamic-effect",
+          "child": "mainui.task.route.finish.effect"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.finish.title",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.finish",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.finish.desc",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.finish",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.finish.target",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.finish",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.finish.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.task.route.finish",
+      "control_inventory": [
+        {
+          "id": "reward-scroll",
+          "kind": "scroll-drag",
+          "child": "mainui.task.route.finish.rewards.scroll"
+        },
+        {
+          "id": "equipment-item",
+          "kind": "shared-component",
+          "child": "mainui.task.route.finish.rewards.item"
+        },
+        {
+          "id": "zero-reward-state",
+          "kind": "conditional-state",
+          "child": "mainui.task.route.finish.rewards.empty"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.finish.rewards.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.finish.rewards",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.finish.rewards.item",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.finish.rewards",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.finish.rewards.empty",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.finish.rewards",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.finish.submit",
+      "type": "destructive-write",
+      "risk": "destructive-write",
+      "parent": "mainui.task.route.finish",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.finish.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.task.route.finish",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.finish.background-close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.task.route.finish",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.finish.countdown",
+      "type": "destructive-write",
+      "risk": "destructive-write",
+      "parent": "mainui.task.route.finish",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.finish.scene-change",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.finish",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.finish.success",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.task.route.finish",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.finish.failure",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.task.route.finish",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.finish.refresh",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.finish",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.finish.effect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.finish",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.circle",
+      "type": "page",
+      "risk": "destructive-write",
+      "parent": "mainui.task.route",
+      "control_inventory": [
+        {
+          "id": "guild-daily-title",
+          "kind": "conditional-text",
+          "child": "mainui.task.route.circle.title"
+        },
+        {
+          "id": "task-target",
+          "kind": "rich-text",
+          "child": "mainui.task.route.circle.target"
+        },
+        {
+          "id": "circle-number",
+          "kind": "state",
+          "child": "mainui.task.route.circle.number"
+        },
+        {
+          "id": "circle-progress",
+          "kind": "state",
+          "child": "mainui.task.route.circle.progress"
+        },
+        {
+          "id": "normal-reward-list",
+          "kind": "scroll-list",
+          "child": "mainui.task.route.circle.normal-rewards"
+        },
+        {
+          "id": "ten-circle-reward-list",
+          "kind": "scroll-list",
+          "child": "mainui.task.route.circle.total-rewards"
+        },
+        {
+          "id": "claim",
+          "kind": "button",
+          "child": "mainui.task.route.circle.submit"
+        },
+        {
+          "id": "close-icon",
+          "kind": "button",
+          "child": "mainui.task.route.circle.close"
+        },
+        {
+          "id": "background-close",
+          "kind": "background",
+          "child": "mainui.task.route.circle.background-close"
+        },
+        {
+          "id": "auto-countdown",
+          "kind": "conditional-timer",
+          "child": "mainui.task.route.circle.countdown"
+        },
+        {
+          "id": "scene-change-defer",
+          "kind": "conditional-lifecycle",
+          "child": "mainui.task.route.circle.scene-change"
+        },
+        {
+          "id": "ten-circle-congratulation",
+          "kind": "conditional-popup",
+          "child": "mainui.task.route.circle.congratulation"
+        },
+        {
+          "id": "30004-success",
+          "kind": "transaction-result",
+          "child": "mainui.task.route.circle.success"
+        },
+        {
+          "id": "30004-failure",
+          "kind": "transaction-result",
+          "child": "mainui.task.route.circle.failure"
+        },
+        {
+          "id": "progress-refresh",
+          "kind": "state",
+          "child": "mainui.task.route.circle.refresh"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.circle.title",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.circle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.circle.target",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.circle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.circle.number",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.circle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.circle.progress",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.circle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.circle.normal-rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.task.route.circle",
+      "control_inventory": [
+        {
+          "id": "scroll",
+          "kind": "scroll-drag",
+          "child": "mainui.task.route.circle.normal-rewards.scroll"
+        },
+        {
+          "id": "equipment-item",
+          "kind": "shared-component",
+          "child": "mainui.task.route.circle.normal-rewards.item"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.circle.normal-rewards.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.circle.normal-rewards",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.circle.normal-rewards.item",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.circle.normal-rewards",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.circle.total-rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.task.route.circle",
+      "control_inventory": [
+        {
+          "id": "scroll",
+          "kind": "scroll-drag",
+          "child": "mainui.task.route.circle.total-rewards.scroll"
+        },
+        {
+          "id": "equipment-item",
+          "kind": "shared-component",
+          "child": "mainui.task.route.circle.total-rewards.item"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.circle.total-rewards.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.circle.total-rewards",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.circle.total-rewards.item",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.circle.total-rewards",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.circle.submit",
+      "type": "destructive-write",
+      "risk": "destructive-write",
+      "parent": "mainui.task.route.circle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.circle.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.task.route.circle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.circle.background-close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.task.route.circle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.circle.countdown",
+      "type": "destructive-write",
+      "risk": "destructive-write",
+      "parent": "mainui.task.route.circle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.circle.scene-change",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.circle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.circle.congratulation",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.circle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.circle.success",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.task.route.circle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.circle.failure",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.task.route.circle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.circle.refresh",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.circle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.up-alert",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.task.route",
+      "control_inventory": [
+        {
+          "id": "level-tip-trigger",
+          "kind": "conditional-route",
+          "child": "mainui.task.route.up-alert.open"
+        },
+        {
+          "id": "close-icon",
+          "kind": "button",
+          "child": "mainui.task.route.up-alert.close"
+        },
+        {
+          "id": "sure-button",
+          "kind": "button",
+          "child": "mainui.task.route.up-alert.sure"
+        },
+        {
+          "id": "background-close",
+          "kind": "background",
+          "child": "mainui.task.route.up-alert.background-close"
+        },
+        {
+          "id": "activity-list",
+          "kind": "scroll-list",
+          "child": "mainui.task.route.up-alert.list"
+        },
+        {
+          "id": "vip-banner",
+          "kind": "conditional-banner",
+          "child": "mainui.task.route.up-alert.banner"
+        },
+        {
+          "id": "config-live-refresh",
+          "kind": "state",
+          "child": "mainui.task.route.up-alert.refresh"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.up-alert.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.up-alert",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.up-alert.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.task.route.up-alert",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.up-alert.sure",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.task.route.up-alert",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.up-alert.background-close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.task.route.up-alert",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.up-alert.banner",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.up-alert",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.up-alert.refresh",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.up-alert",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.up-alert.list",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.task.route.up-alert",
+      "control_inventory": [
+        {
+          "id": "scroll",
+          "kind": "scroll-drag",
+          "child": "mainui.task.route.up-alert.list.scroll"
+        },
+        {
+          "id": "activity-row",
+          "kind": "list-item",
+          "child": "mainui.task.route.up-alert.list.row"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.up-alert.list.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.up-alert.list",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.up-alert.list.row",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.task.route.up-alert.list",
+      "control_inventory": [
+        {
+          "id": "icon-description-reward",
+          "kind": "state",
+          "child": "mainui.task.route.up-alert.list.row.info"
+        },
+        {
+          "id": "star-list",
+          "kind": "conditional-shared-component",
+          "child": "mainui.task.route.up-alert.list.row.stars"
+        },
+        {
+          "id": "first-row-effect",
+          "kind": "conditional-dynamic-effect",
+          "child": "mainui.task.route.up-alert.list.row.effect"
+        },
+        {
+          "id": "go-button",
+          "kind": "conditional-button",
+          "child": "mainui.task.route.up-alert.list.row.go"
+        },
+        {
+          "id": "finished-gray",
+          "kind": "conditional-state",
+          "child": "mainui.task.route.up-alert.list.row.finished"
+        },
+        {
+          "id": "week-limit",
+          "kind": "conditional-state",
+          "child": "mainui.task.route.up-alert.list.row.week-limit"
+        },
+        {
+          "id": "time-limit",
+          "kind": "conditional-state",
+          "child": "mainui.task.route.up-alert.list.row.time-limit"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.up-alert.list.row.info",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.up-alert.list.row",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.up-alert.list.row.stars",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.up-alert.list.row",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.up-alert.list.row.effect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.up-alert.list.row",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.up-alert.list.row.go",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.up-alert.list.row",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.up-alert.list.row.finished",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.up-alert.list.row",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.up-alert.list.row.week-limit",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.up-alert.list.row",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.up-alert.list.row.time-limit",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.up-alert.list.row",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.auto-setting",
+      "type": "page",
+      "risk": "reversible-write",
+      "parent": "mainui.task.route",
+      "control_inventory": [
+        {
+          "id": "new-career-loading-close-trigger",
+          "kind": "conditional-route",
+          "child": "mainui.task.route.auto-setting.open"
+        },
+        {
+          "id": "auto-radio",
+          "kind": "radio",
+          "child": "mainui.task.route.auto-setting.auto"
+        },
+        {
+          "id": "manual-radio",
+          "kind": "radio",
+          "child": "mainui.task.route.auto-setting.manual"
+        },
+        {
+          "id": "confirm",
+          "kind": "button",
+          "child": "mainui.task.route.auto-setting.confirm"
+        },
+        {
+          "id": "close-icon",
+          "kind": "button",
+          "child": "mainui.task.route.auto-setting.close"
+        },
+        {
+          "id": "background-close",
+          "kind": "background",
+          "child": "mainui.task.route.auto-setting.background-close"
+        },
+        {
+          "id": "15s-countdown",
+          "kind": "timer",
+          "child": "mainui.task.route.auto-setting.countdown"
+        },
+        {
+          "id": "10203-persist",
+          "kind": "transaction",
+          "child": "mainui.task.route.auto-setting.persist"
+        },
+        {
+          "id": "finger-lock-cleanup",
+          "kind": "lifecycle",
+          "child": "mainui.task.route.auto-setting.finger-lock"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.auto-setting.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.task.route.auto-setting",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.auto-setting.auto",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.task.route.auto-setting",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.auto-setting.manual",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.task.route.auto-setting",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.auto-setting.confirm",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.task.route.auto-setting",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.auto-setting.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.task.route.auto-setting",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.auto-setting.background-close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.task.route.auto-setting",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.auto-setting.countdown",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.auto-setting",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.auto-setting.persist",
+      "type": "transaction",
+      "risk": "reversible-write",
+      "parent": "mainui.task.route.auto-setting",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.auto-setting.finger-lock",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.auto-setting",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.lifecycle",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.task.route",
+      "control_inventory": [
+        {
+          "id": "30000-full-list",
+          "kind": "protocol",
+          "child": "mainui.task.route.lifecycle.30000"
+        },
+        {
+          "id": "30001-single-refresh",
+          "kind": "protocol",
+          "child": "mainui.task.route.lifecycle.30001"
+        },
+        {
+          "id": "30003-accept",
+          "kind": "protocol",
+          "child": "mainui.task.route.lifecycle.30003"
+        },
+        {
+          "id": "30004-finish",
+          "kind": "protocol",
+          "child": "mainui.task.route.lifecycle.30004"
+        },
+        {
+          "id": "30005-newest-finish",
+          "kind": "protocol",
+          "child": "mainui.task.route.lifecycle.30005"
+        },
+        {
+          "id": "hide-reopen",
+          "kind": "lifecycle",
+          "child": "mainui.task.route.lifecycle.reopen"
+        },
+        {
+          "id": "cold-warm-and-resource-idempotence",
+          "kind": "performance",
+          "child": "mainui.task.route.lifecycle.performance"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.lifecycle.30000",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.lifecycle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.lifecycle.30001",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.lifecycle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.lifecycle.30003",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.task.route.lifecycle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.lifecycle.30004",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.task.route.lifecycle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.lifecycle.30005",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.lifecycle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.lifecycle.reopen",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.lifecycle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.task.route.lifecycle.performance",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.task.route.lifecycle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    }
+  ],
+  "summary": {
+    "total": 123,
+    "status_counts": {
+      "not-run": 123
+    }
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "route": "mainui.attention",
+  "baseline": {
+    "scope": "Attention/关注 static route: generic ClientAttention page and SDK attention reward page",
+    "legacy_authority": "yu_client h5/src/commonModel/AttentionModel.ts, commonController/AttentionController.ts, attention/AttentionView*.ts and cdn/resource/game/attention",
+    "unity_scope": "Assets/Scripts/Module/Core/Attention and Assets/Prefabs/UI/Attention; Generated inspected read-only",
+    "runtime_policy": "static only; no Unity, browser, build, GM or account writes",
+    "topology_note": "Icon 113 and 113113 are independent routes; the SDK page owns external subscribe and destructive reward claim branches"
+  },
+  "nodes": [
+    {
+      "id": "mainui.attention",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {"id":"startup-lifecycle","kind":"lifecycle","child":"mainui.attention.startup"},
+        {"id":"generic-icon-113","kind":"conditional-navigation","child":"mainui.attention.generic"},
+        {"id":"sdk-icon-113113","kind":"conditional-navigation","child":"mainui.attention.sdk"}
+      ]
+    },
+    {"id":"mainui.attention.startup","parent":"mainui.attention","type":"read","risk":"read-only"},
+
+    {
+      "id":"mainui.attention.generic",
+      "parent":"mainui.attention",
+      "type":"page",
+      "risk":"reversible-write",
+      "control_inventory": [
+        {"id":"entry-gates","kind":"conditional-block","child":"mainui.attention.generic.gates"},
+        {"id":"main-background","kind":"image","child":"mainui.attention.generic.background"},
+        {"id":"title","kind":"image","child":"mainui.attention.generic.title"},
+        {"id":"qr-link","kind":"dynamic-image","child":"mainui.attention.generic.qr"},
+        {"id":"description","kind":"dynamic-text","child":"mainui.attention.generic.description"},
+        {"id":"reward-strip","kind":"dynamic-list","child":"mainui.attention.generic.rewards"},
+        {"id":"copy-button","kind":"button","child":"mainui.attention.generic.copy"},
+        {"id":"close-button","kind":"return","child":"mainui.attention.generic.close"},
+        {"id":"resource-ready","kind":"conditional-block","child":"mainui.attention.generic.resource-ready"}
+      ]
+    },
+    {"id":"mainui.attention.generic.gates","parent":"mainui.attention.generic","type":"read","risk":"read-only"},
+    {"id":"mainui.attention.generic.background","parent":"mainui.attention.generic","type":"read","risk":"read-only"},
+    {"id":"mainui.attention.generic.title","parent":"mainui.attention.generic","type":"read","risk":"read-only"},
+    {"id":"mainui.attention.generic.qr","parent":"mainui.attention.generic","type":"read","risk":"read-only"},
+    {"id":"mainui.attention.generic.description","parent":"mainui.attention.generic","type":"read","risk":"read-only"},
+    {
+      "id":"mainui.attention.generic.rewards",
+      "parent":"mainui.attention.generic",
+      "type":"page",
+      "risk":"read-only",
+      "control_inventory": [
+        {"id":"reward-list-layout","kind":"dynamic-list","child":"mainui.attention.generic.rewards.list"},
+        {"id":"reward-item-render","kind":"list-item","child":"mainui.attention.generic.rewards.item"}
+      ]
+    },
+    {"id":"mainui.attention.generic.rewards.list","parent":"mainui.attention.generic.rewards","type":"read","risk":"read-only"},
+    {"id":"mainui.attention.generic.rewards.item","parent":"mainui.attention.generic.rewards","type":"read","risk":"read-only"},
+    {"id":"mainui.attention.generic.copy","parent":"mainui.attention.generic","type":"reversible-write","risk":"reversible-write"},
+    {"id":"mainui.attention.generic.close","parent":"mainui.attention.generic","type":"return","risk":"read-only"},
+    {"id":"mainui.attention.generic.resource-ready","parent":"mainui.attention.generic","type":"read","risk":"read-only"},
+
+    {
+      "id":"mainui.attention.sdk",
+      "parent":"mainui.attention",
+      "type":"page",
+      "risk":"destructive-write",
+      "control_inventory": [
+        {"id":"entry-gates","kind":"conditional-block","child":"mainui.attention.sdk.gates"},
+        {"id":"main-background","kind":"image","child":"mainui.attention.sdk.background"},
+        {"id":"reward-strip","kind":"dynamic-list","child":"mainui.attention.sdk.rewards"},
+        {"id":"attention-action","kind":"conditional-button","child":"mainui.attention.sdk.action"},
+        {"id":"attention-red-dot","kind":"conditional-image","child":"mainui.attention.sdk.red-dot"},
+        {"id":"background-close","kind":"return","child":"mainui.attention.sdk.background-close"},
+        {"id":"scene-change-close","kind":"return","child":"mainui.attention.sdk.scene-close"},
+        {"id":"resource-ready","kind":"conditional-block","child":"mainui.attention.sdk.resource-ready"}
+      ]
+    },
+    {"id":"mainui.attention.sdk.gates","parent":"mainui.attention.sdk","type":"read","risk":"read-only"},
+    {"id":"mainui.attention.sdk.background","parent":"mainui.attention.sdk","type":"read","risk":"read-only"},
+    {
+      "id":"mainui.attention.sdk.rewards",
+      "parent":"mainui.attention.sdk",
+      "type":"page",
+      "risk":"read-only",
+      "control_inventory": [
+        {"id":"reward-list-layout","kind":"dynamic-list","child":"mainui.attention.sdk.rewards.list"},
+        {"id":"reward-item-render","kind":"list-item","child":"mainui.attention.sdk.rewards.item"}
+      ]
+    },
+    {"id":"mainui.attention.sdk.rewards.list","parent":"mainui.attention.sdk.rewards","type":"read","risk":"read-only"},
+    {"id":"mainui.attention.sdk.rewards.item","parent":"mainui.attention.sdk.rewards","type":"read","risk":"read-only"},
+    {
+      "id":"mainui.attention.sdk.action",
+      "parent":"mainui.attention.sdk",
+      "type":"page",
+      "risk":"destructive-write",
+      "control_inventory": [
+        {"id":"button-label-state","kind":"conditional-text","child":"mainui.attention.sdk.action.label"},
+        {"id":"one-second-throttle","kind":"conditional-block","child":"mainui.attention.sdk.action.throttle"},
+        {"id":"unfollowed-ask-show","kind":"button-state","child":"mainui.attention.sdk.action.ask-show"},
+        {"id":"subscribe-callback","kind":"external-callback","child":"mainui.attention.sdk.action.subscribe-callback"},
+        {"id":"followed-unclaimed-claim","kind":"button-state","child":"mainui.attention.sdk.action.claim-33105"},
+        {"id":"claimed-message","kind":"button-state","child":"mainui.attention.sdk.action.claimed"},
+        {"id":"post-claim-refresh-close","kind":"result-state","child":"mainui.attention.sdk.action.post-claim"}
+      ]
+    },
+    {"id":"mainui.attention.sdk.action.label","parent":"mainui.attention.sdk.action","type":"read","risk":"read-only"},
+    {"id":"mainui.attention.sdk.action.throttle","parent":"mainui.attention.sdk.action","type":"read","risk":"read-only"},
+    {"id":"mainui.attention.sdk.action.ask-show","parent":"mainui.attention.sdk.action","type":"transaction","risk":"destructive-write"},
+    {"id":"mainui.attention.sdk.action.subscribe-callback","parent":"mainui.attention.sdk.action","type":"read","risk":"read-only"},
+    {"id":"mainui.attention.sdk.action.claim-33105","parent":"mainui.attention.sdk.action","type":"transaction","risk":"destructive-write"},
+    {"id":"mainui.attention.sdk.action.claimed","parent":"mainui.attention.sdk.action","type":"read","risk":"read-only"},
+    {"id":"mainui.attention.sdk.action.post-claim","parent":"mainui.attention.sdk.action","type":"read","risk":"read-only"},
+    {"id":"mainui.attention.sdk.red-dot","parent":"mainui.attention.sdk","type":"read","risk":"read-only"},
+    {"id":"mainui.attention.sdk.background-close","parent":"mainui.attention.sdk","type":"return","risk":"read-only"},
+    {"id":"mainui.attention.sdk.scene-close","parent":"mainui.attention.sdk","type":"return","risk":"read-only"},
+    {"id":"mainui.attention.sdk.resource-ready","parent":"mainui.attention.sdk","type":"read","risk":"read-only"}
+  ]
+}

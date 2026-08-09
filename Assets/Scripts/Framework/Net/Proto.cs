@@ -1238,6 +1238,8 @@
         public const int ARMOR_MAKE = 14402;
         /// <summary>勋章基础快照。C2S 空包；S2C: id,stren_lv,stren_exp,honour,power,pass_layers。</summary>
         public const int MEDAL_INFO = 13401;
+        /// <summary>地境勋章激活/升级/晋升。C2S 严格空包；S2C: id:u32,honour:u64。</summary>
+        public const int MEDAL_UPGRADE = 13402;
         /// <summary>勋章统一错误切片。仅 S2C: code:u32；服务端虽有空 read 分支，但旧端不发送且 pp 默认忽略，绝不请求本号。</summary>
         public const int MEDAL_ERROR = 13400;
         /// <summary>勋章称号全量状态。C2S 空包；S2C: titles:u16×{id:u32,level:u16,power:u32,is_equip:u8}。</summary>
@@ -1351,14 +1353,21 @@
         public const int KF_SINGLE_RANK_AREA_TOWERS = 50702;
         /// <summary>跨服单人排行副本结算通知。仅S2C: result_type:u8,level:u8,go_time:u32,become_challengers:u8,reward:ObjectList；奖励已由服务端发放。</summary>
         public const int KF_SINGLE_RANK_SETTLEMENT = 50705;
+        /// <summary>成就阶段、阶段奖励状态与下一阶段。C2S 空包。</summary>
         public const int ACHIEVEMENT_STAGE = 40901;
+        /// <summary>领取下一成就阶段。C2S: stage:u32；S2C: cur_stage:u8,result:u8,errcode:u32,new_cur_stage:u16。</summary>
+        public const int ACHIEVEMENT_STAGE_CLAIM = 40902;
         public const int ACHIEVEMENT_ENTRIES = 40903;
         /// <summary>成就条目状态增量。S2C-only: list:u16×{id:u32,status:u8,progress:u64}。</summary>
         public const int ACHIEVEMENT_ENTRY_UPDATES = 40904;
+        /// <summary>领取单条成就奖励。C2S: id:u32；S2C: result:u8,errcode:u32。</summary>
+        public const int ACHIEVEMENT_ENTRY_CLAIM = 40905;
         public const int ACHIEVEMENT_STAR = 40906;
         /// <summary>成就阶段奖励增量。S2C-only: rewards:u16×{stage:u32,status:u8},cur_stage:u8,new_cur_stage:u16。</summary>
         public const int ACHIEVEMENT_STAGE_REWARD_UPDATE = 40907;
         public const int ACHIEVEMENT_TYPES = 40908;
+        /// <summary>成就分类完整明细。C2S: category:u16；S2C: category:u8,list:u16×{id:u32,progress:u64,status:u8}。</summary>
+        public const int ACHIEVEMENT_CATEGORY_ENTRIES = 40909;
         public const int GUARD_INFO = 21601;
         public const int NINE_SKY_INFO = 13500;
         /// <summary>九魂圣殿战斗小面板。C2S 空包；S2C: cur_floor:u8,max_floor:u8,left_time:u32,kill_num:u16,score:u32,first_server_num:u16,first_player:string。</summary>

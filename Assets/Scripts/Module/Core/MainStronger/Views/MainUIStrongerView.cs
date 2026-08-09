@@ -1,40 +1,114 @@
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Shenxiao.Generated.UI.MainStronger;
 using Shenxiao.Framework.UI;
-using Shenxiao.Framework.Util;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.MainStronger
 {
-    /// <summary>
-    /// 变强引导界面(对标老客户端 mainUI/MainUIStrongerView.ts):变强功能列表(MainUIStrongerBtn)+ 广告位(_panel_ad)+
-    /// 关闭(btnClose),点击背景关闭。
-    ///
-    /// 降级:功能列表数据(MainStronger 配置)+ LoopScrowViewMgr + 广告未移植 → 功能按钮模板隐藏、列表空、
-    /// btnClose → Hide、OnShow 打 TODO。事件驱动弹窗,默认关闭、不进 FirstPass。
-    /// </summary>
+    /// <summary>我要变强推荐列表；布局与视觉完全由转换后的 Prefab 持有。</summary>
     public sealed class MainUIStrongerView : MainUIStrongerViewBind
     {
+        private readonly List<GameObject> _rows = new List<GameObject>();
+        private bool _subscribed;
+
         protected override void OnInit()
         {
             if (_tpl_MainUIStrongerBtn != null) _tpl_MainUIStrongerBtn.SetActive(false);
-            BindBtn(btnClose, () => Hide());
+            BindBtn(btnClose, MainStrongerFlow.Close);
         }
 
         protected override void OnShow(object args)
         {
-            GameLog.Info("MainStronger", "变强引导打开 → 待对接 变强功能列表(MainStronger 配置/LoopScrowViewMgr)");
+            Subscribe();
+            _ = RefreshAsync();
         }
 
-        private void BindBtn(Component target, Action onClick)
+        protected override void OnHide()
+        {
+            Unsubscribe();
+            ClearRows();
+        }
+
+        protected override void OnDispose()
+        {
+            Unsubscribe();
+            ClearRows();
+        }
+
+        private async Task RefreshAsync()
+        {
+            await MainStrongerConfigs.EnsureLoaded();
+            if (!IsShown) return;
+            MainStrongerModel.Instance.Rebuild();
+            Render();
+        }
+
+        private void Render()
+        {
+            ClearRows();
+            // 广告依赖 config_banner 与 Activity 状态矩阵；未接齐前整组隐藏。
+            if (_panel_ad != null) _panel_ad.gameObject.SetActive(false);
+            if (_panel_toggle != null) _panel_toggle.gameObject.SetActive(false);
+            if (listStrongBtn == null || listStrongBtn.content == null ||
+                _tpl_MainUIStrongerBtn == null) return;
+
+            IReadOnlyList<MainStrongerConfigs.Feature> features =
+                MainStrongerModel.Instance.Recommendations;
+            for (int i = 0; i < features.Count; i++)
+            {
+                GameObject row = Instantiate(_tpl_MainUIStrongerBtn,
+                    listStrongBtn.content, false);
+                row.name = "MainUIStrongerBtn(Runtime:" + features[i].Id + ")";
+                MainUIStrongerBtn item = row.GetComponent<MainUIStrongerBtn>();
+                if (item == null)
+                {
+                    Destroy(row);
+                    continue;
+                }
+                _rows.Add(row);
+                row.SetActive(true);
+                item.Show();
+                item.SetData(features[i]);
+            }
+
+            listStrongBtn.StopMovement();
+            listStrongBtn.verticalNormalizedPosition = 1f;
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(listStrongBtn.content);
+        }
+
+        private void Subscribe()
+        {
+            if (_subscribed) return;
+            MainStrongerModel.Instance.Changed += Render;
+            _subscribed = true;
+        }
+
+        private void Unsubscribe()
+        {
+            if (!_subscribed) return;
+            MainStrongerModel.Instance.Changed -= Render;
+            _subscribed = false;
+        }
+
+        private void ClearRows()
+        {
+            for (int i = 0; i < _rows.Count; i++)
+                if (_rows[i] != null) Destroy(_rows[i]);
+            _rows.Clear();
+        }
+
+        private static void BindBtn(Component target, Action onClick)
         {
             if (target == null) return;
-            Image img = target as Image;
-            if (img == null) img = target.GetComponentInChildren<Image>(true);
-            if (img == null) return;
-            img.raycastTarget = true;
-            UIUtil.AddClick(img, onClick);
+            Image image = target as Image ?? target.GetComponentInChildren<Image>(true);
+            if (image == null) return;
+            image.raycastTarget = true;
+            UIUtil.ClearClicks(image);
+            UIUtil.AddClick(image, onClick);
         }
     }
 }

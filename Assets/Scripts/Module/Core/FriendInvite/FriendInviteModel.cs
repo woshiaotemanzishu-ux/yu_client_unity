@@ -25,6 +25,7 @@ namespace Shenxiao.Module.Core.FriendInvite
 
         /// <summary>主界面图标类型(对标老端 FriendInviteModel.ICON_TYPE=340)。</summary>
         public const string ICON_TYPE = "340";
+        public const string EVENT_UPDATED = "FriendInvite.Updated";
 
         /// <summary>
         /// 分享/邀请入口是否开启(对标老端 ClientConfig.share_open / 微信 activity_cid)。

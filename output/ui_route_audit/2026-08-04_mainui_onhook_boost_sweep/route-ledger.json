@@ -1,24 +1,37 @@
 {
   "schema": 4,
   "route": "mainui.onhook.boost-sweep",
+  "baseline": {
+    "target_closeup": "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/target_old_closeup.png",
+    "old_full": "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/baseline_old_full.png",
+    "unity_before": "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/before_unity_full.png",
+    "real_web_same_batch": "not-run"
+  },
   "nodes": [
     {
       "id": "mainui.onhook",
+      "parent": null,
       "type": "page",
-      "risk": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
       "control_inventory": [
         {
           "id": "boost-button",
           "kind": "conditional-effect-button",
           "child": "mainui.onhook.boost-button"
         }
+      ],
+      "gates": {},
+      "evidence": [
+        "Docs/RuntimeCompare/MainUI-挂机提升扫光-20260804.md"
       ]
     },
     {
       "id": "mainui.onhook.boost-button",
       "parent": "mainui.onhook",
       "type": "page",
-      "risk": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
       "control_inventory": [
         {
           "id": "visual-and-sweep",
@@ -29,20 +42,91 @@
           "id": "state-and-lifecycle",
           "kind": "conditional-runtime-state",
           "child": "mainui.onhook.boost-button.state"
+        },
+        {
+          "id": "real-web-batch",
+          "kind": "same-build-web-verification",
+          "child": "mainui.onhook.boost-button.web"
         }
+      ],
+      "gates": {},
+      "evidence": [
+        "Docs/RuntimeCompare/MainUI-挂机提升扫光-20260804.md"
       ]
     },
     {
       "id": "mainui.onhook.boost-button.sweep",
       "parent": "mainui.onhook.boost-button",
-      "type": "assertion",
-      "risk": "read"
+      "type": "read",
+      "risk": "read-only",
+      "status": "done",
+      "applicable_gates": [
+        "render_completion",
+        "effect_match"
+      ],
+      "gates": {
+        "render_completion": true,
+        "effect_match": true
+      },
+      "render_evidence": [
+        "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/runtime/ui_tisheng_rt_start.png",
+        "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/runtime/ui_tisheng_rt_mid.png"
+      ],
+      "effect_evidence": [
+        "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/mainui_onhook_boost_final.log",
+        "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/runtime/ui_tisheng_rt_start.png",
+        "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/runtime/ui_tisheng_rt_mid.png"
+      ],
+      "evidence": [
+        "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/target_old_closeup.png",
+        "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/runtime/hud_onhook_boost_start.png",
+        "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/runtime/hud_onhook_boost_mid.png"
+      ]
     },
     {
       "id": "mainui.onhook.boost-button.state",
       "parent": "mainui.onhook.boost-button",
-      "type": "assertion",
-      "risk": "read"
+      "type": "read",
+      "risk": "read-only",
+      "status": "done",
+      "applicable_gates": [
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": true,
+        "reopen": true
+      },
+      "state_evidence": [
+        "未点满且无 buff_type=1：加载完整 UI_tisheng",
+        "未点满且有 buff_type=1：释放特效并显示静态 _img_add",
+        "加成点满：释放特效并隐藏 add_btn",
+        "同状态不重复实例化；隐藏释放；关闭重开后再次释放"
+      ],
+      "evidence": [
+        "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/mainui_onhook_boost_final.log"
+      ]
+    },
+    {
+      "id": "mainui.onhook.boost-button.web",
+      "parent": "mainui.onhook.boost-button",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "applicable_gates": [
+        "timing",
+        "visual_match",
+        "resource_stable"
+      ],
+      "gates": {
+        "timing": false,
+        "visual_match": false,
+        "resource_stable": false
+      },
+      "note": "已有 Unity Editor 双时间点动态像素和生命周期证据，但没有与当前 Git/dirty/Player/catalog 同批的真实 Web old/unity/overlay/diff、Web cold/warm 与两次资源幂等预检。",
+      "evidence": [
+        "Docs/RuntimeCompare/MainUI-挂机提升扫光-20260804.md"
+      ]
     }
   ]
 }

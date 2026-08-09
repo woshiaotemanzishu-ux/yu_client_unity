@@ -58,12 +58,12 @@ namespace Shenxiao.Module.Core.Friend
             return local.ToString("yyyy-MM-dd HH:mm:ss");
         }
 
-        /// <summary>私聊气泡时间文案(对标老端 ChatModel.timeFormat,简化为 HH:mm)。</summary>
+        /// <summary>私聊气泡时间文案(对标老端 ChatModel.timeFormat: MM - dd HH:mm:ss)。</summary>
         public static string FormatChatTime(uint epochSec)
         {
             if (epochSec == 0) return "";
             System.DateTime local = System.DateTimeOffset.FromUnixTimeSeconds(epochSec).LocalDateTime;
-            return local.ToString("HH:mm");
+            return local.ToString("MM - dd HH:mm:ss");
         }
     }
 }

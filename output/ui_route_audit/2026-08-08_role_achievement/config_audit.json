@@ -1,0 +1,323 @@
+{
+  "schema": 1,
+  "generatedAt": "2026-08-08T07:52:00.883Z",
+  "route": "人物/成就",
+  "counts": {
+    "entries": 237,
+    "categories": 129,
+    "types": 7,
+    "subtypes": 30,
+    "stages": 200,
+    "titles": 6
+  },
+  "menuTopology": [
+    [
+      1,
+      "成就总览",
+      []
+    ],
+    [
+      2,
+      "个人成长",
+      [
+        1,
+        2,
+        3,
+        7
+      ]
+    ],
+    [
+      3,
+      "伙伴培养",
+      [
+        9
+      ]
+    ],
+    [
+      4,
+      "装备打造",
+      [
+        16,
+        17,
+        19
+      ]
+    ],
+    [
+      5,
+      "社交活动",
+      [
+        20,
+        23
+      ]
+    ],
+    [
+      6,
+      "日常活跃",
+      [
+        24,
+        25
+      ]
+    ],
+    [
+      7,
+      "精彩历程",
+      [
+        27,
+        28,
+        29
+      ]
+    ]
+  ],
+  "hashes": [
+    {
+      "name": "clientachv",
+      "source": "E:/GitProject/yu_client/cdn/resource/config/client/ClientAchv.json",
+      "destination": "Assets/GameRes/resource/config/client/clientachv.json",
+      "sourceHash": "cb5d4c4844e3f1ca753340c25bf49cf63dac9815665b4ff11af072eab7c25e78",
+      "destinationHash": "cb5d4c4844e3f1ca753340c25bf49cf63dac9815665b4ff11af072eab7c25e78",
+      "match": true,
+      "meta": true
+    },
+    {
+      "name": "achievement",
+      "source": "E:/GitProject/yu_client/cdn/resource/config/server/config_achievement.json",
+      "destination": "Assets/GameRes/resource/config/server/config_achievement.json",
+      "sourceHash": "62dc7d4c1b4f04ad85e15580abeb353ac4cb2295d54a0421ddf8298e3bab700f",
+      "destinationHash": "62dc7d4c1b4f04ad85e15580abeb353ac4cb2295d54a0421ddf8298e3bab700f",
+      "match": true,
+      "meta": true
+    },
+    {
+      "name": "star_reward",
+      "source": "E:/GitProject/yu_client/cdn/resource/config/server/config_achievement_star_reward.json",
+      "destination": "Assets/GameRes/resource/config/server/config_achievement_star_reward.json",
+      "sourceHash": "a0e0e3c8e0220087e4cb3d2573dcb1ef71975a2ba777bc8428a0781b0263ee5b",
+      "destinationHash": "a0e0e3c8e0220087e4cb3d2573dcb1ef71975a2ba777bc8428a0781b0263ee5b",
+      "match": true,
+      "meta": true
+    },
+    {
+      "name": "category",
+      "source": "E:/GitProject/yu_client/cdn/resource/config/server/config_achievement_category.json",
+      "destination": "Assets/GameRes/resource/config/server/config_achievement_category.json",
+      "sourceHash": "604f81143431946f7a54e49d41529c342eb8b4bab21454fef6dbdec56880298f",
+      "destinationHash": "604f81143431946f7a54e49d41529c342eb8b4bab21454fef6dbdec56880298f",
+      "match": true,
+      "meta": true
+    },
+    {
+      "name": "type",
+      "source": "E:/GitProject/yu_client/cdn/resource/config/server/config_achievement_type_new.json",
+      "destination": "Assets/GameRes/resource/config/server/config_achievement_type_new.json",
+      "sourceHash": "16ce57ef9d1a579929a9c3fbf37b4df339ae9e8b16c7db659c0dc95e123ff9bd",
+      "destinationHash": "16ce57ef9d1a579929a9c3fbf37b4df339ae9e8b16c7db659c0dc95e123ff9bd",
+      "match": true,
+      "meta": true
+    },
+    {
+      "name": "subtype",
+      "source": "E:/GitProject/yu_client/cdn/resource/config/server/config_achievement_stage_reward.json",
+      "destination": "Assets/GameRes/resource/config/server/config_achievement_stage_reward.json",
+      "sourceHash": "58d816491bbaab13529937ea7c3ea643865dc28a0c9cbd5d4a8537a149e5ad7a",
+      "destinationHash": "58d816491bbaab13529937ea7c3ea643865dc28a0c9cbd5d4a8537a149e5ad7a",
+      "match": true,
+      "meta": true
+    },
+    {
+      "name": "background",
+      "source": "E:/GitProject/yu_client/cdn/resource/game/bigBg/uicj_bg1.jpg",
+      "destination": "Assets/GameRes/resource/game/bigBg/uicj_bg1.jpg",
+      "sourceHash": "e21192737d51cc39b77e92de6bc947e383333a98fdd283cc47ddcf8f95469435",
+      "destinationHash": "e21192737d51cc39b77e92de6bc947e383333a98fdd283cc47ddcf8f95469435",
+      "match": true,
+      "meta": true
+    }
+  ],
+  "prefab": {
+    "path": "Assets/Prefabs/UI/Achv/AchvModule.prefab",
+    "sha256": "be6dd72bb7840fb923febfb0139edc5053125e37f6e239fb4c6f3ee569785ea2"
+  },
+  "assertions": [
+    {
+      "name": "source hashes and metas",
+      "pass": true,
+      "detail": [
+        {
+          "name": "clientachv",
+          "source": "E:/GitProject/yu_client/cdn/resource/config/client/ClientAchv.json",
+          "destination": "Assets/GameRes/resource/config/client/clientachv.json",
+          "sourceHash": "cb5d4c4844e3f1ca753340c25bf49cf63dac9815665b4ff11af072eab7c25e78",
+          "destinationHash": "cb5d4c4844e3f1ca753340c25bf49cf63dac9815665b4ff11af072eab7c25e78",
+          "match": true,
+          "meta": true
+        },
+        {
+          "name": "achievement",
+          "source": "E:/GitProject/yu_client/cdn/resource/config/server/config_achievement.json",
+          "destination": "Assets/GameRes/resource/config/server/config_achievement.json",
+          "sourceHash": "62dc7d4c1b4f04ad85e15580abeb353ac4cb2295d54a0421ddf8298e3bab700f",
+          "destinationHash": "62dc7d4c1b4f04ad85e15580abeb353ac4cb2295d54a0421ddf8298e3bab700f",
+          "match": true,
+          "meta": true
+        },
+        {
+          "name": "star_reward",
+          "source": "E:/GitProject/yu_client/cdn/resource/config/server/config_achievement_star_reward.json",
+          "destination": "Assets/GameRes/resource/config/server/config_achievement_star_reward.json",
+          "sourceHash": "a0e0e3c8e0220087e4cb3d2573dcb1ef71975a2ba777bc8428a0781b0263ee5b",
+          "destinationHash": "a0e0e3c8e0220087e4cb3d2573dcb1ef71975a2ba777bc8428a0781b0263ee5b",
+          "match": true,
+          "meta": true
+        },
+        {
+          "name": "category",
+          "source": "E:/GitProject/yu_client/cdn/resource/config/server/config_achievement_category.json",
+          "destination": "Assets/GameRes/resource/config/server/config_achievement_category.json",
+          "sourceHash": "604f81143431946f7a54e49d41529c342eb8b4bab21454fef6dbdec56880298f",
+          "destinationHash": "604f81143431946f7a54e49d41529c342eb8b4bab21454fef6dbdec56880298f",
+          "match": true,
+          "meta": true
+        },
+        {
+          "name": "type",
+          "source": "E:/GitProject/yu_client/cdn/resource/config/server/config_achievement_type_new.json",
+          "destination": "Assets/GameRes/resource/config/server/config_achievement_type_new.json",
+          "sourceHash": "16ce57ef9d1a579929a9c3fbf37b4df339ae9e8b16c7db659c0dc95e123ff9bd",
+          "destinationHash": "16ce57ef9d1a579929a9c3fbf37b4df339ae9e8b16c7db659c0dc95e123ff9bd",
+          "match": true,
+          "meta": true
+        },
+        {
+          "name": "subtype",
+          "source": "E:/GitProject/yu_client/cdn/resource/config/server/config_achievement_stage_reward.json",
+          "destination": "Assets/GameRes/resource/config/server/config_achievement_stage_reward.json",
+          "sourceHash": "58d816491bbaab13529937ea7c3ea643865dc28a0c9cbd5d4a8537a149e5ad7a",
+          "destinationHash": "58d816491bbaab13529937ea7c3ea643865dc28a0c9cbd5d4a8537a149e5ad7a",
+          "match": true,
+          "meta": true
+        },
+        {
+          "name": "background",
+          "source": "E:/GitProject/yu_client/cdn/resource/game/bigBg/uicj_bg1.jpg",
+          "destination": "Assets/GameRes/resource/game/bigBg/uicj_bg1.jpg",
+          "sourceHash": "e21192737d51cc39b77e92de6bc947e383333a98fdd283cc47ddcf8f95469435",
+          "destinationHash": "e21192737d51cc39b77e92de6bc947e383333a98fdd283cc47ddcf8f95469435",
+          "match": true,
+          "meta": true
+        }
+      ]
+    },
+    {
+      "name": "table cardinality",
+      "pass": true,
+      "detail": {
+        "entries": 237,
+        "categories": 129,
+        "types": 7,
+        "subtypes": 30,
+        "stages": 200,
+        "titles": 6
+      }
+    },
+    {
+      "name": "seven menu topology",
+      "pass": true,
+      "detail": [
+        [
+          1,
+          "成就总览",
+          []
+        ],
+        [
+          2,
+          "个人成长",
+          [
+            1,
+            2,
+            3,
+            7
+          ]
+        ],
+        [
+          3,
+          "伙伴培养",
+          [
+            9
+          ]
+        ],
+        [
+          4,
+          "装备打造",
+          [
+            16,
+            17,
+            19
+          ]
+        ],
+        [
+          5,
+          "社交活动",
+          [
+            20,
+            23
+          ]
+        ],
+        [
+          6,
+          "日常活跃",
+          [
+            24,
+            25
+          ]
+        ],
+        [
+          7,
+          "精彩历程",
+          [
+            27,
+            28,
+            29
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "selected subtypes resolve",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "selected subtypes have categories",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "all entry categories resolve",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "overview title chain",
+      "pass": true,
+      "detail": {
+        "1": "冒险菜鸟",
+        "2": "渐入佳境",
+        "3": "沉着老练",
+        "4": "名声大噪",
+        "5": "所向披靡",
+        "6": "登峰造极"
+      }
+    },
+    {
+      "name": "stage chain contiguous",
+      "pass": true,
+      "detail": "1..200"
+    },
+    {
+      "name": "entry condition/reward tuple shape",
+      "pass": true,
+      "detail": []
+    }
+  ],
+  "pass": true
+}

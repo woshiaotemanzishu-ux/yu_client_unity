@@ -21,7 +21,8 @@ namespace Shenxiao.Module.Core.Skill
     ///
     /// 点击技能槽 → MainUISkillItem 发 EVT_SKILL_SHORTCUT_CLICK → 本控制器 PressSkillHandler:
     ///   CanAttack 子集闸 + career/obj 三分支;目标型技能进 SceneCombat.MainRoleAttackTarget(真实 SceneManager 怪物寻敌 →
-    ///   范围/朝向/接近 → 本地 RELEASE_MAIN_SKILL 边界)。真实 20001 攻击请求(fight-movie/AOE 链)= 下一轮 blocker。
+    ///   范围/朝向/接近 → RELEASE_MAIN_SKILL → FightController 真实 20001)。完整老端 CanAttack 场景/姿态禁用矩阵
+    ///   仍属于 Scene/AutoFight 跨模块运行验证边界，不能由“已发 20001”替代。
     ///
     /// 当前 GAME_START 已接21002/13007/21010/18401等有效读侧；21101-21104经R491逐号正式KILL：
     /// 21101老端解包即丢弃且页面/模型被注释，21102-21104虽有服务端写事务但老端无可达sender，严禁恢复请求或空handler。
@@ -80,6 +81,9 @@ namespace Shenxiao.Module.Core.Skill
             await SkillUIConfigs.EnsureLoaded();
             await SkillMovieConfigs.EnsureLoaded();
             await OtherFightConfigs.EnsureLoaded();
+            // 21002 可能在上面的配置 await 完成前已回包；此时 SkillManager 只能先用协议全表回退。
+            // 配置就绪后重算派生快捷栏，保证 HUD/角色技能页本次登录立即收敛到 ConfigSkillUI。
+            SkillManager.Instance.RefreshShortcutListAfterConfigLoad();
             // 对标老端 GAME_START 延迟2帧追加请求(21010/18401 无条件发,服务端按 turn 静默 skip,非错误码)。
             SendFmt(Proto.TALENT_INFO);        // 21010 天赋面板
             SendFmt(Proto.MODULE_BUFF_LIST);   // 18401 模块加成

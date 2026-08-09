@@ -1,0 +1,2366 @@
+{
+  "route": "marriage",
+  "baseline": {
+    "legacy_source": "E:/GitProject/yu_client/h5/src/marriage",
+    "unity_prefab": "Assets/Prefabs/UI/Marriage/MarriageModule.prefab",
+    "scope": "static-only"
+  },
+  "nodes": [
+    {
+      "id": "marriage",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "mainui-love-entry",
+          "kind": "entry",
+          "child": "marriage.main"
+        },
+        {
+          "id": "popup-ask-list",
+          "kind": "popup",
+          "child": "marriage.ask-list"
+        },
+        {
+          "id": "push-ask-tips",
+          "kind": "conditional-popup",
+          "child": "marriage.ask-tips"
+        },
+        {
+          "id": "popup-ask",
+          "kind": "popup",
+          "child": "marriage.ask"
+        },
+        {
+          "id": "push-break-tips",
+          "kind": "conditional-popup",
+          "child": "marriage.break-tips"
+        },
+        {
+          "id": "popup-break",
+          "kind": "popup",
+          "child": "marriage.break"
+        },
+        {
+          "id": "popup-com",
+          "kind": "popup",
+          "child": "marriage.com"
+        },
+        {
+          "id": "popup-dsgt",
+          "kind": "popup",
+          "child": "marriage.dsgt"
+        },
+        {
+          "id": "popup-dun-luck",
+          "kind": "conditional-popup",
+          "child": "marriage.dun-luck"
+        },
+        {
+          "id": "popup-dun-tips",
+          "kind": "conditional-popup",
+          "child": "marriage.dun-tips"
+        },
+        {
+          "id": "push-flower-tips",
+          "kind": "conditional-popup",
+          "child": "marriage.flower-tips"
+        },
+        {
+          "id": "popup-flower",
+          "kind": "popup",
+          "child": "marriage.flower"
+        },
+        {
+          "id": "popup-flow",
+          "kind": "popup",
+          "child": "marriage.flow"
+        },
+        {
+          "id": "level-fore-show",
+          "kind": "conditional-popup",
+          "child": "marriage.fore-show"
+        },
+        {
+          "id": "popup-gift-tips",
+          "kind": "conditional-popup",
+          "child": "marriage.gift-tips"
+        },
+        {
+          "id": "role-fame-honour",
+          "kind": "entry",
+          "child": "marriage.honour"
+        },
+        {
+          "id": "popup-issue",
+          "kind": "popup",
+          "child": "marriage.issue"
+        },
+        {
+          "id": "popup-record-com",
+          "kind": "popup",
+          "child": "marriage.record-com"
+        },
+        {
+          "id": "popup-record-flower",
+          "kind": "popup",
+          "child": "marriage.record-flower"
+        },
+        {
+          "id": "popup-role-menu",
+          "kind": "popup",
+          "child": "marriage.role-menu"
+        },
+        {
+          "id": "push-success",
+          "kind": "conditional-popup",
+          "child": "marriage.success"
+        },
+        {
+          "id": "shared-friend-item",
+          "kind": "shared-component",
+          "child": "marriage.shared.friend-item"
+        },
+        {
+          "id": "shared-drop-btn",
+          "kind": "shared-component",
+          "child": "marriage.shared.drop-btn"
+        },
+        {
+          "id": "sound-contract",
+          "kind": "audio",
+          "child": "marriage.sound-contract"
+        }
+      ],
+      "note": "婚恋完整静态路由根；21 个 MarriageModule 顶层窗口 + 2 个独立共享 Prefab + 页面专属声音契约；当前轮禁止启动 Unity/浏览器，因此不产生 done"
+    },
+    {
+      "id": "marriage.sound-contract",
+      "parent": "marriage",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：主窗关闭消费 SOUND_UI.CLOSE；旧 RingChange 成功演出消费 3_huode；Unity：未发现 Marriage 页面专属声音消费者；RingChange 当前不在 Prefab 可达树"
+    },
+    {
+      "id": "marriage.main",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "tab-lobby",
+          "kind": "tab",
+          "child": "marriage.main.lobby"
+        },
+        {
+          "id": "tab-mate",
+          "kind": "tab",
+          "child": "marriage.main.mate"
+        },
+        {
+          "id": "tab-ring",
+          "kind": "tab",
+          "child": "marriage.main.ring"
+        },
+        {
+          "id": "tab-gift",
+          "kind": "tab",
+          "child": "marriage.main.gift"
+        },
+        {
+          "id": "tab-dungeon",
+          "kind": "tab",
+          "child": "marriage.main.dungeon"
+        },
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "marriage.main.close"
+        },
+        {
+          "id": "background-close",
+          "kind": "background",
+          "child": "marriage.main.background-close"
+        },
+        {
+          "id": "default-tab",
+          "kind": "conditional-state",
+          "child": "marriage.main.default-tab"
+        },
+        {
+          "id": "open-level-gates",
+          "kind": "conditional-state",
+          "child": "marriage.main.open-level-gates"
+        },
+        {
+          "id": "tab-red-dots",
+          "kind": "conditional-state",
+          "child": "marriage.main.tab-red-dots"
+        }
+      ],
+      "note": "MarriageBaseView",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.main.close",
+      "parent": "marriage.main",
+      "type": "return",
+      "risk": "read-only",
+      "note": "老端：关闭主面板，播放关闭音；Unity：_btn_close 已绑定 Hide"
+    },
+    {
+      "id": "marriage.main.background-close",
+      "parent": "marriage.main",
+      "type": "return",
+      "risk": "read-only",
+      "note": "老端：click_bg_toClose=true；Unity：未发现等价遮罩点击接线"
+    },
+    {
+      "id": "marriage.main.default-tab",
+      "parent": "marriage.main",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：单身默认大厅 index=0；已婚默认姻缘 index=1；Unity：MarriageBaseView.OnShow 固定 SelectTab(0)"
+    },
+    {
+      "id": "marriage.main.open-level-gates",
+      "parent": "marriage.main",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：大厅/姻缘使用 ICON_OPEN_LV_2，其余页签使用 OPEN_LV 条件门槛；Unity：五个页签均直接可选，未见等级门槛提示"
+    },
+    {
+      "id": "marriage.main.tab-red-dots",
+      "parent": "marriage.main",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：大厅/姻缘/锦囊/副本按 Model 事件刷新红点；Unity：MarriageBaseView.OnShow 固定隐藏五个红点"
+    },
+    {
+      "id": "marriage.main.lobby",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "list-empty",
+          "kind": "state",
+          "child": "marriage.main.lobby.empty"
+        },
+        {
+          "id": "list-scroll",
+          "kind": "list",
+          "child": "marriage.main.lobby.scroll"
+        },
+        {
+          "id": "list-self-row",
+          "kind": "conditional-row",
+          "child": "marriage.main.lobby.row-self"
+        },
+        {
+          "id": "list-other-row",
+          "kind": "conditional-row",
+          "child": "marriage.main.lobby.row-other"
+        },
+        {
+          "id": "first-page",
+          "kind": "button",
+          "child": "marriage.main.lobby.page-first"
+        },
+        {
+          "id": "previous-page",
+          "kind": "button",
+          "child": "marriage.main.lobby.page-prev"
+        },
+        {
+          "id": "next-page",
+          "kind": "button",
+          "child": "marriage.main.lobby.page-next"
+        },
+        {
+          "id": "last-page",
+          "kind": "button",
+          "child": "marriage.main.lobby.page-last"
+        },
+        {
+          "id": "flower-record",
+          "kind": "button",
+          "child": "marriage.main.lobby.open-flower-record"
+        },
+        {
+          "id": "my-confession",
+          "kind": "button",
+          "child": "marriage.main.lobby.open-com-self"
+        },
+        {
+          "id": "other-confession",
+          "kind": "button",
+          "child": "marriage.main.lobby.open-com-other"
+        },
+        {
+          "id": "issue",
+          "kind": "button",
+          "child": "marriage.main.lobby.open-issue"
+        }
+      ],
+      "note": "大厅 MarriageFriendView",
+      "parent": "marriage.main"
+    },
+    {
+      "id": "marriage.main.lobby.empty",
+      "parent": "marriage.main.lobby",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：17200 空列表显示空态；Unity：仅请求17200，未消费 Model 刷空态"
+    },
+    {
+      "id": "marriage.main.lobby.scroll",
+      "parent": "marriage.main.lobby",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：循环列表可纵向滚动并按页展示；Unity：MarriageFriendItem 独立 Prefab 仅 Generated Bind"
+    },
+    {
+      "id": "marriage.main.lobby.row-self",
+      "parent": "marriage.main.lobby",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：本人行点击撩一撩提示不能撩自己；Unity：列表未铺设"
+    },
+    {
+      "id": "marriage.main.lobby.row-other",
+      "parent": "marriage.main.lobby",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：其他玩家行按状态展示在线/标签/亲密度并打开资料操作；Unity：列表未铺设"
+    },
+    {
+      "id": "marriage.main.lobby.page-first",
+      "parent": "marriage.main.lobby",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：跳到第1页；Unity：当前仅日志占位"
+    },
+    {
+      "id": "marriage.main.lobby.page-prev",
+      "parent": "marriage.main.lobby",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：上一页；Unity：当前仅日志占位"
+    },
+    {
+      "id": "marriage.main.lobby.page-next",
+      "parent": "marriage.main.lobby",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：下一页；Unity：当前仅日志占位"
+    },
+    {
+      "id": "marriage.main.lobby.page-last",
+      "parent": "marriage.main.lobby",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：末页；Unity：当前仅日志占位"
+    },
+    {
+      "id": "marriage.main.lobby.open-flower-record",
+      "parent": "marriage.main.lobby",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：打开送花记录；Unity：当前仅日志，目标 MarriageRecordFlowerView 仅 Generated Bind"
+    },
+    {
+      "id": "marriage.main.lobby.open-com-self",
+      "parent": "marriage.main.lobby",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：打开我的表白；Unity：当前仅日志，目标 MarriageRecordComView(Self) 仅 Generated Bind"
+    },
+    {
+      "id": "marriage.main.lobby.open-com-other",
+      "parent": "marriage.main.lobby",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：打开对方表白；Unity：当前仅日志，目标 MarriageRecordComView(Other) 仅 Generated Bind"
+    },
+    {
+      "id": "marriage.main.lobby.open-issue",
+      "parent": "marriage.main.lobby",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：打开发布心愿；Unity：当前仅日志，目标 MarriageIssueView 仅 Generated Bind"
+    },
+    {
+      "id": "marriage.main.mate",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "self-model",
+          "kind": "model",
+          "child": "marriage.main.mate.self-model"
+        },
+        {
+          "id": "mate-state",
+          "kind": "conditional-state",
+          "child": "marriage.main.mate.mate-state"
+        },
+        {
+          "id": "mate-model",
+          "kind": "model",
+          "child": "marriage.main.mate.mate-model"
+        },
+        {
+          "id": "mate-menu",
+          "kind": "button",
+          "child": "marriage.main.mate.open-menu"
+        },
+        {
+          "id": "find",
+          "kind": "button",
+          "child": "marriage.main.mate.find"
+        },
+        {
+          "id": "ask",
+          "kind": "conditional-button",
+          "child": "marriage.main.mate.ask"
+        },
+        {
+          "id": "again",
+          "kind": "conditional-button",
+          "child": "marriage.main.mate.again"
+        },
+        {
+          "id": "break",
+          "kind": "conditional-button",
+          "child": "marriage.main.mate.break"
+        },
+        {
+          "id": "flower",
+          "kind": "conditional-button",
+          "child": "marriage.main.mate.flower"
+        },
+        {
+          "id": "flow",
+          "kind": "conditional-button",
+          "child": "marriage.main.mate.flow"
+        },
+        {
+          "id": "banquet",
+          "kind": "conditional-button",
+          "child": "marriage.main.mate.banquet"
+        },
+        {
+          "id": "dsgt",
+          "kind": "button",
+          "child": "marriage.main.mate.dsgt"
+        },
+        {
+          "id": "gift-time",
+          "kind": "state",
+          "child": "marriage.main.mate.gift-time"
+        },
+        {
+          "id": "intimacy-day",
+          "kind": "state",
+          "child": "marriage.main.mate.intimacy-day"
+        }
+      ],
+      "note": "姻缘 MarriageMainView",
+      "parent": "marriage.main"
+    },
+    {
+      "id": "marriage.main.mate.self-model",
+      "parent": "marriage.main.mate",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：显示本人3D模型/名字/性别；Unity：已请求17232/17238但未创建模型"
+    },
+    {
+      "id": "marriage.main.mate.mate-state",
+      "parent": "marriage.main.mate",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：单身/已婚切换求婚、再续、解除、婚宴、影子与天数；Unity：未消费17232切显隐"
+    },
+    {
+      "id": "marriage.main.mate.mate-model",
+      "parent": "marriage.main.mate",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：已婚显示伴侣3D，单身显示性别占位；Unity：未创建/清理伴侣模型"
+    },
+    {
+      "id": "marriage.main.mate.open-menu",
+      "parent": "marriage.main.mate",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：点击伴侣信息开/关 MarriageRoleMenuView；Unity：未绑定 _box_info"
+    },
+    {
+      "id": "marriage.main.mate.find",
+      "parent": "marriage.main.mate",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：打开可求婚好友列表；Unity：已绑定打开 MarriageAskListView"
+    },
+    {
+      "id": "marriage.main.mate.ask",
+      "parent": "marriage.main.mate",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：单身显示并打开求婚；Unity：已绑定打开 MarriageAskView"
+    },
+    {
+      "id": "marriage.main.mate.again",
+      "parent": "marriage.main.mate",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：已婚显示并带伴侣参数打开再续；Unity：已绑定但未传伴侣参数"
+    },
+    {
+      "id": "marriage.main.mate.break",
+      "parent": "marriage.main.mate",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：已婚显示并带伴侣参数打开解除；Unity：已绑定但未传伴侣参数"
+    },
+    {
+      "id": "marriage.main.mate.flow",
+      "parent": "marriage.main.mate",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：单身态显示花房动态；Unity：已绑定打开 MarriageFlowView"
+    },
+    {
+      "id": "marriage.main.mate.dsgt",
+      "parent": "marriage.main.mate",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：打开恩爱称号列表；Unity：已绑定打开 MarriageDsgtView"
+    },
+    {
+      "id": "marriage.main.mate.flower",
+      "parent": "marriage.main.mate",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：老端代码绑定送花但 SetDataVisible 恒隐藏该按钮；Unity：Unity 未证明条件分支"
+    },
+    {
+      "id": "marriage.main.mate.banquet",
+      "parent": "marriage.main.mate",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：已婚显示并打开 marriage2/BanquetApplyView 后关主窗；Unity：当前仅日志"
+    },
+    {
+      "id": "marriage.main.mate.gift-time",
+      "parent": "marriage.main.mate",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：17238 刷双方礼包剩余天数/尚未获得；Unity：只请求不渲染"
+    },
+    {
+      "id": "marriage.main.mate.intimacy-day",
+      "parent": "marriage.main.mate",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：好友亲密度与结缘天数即时刷新；Unity：未渲染"
+    },
+    {
+      "id": "marriage.main.ring",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "ring-presentation",
+          "kind": "model",
+          "child": "marriage.main.ring.presentation"
+        },
+        {
+          "id": "partner-state",
+          "kind": "state",
+          "child": "marriage.main.ring.partner-state"
+        },
+        {
+          "id": "stars-attrs",
+          "kind": "state",
+          "child": "marriage.main.ring.attrs"
+        },
+        {
+          "id": "progress-effect",
+          "kind": "effect",
+          "child": "marriage.main.ring.progress"
+        },
+        {
+          "id": "cost-item",
+          "kind": "item",
+          "child": "marriage.main.ring.cost"
+        },
+        {
+          "id": "upgrade",
+          "kind": "button",
+          "child": "marriage.main.ring.upgrade"
+        },
+        {
+          "id": "stop-visual",
+          "kind": "state",
+          "child": "marriage.main.ring.stop-visual"
+        }
+      ],
+      "note": "指环 MarriageRingView",
+      "parent": "marriage.main"
+    },
+    {
+      "id": "marriage.main.ring.presentation",
+      "parent": "marriage.main.ring",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：指环模型/图标浮动、名称、战力；Unity：已请求17210但未渲染"
+    },
+    {
+      "id": "marriage.main.ring.partner-state",
+      "parent": "marriage.main.ring",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：在婚/失婚状态图互斥；Unity：未消费角色婚姻态"
+    },
+    {
+      "id": "marriage.main.ring.attrs",
+      "parent": "marriage.main.ring",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：星级、主属性与词条列表；Unity：未消费 RingInfo/config_ring_star"
+    },
+    {
+      "id": "marriage.main.ring.progress",
+      "parent": "marriage.main.ring",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：祈愿进度与升级补间/成功特效；Unity：未渲染"
+    },
+    {
+      "id": "marriage.main.ring.cost",
+      "parent": "marriage.main.ring",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：真实消耗物品格与不足态；Unity：未创建 BaseAwardItem"
+    },
+    {
+      "id": "marriage.main.ring.upgrade",
+      "parent": "marriage.main.ring",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：点击按未激活/已激活发17211或17213，校验材料并防连点；Unity：当前仅日志；本轮只恢复17210只读查询"
+    },
+    {
+      "id": "marriage.main.ring.stop-visual",
+      "parent": "marriage.main.ring",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：_btn_stop 无点击处理，只是演出状态节点；Unity：已移除 Unity 伪点击绑定"
+    },
+    {
+      "id": "marriage.main.gift",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "mate-model",
+          "kind": "model",
+          "child": "marriage.main.gift.mate-model"
+        },
+        {
+          "id": "gift-state",
+          "kind": "state",
+          "child": "marriage.main.gift.state"
+        },
+        {
+          "id": "gift-items",
+          "kind": "list",
+          "child": "marriage.main.gift.items"
+        },
+        {
+          "id": "ask-partner",
+          "kind": "text-button",
+          "child": "marriage.main.gift.ask-partner"
+        },
+        {
+          "id": "buy",
+          "kind": "button",
+          "child": "marriage.main.gift.buy"
+        },
+        {
+          "id": "take-return",
+          "kind": "button",
+          "child": "marriage.main.gift.take-return"
+        },
+        {
+          "id": "take-daily",
+          "kind": "button",
+          "child": "marriage.main.gift.take-daily"
+        }
+      ],
+      "note": "锦囊 MarriageGiftView",
+      "parent": "marriage.main"
+    },
+    {
+      "id": "marriage.main.gift.mate-model",
+      "parent": "marriage.main.gift",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：伴侣模型/占位、名字、性别；Unity：已请求17232/17238但未渲染"
+    },
+    {
+      "id": "marriage.main.gift.state",
+      "parent": "marriage.main.gift",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：购买态、每日领取态、倒计时、剩余天数与红点；Unity：只请求不消费"
+    },
+    {
+      "id": "marriage.main.gift.items",
+      "parent": "marriage.main.gift",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：每日礼包物品格横排；Unity：未创建 BaseAwardItem"
+    },
+    {
+      "id": "marriage.main.gift.ask-partner",
+      "parent": "marriage.main.gift",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：点击请Ta赠送并发17240；Unity：未绑定 _lb_give"
+    },
+    {
+      "id": "marriage.main.gift.buy",
+      "parent": "marriage.main.gift",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：二次确认后17237真实购买；Unity：当前仅日志"
+    },
+    {
+      "id": "marriage.main.gift.take-return",
+      "parent": "marriage.main.gift",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：17239 count_type=1领取返还奖励；Unity：当前仅日志"
+    },
+    {
+      "id": "marriage.main.gift.take-daily",
+      "parent": "marriage.main.gift",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：17239 count_type=2领取每日奖励；Unity：当前仅日志"
+    },
+    {
+      "id": "marriage.main.dungeon",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "count",
+          "kind": "state",
+          "child": "marriage.main.dungeon.count"
+        },
+        {
+          "id": "rewards",
+          "kind": "list",
+          "child": "marriage.main.dungeon.rewards"
+        },
+        {
+          "id": "teammate-drop",
+          "kind": "dropdown",
+          "child": "marriage.main.dungeon.teammate"
+        },
+        {
+          "id": "mate-mark",
+          "kind": "state",
+          "child": "marriage.main.dungeon.mate-mark"
+        },
+        {
+          "id": "match",
+          "kind": "button",
+          "child": "marriage.main.dungeon.match"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "marriage.main.dungeon.challenge"
+        },
+        {
+          "id": "add-count",
+          "kind": "button",
+          "child": "marriage.main.dungeon.add-count"
+        },
+        {
+          "id": "help",
+          "kind": "button",
+          "child": "marriage.main.dungeon.help"
+        }
+      ],
+      "note": "副本 MarriageDunView",
+      "parent": "marriage.main"
+    },
+    {
+      "id": "marriage.main.dungeon.count",
+      "parent": "marriage.main.dungeon",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：61020/次数事件刷新剩余/总次数；Unity：当前只日志"
+    },
+    {
+      "id": "marriage.main.dungeon.rewards",
+      "parent": "marriage.main.dungeon",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：config_dungeon_ui_content 奖励横排；Unity：未创建 EquipmentItem"
+    },
+    {
+      "id": "marriage.main.dungeon.teammate",
+      "parent": "marriage.main.dungeon",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：下拉覆盖伴侣、异性/高亲密好友和无对象；Unity：独立 MarriageDropBtn 仅 Generated Bind"
+    },
+    {
+      "id": "marriage.main.dungeon.mate-mark",
+      "parent": "marriage.main.dungeon",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：选中伴侣时显示伴侣标识；Unity：未消费下拉选择"
+    },
+    {
+      "id": "marriage.main.dungeon.match",
+      "parent": "marriage.main.dungeon",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：旧 UI 有点击但17245服务端 handler 已注释，当前产品死链；Unity：Unity 只日志且明确不发送"
+    },
+    {
+      "id": "marriage.main.dungeon.challenge",
+      "parent": "marriage.main.dungeon",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：校验次数/队友，离线伴侣二次确认后61046；Unity：当前仅日志"
+    },
+    {
+      "id": "marriage.main.dungeon.add-count",
+      "parent": "marriage.main.dungeon",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：结婚后确认61021购买或17295请伴侣购买；Unity：当前仅日志"
+    },
+    {
+      "id": "marriage.main.dungeon.help",
+      "parent": "marriage.main.dungeon",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：打开说明1721；Unity：已有可见按钮但仅日志"
+    },
+    {
+      "id": "marriage.ask-list",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "marriage.ask-list.close"
+        },
+        {
+          "id": "empty",
+          "kind": "state",
+          "child": "marriage.ask-list.empty"
+        },
+        {
+          "id": "scroll",
+          "kind": "list",
+          "child": "marriage.ask-list.scroll"
+        },
+        {
+          "id": "row-ask",
+          "kind": "row-button",
+          "child": "marriage.ask-list.row-ask"
+        },
+        {
+          "id": "go-main",
+          "kind": "button",
+          "child": "marriage.ask-list.go-main"
+        }
+      ],
+      "note": "MarriageAskListView",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.ask-list.close",
+      "parent": "marriage.ask-list",
+      "type": "return",
+      "risk": "read-only",
+      "note": "老端：关闭返回；Unity：已绑定 Hide"
+    },
+    {
+      "id": "marriage.ask-list.empty",
+      "parent": "marriage.ask-list",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：好友返回空时显示空态；Unity：固定显示空态"
+    },
+    {
+      "id": "marriage.ask-list.scroll",
+      "parent": "marriage.ask-list",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：可求婚好友循环列表；Unity：模板隐藏且不铺列表"
+    },
+    {
+      "id": "marriage.ask-list.row-ask",
+      "parent": "marriage.ask-list",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：每行求婚按钮打开 MarriageAskView 并带对象；Unity：列表项无业务 View"
+    },
+    {
+      "id": "marriage.ask-list.go-main",
+      "parent": "marriage.ask-list",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：前往 MarriageBaseView；Unity：当前仅日志"
+    },
+    {
+      "id": "marriage.ask-tips",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "profile",
+          "kind": "state",
+          "child": "marriage.ask-tips.profile"
+        },
+        {
+          "id": "agree",
+          "kind": "button",
+          "child": "marriage.ask-tips.agree"
+        },
+        {
+          "id": "refuse",
+          "kind": "button",
+          "child": "marriage.ask-tips.refuse"
+        },
+        {
+          "id": "close-as-refuse",
+          "kind": "button",
+          "child": "marriage.ask-tips.close"
+        }
+      ],
+      "note": "MarriageAskTipsView（17222求婚推送）",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.ask-tips.profile",
+      "parent": "marriage.ask-tips",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：显示求婚者头像/名/文案/战力；Unity：仅 Generated Bind，无业务 View"
+    },
+    {
+      "id": "marriage.ask-tips.agree",
+      "parent": "marriage.ask-tips",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：17223同意求婚并关闭，随后重拉伴侣/礼包/戒指；Unity：Controller 有 sender/handler，弹窗未接"
+    },
+    {
+      "id": "marriage.ask-tips.refuse",
+      "parent": "marriage.ask-tips",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：17223拒绝求婚并关闭；Unity：弹窗未接"
+    },
+    {
+      "id": "marriage.ask-tips.close",
+      "parent": "marriage.ask-tips",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：关闭等价拒绝并发17223 type=2；Unity：弹窗未接"
+    },
+    {
+      "id": "marriage.ask",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "marriage.ask.close"
+        },
+        {
+          "id": "help",
+          "kind": "button",
+          "child": "marriage.ask.help"
+        },
+        {
+          "id": "self-head",
+          "kind": "state",
+          "child": "marriage.ask.self-head"
+        },
+        {
+          "id": "target-drop",
+          "kind": "dropdown",
+          "child": "marriage.ask.target-drop"
+        },
+        {
+          "id": "ring-list",
+          "kind": "list",
+          "child": "marriage.ask.ring-list"
+        },
+        {
+          "id": "propose",
+          "kind": "button",
+          "child": "marriage.ask.propose"
+        }
+      ],
+      "note": "MarriageAskView",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.ask.close",
+      "parent": "marriage.ask",
+      "type": "return",
+      "risk": "read-only",
+      "note": "老端：关闭返回主面板；Unity：已绑定 Hide"
+    },
+    {
+      "id": "marriage.ask.help",
+      "parent": "marriage.ask",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：打开说明172；Unity：当前仅日志"
+    },
+    {
+      "id": "marriage.ask.self-head",
+      "parent": "marriage.ask",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：本人/对象头像与名字；Unity：已请求17232但未渲染"
+    },
+    {
+      "id": "marriage.ask.target-drop",
+      "parent": "marriage.ask",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：好友下拉覆盖无候选/预选对象/切换对象；Unity：模板隐藏"
+    },
+    {
+      "id": "marriage.ask.ring-list",
+      "parent": "marriage.ask",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：config_propose_cfg 戒指方案列表、选中、成本和称号；Unity：MarriageAskItem 模板隐藏"
+    },
+    {
+      "id": "marriage.ask.propose",
+      "parent": "marriage.ask",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：校验对象/方案/货币后17231求婚；Unity：当前仅日志"
+    },
+    {
+      "id": "marriage.break-tips",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "profile",
+          "kind": "state",
+          "child": "marriage.break-tips.profile"
+        },
+        {
+          "id": "agree",
+          "kind": "button",
+          "child": "marriage.break-tips.agree"
+        },
+        {
+          "id": "refuse",
+          "kind": "button",
+          "child": "marriage.break-tips.refuse"
+        },
+        {
+          "id": "close-as-refuse",
+          "kind": "button",
+          "child": "marriage.break-tips.close"
+        }
+      ],
+      "note": "MarriageBreakTipsView（17222离婚协商推送）",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.break-tips.profile",
+      "parent": "marriage.break-tips",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：双方头像/战力与协商离婚文案；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.break-tips.agree",
+      "parent": "marriage.break-tips",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：17235同意离婚；Unity：未接"
+    },
+    {
+      "id": "marriage.break-tips.refuse",
+      "parent": "marriage.break-tips",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：17235拒绝离婚；Unity：未接"
+    },
+    {
+      "id": "marriage.break-tips.close",
+      "parent": "marriage.break-tips",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：关闭等价拒绝并发17235 type=2；Unity：未接"
+    },
+    {
+      "id": "marriage.break",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "marriage.break.close"
+        },
+        {
+          "id": "profile",
+          "kind": "state",
+          "child": "marriage.break.profile"
+        },
+        {
+          "id": "cost-state",
+          "kind": "conditional-state",
+          "child": "marriage.break.cost"
+        },
+        {
+          "id": "peace",
+          "kind": "button",
+          "child": "marriage.break.peace"
+        },
+        {
+          "id": "force",
+          "kind": "button",
+          "child": "marriage.break.force"
+        }
+      ],
+      "note": "MarriageBreakView",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.break.close",
+      "parent": "marriage.break",
+      "type": "return",
+      "risk": "read-only",
+      "note": "老端：普通关闭返回；Unity：已绑定 Hide"
+    },
+    {
+      "id": "marriage.break.profile",
+      "parent": "marriage.break",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：双方头像/名字；Unity：模板隐藏不渲染"
+    },
+    {
+      "id": "marriage.break.cost",
+      "parent": "marriage.break",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：按离线48h和常量12切强制/免费离婚与成本；Unity：未渲染"
+    },
+    {
+      "id": "marriage.break.peace",
+      "parent": "marriage.break",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：17234 type=1协议离婚；Unity：当前仅日志"
+    },
+    {
+      "id": "marriage.break.force",
+      "parent": "marriage.break",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：17234 type=2强制离婚/可能消费；Unity：当前仅日志"
+    },
+    {
+      "id": "marriage.com",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "marriage.com.close"
+        },
+        {
+          "id": "profile",
+          "kind": "state",
+          "child": "marriage.com.profile"
+        },
+        {
+          "id": "hi",
+          "kind": "conditional-button",
+          "child": "marriage.com.hi"
+        },
+        {
+          "id": "gift",
+          "kind": "conditional-button",
+          "child": "marriage.com.gift"
+        },
+        {
+          "id": "ask",
+          "kind": "conditional-button",
+          "child": "marriage.com.ask"
+        },
+        {
+          "id": "friend",
+          "kind": "conditional-button",
+          "child": "marriage.com.friend"
+        }
+      ],
+      "note": "MarriageComView",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.com.close",
+      "parent": "marriage.com",
+      "type": "return",
+      "risk": "read-only",
+      "note": "老端：关闭；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.com.profile",
+      "parent": "marriage.com",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：头像/名字/公会/亲密度/宣言，标签当前老端隐藏；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.com.hi",
+      "parent": "marriage.com",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：好友态打招呼/聊天；Unity：未接"
+    },
+    {
+      "id": "marriage.com.gift",
+      "parent": "marriage.com",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：打开送花且按分支关注17201；Unity：未接"
+    },
+    {
+      "id": "marriage.com.ask",
+      "parent": "marriage.com",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：满足条件打开求婚；Unity：未接"
+    },
+    {
+      "id": "marriage.com.friend",
+      "parent": "marriage.com",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：添加关注17201；Unity：未接"
+    },
+    {
+      "id": "marriage.dsgt",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "marriage.dsgt.close"
+        },
+        {
+          "id": "progress",
+          "kind": "state",
+          "child": "marriage.dsgt.progress"
+        },
+        {
+          "id": "list",
+          "kind": "list",
+          "child": "marriage.dsgt.list"
+        },
+        {
+          "id": "locked-go-flower",
+          "kind": "row-button",
+          "child": "marriage.dsgt.locked-go"
+        },
+        {
+          "id": "auto-take",
+          "kind": "conditional-transaction",
+          "child": "marriage.dsgt.auto-take"
+        }
+      ],
+      "note": "MarriageDsgtView",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.dsgt.close",
+      "parent": "marriage.dsgt",
+      "type": "return",
+      "risk": "read-only",
+      "note": "老端：关闭返回；Unity：已绑定 Hide"
+    },
+    {
+      "id": "marriage.dsgt.progress",
+      "parent": "marriage.dsgt",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：恩爱值到下一称号阈值进度；Unity：未消费 Mate/config_love_dsgt_cfg"
+    },
+    {
+      "id": "marriage.dsgt.list",
+      "parent": "marriage.dsgt",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：10档称号列表，静态/动态称号、属性与解锁态；Unity：模板隐藏"
+    },
+    {
+      "id": "marriage.dsgt.locked-go",
+      "parent": "marriage.dsgt",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：未解锁行：已婚去送花，未婚确认后去寻缘；Unity：列表项无业务 View"
+    },
+    {
+      "id": "marriage.dsgt.auto-take",
+      "parent": "marriage.dsgt",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：爱意达到阈值时自动发17236领取称号；Unity：Controller 有 sender，但 View 未实现"
+    },
+    {
+      "id": "marriage.dun-luck",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "answers",
+          "kind": "choice-list",
+          "child": "marriage.dun-luck.answers"
+        },
+        {
+          "id": "timer",
+          "kind": "state",
+          "child": "marriage.dun-luck.timer"
+        },
+        {
+          "id": "submit",
+          "kind": "button",
+          "child": "marriage.dun-luck.submit"
+        },
+        {
+          "id": "gray-state",
+          "kind": "state",
+          "child": "marriage.dun-luck.gray"
+        },
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "marriage.dun-luck.close"
+        }
+      ],
+      "note": "MarriageDunLuckView",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.dun-luck.answers",
+      "parent": "marriage.dun-luck",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：克隆答案按钮并本地选中；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.dun-luck.timer",
+      "parent": "marriage.dun-luck",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：答题倒计时及超时状态；Unity：未接"
+    },
+    {
+      "id": "marriage.dun-luck.submit",
+      "parent": "marriage.dun-luck",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：61090提交当前答案；Unity：未接"
+    },
+    {
+      "id": "marriage.dun-luck.gray",
+      "parent": "marriage.dun-luck",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：提交后灰态并防重复；Unity：未接"
+    },
+    {
+      "id": "marriage.dun-luck.close",
+      "parent": "marriage.dun-luck",
+      "type": "return",
+      "risk": "read-only",
+      "note": "老端：关闭答题窗；Unity：未接"
+    },
+    {
+      "id": "marriage.dun-tips",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "profile",
+          "kind": "state",
+          "child": "marriage.dun-tips.profile"
+        },
+        {
+          "id": "timer-ready",
+          "kind": "state",
+          "child": "marriage.dun-tips.timer"
+        },
+        {
+          "id": "accept",
+          "kind": "button",
+          "child": "marriage.dun-tips.accept"
+        },
+        {
+          "id": "refuse",
+          "kind": "button",
+          "child": "marriage.dun-tips.refuse"
+        },
+        {
+          "id": "cancel",
+          "kind": "button",
+          "child": "marriage.dun-tips.cancel"
+        },
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "marriage.dun-tips.close"
+        }
+      ],
+      "note": "MarriageDunTipsView",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.dun-tips.profile",
+      "parent": "marriage.dun-tips",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：发起方/被邀请方头像名字与主动/被动布局；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.dun-tips.timer",
+      "parent": "marriage.dun-tips",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：准备态、倒计时与灰态；Unity：未接"
+    },
+    {
+      "id": "marriage.dun-tips.accept",
+      "parent": "marriage.dun-tips",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：61047同意邀请；Unity：未接"
+    },
+    {
+      "id": "marriage.dun-tips.refuse",
+      "parent": "marriage.dun-tips",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：61047拒绝邀请；Unity：未接"
+    },
+    {
+      "id": "marriage.dun-tips.cancel",
+      "parent": "marriage.dun-tips",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：61046取消自己邀请；Unity：未接"
+    },
+    {
+      "id": "marriage.dun-tips.close",
+      "parent": "marriage.dun-tips",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：按主动/被动身份取消或拒绝后关闭；Unity：未接"
+    },
+    {
+      "id": "marriage.flower-tips",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "profile",
+          "kind": "state",
+          "child": "marriage.flower-tips.profile"
+        },
+        {
+          "id": "go-gift",
+          "kind": "button",
+          "child": "marriage.flower-tips.go"
+        },
+        {
+          "id": "thanks",
+          "kind": "conditional-button",
+          "child": "marriage.flower-tips.thanks"
+        },
+        {
+          "id": "add-friend",
+          "kind": "conditional-button",
+          "child": "marriage.flower-tips.friend"
+        },
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "marriage.flower-tips.close"
+        }
+      ],
+      "note": "MarriageFlowerTipsView（22304收花推送）",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.flower-tips.profile",
+      "parent": "marriage.flower-tips",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：送花者头像/名字/公会/礼物和文案；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.flower-tips.go",
+      "parent": "marriage.flower-tips",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：前往 MarriageFlowerView 回礼；Unity：未接"
+    },
+    {
+      "id": "marriage.flower-tips.thanks",
+      "parent": "marriage.flower-tips",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：好友态发22305感谢；Unity：未接"
+    },
+    {
+      "id": "marriage.flower-tips.friend",
+      "parent": "marriage.flower-tips",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：同服非好友态添加好友；Unity：未接"
+    },
+    {
+      "id": "marriage.flower-tips.close",
+      "parent": "marriage.flower-tips",
+      "type": "return",
+      "risk": "read-only",
+      "note": "老端：关闭；Unity：未接"
+    },
+    {
+      "id": "marriage.flower",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "marriage.flower.close"
+        },
+        {
+          "id": "help",
+          "kind": "button",
+          "child": "marriage.flower.help"
+        },
+        {
+          "id": "target-drop",
+          "kind": "dropdown",
+          "child": "marriage.flower.target"
+        },
+        {
+          "id": "profile",
+          "kind": "state",
+          "child": "marriage.flower.profile"
+        },
+        {
+          "id": "flower-list",
+          "kind": "list",
+          "child": "marriage.flower.list"
+        },
+        {
+          "id": "give-row",
+          "kind": "row-button",
+          "child": "marriage.flower.give"
+        },
+        {
+          "id": "buy-row",
+          "kind": "row-button",
+          "child": "marriage.flower.buy"
+        }
+      ],
+      "note": "MarriageFlowerView",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.flower.close",
+      "parent": "marriage.flower",
+      "type": "return",
+      "risk": "read-only",
+      "note": "老端：关闭返回；Unity：已绑定 Hide"
+    },
+    {
+      "id": "marriage.flower.help",
+      "parent": "marriage.flower",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：打开说明223；Unity：当前仅日志"
+    },
+    {
+      "id": "marriage.flower.target",
+      "parent": "marriage.flower",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：好友下拉含无对象/预选/切换；Unity：模板隐藏"
+    },
+    {
+      "id": "marriage.flower.profile",
+      "parent": "marriage.flower",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：对象头像、公会、亲密度/快加好友互斥；Unity：未渲染"
+    },
+    {
+      "id": "marriage.flower.list",
+      "parent": "marriage.flower",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：6类鲜花按持有量/商品排序，显示亲密/魅力/名誉；Unity：模板隐藏"
+    },
+    {
+      "id": "marriage.flower.give",
+      "parent": "marriage.flower",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：有花时选数量并发22301；Unity：未接"
+    },
+    {
+      "id": "marriage.flower.buy",
+      "parent": "marriage.flower",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：无花时打开购买链；Unity：未接"
+    },
+    {
+      "id": "marriage.flow",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "marriage.flow.close"
+        },
+        {
+          "id": "list",
+          "kind": "list",
+          "child": "marriage.flow.list"
+        },
+        {
+          "id": "go-main",
+          "kind": "conditional-row-button",
+          "child": "marriage.flow.go-main"
+        },
+        {
+          "id": "go-flower",
+          "kind": "conditional-row-button",
+          "child": "marriage.flow.go-flower"
+        },
+        {
+          "id": "go-ask-list",
+          "kind": "conditional-row-button",
+          "child": "marriage.flow.go-ask-list"
+        }
+      ],
+      "note": "MarriageFlowView",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.flow.close",
+      "parent": "marriage.flow",
+      "type": "return",
+      "risk": "read-only",
+      "note": "老端：关闭；Unity：已绑定 Hide"
+    },
+    {
+      "id": "marriage.flow.list",
+      "parent": "marriage.flow",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：MarriageFlowCfg 动态列表；Unity：模板隐藏"
+    },
+    {
+      "id": "marriage.flow.go-main",
+      "parent": "marriage.flow",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：按流类型去主婚恋页；Unity：列表项无业务 View"
+    },
+    {
+      "id": "marriage.flow.go-flower",
+      "parent": "marriage.flow",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：按流类型去送花；Unity：列表项无业务 View"
+    },
+    {
+      "id": "marriage.flow.go-ask-list",
+      "parent": "marriage.flow",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：按流类型去寻缘；Unity：列表项无业务 View"
+    },
+    {
+      "id": "marriage.fore-show",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "countdown",
+          "kind": "state",
+          "child": "marriage.fore-show.countdown"
+        },
+        {
+          "id": "open",
+          "kind": "button",
+          "child": "marriage.fore-show.open"
+        },
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "marriage.fore-show.close"
+        },
+        {
+          "id": "background",
+          "kind": "background",
+          "child": "marriage.fore-show.background"
+        }
+      ],
+      "note": "MarriageForeShowView",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.fore-show.countdown",
+      "parent": "marriage.fore-show",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：等级预告倒计时/人物分支；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.fore-show.open",
+      "parent": "marriage.fore-show",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：点击进入婚恋；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.fore-show.close",
+      "parent": "marriage.fore-show",
+      "type": "return",
+      "risk": "read-only",
+      "note": "老端：关闭；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.fore-show.background",
+      "parent": "marriage.fore-show",
+      "type": "return",
+      "risk": "read-only",
+      "note": "老端：背景点击关闭；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.gift-tips",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "message",
+          "kind": "state",
+          "child": "marriage.gift-tips.message"
+        },
+        {
+          "id": "go",
+          "kind": "button",
+          "child": "marriage.gift-tips.go"
+        },
+        {
+          "id": "cancel",
+          "kind": "button",
+          "child": "marriage.gift-tips.cancel"
+        },
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "marriage.gift-tips.close"
+        }
+      ],
+      "note": "MarriageGiftTipsView",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.gift-tips.message",
+      "parent": "marriage.gift-tips",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：礼包邀请提示；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.gift-tips.go",
+      "parent": "marriage.gift-tips",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：前往 MarriageBaseView 第3索引锦囊；Unity：未接"
+    },
+    {
+      "id": "marriage.gift-tips.cancel",
+      "parent": "marriage.gift-tips",
+      "type": "return",
+      "risk": "read-only",
+      "note": "老端：关闭提示；Unity：未接"
+    },
+    {
+      "id": "marriage.gift-tips.close",
+      "parent": "marriage.gift-tips",
+      "type": "return",
+      "risk": "read-only",
+      "note": "老端：关闭提示；Unity：未接"
+    },
+    {
+      "id": "marriage.honour",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "marriage.honour.close"
+        },
+        {
+          "id": "fame",
+          "kind": "state",
+          "child": "marriage.honour.fame"
+        },
+        {
+          "id": "list",
+          "kind": "list",
+          "child": "marriage.honour.list"
+        },
+        {
+          "id": "go-flower",
+          "kind": "button",
+          "child": "marriage.honour.go"
+        }
+      ],
+      "note": "MarriageHonourView（角色页名誉入口）",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.honour.close",
+      "parent": "marriage.honour",
+      "type": "return",
+      "risk": "read-only",
+      "note": "老端：关闭；Unity：MarriageHonourFlow 已绑定"
+    },
+    {
+      "id": "marriage.honour.fame",
+      "parent": "marriage.honour",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：22303名誉值；Unity：MarriageHonourFlow 读取 Model"
+    },
+    {
+      "id": "marriage.honour.list",
+      "parent": "marriage.honour",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：config_fame_lv 纵向档位与解锁态；Unity：已克隆 MarriageHonourItemBind"
+    },
+    {
+      "id": "marriage.honour.go",
+      "parent": "marriage.honour",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：前往送花；Unity：已调用 MarriageFlow.OpenSubDeferred"
+    },
+    {
+      "id": "marriage.issue",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "profile",
+          "kind": "state",
+          "child": "marriage.issue.profile"
+        },
+        {
+          "id": "edit",
+          "kind": "input",
+          "child": "marriage.issue.edit"
+        },
+        {
+          "id": "random",
+          "kind": "text-button",
+          "child": "marriage.issue.random"
+        },
+        {
+          "id": "tag",
+          "kind": "text-button",
+          "child": "marriage.issue.tag"
+        },
+        {
+          "id": "publish",
+          "kind": "button",
+          "child": "marriage.issue.publish"
+        },
+        {
+          "id": "cancel",
+          "kind": "button",
+          "child": "marriage.issue.cancel"
+        },
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "marriage.issue.close"
+        }
+      ],
+      "note": "MarriageIssueView",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.issue.profile",
+      "parent": "marriage.issue",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：本人头像/名字/公会/标签；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.issue.edit",
+      "parent": "marriage.issue",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：宣言输入；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.issue.random",
+      "parent": "marriage.issue",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：随机宣言；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.issue.tag",
+      "parent": "marriage.issue",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：打开 MarriageTagView；Unity：未接"
+    },
+    {
+      "id": "marriage.issue.publish",
+      "parent": "marriage.issue",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：过滤敏感词/空值/冷却后17202发布；Unity：Controller sender存在但 View 未接"
+    },
+    {
+      "id": "marriage.issue.cancel",
+      "parent": "marriage.issue",
+      "type": "return",
+      "risk": "read-only",
+      "note": "老端：关闭不提交；Unity：未接"
+    },
+    {
+      "id": "marriage.issue.close",
+      "parent": "marriage.issue",
+      "type": "return",
+      "risk": "read-only",
+      "note": "老端：关闭不提交；Unity：未接"
+    },
+    {
+      "id": "marriage.record-com",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "marriage.record-com.close"
+        },
+        {
+          "id": "self-list",
+          "kind": "conditional-list",
+          "child": "marriage.record-com.self"
+        },
+        {
+          "id": "other-list",
+          "kind": "conditional-list",
+          "child": "marriage.record-com.other"
+        },
+        {
+          "id": "empty",
+          "kind": "state",
+          "child": "marriage.record-com.empty"
+        },
+        {
+          "id": "row-flower",
+          "kind": "row-button",
+          "child": "marriage.record-com.flower"
+        },
+        {
+          "id": "row-menu",
+          "kind": "row-button",
+          "child": "marriage.record-com.menu"
+        }
+      ],
+      "note": "MarriageRecordComView（Self/Other 两种参数）",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.record-com.close",
+      "parent": "marriage.record-com",
+      "type": "return",
+      "risk": "read-only",
+      "note": "老端：关闭；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.record-com.self",
+      "parent": "marriage.record-com",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：请求17200 page=2我的关注；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.record-com.other",
+      "parent": "marriage.record-com",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：请求17200 page=3粉丝；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.record-com.empty",
+      "parent": "marriage.record-com",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：空表空态；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.record-com.flower",
+      "parent": "marriage.record-com",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：行送花；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.record-com.menu",
+      "parent": "marriage.record-com",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：行角色菜单；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.record-flower",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "marriage.record-flower.close"
+        },
+        {
+          "id": "list",
+          "kind": "list",
+          "child": "marriage.record-flower.list"
+        },
+        {
+          "id": "empty",
+          "kind": "state",
+          "child": "marriage.record-flower.empty"
+        },
+        {
+          "id": "thanks",
+          "kind": "row-button",
+          "child": "marriage.record-flower.thanks"
+        },
+        {
+          "id": "gift",
+          "kind": "row-button",
+          "child": "marriage.record-flower.gift"
+        }
+      ],
+      "note": "MarriageRecordFlowerView",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.record-flower.close",
+      "parent": "marriage.record-flower",
+      "type": "return",
+      "risk": "read-only",
+      "note": "老端：关闭；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.record-flower.list",
+      "parent": "marriage.record-flower",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：22302全量送花记录可滚动；Unity：未请求/未铺列表"
+    },
+    {
+      "id": "marriage.record-flower.empty",
+      "parent": "marriage.record-flower",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：空表空态；Unity：未接"
+    },
+    {
+      "id": "marriage.record-flower.thanks",
+      "parent": "marriage.record-flower",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：未感谢行发22305并即时灰化；Unity：未接"
+    },
+    {
+      "id": "marriage.record-flower.gift",
+      "parent": "marriage.record-flower",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：按记录对象回赠鲜花；Unity：未接"
+    },
+    {
+      "id": "marriage.role-menu",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "outside-close",
+          "kind": "background",
+          "child": "marriage.role-menu.outside"
+        },
+        {
+          "id": "look",
+          "kind": "button",
+          "child": "marriage.role-menu.look"
+        },
+        {
+          "id": "chat",
+          "kind": "conditional-button",
+          "child": "marriage.role-menu.chat"
+        },
+        {
+          "id": "ask",
+          "kind": "conditional-button",
+          "child": "marriage.role-menu.ask"
+        },
+        {
+          "id": "friend",
+          "kind": "conditional-button",
+          "child": "marriage.role-menu.friend"
+        }
+      ],
+      "note": "MarriageRoleMenuView",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.role-menu.outside",
+      "parent": "marriage.role-menu",
+      "type": "return",
+      "risk": "read-only",
+      "note": "老端：点击滚动面外/舞台关闭；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.role-menu.look",
+      "parent": "marriage.role-menu",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：查看资料；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.role-menu.chat",
+      "parent": "marriage.role-menu",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：好友态私聊；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.role-menu.ask",
+      "parent": "marriage.role-menu",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：符合条件求婚；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.role-menu.friend",
+      "parent": "marriage.role-menu",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：非好友态添加好友；Unity：未接"
+    },
+    {
+      "id": "marriage.success",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "profile",
+          "kind": "state",
+          "child": "marriage.success.profile"
+        },
+        {
+          "id": "go-banquet",
+          "kind": "button",
+          "child": "marriage.success.go"
+        },
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "marriage.success.close"
+        }
+      ],
+      "note": "MarriageSuccessView",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.success.profile",
+      "parent": "marriage.success",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：双方头像/战力/结婚结果演出；Unity：仅 Generated Bind"
+    },
+    {
+      "id": "marriage.success.go",
+      "parent": "marriage.success",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：打开婚宴并发17235 type=1；Unity：未接"
+    },
+    {
+      "id": "marriage.success.close",
+      "parent": "marriage.success",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "老端：关闭并发17235 type=2；Unity：未接"
+    },
+    {
+      "id": "marriage.shared.friend-item",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "component",
+          "child": "marriage.shared.friend-item.identity"
+        },
+        {
+          "id": "states",
+          "kind": "state-matrix",
+          "child": "marriage.shared.friend-item.states"
+        },
+        {
+          "id": "flirt",
+          "kind": "button",
+          "child": "marriage.shared.friend-item.flirt"
+        },
+        {
+          "id": "touch",
+          "kind": "click-area",
+          "child": "marriage.shared.friend-item.touch"
+        }
+      ],
+      "note": "MarriageFriendItem.prefab",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.shared.friend-item.identity",
+      "parent": "marriage.shared.friend-item",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：大厅/表白记录共用候选项；Unity：独立 Prefab 仅 MarriageFriendItemBind"
+    },
+    {
+      "id": "marriage.shared.friend-item.states",
+      "parent": "marriage.shared.friend-item",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：本人/他人、在线/离线、标签空/有、好友/非好友、VIP态；Unity：未渲染"
+    },
+    {
+      "id": "marriage.shared.friend-item.flirt",
+      "parent": "marriage.shared.friend-item",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "老端：本人提示，其他人打开 MarriageComView；Unity：无业务脚本"
+    },
+    {
+      "id": "marriage.shared.friend-item.touch",
+      "parent": "marriage.shared.friend-item",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：老端 touch_gp 当前仅拦本人，其余 FriendMenu 调用已注释；Unity：无业务脚本"
+    },
+    {
+      "id": "marriage.shared.drop-btn",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "component",
+          "child": "marriage.shared.drop-btn.identity"
+        },
+        {
+          "id": "toggle",
+          "kind": "button",
+          "child": "marriage.shared.drop-btn.toggle"
+        },
+        {
+          "id": "options",
+          "kind": "list",
+          "child": "marriage.shared.drop-btn.options"
+        },
+        {
+          "id": "states",
+          "kind": "state-matrix",
+          "child": "marriage.shared.drop-btn.states"
+        }
+      ],
+      "note": "MarriageDropBtn.prefab",
+      "parent": "marriage"
+    },
+    {
+      "id": "marriage.shared.drop-btn.identity",
+      "parent": "marriage.shared.drop-btn",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：Ask/Flower/Dungeon 三类宿主共享下拉；Unity：独立 Prefab 仅 MarriageDropBtnBind"
+    },
+    {
+      "id": "marriage.shared.drop-btn.toggle",
+      "parent": "marriage.shared.drop-btn",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：点击展开/收起并旋转箭头；Unity：未接"
+    },
+    {
+      "id": "marriage.shared.drop-btn.options",
+      "parent": "marriage.shared.drop-btn",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：选项列表、当前文案、点击回调；Unity：模板存在但无业务"
+    },
+    {
+      "id": "marriage.shared.drop-btn.states",
+      "parent": "marriage.shared.drop-btn",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端：空/1/多项、长短名字、预选、展开/收起、不同宿主；Unity：未接"
+    }
+  ]
+}

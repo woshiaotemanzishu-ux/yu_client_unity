@@ -3,42 +3,26 @@
     "id": "mainui.onhook.boost-button.sweep",
     "status": "done",
     "applicable_gates": [
-      "visual_match",
-      "effect_match",
       "render_completion",
-      "resource_stable"
+      "effect_match"
     ],
     "gates": {
-      "visual_match": true,
-      "effect_match": true,
       "render_completion": true,
-      "resource_stable": true
+      "effect_match": true
     },
-    "visual_evidence": {
-      "old_closeup": "target_old_closeup.png",
-      "old_full": "baseline_old_full.png",
-      "unity_before": "before_unity_full.png",
-      "unity_start": "runtime/hud_onhook_boost_start.png",
-      "unity_mid": "runtime/hud_onhook_boost_mid.png"
-    },
-    "effect_evidence": {
-      "asset": "UI_tisheng",
-      "pulse_seconds": 3.0,
-      "sweep_seconds": 1.333,
-      "material_curve": "material._BaseMap_ST.z",
-      "base_map_uv_enabled": true,
-      "start_alpha_pixels": 733,
-      "mid_alpha_pixels": 733,
-      "start_lit_pixels": 997,
-      "mid_lit_pixels": 995,
-      "changed_pixels": 111,
-      "raw_start": "runtime/ui_tisheng_rt_start.png",
-      "raw_mid": "runtime/ui_tisheng_rt_mid.png"
-    },
+    "render_evidence": [
+      "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/runtime/ui_tisheng_rt_start.png",
+      "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/runtime/ui_tisheng_rt_mid.png"
+    ],
+    "effect_evidence": [
+      "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/mainui_onhook_boost_final.log",
+      "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/runtime/ui_tisheng_rt_start.png",
+      "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/runtime/ui_tisheng_rt_mid.png"
+    ],
     "evidence": [
-      "mainui_onhook_boost_final.log",
-      "runtime/ui_tisheng_rt_start.png",
-      "runtime/ui_tisheng_rt_mid.png"
+      "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/target_old_closeup.png",
+      "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/runtime/hud_onhook_boost_start.png",
+      "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/runtime/hud_onhook_boost_mid.png"
     ]
   },
   {
@@ -46,11 +30,11 @@
     "status": "done",
     "applicable_gates": [
       "runtime_state",
-      "reopen_consistency"
+      "reopen"
     ],
     "gates": {
       "runtime_state": true,
-      "reopen_consistency": true
+      "reopen": true
     },
     "state_evidence": [
       "未点满且无 buff_type=1：加载完整 UI_tisheng",
@@ -59,7 +43,25 @@
       "同状态不重复实例化；隐藏释放；关闭重开后再次释放"
     ],
     "evidence": [
-      "mainui_onhook_boost_final.log"
+      "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/mainui_onhook_boost_final.log"
+    ]
+  },
+  {
+    "id": "mainui.onhook.boost-button.web",
+    "status": "needs-runtime-verify",
+    "applicable_gates": [
+      "timing",
+      "visual_match",
+      "resource_stable"
+    ],
+    "gates": {
+      "timing": false,
+      "visual_match": false,
+      "resource_stable": false
+    },
+    "note": "已有 Unity Editor 双时间点动态像素和生命周期证据，但没有与当前 Git/dirty/Player/catalog 同批的真实 Web old/unity/overlay/diff、Web cold/warm 与两次资源幂等预检。",
+    "evidence": [
+      "Docs/RuntimeCompare/MainUI-挂机提升扫光-20260804.md"
     ]
   }
 ]

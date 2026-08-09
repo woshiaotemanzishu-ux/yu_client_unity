@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
@@ -35,6 +36,7 @@ namespace Shenxiao.Module.Core.Bag
         private bool _subscribed;
         private int _refreshEpoch;
         private int _autoFuseEpoch;
+        private int _lifecycleEpoch;
 
         protected override void OnInit()
         {
@@ -51,6 +53,7 @@ namespace Shenxiao.Module.Core.Bag
 
         protected override void OnShow(object args)
         {
+            _lifecycleEpoch++;
             Subscribe();
             RefreshAutoSetting();
             BagFusionController.Instance.RequestInfo();
@@ -59,6 +62,7 @@ namespace Shenxiao.Module.Core.Bag
 
         protected override void OnHide()
         {
+            _lifecycleEpoch++;
             _refreshEpoch++;
             _autoFuseEpoch++;
             Unsubscribe();
@@ -67,6 +71,7 @@ namespace Shenxiao.Module.Core.Bag
 
         protected override void OnDispose()
         {
+            _lifecycleEpoch++;
             _refreshEpoch++;
             _autoFuseEpoch++;
             Unsubscribe();
@@ -271,11 +276,31 @@ namespace Shenxiao.Module.Core.Bag
             BagFusionController.Instance.Fuse(list);
         }
 
-        private void ShowProperties()
+        private async void ShowProperties()
         {
-            long need = BagFusionConfigs.GetLevelNeed(BagFusionController.FusionLv);
-            TipsManager.Toast("熔炼等级 " + BagFusionController.FusionLv + "，经验 " + BagFusionController.FusionExp
-                              + (need > 0 ? "/" + need : ""));
+            int lifecycleEpoch = _lifecycleEpoch;
+            await Task.WhenAll(BagFusionConfigs.EnsureLoaded(), GoodsModel.EnsureLoaded());
+            if (!IsShown || lifecycleEpoch != _lifecycleEpoch) return;
+
+            int level = BagFusionController.FusionLv;
+            IReadOnlyList<(int attrId, long value)> attrs = BagFusionConfigs.GetLevelAttrValues(level);
+            var text = new StringBuilder();
+            for (int i = 0; i < attrs.Count; i++)
+            {
+                (int attrId, long value) attr = attrs[i];
+                if (i > 0) text.Append('\n');
+                string name = GoodsModel.GetAttrName(attr.attrId);
+                if (string.IsNullOrEmpty(name)) name = "属性" + attr.attrId;
+                text.Append(name).Append(" <color=#0a953e> + ")
+                    .Append(GoodsModel.FormatAttrValue(attr.attrId, attr.value)).Append("</color>");
+            }
+            if (text.Length == 0) text.Append("暂无属性加成");
+
+            BagFlow.OpenSub("SmeltPropView", new SmeltPropView.Presentation
+            {
+                Title = "属性加成",
+                Text = text.ToString(),
+            });
         }
 
         private void SetOneStar(bool on)

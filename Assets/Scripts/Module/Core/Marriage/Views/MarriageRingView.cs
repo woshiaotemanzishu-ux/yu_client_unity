@@ -13,10 +13,9 @@ namespace Shenxiao.Module.Core.Marriage
     /// 主属性(_lb_sub_attr)/词条属性(_group_attr 列表)+ 培养进度条(_img_progress/_group_eff_pro/_lb_progress + 补间动画)+
     /// 消耗道具格(_group_item 克隆 BaseAwardItem)+ 一键提升/解锁按钮(_btn_go,协议 17211/17213)+ 停止(_btn_stop)+ 红点(_reddot)。
     ///
-    /// 降级:MarriageModel(GetRingInfo/GetRingStarData/GetNextRingStarData/GetRingStageData/CheckRedStatus/GetConstantData 等)、
-    /// GoodsModel/RoleManager、config_ring_stage 配置、升级/解锁协议(17210/17211/17213)、ResManager 指环模型、
-    /// FightingShowSmallItem 战力 / BaseAwardItem 消耗格 / 星图 / 进度补间 / MarriageEvent 均未移植 →
-    /// 红点先隐藏;按钮点击打日志「待对接」;OnShow 列表空/默认降级。Null-guard 每处访问。
+    /// 当前:MarriageController/MarriageModel 已具备 17210 查询/收包地基；Goods/Role 数据消费、config_ring_stage、
+    /// 指环模型、FightingShowSmallItem、BaseAwardItem、星图、进度补间、红点与事件表现尚未接线。
+    /// 17211/17213 升级/解锁属于未授权写事务，继续保持 blocked；OnShow 仅恢复权威只读快照请求。
     /// </summary>
     public sealed class MarriageRingView : MarriageRingViewBind
     {
@@ -29,11 +28,11 @@ namespace Shenxiao.Module.Core.Marriage
         protected override void OnShow(object args)
         {
             // 老端 load_callback/LoadSuccess → UpdateView:请求 17210 + 渲染指环模型/名称/战力/星级/属性/进度/消耗格/夫妻态。
-            // MarriageModel/协议/配置/模型/列表项均未移植 → 列表空、模型/默认降级。
-            GameLog.Info("Marriage", "MarriageRingView 打开 → 待对接 MarriageModel(列表空/默认降级)");
+            MarriageController.Instance.RequestRingInfo();
+            GameLog.Info("Marriage", "MarriageRingView 打开 → 已请求17210权威快照,表现接线待运行态验证");
         }
 
-        /// <summary>红点:升级红点 _reddot(CheckRedStatus(MARRIAGE_RING,1)),数据未移植先隐藏。</summary>
+        /// <summary>红点:升级 _reddot；状态消费尚未接线，先隐藏。</summary>
         private void HideReds()
         {
             HideNode(_reddot);
@@ -42,7 +41,7 @@ namespace Shenxiao.Module.Core.Marriage
         private void BindButtons()
         {
             BindBtn(_btn_go, "一键提升/解锁 协议17211/17213");
-            BindBtn(_btn_stop, "停止提升");
+            // 老端 MarriageRingView.ts 没有给 _btn_stop 绑定点击；该节点只属于提升演出状态，不能伪造交互语义。
         }
 
         /// <summary>给按钮(Image 或含 Image 子节点的容器)挂点击 → 打日志(降级:协议/子窗待对接)。</summary>

@@ -1,0 +1,200 @@
+[
+  {
+    "id": "mainstronger.158.entry.open-gate",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "已静态接入 FuncOpenConfig[MainStronger]；未启动 Unity/老 H5，尚未验证任务 101340 前后真实显隐与提示。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.entry.red",
+    "status": "blocked",
+    "blocked_reason": "MainUI/业务红点发布者属于跨模块文件岛；当前尚未向 MainStrongerModel 发布完整红点，也未按 StrongerCount 更新 158 数量与显隐。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.entry.bubble",
+    "status": "blocked",
+    "blocked_reason": "气泡宿主 MainUIStrongerTalkBoard 位于 MainUI ActivityIcon.prefab；本轮禁止修改 MainUI，session 显隐和置顶文案契约仅登记。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.entry.route",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "MainStrongerBootstrap 已注册路由 158 且隔离编译通过；未获授权运行 GraphicRaycaster 点击，页面资源仍有独立 blocker。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.entry.anchor",
+    "status": "blocked",
+    "blocked_reason": "当前 MainUIRouter 仅提供无参 Action，ActivityIcon 未把世界坐标传给 MainStronger；跨 MainUI 接口本轮只登记。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.shell.prefab",
+    "status": "blocked",
+    "blocked_reason": "仓库不存在 Assets/Prefabs/UI/MainStronger/MainUIStrongerView.prefab；正常 convert-module 需要老端运行快照和 Unity 烘焙，本轮均被禁止。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.shell.config",
+    "status": "blocked",
+    "blocked_reason": "Unity 侧缺少可加载的 ConfigFeatureBinding；本轮禁止修改 ClientConfigSync/Addressables，配置解析器明确拒绝伪数据。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.shell.resources",
+    "status": "blocked",
+    "blocked_reason": "Unity 侧无 resource/game/mainStronger 最小资源闭包，且本轮禁止 Addressables 登记；未复制未登记资产冒充完成。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.shell.layer",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "MainStrongerFlow 已选择 UILayer.Popup 对应老端 Activity 层；缺 Prefab 且未运行，尚无真实层级与遮挡证据。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.shell.geometry",
+    "status": "blocked",
+    "blocked_reason": "194x320、透明背景与点击锚点必须落在可编辑 Prefab；当前 Prefab 不存在，禁止用运行时代码写视觉布局。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.shell.close",
+    "status": "blocked",
+    "blocked_reason": "View 代码已有关闭绑定，但当前没有含 btnClose 真实绑定的 Prefab，不能完成真实点击/遮挡/清理门禁。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.shell.background-close",
+    "status": "blocked",
+    "blocked_reason": "透明背景点击层属于首次转换 Prefab 结构；当前不存在且本轮禁止启动转换流程。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.list.scroll",
+    "status": "blocked",
+    "blocked_reason": "代码会向 ScrollRect.content 克隆并调用 Show，但缺真实 Prefab 的 Viewport/RectMask2D/LayoutGroup，不能验证拖动与末项可达。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.list.red-publishers",
+    "status": "blocked",
+    "blocked_reason": "42 个 FeatureBinding 条目的红点来源分布在各业务模块；本轮只提供 PublishRedState 接口，禁止跨模块修改发布者。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.list.sort",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "静态实现置顶优先、order 降序、普通 id 升序；旧配置静态基线为 40,10001,37，尚无真实运行列表证据。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.list.label",
+    "status": "blocked",
+    "blocked_reason": "数据绑定代码已实现，但 ConfigFeatureBinding 与 MainUIStrongerBtn Prefab/字体/图片闭包均缺失。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.list.jump",
+    "status": "blocked",
+    "blocked_reason": "已提供 RegisterFeatureOpener(func, opener)，但目标模块尚未逐项注册老端 OpenFun 数字映射；禁止在本模块猜测跨页关系。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.list.skill-awake",
+    "status": "blocked",
+    "blocked_reason": "技能觉醒 10001 需要 Task 模块发布任务资格、选中任务并执行；本轮禁止修改 Task，当前仅提供显式接口。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.list.close-on-jump",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "MainStrongerFlow.TryOpen 在调用目标 opener 前先释放页面；隔离编译通过，尚无真实页面生命周期证据。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.list.empty",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "无已注册 opener/红点时模型返回空列表且不造假；缺 Prefab，尚未验证空态实际是否与老端一致。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.banner.visibility",
+    "status": "blocked",
+    "blocked_reason": "config_banner 与 Activity 状态矩阵未闭包；当前代码整组隐藏，不能把降级隐藏当老端完成态。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.banner.data",
+    "status": "blocked",
+    "blocked_reason": "缺 config_banner provider、开服/合服/等级/图标/活动/功能条件接口；最多 8 条与 show_id 排序未接运行数据。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.banner.images",
+    "status": "blocked",
+    "blocked_reason": "左/中/右图片节点虽有 Generated Bind，但无可编辑 Prefab、mainStronger 图片资源与 banner 数据。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.banner.dots",
+    "status": "blocked",
+    "blocked_reason": "圆点需 Prefab、ui_bq_xz_01/02 资源与当前页状态；三者均未闭包。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.banner.auto",
+    "status": "blocked",
+    "blocked_reason": "2.4 秒自动轮播依赖真实 banner 与可见页面；本轮禁止运行，且关闭清 timer 尚不能取证。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.banner.drag",
+    "status": "blocked",
+    "blocked_reason": "缺真实 Panel/Mask/三图布局与数据，无法执行 GraphicRaycaster 拖动和回弹验证。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.banner.skip",
+    "status": "blocked",
+    "blocked_reason": "skip_id 依赖完整 OpenFun 数字分发与条件校验；本轮仅登记跨模块契约。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.banner.activity",
+    "status": "blocked",
+    "blocked_reason": "act_skip 与 331@98/100 开服天数分支属于 Activity 路线；本轮禁止修改 Activity 文件。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.banner.close",
+    "status": "blocked",
+    "blocked_reason": "广告点击成功后的关闭必须随真实 skip/activity 路径复验；当前两条目标链均未接。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.lifecycle.protocol",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "静态核对确认 MainStronger 自身无协议/写事务，只消费配置、红点、任务并跳页；尚未用真实点击验证无意外发包。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.lifecycle.reset",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "Bootstrap 已在非自动重连断线时释放页面并清推荐状态；未运行断线/重连路径。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.lifecycle.reopen",
+    "status": "blocked",
+    "blocked_reason": "缺 Prefab、配置、红点发布者与真实运行授权，无法验证关闭重开即时刷新和冷暖耗时。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  },
+  {
+    "id": "mainstronger.158.lifecycle.return",
+    "status": "blocked",
+    "blocked_reason": "目标功能 opener 尚未注册，无法沿每个目标页返回 MainUI/再开 158；跨模块返回链只登记。",
+    "evidence": ["output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"]
+  }
+]

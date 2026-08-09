@@ -40,9 +40,9 @@ namespace Shenxiao.Module.Core.ListDuobao
                 ListDuobaoConfigs.StageRow row = rows[i];
                 CustomActivityModel.ListDuobaoStageState state = info.StageList.Find(v => v.Id == row.RewardId);
                 GameObject go = Instantiate(_tpl_ListRewardItem, parent);
-                go.SetActive(true);
                 ListRewardItem item = go.GetComponent<ListRewardItem>();
-                item?.SetData(row, state.GotType, info.Score, ListDuobaoFlow.GoodsItemTemplate);
+                if (item != null) item.SetData(row, state.GotType, info.Score, ListDuobaoFlow.GoodsItemTemplate);
+                else go.SetActive(true);
                 _rows.Add(go);
             }
         }

@@ -1,0 +1,267 @@
+{
+  "route": "mainui.activity.sevenday",
+  "audit_date": "2026-08-09",
+  "starting_dirty": {
+    "scope": [
+      "Assets/Scripts/Module/Core/SevenDay",
+      "Assets/Prefabs/UI/SevenDay",
+      "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday"
+    ],
+    "entries": [],
+    "conclusion": "起始目标岛干净；本轮两份SevenDay C#差异可归属本代理，未发现并发同文件改动。"
+  },
+  "legacy_runtime": {
+    "status": "not-run",
+    "reason": "本轮明确禁止浏览器/Computer Use，且output中未发现可绑定到当前源码/账号/viewport的SevenDay既有真实运行证据。",
+    "gates": [
+      "old-client-same-account",
+      "two-viewports",
+      "pixel-overlay-diff",
+      "scroll-and-last-item",
+      "effect-two-frames",
+      "cold-warm",
+      "immediate-refresh",
+      "close-reopen",
+      "return-chain-runtime"
+    ]
+  },
+  "legacy_source": {
+    "files": [
+      {
+        "path": "E:\\GitProject\\yu_client\\h5\\src\\commonController\\SevenDayController.ts",
+        "exists": true,
+        "sha256": "e29e4ec570752db01bd662e86e99313fcd05af6863320cb018c8a64885f1255e",
+        "bytes": 6550
+      },
+      {
+        "path": "E:\\GitProject\\yu_client\\h5\\src\\commonModel\\SevenDayModel.ts",
+        "exists": true,
+        "sha256": "4e6d4a276ef18ee3ee078580347974cb219428d468037cef3c9f5266d40553a6",
+        "bytes": 6019
+      },
+      {
+        "path": "E:\\GitProject\\yu_client\\h5\\src\\sevenDay\\SevenDayView.ts",
+        "exists": true,
+        "sha256": "35b6bdeda9e319ba5ec3ed00bbf2d5aec0d17672bd9bdb480d785b2b92d02879",
+        "bytes": 25724
+      },
+      {
+        "path": "E:\\GitProject\\yu_client\\h5\\src\\sevenDay\\SevenDayItem.ts",
+        "exists": true,
+        "sha256": "7525d62493ad08730d5a889ff3567445ea35d2b869eef6b0ec4b6d4283f21a9c",
+        "bytes": 8047
+      },
+      {
+        "path": "E:\\GitProject\\yu_client\\h5\\src\\sevenDay\\SevenEightDayView.ts",
+        "exists": true,
+        "sha256": "8b2983f403614db536eef8584edc639b670936b2a6ff84244215a4d78e6c6494",
+        "bytes": 2018
+      },
+      {
+        "path": "E:\\GitProject\\yu_client\\h5\\src\\sevenDay\\SevenEightDayItem.ts",
+        "exists": true,
+        "sha256": "2916c2f93377eecd8e382c118453ee2090f654454fa837b54e4d27d3ef2849f0",
+        "bytes": 1044
+      },
+      {
+        "path": "E:\\GitProject\\yu_client\\h5\\src\\sevenMergeDay\\SevenMergeView.ts",
+        "exists": true,
+        "sha256": "6bcd3bdb561e1fc62a06b280178cb5aa910bdf52fd3dcf58d08c92356f831994",
+        "bytes": 2092
+      },
+      {
+        "path": "E:\\GitProject\\yu_client\\h5\\src\\sevenMergeDay\\SevenMergeItem.ts",
+        "exists": true,
+        "sha256": "75f8477490c41a77f784ede226fb6da5dd02886abce0c12fe8ed0a737533f0e4",
+        "bytes": 1064
+      },
+      {
+        "path": "E:\\GitProject\\yu_client\\h5\\libs\\proto175.d.ts",
+        "exists": true,
+        "sha256": "54eace779c4e7dd8751a53026f7f34005c0cd21868ab0686d786b0facda97737",
+        "bytes": 2846
+      }
+    ],
+    "scenes": [
+      {
+        "path": "E:\\GitProject\\yu_client\\cdn\\resource\\game\\sevenDay\\SevenDayView.scene",
+        "exists": true,
+        "sha256": "93ce0efd953f19f6378de2676036d725c1c3d14cf742d00d33ab835f438a6678",
+        "bytes": 16489
+      },
+      {
+        "path": "E:\\GitProject\\yu_client\\cdn\\resource\\game\\sevenDay\\SevenDayItem.scene",
+        "exists": true,
+        "sha256": "5123f2b96addc917a167571d0658bfac0dbae5a312e46d97cf7c456137f38ad6",
+        "bytes": 8485
+      },
+      {
+        "path": "E:\\GitProject\\yu_client\\cdn\\resource\\game\\sevenDay\\SevenEightDayView.scene",
+        "exists": true,
+        "sha256": "7db4cb36fb5501d84802a0a2fedeceb61c2ce5df6b418d38dd81e33bcc50e5e1",
+        "bytes": 9498
+      },
+      {
+        "path": "E:\\GitProject\\yu_client\\cdn\\resource\\game\\sevenDay\\SevenEightDayItem.scene",
+        "exists": true,
+        "sha256": "ab4c925e1fe521424f299b2fbb1c9896ca17d43db94ce6d4fb6bb309f949413e",
+        "bytes": 6237
+      },
+      {
+        "path": "E:\\GitProject\\yu_client\\cdn\\resource\\game\\sevenMergeDay\\SevenMergeView.scene",
+        "exists": true,
+        "sha256": "a7023d212e8535f3760bdbf130a8e2172f00a23a48919fa098ea8218c0ede218",
+        "bytes": 10994
+      },
+      {
+        "path": "E:\\GitProject\\yu_client\\cdn\\resource\\game\\sevenMergeDay\\SevenMergeItem.scene",
+        "exists": true,
+        "sha256": "3635fa5431b79c9d8bc8664cbdcb294d2cc3548346f2e291a1e0a8da0c298608",
+        "bytes": 7159
+      }
+    ],
+    "configs": [
+      {
+        "path": "E:\\GitProject\\yu_client\\cdn\\resource\\config\\server\\config_login_reward_day.json",
+        "exists": true,
+        "sha256": "f4e86bd2904e852e305c0a1c6301d21d80ba7829ac9576a43ab773377b3e8bfb",
+        "bytes": 10601
+      },
+      {
+        "path": "E:\\GitProject\\yu_client\\cdn\\resource\\config\\server\\config_login_merge_reward_day.json",
+        "exists": true,
+        "sha256": "b1b2d7f880be70c53102eb866d9aa677aa21ebf73a1b8075cd598936a4173171",
+        "bytes": 21649
+      }
+    ],
+    "facts": {
+      "entry_icons": [
+        "175",
+        "175@8",
+        "175_1"
+      ],
+      "views": [
+        "SevenDayView",
+        "SevenEightDayView",
+        "SevenMergeView"
+      ],
+      "snapshot_protocols": [
+        "17500",
+        "17502"
+      ],
+      "claim_protocols": [
+        "17501",
+        "17503"
+      ],
+      "day_tabs": {
+        "SevenDayView": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "SevenEightDayView": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14
+        ],
+        "SevenMergeView": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "claim_states": {
+        "0": "不可领提示",
+        "1": "权威请求",
+        "2": "已领取提示"
+      },
+      "reward_slots_rendered": 4,
+      "post_success": [
+        "status=2",
+        "页面即时刷新",
+        "入口/页签红点刷新",
+        "CongratulationObtainView"
+      ],
+      "presentation": {
+        "SevenDayView": "按日配置显示图片/模型/UI特效，另有ui_fazhen_05",
+        "SevenEightDayView": "按8..14日显示图片/模型与动态标题日签",
+        "SevenMergeView": "按merge_wlv选择奖励，当前配置show_type=1图片，离散弧形页签"
+      }
+    }
+  },
+  "unity_static": {
+    "head": "92b3f5578a90befb85a6255157f08e482214aa1a",
+    "files": [
+      {
+        "path": "E:\\GitProject\\yu_client_unity\\Assets\\Scripts\\Module\\Core\\SevenDay\\SevenDayController.cs",
+        "exists": true,
+        "sha256": "c60253cda3860ec48250529eb80a74b67cae06764faac9a06f760b3503f2d56a",
+        "bytes": 10182
+      },
+      {
+        "path": "E:\\GitProject\\yu_client_unity\\Assets\\Scripts\\Module\\Core\\SevenDay\\SevenDayModel.cs",
+        "exists": true,
+        "sha256": "be005cdbe2e06b422c7bb22c07a16f2191ca8fb904f59890538a092877fe0dad",
+        "bytes": 5896
+      }
+    ],
+    "prefab_search": {
+      "matches": [],
+      "conclusion": "无SevenDay/SevenEightDay/SevenMerge可编辑Prefab"
+    },
+    "view_bind_search": {
+      "matches": [],
+      "conclusion": "无对应Unity View/Bind"
+    },
+    "config_search": {
+      "matches": [],
+      "conclusion": "Unity缺config_login_reward_day与config_login_merge_reward_day"
+    },
+    "router_search": {
+      "matches": [],
+      "conclusion": "MainUIRouter无175/175@8/175_1打开映射，点击会落通用未实现占位"
+    },
+    "implemented": [
+      "17500/17502注册、解析与活动图标互斥",
+      "等级真变化、跨天、普通七日任务门槛重拉",
+      "本轮增量：按status=1派生三入口红点并在删图标前清共享缓存"
+    ],
+    "hard_negative": [
+      "17501",
+      "17503"
+    ]
+  },
+  "reconciliation": {
+    "static_matches": [
+      "17500/17502只读线",
+      "入口键与互斥规则",
+      "175@8明天可领条件",
+      "等级/任务刷新边界"
+    ],
+    "static_fix": "入口红点消费缺失；SevenDay私有Model/Controller已做最小增量修复。",
+    "defects": [
+      "三套页面/Prefab/View/Bind缺失",
+      "两张权威奖励配置缺失",
+      "专属图片/模型/UI特效未迁",
+      "三入口MainUI路由缺失",
+      "列表/详情/按钮/页签/关闭链无Unity消费者"
+    ],
+    "blocked": [
+      "convert-module缺老端真实运行快照且禁止Unity烘焙",
+      "17501/17503领取为未授权真实发奖事务",
+      "成功弹窗、即时刷新和关闭重开只能在权威成功后验证"
+    ]
+  }
+}

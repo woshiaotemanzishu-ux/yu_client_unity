@@ -1,0 +1,32 @@
+{
+  "updated_at": "2026-08-09T12:53:16+08:00",
+  "summary_details": {
+    "old_h5": "Real old-Laya UIEffect render textures were captured as 120 RGBA frames per effect at a 100x100 owner boundary; sampled atlas cells are byte-identical after the required vertical origin flip.",
+    "unity": "RewardFlyService now replays one shared legacy RGBA sequence to N RawImage presenters and preserves the old outer/inner transform topology without changing the global UIEffect shader.",
+    "gm_state": "Account 111111 category 1 achievement id 3 is claimable after completeachv_1; no reset and no 40905 claim was sent.",
+    "implementation_boundary": "Static capture, asset, Addressables and Core compilation checks pass. Current Unity Canvas motion, close cleanup and WebGL remain unverified."
+  },
+  "nodes": [
+    {
+      "id": "mainui.role.person.achievement.window.entry-claim.reward-fly",
+      "status": "needs-runtime-verify",
+      "blocked_reason": null,
+      "runtime_gap": "Use account 111111 to click the claimable category 1 achievement in current Unity, then verify RGBA appearance, trajectory, arrival, close-during-flight cleanup and same-build WebGL.",
+      "note": "The confirmed gray-disc path has been replaced for ui_bangyu_1/2 with exact old-runtime 100x100 RGBA sequence replay. Static byte equality and compilation pass; player-visible Canvas evidence is still required.",
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-09_reward_fly_rgba_capture_03/legacy_rgba/capture-manifest.json",
+          "sha256": "30158b52feda7370055b164dd1bdd198c0803c05b6b6da24af2826f90d6fb005"
+        },
+        {
+          "path": "output/ui_route_audit/2026-08-09_reward_fly_rgba_implementation_01/static-validation.json",
+          "sha256": "0912a18b8300225fc1c70907aa0cf63b5c116dfded2b52fb211c4d34a4be7b45"
+        },
+        {
+          "path": "output/ui_route_audit/2026-08-09_achievement_gm_ready_01/achievement-gm-ready.json",
+          "sha256": "13549bfe26a3a592ea30cf285de2f42ea9f7528af14fe49ba800d9e0a7aa8102"
+        }
+      ]
+    }
+  ]
+}

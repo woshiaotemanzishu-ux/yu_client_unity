@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 using Shenxiao.Common.Proto;
 
 namespace Shenxiao.Module.Core.Guild
@@ -692,6 +694,91 @@ namespace Shenxiao.Module.Core.Guild
         public void SetMyRequest(MyAssistRequest info) => MyRequest = info;
 
         public void ClearMyRequest() => MyRequest = null;
+
+        /// <summary>对标老端 GuildModel.IsCanOpenAssist：已有公会，且同时满足 config_guild_constant
+        /// 26(角色等级)和28(开服天数)。配置未就绪或值异常时按未开放处理，避免把 type=1/2 求助误显出来。</summary>
+        public static bool IsAssistGloballyOpen()
+        {
+            if (!IsHasGuild()) return false;
+            if (!int.TryParse(GuildConfigs.GetKv(26), out int requiredLevel)) return false;
+            if (!int.TryParse(GuildConfigs.GetKv(28), out int requiredOpenDay)) return false;
+            int level = Shenxiao.Module.Core.Role.RoleModel.Instance.HasBaseInfo
+                ? Shenxiao.Module.Core.Role.RoleModel.Instance.Level : 0;
+            int openDay = Shenxiao.Module.Core.Game.ServerTimeModel.GetOpenServerDay();
+            return level >= requiredLevel && openDay >= requiredOpenDay;
+        }
+
+        /// <summary>对标老端 GuildModel.IsOpenAssist：按 config_guild_assist 的 role_lv/open_day 条件
+        /// 判定单个协助类型是否开放。只接受当前配置已定义的条件；未知条件不在 Guild 岛猜测。</summary>
+        public static bool IsAssistOpen(int type, int subType)
+        {
+            if (!IsHasGuild()) return false;
+            JObject cfg = GuildConfigs.GetAssistCfg(type, subType);
+            if (cfg == null) return false;
+            JArray conditions = ParseAssistConditions(cfg["condition"]?.ToString());
+            if (conditions == null) return false;
+
+            int level = Shenxiao.Module.Core.Role.RoleModel.Instance.HasBaseInfo
+                ? Shenxiao.Module.Core.Role.RoleModel.Instance.Level : 0;
+            int openDay = Shenxiao.Module.Core.Game.ServerTimeModel.GetOpenServerDay();
+            foreach (JToken row in conditions)
+            {
+                string key = row?["0"]?.ToString();
+                if (!int.TryParse(row?["1"]?.ToString(), out int value)) return false;
+                if (key == "role_lv" && level < value) return false;
+                if (key == "open_day" && openDay < value) return false;
+                if (key != "role_lv" && key != "open_day") return false;
+            }
+            return true;
+        }
+
+        /// <summary>对标老端 GetAssistOpenDesc，倒序拼为“开服第N天且M级”。</summary>
+        public static string GetAssistOpenDescription(int type, int subType)
+        {
+            if (!IsHasGuild()) return "请先加入或创建一个公会~";
+            JObject cfg = GuildConfigs.GetAssistCfg(type, subType);
+            string functionName = cfg?["desc"]?.ToString() ?? "该功能";
+            JArray conditions = ParseAssistConditions(cfg?["condition"]?.ToString());
+            if (conditions == null) return functionName + "结社协助暂未开放~";
+
+            var parts = new List<string>();
+            for (int i = conditions.Count - 1; i >= 0; i--)
+            {
+                string key = conditions[i]?["0"]?.ToString();
+                string value = conditions[i]?["1"]?.ToString();
+                if (string.IsNullOrEmpty(value)) continue;
+                if (key == "role_lv") parts.Add(value + "级");
+                else if (key == "open_day") parts.Add("开服第" + value + "天");
+            }
+            return functionName + "结社协助将在" + string.Join("且", parts) + "时开启~";
+        }
+
+        private static JArray ParseAssistConditions(string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return null;
+            try { return JArray.Parse(raw); }
+            catch (Exception) { return null; }
+        }
+
+        /// <summary>对标老端 GuildModel.IsMergeOpen：config_guild_constant 29 是合并功能开服日。</summary>
+        public static bool IsMergeOpen()
+        {
+            return int.TryParse(GuildConfigs.GetKv(29), out int requiredOpenDay)
+                && Shenxiao.Module.Core.Game.ServerTimeModel.GetOpenServerDay() >= requiredOpenDay;
+        }
+
+        /// <summary>对标老端 GuildIdolIsOpen：神像 KV 的 open_day/lv_limit 双门槛。</summary>
+        public static bool IsGuildIdolOpen()
+        {
+            JObject openDayRow = GuildConfigs.GetGodKv("open_day");
+            JObject levelRow = GuildConfigs.GetGodKv("lv_limit");
+            if (!int.TryParse(openDayRow?["value"]?.ToString(), out int requiredOpenDay)) return false;
+            if (!int.TryParse(levelRow?["value"]?.ToString(), out int requiredLevel)) return false;
+            int level = Shenxiao.Module.Core.Role.RoleModel.Instance.HasBaseInfo
+                ? Shenxiao.Module.Core.Role.RoleModel.Instance.Level : 0;
+            return Shenxiao.Module.Core.Game.ServerTimeModel.GetOpenServerDay() >= requiredOpenDay
+                && level >= requiredLevel;
+        }
 
         // ==================== 公会二期(轮13b):结社武魂/神像(40500-509,pt_405;per-player 数据,独立分区
         //        ——存储层与 GuildId 无关,仅解锁门槛依赖公会等级/头衔,不做全公会广播) ====================

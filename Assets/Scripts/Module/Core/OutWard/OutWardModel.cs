@@ -319,12 +319,14 @@ namespace Shenxiao.Module.Core.OutWard
     {
         private static JObject _mountStar;
         private static JObject _mountStage;
+        private static JObject _mountProp;
         private static JObject _mountGoods;
         private static JObject _mountFigure;        // 轮24 PI:幻化"可激活形象"列表(主键 "type_id@id@career")
         private static JObject _mountFigureStage;   // 轮24 PI:幻化升阶(主键 "type_id@id@stage")
         private static JObject _mountFigureStar;    // 轮24 PI:幻化升星(主键 "type_id@id@star",老端 upStarCfg)
         private static JObject _mountSkill;         // 轮24 PI:幻化技能(主键 "type_id@skill_id")
         private static readonly Dictionary<int, List<int>> _trainGoodsByType = new Dictionary<int, List<int>>();
+        private static readonly Dictionary<int, List<int>> _crystalGoodsByType = new Dictionary<int, List<int>>();
 
         public static bool IsLoaded => _mountStar != null;
         /// <summary>幻化 4 张专属表是否已加载(独立于养成线 3 张,供 CliVerify/未来 UI 单独判定)。</summary>
@@ -379,6 +381,11 @@ namespace Shenxiao.Module.Core.OutWard
                     ResManager.Release(asset);
                     GameLog.Info("OutWard", "config_mount_goods={0}", _mountGoods.Count);
                 }
+                _crystalGoodsByType.Clear();
+            }
+            if (_mountProp == null)
+            {
+                _mountProp = await LoadServerConfig("config_mount_prop");
                 _trainGoodsByType.Clear();
             }
             if (_mountFigure == null)
@@ -415,25 +422,45 @@ namespace Shenxiao.Module.Core.OutWard
             return obj;
         }
 
-        /// <summary>某培养对象的培养材料物品 id 列表(config_mount_goods 键 "type_id@goods_id",按 goods_id 升序;缺表=空)。</summary>
+        /// <summary>
+        /// 某培养对象的系统 A 培养材料。老端 GetExpItemList(type, 1) 来自
+        /// config_mount_prop 的 type_id/type=1；config_mount_goods 是魔晶表，不能混用。
+        /// </summary>
         public static IReadOnlyList<int> GetTrainGoodsIds(int typeId)
         {
             if (_trainGoodsByType.TryGetValue(typeId, out List<int> cached)) return cached;
             var list = new List<int>();
-            if (_mountGoods != null)
+            if (_mountProp != null)
             {
-                string prefix = typeId + "@";
-                foreach (KeyValuePair<string, JToken> kv in _mountGoods)
+                foreach (KeyValuePair<string, JToken> kv in _mountProp)
                 {
-                    if (!kv.Key.StartsWith(prefix)) continue;
-                    if (int.TryParse(kv.Key.Substring(prefix.Length), NumberStyles.Integer, CultureInfo.InvariantCulture, out int goodsId))
-                    {
-                        list.Add(goodsId);
-                    }
+                    if (!(kv.Value is JObject obj)) continue;
+                    if (ReadLong(obj, "type_id") != typeId || ReadLong(obj, "type") != 1) continue;
+                    int goodsId = (int)ReadLong(obj, "goods_id");
+                    if (goodsId > 0 && !list.Contains(goodsId)) list.Add(goodsId);
                 }
                 list.Sort();
             }
             _trainGoodsByType[typeId] = list;
+            return list;
+        }
+
+        /// <summary>某培养对象的三枚魔晶物品 id(config_mount_goods)。</summary>
+        public static IReadOnlyList<int> GetCrystalGoodsIds(int typeId)
+        {
+            if (_crystalGoodsByType.TryGetValue(typeId, out List<int> cached)) return cached;
+            var list = new List<int>();
+            if (_mountGoods != null)
+            {
+                foreach (KeyValuePair<string, JToken> kv in _mountGoods)
+                {
+                    if (!(kv.Value is JObject obj) || ReadLong(obj, "type_id") != typeId) continue;
+                    int goodsId = (int)ReadLong(obj, "goods_id");
+                    if (goodsId > 0 && !list.Contains(goodsId)) list.Add(goodsId);
+                }
+                list.Sort();
+            }
+            _crystalGoodsByType[typeId] = list;
             return list;
         }
 
@@ -442,6 +469,13 @@ namespace Shenxiao.Module.Core.OutWard
         {
             JObject obj = GetStageObj(typeId, stage, career);
             return obj?.Value<string>("name") ?? "";
+        }
+
+        /// <summary>当前阶对应的基础外观资源 ride_figure；缺表返回 0。</summary>
+        public static int GetStageModelRes(int typeId, int stage, int career)
+        {
+            JObject obj = GetStageObj(typeId, stage, career);
+            return obj == null ? 0 : (int)ReadLong(obj, "ride_figure");
         }
 
         /// <summary>本阶满星数(config_mount_stage["type@stage@career"].max_star;缺表/缺项降级 0)。</summary>

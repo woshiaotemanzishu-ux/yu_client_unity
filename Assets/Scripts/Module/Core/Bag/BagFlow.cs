@@ -142,7 +142,26 @@ namespace Shenxiao.Module.Core.Bag
             {
                 if (root == null || (view.transform != root.transform && !view.transform.IsChildOf(root.transform)))
                     continue;
-                root.GetComponent<BagActivityModalLayout>()?.Hide();
+                BagActivityModalLayout layout = root.GetComponent<BagActivityModalLayout>();
+                if (layout == null) return;
+
+                // SmeltPropView 叠在 BagSmeltView 上时，关闭上层后底层 Activity 仍保持打开。
+                // 共享遮罩必须重新绑定到底层窗口，不能直接隐藏后让点击穿透到背包 Window。
+                BaseView fallback = null;
+                int sibling = int.MinValue;
+                foreach (BaseView candidate in root.GetComponentsInChildren<BaseView>(true))
+                {
+                    if (candidate == null || candidate == view || !candidate.IsShown || candidate.Layer != UILayer.Popup)
+                        continue;
+                    int index = candidate.transform.GetSiblingIndex();
+                    if (fallback == null || index > sibling)
+                    {
+                        fallback = candidate;
+                        sibling = index;
+                    }
+                }
+                if (fallback != null) layout.Show(fallback.Hide);
+                else layout.Hide();
                 return;
             }
         }

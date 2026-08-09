@@ -27,6 +27,7 @@ namespace Shenxiao.Module.Core.Rune
 
         protected override void OnShow(object args)
         {
+            RuneController.Instance.RequestInfo();
             // 老端 LoadSuccess → 读 RuneModel 铺符文盘 + 当前符文卡 + 属性/战力。数据未移植 → 盘空、属性默认降级。
             GameLog.Info("Rune", "九霄劫魄打开 → 待对接 RuneModel(符文盘空/属性默认降级)");
         }

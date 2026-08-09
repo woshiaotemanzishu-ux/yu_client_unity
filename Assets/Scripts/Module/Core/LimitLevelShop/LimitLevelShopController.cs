@@ -17,7 +17,7 @@ namespace Shenxiao.Module.Core.LimitLevelShop
     /// 跨天(轮20 实接,EVT_SERVER_DAY_CHANGE)同样复请求 61200(对标老端 LimitLevelShopController.ts:46
     /// DAY_CHANGE→ResetData;该闭包命名具误导性,实际只 Fire(SCMD_REQUEST,61200)发包,并不重置本地模型——
     /// 模型重置 _model.ReSetModel() 是 GAME_START 专属,DAY_CHANGE 不带,见 OnServerDayChange)。
-    /// 61203 已接为显式原始只读配置查询，不随61200自动请求；61201/61202 与 UI 玩法仍未迁移。
+    /// 61203 按老端在 61200 后逐礼包自动只读请求；61201 购买链仍未注册、未发送。
     /// </summary>
     public sealed class LimitLevelShopController : BaseController
     {
@@ -97,28 +97,41 @@ namespace Shenxiao.Module.Core.LimitLevelShop
             var addList = new List<(string icon, long endTime)>();
             for (int i = 0; i < count; i++)
             {
-                int type = r.ReadU16();
-                int subtype = r.ReadU16();
+                ushort type = r.ReadU16();
+                ushort subtype = r.ReadU16();
                 long endTime = r.ReadU32();
 
                 int gradeStateCount = r.ReadU16();
-                for (int g = 0; g < gradeStateCount; g++) { r.ReadU16(); r.ReadU8(); }    // grade, state(面板用)
+                var gradeStates = new List<LimitLevelShopModel.GradeState>(gradeStateCount);
+                for (int g = 0; g < gradeStateCount; g++)
+                    gradeStates.Add(new LimitLevelShopModel.GradeState(r.ReadU16(), r.ReadU8()));
 
                 int oldGradeStateCount = r.ReadU16();
-                for (int g = 0; g < oldGradeStateCount; g++) { r.ReadU16(); r.ReadU8(); } // grade, state(面板用)
+                var oldGradeStates = new List<LimitLevelShopModel.GradeState>(oldGradeStateCount);
+                for (int g = 0; g < oldGradeStateCount; g++)
+                    oldGradeStates.Add(new LimitLevelShopModel.GradeState(r.ReadU16(), r.ReadU8()));
 
                 string actCondition = r.ReadString(); // act_condition(erlang 串,内含 pic=变体图标类型)
-                r.ReadU16();    // open_times(已开次数,面板用,本期不存)
-
-                gifts.Add(new LimitLevelShopModel.GiftEntry(type, subtype, endTime));
+                ushort openTimes = r.ReadU16();
 
                 // 变体图标:每个在开礼包取自己的 pic(61201..61225,如 61206龙语/61207圣衣);解析不到回退泛用 61201。
                 string icon = ResolveGiftIcon(actCondition) ?? ICON_TYPE;
+                gifts.Add(new LimitLevelShopModel.GiftEntry(type, subtype, endTime, gradeStates,
+                    oldGradeStates, actCondition, openTimes, icon));
                 if (newIcons.Add(icon)) addList.Add((icon, endTime)); // 同一变体只加一次(取首个 end_time)
             }
 
             LimitLevelShopModel.Instance.SetGiftList(gifts);
             RefreshIcons(newIcons, addList);
+
+            // 对标老端 RefreshState：61200 落地后只读查询每个在开礼包的 61203 展示配置。
+            // type=66 使用当前档位；其余礼包以 grade=0 请求整组配置。61201 购买协议仍不注册、不发送。
+            for (int i = 0; i < gifts.Count; i++)
+            {
+                LimitLevelShopModel.GiftEntry gift = gifts[i];
+                ushort grade = gift.Type == 66 && gift.GradeStates.Count > 0 ? gift.GradeStates[0].Grade : (ushort)0;
+                RequestGiftConfig(gift.Type, gift.Subtype, grade);
+            }
         }
 
         // 集合式增删(对标老端 RefreshState:对每个在开礼包 addIcon(pic)、对已消失礼包 deleteIcon(旧 pic))。

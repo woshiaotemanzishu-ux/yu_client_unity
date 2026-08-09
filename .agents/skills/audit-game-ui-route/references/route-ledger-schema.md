@@ -1,22 +1,20 @@
-# UI 路线台账模板
+# UI 路线台账 schema 6
 
-## 状态
+## 1. 状态与完成边界
 
 - `not-run`：已列出，老端和 Unity 都未跑。
 - `baseline-only`：已有老端事实，Unity 未跑。
 - `defect`：Unity 差异已复现。
 - `fixing`：根因明确，正在修。
-- `needs-runtime-verify`：代码/资源已改，缺同路径运行复验。
-- `blocked`：需要不可恢复写入授权、账号条件、服务或资源。
-- `done`：叶子的功能、真实运行态、2D视觉、3D模型/特效、重开和耗时中所有适用项均通过，并具备机器要求的证据字段。
+- `needs-runtime-verify`：代码/资源已改，缺同路径运行复验；schema 6 必须写非空 `runtime_gap`。
+- `blocked`：需要不可恢复写入授权、账号条件、服务或资源；schema 6 必须写非空 `blocked_reason`。
+- `done`：该叶子的全部适用闸已在明确运行批次中通过，并绑定可校验的证据。
 
-父节点的状态由子节点推导。只要存在 `defect / fixing / needs-runtime-verify / blocked / not-run / baseline-only`，父节点就不得是 `done`。
+父状态由直接子节点推导。任一子节点为 `defect / fixing / needs-runtime-verify / blocked / not-run / baseline-only`，父节点都不得是 `done`。页面能打开、协议发出、Editor 退出码为 0 或旧截图存在，都不能单独完成父页。
 
-`type=page` 的父节点还必须有 `control_inventory[]`。每项至少包含稳定 `id`、控件类型 `kind` 和对应直接子节点 `child`；这是“当前页全部控件已列清单”的机器证据。页签节点不能代替页签内部按钮，新增可见控件必须先入清单再验收。
+新建台账固定使用 schema 6。schema 2～5 只保留历史读取兼容；禁止只改 `schema` 数字来伪造新证据。历史路线被新截图推翻后，应从原 manifest 新建 schema 6 台账，把仍有效结论按明确 `gate_runs/gate_evidence` 重新绑定，而不是把旧字符串路径机械复制成新绿灯。
 
-## 机器台账
-
-长表只用于最终报告；执行期优先维护 JSON。先准备只含 `route` 与 `nodes[]` 的 manifest，每个节点至少含 `id`，可选 `parent/type/risk`，然后运行：
+## 2. 唯一写入口与原子性
 
 ```powershell
 python .agents/skills/audit-game-ui-route/scripts/route_ledger.py init manifest.json route-ledger.json
@@ -24,84 +22,213 @@ python .agents/skills/audit-game-ui-route/scripts/route_ledger.py apply route-le
 python .agents/skills/audit-game-ui-route/scripts/route_ledger.py validate route-ledger.json
 ```
 
-`results.json`只需列本批实际跑过的叶子，格式为`[{"id":"...","status":"done","applicable_gates":[...],"gates":{...},"timing":{"cold_ms":123,"warm_ms":45},"visual_evidence":{"old":"...","unity":"...","diff":"..."},"state_evidence":["..."],"model_evidence":{"old":"...","unity":"..."},"effect_evidence":["..."],"resource_evidence":{"preflight_first":"...","preflight_second":"...","runtime_delta":"..."},"evidence":["..."]}]`。`apply`会合并证据并自底向上推导父节点，避免模型反复重写整张长表；未知ID、缺闸或错误父状态会直接失败。
+- `init` 先在内存校验 manifest，再原子写入 schema 6 台账；坏 manifest 不会留下半成品正式账。
+- `apply` 先校验现有台账，在内存合并结果、回卷父状态、复算汇总，再校验候选；候选失败时正式文件字节不变。
+- `init` 拒绝覆盖已存在的目标；`init/apply` 对同一绝对台账路径持有系统临时目录中的非阻塞跨进程写锁。第二个写者会明确失败，禁止两个进程各自基于旧账提交后让后写者静默覆盖前一批结果。
+- 路线专用脚本只能生成 manifest 或紧凑 results，禁止直接写正式 `route-ledger.json`。2026-08-07 共鸣专用更新器已封存为历史候选重放工具，不再是当前写入口。
+- schema 6 的 `done` 结果必须在本批结果中显式提交完整 `applicable_gates/gates/gate_runs/gate_evidence` 和对应专项字段；不能靠节点里残留的旧 `true` 或旧路径重新变绿。
 
-叶子标 `done` 时，`gates` 中所有适用闸必须为 `true`。默认闸名是 `click/result/protocol/immediate/reopen/return_chain/timing/visual_version/visual_match/target_identity/layout_structure/scroll_interaction/page_space_geometry/runtime_state/model_presentation/render_completion/effect_match/resource_stable/restore`；不适用项应从该节点的 `applicable_gates` 中显式移除，不得留空后宣称完成。`timing`要求非负`cold_ms/warm_ms`，`visual_match`要求老端/Unity/diff三份路径；`target_identity/layout_structure/scroll_interaction/page_space_geometry/render_completion`分别要求非空的`identity_evidence[]/layout_evidence[]/interaction_evidence[]/geometry_evidence[]/render_evidence[]`。`render_completion`不能只记录 RawImage 已绑定 RenderTexture；证据至少应包含本轮渲染完成标记和 RenderTexture 非透明像素探针。`runtime_state`要求非空`state_evidence[]`，`model_presentation`要求老端/Unity模型截图。`effect_match`除非明确只验不存在，还要求`effect_evidence[]`包含老端调用参数快照、同一目标 Handle 在两个不同时间点的隔离 PNG、动画时间或材质属性推进值、两帧像素差、非透明像素数与 alpha 包围盒宽高；单张截图、`Animation.isPlaying`、Handle 存在或少量亮点不得证明动态通过。位于列表/滚动区的特效还必须记录完整可见、部分裁切和完全滚出祖先 `RectMask2D/Mask` 三态，最后一态目标 alpha 为零；曲线属性与 shader/material 实际消费分支不一致时直接失败。`resource_stable`要求首次预检、第二次幂等预检和玩家点击目录差异证据，第二次必须证明`imported=0、configured=0`。父节点标 `done` 时所有直接子节点都必须是 `done`；`type=page` 的完成父节点还要求 `control_inventory[]` 非空、控件 ID 唯一，且每个 `child` 都存在并确实是直接子节点。
+## 3. Manifest 结构
 
-历史台账在新增证据或用户复查发现模型缺失、状态错误、明显视觉偏差时必须降级为`defect`。旧版台账只通过点击/协议/回包，不自动继承新的视觉完成资格。
+manifest 只描述树、类型、风险和控件清单，不写完成结论：
 
-## schema 5 共享组件闸
-
-新建台账使用 schema 5，并在原有闸之外默认增加 `shared_component_identity` 与 `component_state_matrix`。前者要求非空 `component_evidence[]`，至少记录共享 Prefab/View 路径或 GUID、实例链、宿主只传数据/状态/回调的证据，以及“全部直接消费者静态清单 → 使用形态分组 → 目标页与代表样本 → 抽样结果”。运行态不要求逐页穷举：默认每个实质不同的使用形态抽一个独立代表，常规总量 2～4 个宿主页；样本失败再扩大同组，删改公共 API/序列化字段、整体换引用或持续失败才全量核对。后者要求非空 `component_state_evidence[]`，覆盖本组件适用的特效开关、1/2/3 项居中、短长文本、单/双按钮、充足/不足、选中/未选中、空/有数据和目标 viewport。
-
-schema 4 历史台账继续按原闸集合校验；只有新建或被用户证据重开的路线才补新闸，避免伪造历史证据。整页截图不能替代组件证据；确实不存在复用关系或状态变体时，必须从 `applicable_gates` 显式移除对应闸并在 note 写明原因。用户证据推翻共享组件时，先回卷目标页、受影响状态变体和已选代表消费者；不默认把所有静态引用页改为 `defect`。
-
-## 台账表
-
-| ID | 父节点 | 类型 | 叶子操作/结果 | 老端基线 | Unity 现状 | 即时 UI/Model | 关闭重开 | cold/warm | 版本视觉 | 写入风险 | 状态 | 证据 |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-
-类型使用 `page / tab / navigation / read / reversible-write / destructive-write / transaction / return`。
-
-## 叶子验收闸
-
-对每个叶子判断下列项是否适用，适用项不得留空：
-
-1. 真实点击面命中，事件只触发一次。
-2. 目标页/弹窗/业务结果与当前老端一致。
-3. 发包、回包、失败和无回包语义一致。
-4. 成功后当前已打开的父页立即刷新，不依赖退出重进。
-5. 关闭重开后从权威 Model/服务状态恢复一致结果。
-6. 返回链回到正确父页，层级和遮罩没有残留。
-7. 首屏可见与可交互就绪的 cold/warm 耗时有数字证据。
-8. 目标页的标题、页签、布局、功能清单和主要资源属于当前老端版本。
-9. 可恢复写入已还原；破坏性写入有授权和专用测试状态。
-10. 同账号、同角色和可对齐状态下，选中、激活、穿戴、锁定、红点、属性、文案与条件显隐一致。
-11. 2D 页面有同分辨率老端/Unity/diff证据，位置、尺寸、层级、裁剪、图片、文字和间距没有未登记差异。
-12. 页面有3D展示位时，模型存在且职业/部件正确，不得镜像、翻转或角度明显错误，位置和比例须大致正常；不要求跨引擎逐像素重合，但明显构图差异必须修复。
-13. 模型骨骼常驻特效和独立UI特效分别核对；不存在特效的页面才可显式移除该闸。
-14. 详情/弹窗的具体 View 类型、主底图、根尺寸和遮罩层与老端一致；“打开了别的通用小窗”或底图 Sprite 为空均失败。
-15. 列表/滚动区域具备正确容器树、裁剪与自适应 Content，并以真实拖动证明 Content 位移及末项可达。
-16. 所有跨父容器的关键矩形都换算为页面根左上角坐标再比较，不用局部锚点数值冒充页面位置。
-
-## 设置路线树（2026-08-04 第 4 轮结构与叶子身份重开后）
-
-```text
-mainui.settings
-├─ open-close
-├─ base-tab
-│  ├─ copy-id
-│  ├─ rename
-│  │  ├─ query-eligibility
-│  │  ├─ submit-result
-│  │  ├─ parent-name-immediate-refresh
-│  │  └─ reopen-persistence
-│  ├─ change-avatar
-│  │  ├─ navigation
-│  │  ├─ cold-warm-ready-time
-│  │  ├─ current-page-version
-│  │  ├─ avatar-select-and-refresh
-│  │  ├─ fashion-hair-suit-visual-states
-│  │  │  ├─ fashion-list-structure-and-real-drag
-│  │  │  ├─ suit-banner-page-space-geometry
-│  │  │  └─ four-suit-goods-illusion-tip-leaves
-│  │  └─ suit-change-confirm-and-immediate-state
-│  ├─ sliders
-│  │  ├─ same-screen-count
-│  │  ├─ effect-count
-│  │  ├─ sound
-│  │  └─ music
-│  ├─ auto-pick-items
-│  ├─ mount-block
-│  ├─ sentient-block
-│  └─ auto-task-block
-├─ shield-tab
-│  └─ ten-shield-options
-├─ switch-role
-├─ switch-account
-├─ restore-default
-├─ escape-stuck
-└─ repair-abnormal
+```json
+{
+  "route": "mainui.role.example",
+  "baseline": {},
+  "nodes": [
+    {
+      "id": "mainui.role.example",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "open-detail", "kind": "button", "child": "mainui.role.example.open-detail" }
+      ]
+    },
+    {
+      "id": "mainui.role.example.open-detail",
+      "parent": "mainui.role.example",
+      "type": "navigation",
+      "risk": "read-only"
+    }
+  ]
+}
 ```
 
-第 2 轮的功能、协议、即时刷新和重开结论仍有效；第 3 轮又被用户截图重开：列表只是横排、没有滚动容器，套装竖牌因跨父容器锚点错位，条件格误开通用小窗，且测试没有逐格点击。第 4 轮起历史绿灯只有补齐目标身份、结构、真实拖动和页面坐标四个新闸后才可重新标 `done`。
+schema 6 结构门禁：
+
+1. 恰好一个根节点，且根节点 `type=page`。
+2. 父链无缺失、无环，ID 唯一。
+3. 节点类型只使用 `page / tab / navigation / read / reversible-write / destructive-write / transaction / return`。
+4. 风险只使用 `read-only / reversible-write / destructive-write`。
+5. 每个有直接子节点的 `page` 都必须有 `control_inventory[]`；控件 ID 唯一，每个控件只映射一个直接子节点，全部直接子节点必须恰好被覆盖一次。用一个“页签组”吞掉页内多个按钮会在 init 阶段失败。
+
+`manifest_source` 是该账的不可变拓扑合同。validator 会读取并核对其 SHA-256、路线名、节点集合，以及每个节点的 `parent/type/risk/control_inventory`。manifest 内容或这些字段变化后，旧账立即失败；应保留旧账并用修正版 manifest 初始化一个新版本台账，再把仍有效证据按新 run/哈希合同显式提交，禁止直接修改旧账或只改 manifest 哈希。
+
+## 4. 运行批次与证据引用
+
+### 4.1 `verification_runs`
+
+每个完成闸都要指向一个运行批次。所有批次均记录带时区的时间、Git HEAD 和 dirty 指纹：
+
+```json
+{
+  "verification_runs": {
+    "web-20260808-01": {
+      "recorded_at": "2026-08-08T15:30:00+08:00",
+      "environment": "real-web",
+      "git_commit": "40或64位Git哈希",
+      "dirty_fingerprint": "64位SHA-256",
+      "player_sha256": "64位SHA-256",
+      "catalog_sha256": "64位SHA-256",
+      "viewports": ["720x1280", "1920x1080"],
+      "old_session_disconnected": true,
+      "unity_session_valid": true,
+      "report": { "path": "output/.../headless-report.json", "sha256": "64位SHA-256" }
+    },
+    "editor-20260808-01": {
+      "recorded_at": "2026-08-08T14:00:00+08:00",
+      "environment": "unity-editor",
+      "git_commit": "40或64位Git哈希",
+      "dirty_fingerprint": "64位SHA-256",
+      "unity_version": "6000.3.17f1"
+    }
+  }
+}
+```
+
+`environment` 只允许 `static / unity-editor / real-web / user-runtime`。真实点击、运行态、滚动、模型/特效和恢复类闸不能绑定 `static`；`visual_match` 必须绑定 `real-web`。根页面 `done` 时，顶层 `route_run_id` 必须指向 `real-web` 批次；该批次不得早于任何完成叶引用的 run，且双方 Git commit/dirty 指纹必须一致。根页一旦回卷为非完成态，`apply` 会清除旧 `route_run_id`，因此新 Editor 证据不能借旧 Web 批次把整页重新变绿。
+
+### 4.2 两类证据引用
+
+不可变文件必须记录路径与 SHA-256；校验时会读取文件并比对哈希：
+
+```json
+{ "path": "output/ui_route_audit/2026-08-08_example/run-001/frame.png", "sha256": "...64位..." }
+```
+
+人工观察只能写成有来源、时间和范围的断言，不能只写“用户说好了”：
+
+```json
+{
+  "assertion": "背包格完全滚出后目标流光 alpha 为零",
+  "source": "user-runtime",
+  "scope": "背包高频代表消费者，仅关闭 viewport 残框缺陷",
+  "observed_at": "2026-08-08T01:10:00+08:00"
+}
+```
+
+人工断言可以关闭它实际覆盖的具体缺陷，但不能代替未执行的双帧文件、其它代表宿主、资源幂等或真实 Web 同批证据。
+
+## 5. done 叶子的闸绑定
+
+每个适用闸必须同时具备：
+
+1. `gates[gate] = true`；
+2. `gate_runs[gate] = verification_run_id`；
+3. `gate_evidence[gate] = [证据引用...]`；
+4. 该闸对应的结构化专项字段。
+
+完成叶的 `gates/gate_runs/gate_evidence` 键集合必须与 `applicable_gates` 完全一致。重新提交 `done` 时三张表整体替换，并清除已不适用闸的专项字段，禁止让旧 run、旧证据或旧 `true` 继续潜伏在当前完成态中。
+
+最小运行态只读叶示例：
+
+```json
+{
+  "id": "mainui.role.example.state",
+  "status": "done",
+  "applicable_gates": ["runtime_state"],
+  "gates": { "runtime_state": true },
+  "gate_runs": { "runtime_state": "web-20260808-01" },
+  "gate_evidence": { "runtime_state": [{ "path": "output/.../state.json", "sha256": "..." }] },
+  "state_evidence": [{ "path": "output/.../state.json", "sha256": "..." }]
+}
+```
+
+节点类型/风险的最低闸：
+
+| 类型或风险 | 最低闸 |
+|---|---|
+| `read` | `runtime_state` |
+| `navigation` | `click/result/target_identity/timing` |
+| `return` | `click/return_chain` |
+| `tab` | `click/result/runtime_state` |
+| `reversible-write` | `click/result/immediate/reopen/restore` |
+| `transaction` | `click/result/protocol/immediate/reopen` |
+| `destructive-write` 类型 | 上述事务闸 + `authorization` |
+| 任意 `risk=destructive-write` | 额外要求 `authorization` |
+| 任意 `risk=reversible-write` | 额外要求 `restore` |
+
+`applicable_gates=[]` 永远不能完成 schema 5/6 叶子。schema 6 不靠“从默认列表删掉若干项”表达完成，而是由节点类型最低闸 + 本叶实际附加闸共同定义；每个声明适用的闸都必须有本批显式证据。
+
+## 6. 专项证据合同
+
+| 闸 | schema 6 结构要求 |
+|---|---|
+| `timing` | `timing.cold/warm` 分别记录 `first_visible_ms` 与 `interactive_ready_ms`，后者不得早于前者。 |
+| `visual_version` | `version_evidence[]` 必须是带 SHA-256 的构建、Player、catalog 或版本报告；不能只写版本号字符串。 |
+| `visual_match` | `visual_evidence.old/unity/overlay/diff` 四份带哈希文件及正数 viewport；运行批次必须是 `real-web`。 |
+| `target_identity` | `identity_evidence[]` 每项含带哈希 artifact，`checks.view_type/root_size/background_rendered/close_chain` 全真。 |
+| `layout_structure` | `layout_evidence[]` 的 `checks.scroll_rect/viewport_mask/content_layout/content_fitter` 全真。 |
+| `scroll_interaction` | `interaction_evidence[]` 记录真实 `raycast_drag=true`、非零 `content_delta`、`last_item_reached=true`。 |
+| `page_space_geometry` | `geometry_evidence[]` 记录页面根空间 expected/actual 四元矩形与 tolerance，超差直接失败。 |
+| `runtime_state` | `state_evidence[]` 使用带哈希文件或有来源/时间/范围的人工断言。 |
+| `model_presentation` | old/unity 两份证据；存在、资源/部件、非镜像、非翻转、角度、位置比例、常驻特效八项 checks 全真。 |
+| `render_completion` | `render_evidence[]` 含带哈希 artifact、`render_completed=true` 和正数 `nontransparent_pixels`；RawImage/Renderer 存在不算。 |
+| `resource_stable` | 三份预检/运行差异文件；第二次 `imported=0/configured=0`，玩家点击后 `added=0`。 |
+| `shared_component_identity` | 记录共享资产/GUID/实例链、全部直接消费者、使用形态分组及每组代表样本；消费者必须恰好落入一个分组，不能漏组、跨组重复或夹带未声明宿主；根/生命周期变化时必须含高频页面。 |
+| `component_state_matrix` | 每个适用状态必须有 `result=pass` 和证据；不适用状态写原因，至少有一项适用。 |
+| `authorization` | `authorization_evidence[]` 必须明确本轮账号、操作与可消耗范围，历史授权不得复用。 |
+
+### 动态特效合同
+
+`effect_evidence[]` 不再接受单张图片路径。每个效果对象必须包含：
+
+- `owner`：页面 / 共享槽 / 模型骨骼归属；
+- `legacy_call`：`effect_name/parent/position/scale/rotation/loop/render_size`；
+- `driver`：动画属性、材质属性、shader 分支与 `consumed=true`；
+- `render`：同一 Handle 的 frame A/B、递增时间、正数像素差、非透明像素和正数 alpha 包围盒；
+- `lifecycle.hide/reopen=true`；
+- 若 `scroll_viewport=true`，再提供 full/partial/hidden 三态带哈希图和 alpha 像素，hidden 必须为 0。
+
+因此 `Animation.isPlaying`、Handle 存在、单帧有几个亮点、物品图标已被 Mask 裁掉，都不能让动态特效通过。
+
+## 7. 页面清单与真实 Web 收口
+
+完成的 `page` 除精确 `control_inventory[]` 外，还需要：
+
+```json
+{
+  "inventory_evidence": {
+    "legacy_runtime": { "path": "...", "sha256": "..." },
+    "legacy_source": { "path": "...", "sha256": "..." },
+    "unity_source": { "path": "...", "sha256": "..." },
+    "reconciled": true
+  }
+}
+```
+
+这三份证据分别回答“运行时出现什么”“老端源码/配置还可能出现什么”“Unity Prefab/Bind 实际有哪些”，防止只看一张首屏漏掉条件控件。根页只有在全部直接/递归子节点 `done` 且 `route_run_id` 指向同批真实 Web 运行时才可完成。
+
+## 8. 新证据回卷
+
+用户截图或真实运行结果推翻旧结论时，用 `invalidate_gates` 精确作废受影响闸：
+
+```json
+{
+  "id": "mainui.role.example.effect",
+  "status": "defect",
+  "invalidate_gates": ["effect_match", "render_completion"],
+  "invalidation_reason": "新截图显示流光静止且滚出后残留",
+  "observed_at": "2026-08-08T00:40:00+08:00"
+}
+```
+
+`apply` 会把旧 run/evidence 移入 `evidence_history`，将这些闸置 false，并回卷父状态。若一个已完成叶直接降级但没有列 `invalidate_gates`，schema 6 默认作废该叶全部适用闸，避免旧绿灯残留。重新完成时必须在结果文件中显式提交全部适用闸的新绑定。
+
+## 9. 历史兼容与当前边界
+
+- schema 2～4：按历史闸口继续可读；不会被自动解释成 schema 6 完成。
+- schema 5：保留共享组件两闸，但 `done` 叶不得使用空 `applicable_gates`。
+- 2026-08-07 共鸣 458 节点 `route-ledger.json` 是 schema 4 历史快照。它仍可表达当时的 `done/blocked/needs-runtime-verify` 边界，但不得继续由历史更新器写入；下一次真实复验应从 `route-manifest.json` 用 `init` 建 schema 6 新账。
+- 2026-08-04 挂机“提升”扫光旧台账曾只有树、没有任何状态，现已补成可校验的 schema 4 历史账；Editor 双帧/生命周期叶保留完成，真实 Web/资源幂等叶明确为 `needs-runtime-verify`，没有把旧 Editor 结果扩大成整页完成。

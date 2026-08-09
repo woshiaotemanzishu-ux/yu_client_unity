@@ -25,6 +25,10 @@ namespace Shenxiao.Module.Core.MainUI
         /// <summary>当前图标的路由键(role/bag/pet…;任务引导按它定位手指目标,对标老端 story_arr 锚点)。</summary>
         public string Res => _hasData ? _data.Res : "";
 
+        /// <summary>通用奖励飞行动画的功能入口落点。</summary>
+        public UnityEngine.RectTransform RewardFlyTarget =>
+            _img_icon != null ? _img_icon.rectTransform : transform as UnityEngine.RectTransform;
+
         /// <summary>填功能图标数据(对标 SetData + UpdateItem),数据来自 MainUIModel.MainFuncIcons。</summary>
         public void SetData(MainUIModel.MainFuncIcon data)
         {

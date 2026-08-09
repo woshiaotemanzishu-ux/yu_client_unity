@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <NoWarn>$(NoWarn);0436</NoWarn>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>artifacts/bin/</OutputPath>
+    <IntermediateOutputPath>artifacts/obj/</IntermediateOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../../../Assets/Scripts/Module/Core/BaseDungeon/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp" HintPath="../../../../Library/ScriptAssemblies/Assembly-CSharp.dll" Private="false" />
+    <Reference Include="Shenxiao.Common" HintPath="../../../../Library/ScriptAssemblies/Shenxiao.Common.dll" Private="false" />
+    <Reference Include="Shenxiao.Framework" HintPath="../../../../Library/ScriptAssemblies/Shenxiao.Framework.dll" Private="false" />
+    <Reference Include="Shenxiao.Generated" HintPath="../../../../Library/ScriptAssemblies/Shenxiao.Generated.dll" Private="false" />
+    <Reference Include="Shenxiao.Module.Core" HintPath="../../../../Library/ScriptAssemblies/Shenxiao.Module.Core.dll" Private="false" />
+    <Reference Include="UnityEngine.CoreModule" HintPath="C:/Program Files/Unity/Hub/Editor/6000.3.17f1/Editor/Data/Managed/UnityEngine/UnityEngine.CoreModule.dll" Private="false" />
+    <Reference Include="UnityEngine.UI" HintPath="../../../../Library/ScriptAssemblies/UnityEngine.UI.dll" Private="false" />
+    <Reference Include="Unity.TextMeshPro" HintPath="../../../../Library/ScriptAssemblies/Unity.TextMeshPro.dll" Private="false" />
+  </ItemGroup>
+</Project>

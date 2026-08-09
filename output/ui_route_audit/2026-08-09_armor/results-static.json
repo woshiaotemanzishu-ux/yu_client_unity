@@ -1,0 +1,379 @@
+{
+  "nodes": [
+    {
+      "id": "mainui.equip.armor.entry",
+      "status": "blocked",
+      "blocked_reason": "入口与第6页签属于禁止写入的 EquipFlow/BaseWindow；TabSpec.Label 当前为空，页面身份和页签文案需跨岛修复及真实 Web 核对。"
+    },
+    {
+      "id": "mainui.equip.armor.close",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.data.request",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.data.config-loading",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.data.snapshot-loading",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.data.config-closure",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "三张配置静态存在且行数可核；未运行 ResManager/Addressables，因此资源可达与第二次幂等仍需运行态验证。"
+    },
+    {
+      "id": "mainui.equip.armor.stages.structure",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.stages.drag",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.stages.select",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.stages.locked",
+      "status": "blocked",
+      "blocked_reason": "确定修复点位于禁止写入的 Equip 业务 View/Flow；Armor 文件岛只能记录 blocker，不能越界修改。 Unity 当前总用“open_lv级”，未复刻老端 open_lv>370 的“神创N”文案。"
+    },
+    {
+      "id": "mainui.equip.armor.stages.complete",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.stages.red",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.types.origin",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.types.relic",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.types.skin",
+      "status": "blocked",
+      "blocked_reason": "确定修复点位于禁止写入的 Equip 业务 View/Flow；Armor 文件岛只能记录 blocker，不能越界修改。 老端选中/未选中切换 uizj_007/uizj_008，Unity 当前只改文字颜色。"
+    },
+    {
+      "id": "mainui.equip.armor.types.labels",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.types.red",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.suit.count",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.suit.status",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.suit.attributes",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.positions.layout",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.positions.origin-1",
+      "status": "blocked",
+      "blocked_reason": "确定修复点位于禁止写入的 Equip 业务 View/Flow；Armor 文件岛只能记录 blocker，不能越界修改。 Unity 动态 BaseAwardItem 保留默认详情点击，可能截断父 gp_con 的部位选择；老端底部格明确 SetShowTips(false)，且未打造图标应灰阶。"
+    },
+    {
+      "id": "mainui.equip.armor.positions.origin-2",
+      "status": "blocked",
+      "blocked_reason": "确定修复点位于禁止写入的 Equip 业务 View/Flow；Armor 文件岛只能记录 blocker，不能越界修改。 Unity 动态 BaseAwardItem 保留默认详情点击，可能截断父 gp_con 的部位选择；老端底部格明确 SetShowTips(false)，且未打造图标应灰阶。"
+    },
+    {
+      "id": "mainui.equip.armor.positions.origin-3",
+      "status": "blocked",
+      "blocked_reason": "确定修复点位于禁止写入的 Equip 业务 View/Flow；Armor 文件岛只能记录 blocker，不能越界修改。 Unity 动态 BaseAwardItem 保留默认详情点击，可能截断父 gp_con 的部位选择；老端底部格明确 SetShowTips(false)，且未打造图标应灰阶。"
+    },
+    {
+      "id": "mainui.equip.armor.positions.origin-4",
+      "status": "blocked",
+      "blocked_reason": "确定修复点位于禁止写入的 Equip 业务 View/Flow；Armor 文件岛只能记录 blocker，不能越界修改。 Unity 动态 BaseAwardItem 保留默认详情点击，可能截断父 gp_con 的部位选择；老端底部格明确 SetShowTips(false)，且未打造图标应灰阶。"
+    },
+    {
+      "id": "mainui.equip.armor.positions.origin-5",
+      "status": "blocked",
+      "blocked_reason": "确定修复点位于禁止写入的 Equip 业务 View/Flow；Armor 文件岛只能记录 blocker，不能越界修改。 Unity 动态 BaseAwardItem 保留默认详情点击，可能截断父 gp_con 的部位选择；老端底部格明确 SetShowTips(false)，且未打造图标应灰阶。"
+    },
+    {
+      "id": "mainui.equip.armor.positions.relic-6",
+      "status": "blocked",
+      "blocked_reason": "确定修复点位于禁止写入的 Equip 业务 View/Flow；Armor 文件岛只能记录 blocker，不能越界修改。 Unity 动态 BaseAwardItem 保留默认详情点击，可能截断父 gp_con 的部位选择；老端底部格明确 SetShowTips(false)，且未打造图标应灰阶。"
+    },
+    {
+      "id": "mainui.equip.armor.positions.relic-7",
+      "status": "blocked",
+      "blocked_reason": "确定修复点位于禁止写入的 Equip 业务 View/Flow；Armor 文件岛只能记录 blocker，不能越界修改。 Unity 动态 BaseAwardItem 保留默认详情点击，可能截断父 gp_con 的部位选择；老端底部格明确 SetShowTips(false)，且未打造图标应灰阶。"
+    },
+    {
+      "id": "mainui.equip.armor.positions.relic-8",
+      "status": "blocked",
+      "blocked_reason": "确定修复点位于禁止写入的 Equip 业务 View/Flow；Armor 文件岛只能记录 blocker，不能越界修改。 Unity 动态 BaseAwardItem 保留默认详情点击，可能截断父 gp_con 的部位选择；老端底部格明确 SetShowTips(false)，且未打造图标应灰阶。"
+    },
+    {
+      "id": "mainui.equip.armor.positions.relic-9",
+      "status": "blocked",
+      "blocked_reason": "确定修复点位于禁止写入的 Equip 业务 View/Flow；Armor 文件岛只能记录 blocker，不能越界修改。 Unity 动态 BaseAwardItem 保留默认详情点击，可能截断父 gp_con 的部位选择；老端底部格明确 SetShowTips(false)，且未打造图标应灰阶。"
+    },
+    {
+      "id": "mainui.equip.armor.positions.relic-10",
+      "status": "blocked",
+      "blocked_reason": "确定修复点位于禁止写入的 Equip 业务 View/Flow；Armor 文件岛只能记录 blocker，不能越界修改。 Unity 动态 BaseAwardItem 保留默认详情点击，可能截断父 gp_con 的部位选择；老端底部格明确 SetShowTips(false)，且未打造图标应灰阶。"
+    },
+    {
+      "id": "mainui.equip.armor.positions.state",
+      "status": "blocked",
+      "blocked_reason": "确定修复点位于禁止写入的 Equip 业务 View/Flow；Armor 文件岛只能记录 blocker，不能越界修改。 Unity 动态 BaseAwardItem 保留默认详情点击，可能截断父 gp_con 的部位选择；老端底部格明确 SetShowTips(false)，且未打造图标应灰阶。"
+    },
+    {
+      "id": "mainui.equip.armor.selected.item",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.selected.details",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.selected.attributes",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.selected.attr-structure",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.selected.attr-drag",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.materials.slot-1",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.materials.slot-2",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.materials.slot-3",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.materials.empty-lock",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.materials.quantity",
+      "status": "blocked",
+      "blocked_reason": "确定修复点位于禁止写入的 Equip 业务 View/Flow；Armor 文件岛只能记录 blocker，不能越界修改。 老端普通不足材料图标置灰，Unity 当前只把数量文字置红，BaseAwardItem 未调用 SetGray。"
+    },
+    {
+      "id": "mainui.equip.armor.materials.details",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.materials.prior-stage",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.make.button",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.make.insufficient",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.make.already",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.make.confirm.text",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.make.confirm.cancel",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.make.confirm.submit",
+      "status": "blocked",
+      "blocked_reason": "14402 会真实消耗材料、写入圣骸/角色属性状态；本轮未获账号资产写授权，禁止发送，成功/失败、即时刷新与重开不得静态冒充。"
+    },
+    {
+      "id": "mainui.equip.armor.make.pending",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.make.failure",
+      "status": "blocked",
+      "blocked_reason": "14402 会真实消耗材料、写入圣骸/角色属性状态；本轮未获账号资产写授权，禁止发送，成功/失败、即时刷新与重开不得静态冒充。"
+    },
+    {
+      "id": "mainui.equip.armor.make.success",
+      "status": "blocked",
+      "blocked_reason": "14402 会真实消耗材料、写入圣骸/角色属性状态；本轮未获账号资产写授权，禁止发送，成功/失败、即时刷新与重开不得静态冒充。"
+    },
+    {
+      "id": "mainui.equip.armor.make.immediate",
+      "status": "blocked",
+      "blocked_reason": "14402 会真实消耗材料、写入圣骸/角色属性状态；本轮未获账号资产写授权，禁止发送，成功/失败、即时刷新与重开不得静态冒充。"
+    },
+    {
+      "id": "mainui.equip.armor.make.reopen",
+      "status": "blocked",
+      "blocked_reason": "14402 会真实消耗材料、写入圣骸/角色属性状态；本轮未获账号资产写授权，禁止发送，成功/失败、即时刷新与重开不得静态冒充。"
+    },
+    {
+      "id": "mainui.equip.armor.make.effect",
+      "status": "blocked",
+      "blocked_reason": "确定修复点位于禁止写入的 Equip 业务 View/Flow；Armor 文件岛只能记录 blocker，不能越界修改。 老端成功调用 ui_dazaochengong(position=-0.85,0.55, scale=1.5)，Unity EquipArmorView 未调用对应成功特效。"
+    },
+    {
+      "id": "mainui.equip.armor.total-attrs.open",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.total-attrs.list",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.total-attrs.empty",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.total-attrs.structure",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.total-attrs.drag",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.total-attrs.close",
+      "status": "blocked",
+      "blocked_reason": "确定修复点位于禁止写入的 Equip 业务 View/Flow；Armor 文件岛只能记录 blocker，不能越界修改。 Unity ArmorAttrView 把弹窗主底图 _img_bg 绑定 Hide，未证明存在老端独立遮罩关闭面，可能点击卡片内容即关窗。"
+    },
+    {
+      "id": "mainui.equip.armor.root-red",
+      "status": "blocked",
+      "blocked_reason": "老端 ArmorModel.UPDATE_RED 会刷新 MainFunc.Equip 主入口红点；Unity Armor 模块未提供等价根红点状态，修复涉及禁止写入的 MainUI/Equip。"
+    },
+    {
+      "id": "mainui.equip.armor.lifecycle.tab-away",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.lifecycle.reopen",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.lifecycle.events",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.lifecycle.async-cleanup",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.visual.350ms",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.visual.1000ms",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.visual.ready",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.visual.mobile",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.visual.wide",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.performance.cold",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.performance.warm",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    },
+    {
+      "id": "mainui.equip.armor.performance.resources",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "本轮未启动 Unity/真实 Web；仅有老端源码、Unity Prefab/Bind/业务代码静态证据，需同账号真实 GraphicRaycaster 点击、状态、视觉与生命周期复验。"
+    }
+  ]
+}

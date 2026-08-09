@@ -29,7 +29,7 @@ namespace Shenxiao.Editor.UiCreator.Login
         private const string PrefabPath = "Assets/Prefabs/UI/Login/RoleSelectView.prefab";
 
         // 老端源图(GameRes 相对路径;均已确认在 Assets/GameRes 下)
-        private const string IMG_BG = "resource/game/login/other/full_screen_bg.jpg";
+        private const string IMG_BG = "resource/game/login/other/full_screen_bg.png";
         private const string IMG_CARD_BG = "resource/game/login/texture/ui_Login_03.png";   // 未选底图(头像框)
         private const string IMG_CARD_BG2 = "resource/game/login/texture/ui_Login_06.png";  // 未选名牌胶囊
         private const string IMG_SC = "resource/game/login/texture/uisc_006.png";           // 升仙角标

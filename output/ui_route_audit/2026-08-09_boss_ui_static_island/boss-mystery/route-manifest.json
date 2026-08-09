@@ -1,0 +1,56 @@
+{
+  "route": "cross-server.boss-mystery",
+  "baseline": {
+    "legacy_shell": "CrossServerEnterView[2] -> BossMysteryEnterView",
+    "unity_prefab": "Assets/Prefabs/UI/BossMystery/BossMysteryModule.prefab",
+    "audit_level": "static-only"
+  },
+  "nodes": [
+    {
+      "id": "cross-server.boss-mystery",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {"id":"floor-tabs","kind":"tab-list","child":"cross-server.boss-mystery.floor-tabs"},
+        {"id":"boss-cards","kind":"horizontal-list","child":"cross-server.boss-mystery.boss-cards"},
+        {"id":"attention","kind":"toggle","child":"cross-server.boss-mystery.attention"},
+        {"id":"drop-record","kind":"button","child":"cross-server.boss-mystery.drop-record"},
+        {"id":"stage-reward","kind":"button","child":"cross-server.boss-mystery.stage-reward"},
+        {"id":"box-switch","kind":"button","child":"cross-server.boss-mystery.box-switch"},
+        {"id":"challenge","kind":"button","child":"cross-server.boss-mystery.challenge"},
+        {"id":"model-and-reward-preview","kind":"dynamic-content","child":"cross-server.boss-mystery.presentation"},
+        {"id":"counts-and-conditions","kind":"conditional-state","child":"cross-server.boss-mystery.runtime-state"},
+        {"id":"instruction","kind":"shell-button","child":"cross-server.boss-mystery.instruction"},
+        {"id":"return","kind":"shell-return","child":"cross-server.boss-mystery.return"}
+      ]
+    },
+    {"id":"cross-server.boss-mystery.floor-tabs","parent":"cross-server.boss-mystery","type":"tab","risk":"read-only"},
+    {"id":"cross-server.boss-mystery.boss-cards","parent":"cross-server.boss-mystery","type":"tab","risk":"read-only"},
+    {"id":"cross-server.boss-mystery.attention","parent":"cross-server.boss-mystery","type":"reversible-write","risk":"reversible-write"},
+    {"id":"cross-server.boss-mystery.drop-record","parent":"cross-server.boss-mystery","type":"navigation","risk":"read-only"},
+    {
+      "id":"cross-server.boss-mystery.stage-reward",
+      "parent":"cross-server.boss-mystery",
+      "type":"page",
+      "risk":"read-only",
+      "control_inventory":[
+        {"id":"close","kind":"button","child":"cross-server.boss-mystery.stage-reward.close"},
+        {"id":"reward-scroll","kind":"vertical-list","child":"cross-server.boss-mystery.stage-reward.scroll"},
+        {"id":"claim-stage-1","kind":"conditional-button","child":"cross-server.boss-mystery.stage-reward.claim-1"},
+        {"id":"claim-stage-2","kind":"conditional-button","child":"cross-server.boss-mystery.stage-reward.claim-2"},
+        {"id":"claim-stage-3","kind":"conditional-button","child":"cross-server.boss-mystery.stage-reward.claim-3"}
+      ]
+    },
+    {"id":"cross-server.boss-mystery.stage-reward.close","parent":"cross-server.boss-mystery.stage-reward","type":"return","risk":"read-only"},
+    {"id":"cross-server.boss-mystery.stage-reward.scroll","parent":"cross-server.boss-mystery.stage-reward","type":"read","risk":"read-only"},
+    {"id":"cross-server.boss-mystery.stage-reward.claim-1","parent":"cross-server.boss-mystery.stage-reward","type":"transaction","risk":"destructive-write"},
+    {"id":"cross-server.boss-mystery.stage-reward.claim-2","parent":"cross-server.boss-mystery.stage-reward","type":"transaction","risk":"destructive-write"},
+    {"id":"cross-server.boss-mystery.stage-reward.claim-3","parent":"cross-server.boss-mystery.stage-reward","type":"transaction","risk":"destructive-write"},
+    {"id":"cross-server.boss-mystery.box-switch","parent":"cross-server.boss-mystery","type":"tab","risk":"read-only"},
+    {"id":"cross-server.boss-mystery.challenge","parent":"cross-server.boss-mystery","type":"transaction","risk":"destructive-write"},
+    {"id":"cross-server.boss-mystery.presentation","parent":"cross-server.boss-mystery","type":"read","risk":"read-only"},
+    {"id":"cross-server.boss-mystery.runtime-state","parent":"cross-server.boss-mystery","type":"read","risk":"read-only"},
+    {"id":"cross-server.boss-mystery.instruction","parent":"cross-server.boss-mystery","type":"navigation","risk":"read-only"},
+    {"id":"cross-server.boss-mystery.return","parent":"cross-server.boss-mystery","type":"return","risk":"read-only"}
+  ]
+}

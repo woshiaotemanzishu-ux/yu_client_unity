@@ -3,6 +3,7 @@ using Shenxiao.Generated.UI.Daily;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
+using Shenxiao.Common.Tips;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,22 +13,23 @@ namespace Shenxiao.Module.Core.Daily
     /// 每日·资源找回页(对标老客户端 daily/DailyResFindView.ts,DailyView 标签3 内容):
     /// 资源找回列表(scroll/Content 克隆 DailyResFindItem)+ 空提示(none_conta/tips)+ 一键找回(receive_gp,41904)。
     ///
-    /// 降级:checkBtn0/checkBtn1(老端按 money_type/资源类型筛选)仍打日志(筛选逻辑未接线,TODO);
-    /// receive_gp 按 type=2(金币/免费,老端默认 money_type)一键找回——⚠轮10交叉验收 blocker 订正:此前误
-    /// 固定 type=1(绑钻/付费),会在无任何确认的情况下直接扣绑钻,与老端默认行为相反。type=1 付费路径待
-    /// config_res_act 导入后再开且需二次确认(TODO)。
+    /// checkBtn0/checkBtn1 对应 type=1 绑玉与 type=2 免费，默认免费；切换同步排序、行次数和确认类型。
+    /// 单条与一键写入均先走确认框，付费分支明确提示绑玉不足时可能消耗勾玉。config_res_act 尚未导入，
+    /// 因而精确价格与奖励预览仍是运行收口 blocker。
     /// </summary>
     public sealed class DailyResFindView : DailyResFindViewBind
     {
         private readonly List<GameObject> _cells = new List<GameObject>();
         private bool _subscribed;
+        private int _moneyType = 2;
 
         protected override void OnInit()
         {
             if (_tpl_DailyResFindItem != null) _tpl_DailyResFindItem.SetActive(false);
-            BindBtn(checkBtn0, "资源找回·筛选0");
-            BindBtn(checkBtn1, "资源找回·筛选1");
-            BindClick(receive_gp, () => DailyController.Instance.ResFindOneKey(2));
+            BindClick(checkBtn0, () => SelectMoneyType(1));
+            BindClick(checkBtn1, () => SelectMoneyType(2));
+            BindClick(receive_gp, ConfirmOneKey);
+            UpdateCheckState();
         }
 
         protected override void OnShow(object args)
@@ -59,9 +61,21 @@ namespace Shenxiao.Module.Core.Daily
         {
             foreach (GameObject go in _cells) if (go != null) Object.Destroy(go);
             _cells.Clear();
-            List<DailyModel.ResFindVo> list = DailyModel.Instance.ResFindList;
+            List<DailyModel.ResFindVo> list = DailyModel.Instance.ResFindList == null
+                ? new List<DailyModel.ResFindVo>()
+                : new List<DailyModel.ResFindVo>(DailyModel.Instance.ResFindList);
+            list.Sort((a, b) =>
+            {
+                int aTimes = _moneyType == 1 ? a.Lefttimes + a.LefttimesVip : a.Lefttimes;
+                int bTimes = _moneyType == 1 ? b.Lefttimes + b.LefttimesVip : b.Lefttimes;
+                int times = bTimes.CompareTo(aTimes);
+                return times != 0 ? times : a.ActId.CompareTo(b.ActId);
+            });
             bool empty = list == null || list.Count == 0;
             if (none_conta != null) none_conta.gameObject.SetActive(empty);
+            if (checkBtn0 != null) checkBtn0.gameObject.SetActive(!empty);
+            if (checkBtn1 != null) checkBtn1.gameObject.SetActive(!empty);
+            if (receive_gp != null) receive_gp.gameObject.SetActive(!empty);
             if (!empty && _tpl_DailyResFindItem != null && Content != null)
             {
                 foreach (DailyModel.ResFindVo vo in list)
@@ -69,21 +83,37 @@ namespace Shenxiao.Module.Core.Daily
                     GameObject cellGo = Object.Instantiate(_tpl_DailyResFindItem, Content);
                     cellGo.SetActive(true);
                     DailyResFindItem item = cellGo.GetComponent<DailyResFindItem>();
-                    if (item != null) item.SetData(vo);
+                    if (item != null)
+                    {
+                        item.Show();
+                        item.SetData(vo, _moneyType);
+                    }
                     _cells.Add(cellGo);
                 }
             }
             GameLog.Info("Daily", "资源找回列表刷新 count={0}", list?.Count ?? 0);
         }
 
-        private static void BindBtn(Component target, string label)
+        private void SelectMoneyType(int type)
         {
-            if (target == null) return;
-            Image img = target as Image;
-            if (img == null) img = target.GetComponentInChildren<Image>(true);
-            if (img == null) return;
-            img.raycastTarget = true;
-            UIUtil.AddClick(img, () => GameLog.Info("Daily", "点击[{0}] → 待对接", label));
+            if (_moneyType == type) return;
+            _moneyType = type;
+            UpdateCheckState();
+            Refresh();
+        }
+
+        private void UpdateCheckState()
+        {
+            if (check_img0 != null) check_img0.color = _moneyType == 1 ? Color.white : new Color(1f, 1f, 1f, 0.35f);
+            if (check_img1 != null) check_img1.color = _moneyType == 2 ? Color.white : new Color(1f, 1f, 1f, 0.35f);
+        }
+
+        private void ConfirmOneKey()
+        {
+            string text = _moneyType == 1
+                ? "是否使用绑玉一键找回所有奖励？\n（绑玉不足时可能消耗勾玉代替）"
+                : "是否一键免费找回所有奖励？";
+            TipsManager.Confirm(text, () => DailyController.Instance.ResFindOneKey(_moneyType));
         }
 
         private static void BindClick(Component target, System.Action onClick)

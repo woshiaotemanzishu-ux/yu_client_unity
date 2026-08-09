@@ -8,22 +8,24 @@
 - 业务只提交“资源、宿主、位置、缩放、旋转和差异配置”，不管理 Camera、RenderTexture 和渲染层。
 - 同一 UI 作用域、同一渲染带中的全部特效共享一条渲染通道。
 - Camera/RenderTexture 的数量由活跃 UI 作用域和固定渲染带决定，不再随特效实例数线性增加。
-- 保留旧端坐标、水平镜像和 additive 合成语义，避免迁移业务逐个重算。
+- 保留旧端坐标、水平镜像和每类资源真实的 Alpha/Additive/覆盖合成语义，避免用一个全局近似替代不同资源。
 
-## 最终结构
+## 目标结构与当前状态
 
 ```text
 UIEffectStage（兼容入口）
     -> UIEffectService（实例与生命周期）
         -> UIEffectChannel(UILayer 或 UIEffectScope, Underlay / Overlay)
             -> 每个作用域、每个活跃渲染带 1 Camera
-            -> 1 full-scope RenderTexture
-            -> 1 full-scope additive RawImage
+            -> 当前：1 full-scope RenderTexture + 1 UIEffectAdditive RawImage
+            -> 目标：按已验证合成模式拆分 RT/RawImage，同模式内继续共享
             -> N EffectHandle / EffectWrapper / effect prefab
         -> UIEffectProfileCatalog（公共参数 + 按资源差异表）
 ```
 
 `UIEffectStage` 只保留现有调用签名，底层不再创建实例私有 Camera、RenderTexture 或 RawImage。
+
+截至 2026-08-09，Camera/RT 共享与生命周期已经实现；“按合成模式拆分”尚未实现，当前单一 `UIEffectAdditive` 已被奖励飞行证据证明不能覆盖所有资源。因此本节目标结构不能作为现有运行态通过证明。
 
 `UIEffectStage.Handle.LongestLegacyAnimationSeconds` 提供实例内最长 Legacy Animation 片段的只读时长，供组合演出把外层生命周期收口到真实主体动画。它不把循环粒子视为无限生命周期，也不替代业务加载失败兜底；例如“大妖来袭”必须在 `UI_2103=1.083s` 结束时连同循环流体底纹一起释放，而 3 秒仍只负责加载异常退场。
 
@@ -33,7 +35,7 @@ UIEffectStage（兼容入口）
 2. 复杂窗口可在 Prefab 根节点添加 `UIEffectScope`，让窗口内特效共享窗口级通道，保持窗口自身的 sibling、遮挡和堆叠关系；不需要业务代码。
 3. 每个作用域提供固定的 `Underlay`、`Overlay` 两个渲染带，常态只创建 `Overlay`；没有活跃特效时立即关闭 Camera 和 RawImage。
 4. 每个通道使用 Layer 31，并在世界 Z 方向使用互不相交的固定深度切片，杜绝跨通道串拍。
-5. `Underlay` RawImage 固定在作用域首位，`Overlay` 固定在末位，统一使用 `Shenxiao/UI/UIEffectAdditive` 合成。
+5. `Underlay` RawImage 固定在作用域首位，`Overlay` 固定在末位。当前实现仍统一使用 `Shenxiao/UI/UIEffectAdditive`；2026-08-09 已确认这只能适配部分资源，不能作为最终通用合同，详见“离屏 Alpha 与最终合成”。
 6. 通道 RenderTexture 跟随对应作用域尺寸重建，并受全局渲染倍率和最大尺寸限制。
 7. 通道整体做一次水平翻转，匹配老端相机 `rotationY=180` 的画面方向。
 
@@ -58,6 +60,14 @@ UIEffectStage（兼容入口）
 
 运行态门禁必须定位到目标 Handle，临时隔离同通道其他 Wrapper，驱动该实例动画并在专用 Camera `Render()` 后读取 RenderTexture。证据至少包含目标实例 PNG、非透明像素数和 alpha 包围盒宽高；通过阈值按资源与宿主基线设置，要求形成预期的二维足迹。少量亮点、单条窄线、尺寸正确但出现在错误宿主，或其他同通道特效贡献的像素都不能证明目标特效正确。归属、位置和足迹必须同时通过；任意像素计数门禁已经失效。
 
+### 离屏 Alpha 与最终合成
+
+共享 Camera/RT 只解决资源量，不能证明合成正确。完整链必须逐段核对：`源纹理 RGBA → 粒子材质 RGB/Alpha blend → RT 实际 RGBA → RawImage shader/blend → Canvas 像素`。
+
+当前 `UIEffectAdditive.shader` 使用 `Blend One OneMinusSrcAlpha`，但片元阶段丢弃 RT 原始 alpha，以 `max(rgb)` 重新生成覆盖度。这个规则曾用于让部分暗色圆弧在亮图标上可见，却会把“alpha=0 但 RGB 非黑”的透明像素重新变成可见色块。`ui_bangyu_1/2` 的 `lyz_glow_134.png` 正是这种数据：128×128 纹理中 8255 个 alpha=0 像素全部仍保存约 78 的灰色 RGB；对应覆盖子材质又以 `One/Zero` 写入 RT。最终亮度 alpha 因而把本应透明的区域显示成灰色圆片，和 2026-08-09 用户截图一致。
+
+因此不得全局修改粒子数量、方向、缩放或 `LayaParticleUnlit` 来修这个现象。正确架构是按资源实际语义选择“保留 RT Alpha/预乘 Alpha”“纯 Additive”或经专项验证的覆盖模式；一个 RT 若混入不同最终合成语义，必须先按合成模式拆通道或中间表面，不能只给已经混合完成的同一 RawImage 换材质。验证需同时保存原始 RT 与最终 Canvas，并分别在 Editor/WebGL 比较；`fixed` 精度和默认 RT 色彩空间可能放大 Web 差异，但没有同批 Web 原始 RT 读回前，不把平台放大机制写成已证实根因。
+
 ## 配置体系
 
 `UIEffectProfileCatalog` 是可在 Inspector 中编辑的 ScriptableObject：
@@ -78,6 +88,16 @@ UIEffectStage（兼容入口）
 同日第二张运行截图进一步证明“框回到格子”仍不等于修复完成：六套 Legacy Animation 共 80 条 UV 曲线只驱动 `material._BaseMap_ST`，而这 27 个品质特效材质原先没有启用 shader 的 `_UseBaseMapST` 分支，实际画面仍固定读取 `_MainTex_ST`，所以动画处于播放态也只显示静止的一帧。当前只给这六个资源闭包内的 27 个材质启用 `_UseBaseMapST=1`，不全局改写其他特效材质；静态门禁同时要求曲线有真实数值变化、材质 shader 正确且动画所写属性被当前分支消费。
 
 共享通道的 `RawImage` 挂在页面根，不在背包 `ScrollRect/Viewport` 的 UGUI 裁剪层级里，因此物品图标滚出列表时，特效不能只靠 `RectMask2D` 自动消失。`UIEffectStage` 现在按帧把槽位自身矩形与有效祖先 `RectMask2D/Mask` 的可见区求交，再写入该 Handle 的 shader 裁剪；完全离开 viewport 时同时隐藏 wrapper。运行验收必须对同一隔离 Handle 保存两个不同时间点且像素有变化的图，并覆盖“整格可见、底部部分被裁、完全离开后零 alpha”三态，单帧位置正确、`Animation.isPlaying` 或物品图标本身已被裁掉均不能通过。
+
+### 奖励货币飞行特效的裁切、拓扑与合成纠偏
+
+老端 `MainUIController.ShowDiamond` 对 `ui_bangyu_1/ui_bangyu_2` 使用 100×100 `effect_box` 和资源倍率 14。`UIEffect.AddUIEffect` 默认 `use_cache=true`，相同资源、位置、倍率和父节点尺寸组成相同 cache key；因此一批 N 个飞行节点实际共享一个 `UIEffectInfo/Scene3D/Particle/RenderTexture`，每个节点只持有读取同一 100×100 动态 RT 的二维 `Image`。它的语义是 `1 个模拟源 → N 个显示副本`，而不是 N 套独立粒子。
+
+共享通道不能只按“画面上有 N 个东西”推导为 N 个 `UIEffectStage.Handle`。2026-08-09 的灰片根因位于最终 UI 合成：`lyz_glow_134.png` 透明区保留灰 RGB，粒子先写入 ARGB32 RT，而全局 `UIEffectAdditive` 再以 RGB 亮度代替真实 alpha，于是透明区变成灰片。同时，旧资源在 100×100 私有 RT 内已混合覆盖、Alpha 与 Additive 子材质；进入一张共享 RT 后，再换最终 RawImage 材质已经不能无损恢复被抹掉的每实例合成边界。
+
+这两个明确资源因此采用“旧运行时最终 RGBA 序列”兼容模式：Headless 老 H5 从真实 `UIEffect.render_texture` 读取 120×100×100 RGBA 帧，按 60fps 打成无损图集；Unity 一批奖励只推进一份序列时钟，N 个 `RawImage` 读取同一图集单元，再分别承担老端外层轨迹和内层随机变换。该模式同时保持透明 Alpha、100×100 边界和 `1 source → N presenters`，但仅适用于已证明转换后合成语义不可逆、边界固定且时长有限的资源。它不是抓整页视频，不允许包含页面背景/按钮，也不得替代能由原生粒子正确迁移的场景、技能和普通 UI 特效。
+
+采集必须绑定旧客户端版本、真实调用参数、宿主尺寸、逻辑帧率、帧数、原始 RGBA 与图集 SHA-256；图集使用无损、无 mipmap、无平台压缩并保留透明像素 RGB，单元格加复制边防止双线性串帧。验收先逐像素证明图集单元等于旧 RT 帧，再检查 Unity 最终 Canvas 的动态、轨迹、重叠、清理和 Editor/WebGL 一致性。两级证据互不替代。
 
 2026-08-08 最终人工复验已确认：品质框持续动态流动，背包底部滚动时按 viewport 同步裁切，完全离开后不再在背包/仓库页签与底栏留下孤框。本结论只关闭“品质流光动态与祖先裁剪”这两个被用户明确复验的缺陷，不自动替代其他共享消费者、详情页或真实 Web 的独立证据。
 
@@ -108,6 +128,7 @@ UIEffectStage（兼容入口）
 4. 运行态诊断按“通道 + 实例”报告，并且每条共享 RT 只导出一次。
 5. 编辑器压力测试覆盖 20 并发、100 次生命周期、720x1280→1024x768 重建和空闲释放。
 6. 旧的实例私有 Camera/RT/RawImage 后端已经删除。
+7. 当前仍有已知限制：每个原生渲染带只使用一个 `UIEffectAdditive` 最终合成。奖励货币已从该链拆为资源专属 RGBA 序列；静态字节校验通过，且用户已在当前 Unity 真实领取流程中确认此前灰色圆片缺陷消失、可见效果可接受。该局部结论不替代另一货币变体、飞行中关页清理和同批 WebGL 复验。顶部 `ui_zhujiemianzhuanquan` 仍留在原生共享通道，不能用奖励资源的专项兼容结论代替它的独立诊断。
 
 ## 任务完成态特效约束
 

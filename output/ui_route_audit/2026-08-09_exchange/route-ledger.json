@@ -1,0 +1,347 @@
+{
+  "schema": 6,
+  "route": "mainui.welfare.exchange-gift",
+  "baseline": {
+    "scope": "ExchangeGift standalone page plus Welfare tab entry boundary",
+    "legacy_source": "output/ui_route_audit/2026-08-09_exchange/legacy-source.md",
+    "unity_source": "output/ui_route_audit/2026-08-09_exchange/unity-source.md",
+    "runtime_evidence": "not-collected-by-user-scope"
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_exchange/route-manifest.json",
+    "sha256": "7d54651d87db1296e88658e7a184860d996f93e408dd33531a27a85041089b5e"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "mainui.welfare.exchange-gift",
+      "type": "page",
+      "risk": "read-only",
+      "note": "老端 Welfare 第4页签；ExchangeGift 内部无页签、无列表。",
+      "control_inventory": [
+        {
+          "id": "welfare-tab-entry",
+          "kind": "tab",
+          "child": "mainui.welfare.exchange-gift.entry"
+        },
+        {
+          "id": "platform-condition",
+          "kind": "conditional",
+          "child": "mainui.welfare.exchange-gift.condition.platform"
+        },
+        {
+          "id": "level-condition",
+          "kind": "conditional",
+          "child": "mainui.welfare.exchange-gift.condition.level"
+        },
+        {
+          "id": "page-art",
+          "kind": "image",
+          "child": "mainui.welfare.exchange-gift.art"
+        },
+        {
+          "id": "channel-message",
+          "kind": "conditional-text",
+          "child": "mainui.welfare.exchange-gift.channel-message"
+        },
+        {
+          "id": "activation-input",
+          "kind": "input",
+          "child": "mainui.welfare.exchange-gift.input"
+        },
+        {
+          "id": "receive-button",
+          "kind": "button",
+          "child": "mainui.welfare.exchange-gift.receive"
+        },
+        {
+          "id": "legacy-hidden-placeholders",
+          "kind": "conditional",
+          "child": "mainui.welfare.exchange-gift.hidden-placeholders"
+        },
+        {
+          "id": "close-reopen",
+          "kind": "lifecycle",
+          "child": "mainui.welfare.exchange-gift.lifecycle"
+        },
+        {
+          "id": "return-chain",
+          "kind": "return",
+          "child": "mainui.welfare.exchange-gift.return"
+        },
+        {
+          "id": "cold-warm",
+          "kind": "timing",
+          "child": "mainui.welfare.exchange-gift.performance"
+        }
+      ],
+      "parent": null,
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.welfare.exchange-gift.entry, mainui.welfare.exchange-gift.condition.platform, mainui.welfare.exchange-gift.condition.level, mainui.welfare.exchange-gift.art, mainui.welfare.exchange-gift.receive, mainui.welfare.exchange-gift.return, mainui.welfare.exchange-gift.performance"
+    },
+    {
+      "id": "mainui.welfare.exchange-gift.entry",
+      "parent": "mainui.welfare.exchange-gift",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "Unity 缺 Welfare 外壳及第4页签接入。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_exchange/legacy-source.md",
+        "output/ui_route_audit/2026-08-09_exchange/unity-source.md"
+      ],
+      "blocked_reason": "Unity 当前无 WelfareView 外壳和兑换礼包页签入口；缺失文件在 Exchange 唯一写者范围外。"
+    },
+    {
+      "id": "mainui.welfare.exchange-gift.condition.platform",
+      "parent": "mainui.welfare.exchange-gift",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端仅非 alpha 渠道显示。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_exchange/legacy-source.md"
+      ],
+      "blocked_reason": "平台 alpha 条件属于缺失的 Welfare 页签外壳，当前 Exchange 页面无法独立验该条件。"
+    },
+    {
+      "id": "mainui.welfare.exchange-gift.condition.level",
+      "parent": "mainui.welfare.exchange-gift",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端页签 open_lv=50。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_exchange/legacy-source.md"
+      ],
+      "blocked_reason": "open_lv=50 属于缺失的 Welfare 页签外壳，且本轮禁止账号/GM写状态。"
+    },
+    {
+      "id": "mainui.welfare.exchange-gift.art",
+      "parent": "mainui.welfare.exchange-gift",
+      "type": "read",
+      "risk": "read-only",
+      "note": "背景/标题/按钮/输入底图及页面根720x992。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_exchange/unity-source.md"
+      ],
+      "runtime_gap": "Prefab静态结构存在，但未运行Unity/真实Web，缺720x1280及宽屏old/unity/overlay/diff与资源ready证据。",
+      "blocked_reason": "Exchange内部Prefab静态存在，但老端该页依赖Welfare外壳的uigzhl_001_720x1222.jpg背景；Unity Welfare外壳缺失且在本文件岛外。"
+    },
+    {
+      "id": "mainui.welfare.exchange-gift.channel-message",
+      "parent": "mainui.welfare.exchange-gift",
+      "type": "read",
+      "risk": "read-only",
+      "note": "有 gift_wx_name 时显示，否则隐藏。",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_exchange/legacy-source.md",
+        "output/ui_route_audit/2026-08-09_exchange/unity-source.md"
+      ],
+      "runtime_gap": "已清除htmlText泄漏并恢复当前渠道文案/条件隐藏逻辑；缺真实渠道注入、TMP排版和两档viewport像素证据。"
+    },
+    {
+      "id": "mainui.welfare.exchange-gift.input",
+      "parent": "mainui.welfare.exchange-gift",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "note": "仅本地输入并清空恢复，不发协议。",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_exchange/unity-source.md"
+      ],
+      "runtime_gap": "TMP_InputField与Bind静态存在；缺真实GraphicRaycaster聚焦、输入、清空恢复、软键盘及重开证据。"
+    },
+    {
+      "id": "mainui.welfare.exchange-gift.receive",
+      "parent": "mainui.welfare.exchange-gift",
+      "type": "page",
+      "risk": "destructive-write",
+      "note": "同一领取按钮的空输入、有效提交、失败和成功条件分支。",
+      "control_inventory": [
+        {
+          "id": "empty-input",
+          "kind": "state",
+          "child": "mainui.welfare.exchange-gift.receive.empty"
+        },
+        {
+          "id": "valid-input",
+          "kind": "transaction",
+          "child": "mainui.welfare.exchange-gift.receive.submit"
+        },
+        {
+          "id": "failure-result",
+          "kind": "conditional",
+          "child": "mainui.welfare.exchange-gift.receive.failure"
+        },
+        {
+          "id": "success-reward",
+          "kind": "popup",
+          "child": "mainui.welfare.exchange-gift.receive.success"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.welfare.exchange-gift.receive.submit, mainui.welfare.exchange-gift.receive.failure, mainui.welfare.exchange-gift.receive.success"
+    },
+    {
+      "id": "mainui.welfare.exchange-gift.receive.empty",
+      "parent": "mainui.welfare.exchange-gift.receive",
+      "type": "read",
+      "risk": "read-only",
+      "note": "空输入提示且不得发15087。",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_exchange/unity-source.md"
+      ],
+      "runtime_gap": "代码已空串拦截并提示；缺真实按钮点击、15087零出站和提示像素/生命周期证据。"
+    },
+    {
+      "id": "mainui.welfare.exchange-gift.receive.submit",
+      "parent": "mainui.welfare.exchange-gift.receive",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "非空兑换码发送15087；可能消耗一次性兑换码并发奖。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_exchange/legacy-source.md",
+        "output/ui_route_audit/2026-08-09_exchange/unity-source.md"
+      ],
+      "blocked_reason": "15087可能消耗一次性兑换码并发放真实奖励；用户要求所有兑换事务只枚举，不执行账号写事务。"
+    },
+    {
+      "id": "mainui.welfare.exchange-gift.receive.failure",
+      "parent": "mainui.welfare.exchange-gift.receive",
+      "type": "read",
+      "risk": "destructive-write",
+      "note": "15087 reward_list为空时显示错误2秒。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_exchange/legacy-source.md",
+        "output/ui_route_audit/2026-08-09_exchange/unity-source.md"
+      ],
+      "blocked_reason": "失败回包、错误码文案、2秒隐藏与重开需真实15087请求；本轮禁止执行兑换事务。现有EVT_GIFT_CARD_RESULT也未携带res，只能显示通用错误文案。"
+    },
+    {
+      "id": "mainui.welfare.exchange-gift.receive.success",
+      "parent": "mainui.welfare.exchange-gift.receive",
+      "type": "navigation",
+      "risk": "destructive-write",
+      "note": "老端打开 CongratulationObtainView；Unity公共奖励弹窗缺失。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_exchange/legacy-source.md",
+        "output/ui_route_audit/2026-08-09_exchange/unity-source.md"
+      ],
+      "blocked_reason": "成功分支需要可用未兑换码并发奖；且Unity缺老端CongratulationObtainView公共奖励弹窗，超出Exchange文件岛。"
+    },
+    {
+      "id": "mainui.welfare.exchange-gift.hidden-placeholders",
+      "parent": "mainui.welfare.exchange-gift",
+      "type": "read",
+      "risk": "read-only",
+      "note": "_bg1/_ti_input及设计态Placeholder/Text不得泄漏。",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_exchange/unity-source.md"
+      ],
+      "runtime_gap": "Prefab静态显示_bg1/_ti_input及设计态占位为隐藏/非Bind视觉；缺真实Canvas零泄漏截图。"
+    },
+    {
+      "id": "mainui.welfare.exchange-gift.lifecycle",
+      "parent": "mainui.welfare.exchange-gift",
+      "type": "read",
+      "risk": "read-only",
+      "note": "隐藏/重开清错误、旧定时器不串页、结果事件无重复订阅。",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_exchange/unity-source.md"
+      ],
+      "runtime_gap": "事件成对订阅与error epoch已静态接入；缺隐藏/重开/旧异步后到的真实运行复验。"
+    },
+    {
+      "id": "mainui.welfare.exchange-gift.return",
+      "parent": "mainui.welfare.exchange-gift",
+      "type": "return",
+      "risk": "read-only",
+      "note": "返回/关闭由 Welfare/BaseWindow 外壳负责。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_exchange/legacy-source.md",
+        "output/ui_route_audit/2026-08-09_exchange/unity-source.md"
+      ],
+      "blocked_reason": "返回/关闭属于缺失的Welfare/BaseWindow外壳；该外壳文件在本Exchange岛外。"
+    },
+    {
+      "id": "mainui.welfare.exchange-gift.performance",
+      "parent": "mainui.welfare.exchange-gift",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "入口 cold/warm first-visible 和 interactive-ready。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_exchange/unity-source.md"
+      ],
+      "blocked_reason": "入口外壳缺失且本轮禁止启动浏览器/Unity，无法采集cold/warm及当前Player/catalog指纹。"
+    }
+  ],
+  "summary": {
+    "total": 16,
+    "status_counts": {
+      "blocked": 11,
+      "needs-runtime-verify": 5
+    }
+  },
+  "updated_at": "2026-08-09T12:00:00+08:00"
+}

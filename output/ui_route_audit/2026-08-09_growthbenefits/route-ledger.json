@@ -1,0 +1,900 @@
+{
+  "schema": 6,
+  "route": "mainui.growth-benefits",
+  "baseline": {
+    "authority": "当前老 H5 在同账号、同状态、同 viewport 下的真实运行结果是最终权威；本清单仅冻结静态拓扑，不声称真实 Web 完成。",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/growthForce/GrowthForceView.ts",
+      "E:/GitProject/yu_client/h5/src/growthBenefits/GrowthBenefitsView.ts",
+      "E:/GitProject/yu_client/h5/src/growthBenefits/GrowthBenefitsTabItem.ts",
+      "E:/GitProject/yu_client/h5/src/growthBenefits/GrowthBenefitTaskItem.ts",
+      "E:/GitProject/yu_client/h5/src/growthBenefits/GrowthBenefitsAwardItem.ts",
+      "E:/GitProject/yu_client/h5/src/commonModel/GrowthBenefitsModel.ts",
+      "E:/GitProject/yu_client/h5/src/commonController/GrowthBenefitsController.ts",
+      "E:/GitProject/yu_client/cdn/resource/config/server/config_grow_welfare_info.json"
+    ],
+    "unity_sources": [
+      "Assets/Prefabs/UI/GrowthBenefits/GrowthBenefitsModule.prefab",
+      "Assets/Scripts/Generated/UI/GrowthBenefits/GrowthBenefitsViewBind.cs",
+      "Assets/Scripts/Generated/UI/GrowthBenefits/GrowthBenefitsTabItemBind.cs",
+      "Assets/Scripts/Generated/UI/GrowthBenefits/GrowthBenefitTaskItemBind.cs",
+      "Assets/Scripts/Generated/UI/GrowthBenefits/GrowthBenefitsAwardItemBind.cs",
+      "Assets/Scripts/Module/Core/GrowthBenefits/GrowthBenefitsModel.cs",
+      "Assets/Scripts/Module/Core/GrowthBenefits/GrowthBenefitsController.cs"
+    ],
+    "protocol_inventory": {
+      "reads": [
+        "41720",
+        "41721"
+      ],
+      "writes": [
+        "41722"
+      ],
+      "note": "41722 领取是不可恢复写事务，本轮只枚举、不点击；战力福利 41723/41724 属外层 GrowthForce/Welfare 文件岛。"
+    },
+    "component_dependencies": [
+      {
+        "component": "GrowthForceView outer shell",
+        "consumer": "GrowthBenefitsView nested page",
+        "scope": "outside writable island; read-only dependency"
+      },
+      {
+        "component": "BaseAwardItem",
+        "consumer": "GrowthBenefitsAwardItem",
+        "scope": "Common shared item; read-only dependency"
+      },
+      {
+        "component": "OpenFun",
+        "consumer": "GrowthBenefitTaskItem.jumpBox",
+        "scope": "cross-module navigation; read-only dependency"
+      }
+    ]
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_growthbenefits/route-manifest.json",
+    "sha256": "6e0541a2a911e7bb8eee83c8e5fc6d6d0abfa3fc0a45e5446df871bd184d613d"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "mainui.growth-benefits",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        {
+          "id": "entry",
+          "kind": "conditional-entry",
+          "child": "mainui.growth-benefits.entry"
+        },
+        {
+          "id": "outer",
+          "kind": "outer-page",
+          "child": "mainui.growth-benefits.outer"
+        },
+        {
+          "id": "tabs",
+          "kind": "day-tabs",
+          "child": "mainui.growth-benefits.tabs"
+        },
+        {
+          "id": "tasks",
+          "kind": "task-list",
+          "child": "mainui.growth-benefits.tasks"
+        },
+        {
+          "id": "task",
+          "kind": "shared-task",
+          "child": "mainui.growth-benefits.task"
+        },
+        {
+          "id": "award",
+          "kind": "shared-award",
+          "child": "mainui.growth-benefits.award"
+        },
+        {
+          "id": "return",
+          "kind": "return",
+          "child": "mainui.growth-benefits.return"
+        },
+        {
+          "id": "lifecycle",
+          "kind": "route-lifecycle",
+          "child": "mainui.growth-benefits.lifecycle"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.growth-benefits.entry, mainui.growth-benefits.outer, mainui.growth-benefits.tabs, mainui.growth-benefits.tasks, mainui.growth-benefits.task, mainui.growth-benefits.award, mainui.growth-benefits.return, mainui.growth-benefits.lifecycle"
+    },
+    {
+      "id": "mainui.growth-benefits.entry",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits",
+      "control_inventory": [
+        {
+          "id": "visible",
+          "kind": "condition",
+          "child": "mainui.growth-benefits.entry.visible"
+        },
+        {
+          "id": "red",
+          "kind": "state",
+          "child": "mainui.growth-benefits.entry.red"
+        },
+        {
+          "id": "open",
+          "kind": "navigation",
+          "child": "mainui.growth-benefits.entry.open"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.growth-benefits.entry.open"
+    },
+    {
+      "id": "mainui.growth-benefits.entry.visible",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.entry",
+      "note": "等级>=config_welfare_cfg[8]且成长任务未全领，或战力福利分支开启。",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "runtime_gap": "静态图标门槛已存在，但战力福利 OR 分支与玩家真实入口显隐未完整验证。",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.growth-benefits.entry.red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.entry",
+      "note": "当前创角日已解锁页签中存在 status=1。",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "runtime_gap": "静态 status=1 红点逻辑存在，但缺创角日/页签配置与玩家真实图标证据。",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.growth-benefits.entry.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.entry",
+      "note": "41720 图标打开 GrowthForceView，并默认/切换到 GrowthBenefitsView。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "Unity 缺 GrowthForceView/GrowthBenefits 页面路由；入口消费者在 MainUI 且位于本文件岛外。"
+    },
+    {
+      "id": "mainui.growth-benefits.outer",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "page-identity",
+          "child": "mainui.growth-benefits.outer.identity"
+        },
+        {
+          "id": "growth-tab",
+          "kind": "tab",
+          "child": "mainui.growth-benefits.outer.growth-tab"
+        },
+        {
+          "id": "combat-tab",
+          "kind": "conditional-tab",
+          "child": "mainui.growth-benefits.outer.combat-tab"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.growth-benefits.outer.identity, mainui.growth-benefits.outer.growth-tab, mainui.growth-benefits.outer.combat-tab"
+    },
+    {
+      "id": "mainui.growth-benefits.outer.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.outer",
+      "note": "外层 GrowthForceView 标题、背景、关闭链和 Activity 层身份。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "外层 GrowthForceView/背景/关闭链未移植且不在本支线唯一写者范围。"
+    },
+    {
+      "id": "mainui.growth-benefits.outer.growth-tab",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.outer",
+      "note": "成长福利子页可见并实例化 GrowthBenefitsView。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "缺外层 GrowthForceView，无法实例化/切换成长福利子页。"
+    },
+    {
+      "id": "mainui.growth-benefits.outer.combat-tab",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.outer",
+      "note": "战力福利条件页签；本文件岛外，只核对条件显隐/页面身份。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "战力福利页面与外层页签属于 Welfare/GrowthForce 文件岛外。"
+    },
+    {
+      "id": "mainui.growth-benefits.tabs",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits",
+      "control_inventory": [
+        {
+          "id": "structure",
+          "kind": "scroll",
+          "child": "mainui.growth-benefits.tabs.structure"
+        },
+        {
+          "id": "select",
+          "kind": "tab",
+          "child": "mainui.growth-benefits.tabs.select"
+        },
+        {
+          "id": "locked",
+          "kind": "state",
+          "child": "mainui.growth-benefits.tabs.locked"
+        },
+        {
+          "id": "states",
+          "kind": "state-matrix",
+          "child": "mainui.growth-benefits.tabs.states"
+        },
+        {
+          "id": "overflow-red",
+          "kind": "conditional-indicator",
+          "child": "mainui.growth-benefits.tabs.overflow-red"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.growth-benefits.tabs.select, mainui.growth-benefits.tabs.locked, mainui.growth-benefits.tabs.states, mainui.growth-benefits.tabs.overflow-red"
+    },
+    {
+      "id": "mainui.growth-benefits.tabs.structure",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.tabs",
+      "note": "横向 ScrollRect→Viewport/Mask→Content/Layout，149x76 共享页签。",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false,
+        "layout_structure": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "runtime_gap": "Prefab 有横向 ScrollRect，但未运行真实 Viewport/Mask/Layout/拖动。",
+      "applicable_gates": [
+        "runtime_state",
+        "layout_structure"
+      ]
+    },
+    {
+      "id": "mainui.growth-benefits.tabs.select",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.tabs",
+      "note": "按 config open_day 生成 1..7 天页签，点击已解锁页切换并刷新任务。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "Prefab 仍挂 Generated Bind，无业务 View 生成页签或绑定点击。"
+    },
+    {
+      "id": "mainui.growth-benefits.tabs.locked",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.tabs",
+      "note": "未来天页签显示未解锁，点击提示第N天解锁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "Model 未加载 open_day/创角日页签数据，未解锁提示未接入。"
+    },
+    {
+      "id": "mainui.growth-benefits.tabs.states",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.tabs",
+      "note": "选中/未选、解锁/未解锁、红点有/无、当日全领 compImg 状态矩阵。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "选中/锁定/红点/全领完成状态矩阵无业务 View 消费者。"
+    },
+    {
+      "id": "mainui.growth-benefits.tabs.overflow-red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.tabs",
+      "note": "右侧不可见页签存在红点时 redImg 缩放动画；滚入可见后隐藏。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "越界红点扫描与缩放动画未接入 Unity 业务 View。"
+    },
+    {
+      "id": "mainui.growth-benefits.tasks",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits",
+      "control_inventory": [
+        {
+          "id": "structure",
+          "kind": "scroll",
+          "child": "mainui.growth-benefits.tasks.structure"
+        },
+        {
+          "id": "sort",
+          "kind": "sort",
+          "child": "mainui.growth-benefits.tasks.sort"
+        },
+        {
+          "id": "default",
+          "kind": "state",
+          "child": "mainui.growth-benefits.tasks.default"
+        },
+        {
+          "id": "scroll",
+          "kind": "interaction",
+          "child": "mainui.growth-benefits.tasks.scroll"
+        },
+        {
+          "id": "arrow",
+          "kind": "conditional-indicator",
+          "child": "mainui.growth-benefits.tasks.arrow"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.growth-benefits.tasks.sort, mainui.growth-benefits.tasks.default, mainui.growth-benefits.tasks.scroll, mainui.growth-benefits.tasks.arrow"
+    },
+    {
+      "id": "mainui.growth-benefits.tasks.structure",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.tasks",
+      "note": "纵向 ScrollRect→Viewport/Mask→Content/Layout；任务行 510x138。",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false,
+        "layout_structure": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "runtime_gap": "Prefab 有纵向 ScrollRect，但未运行真实 Viewport/Mask/Layout/拖动。",
+      "applicable_gates": [
+        "runtime_state",
+        "layout_structure"
+      ]
+    },
+    {
+      "id": "mainui.growth-benefits.tasks.sort",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.tasks",
+      "note": "可领取(status=1)→前往(status=0/缺状态)→已领取(status=2)。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "Model 仅保存 status 且无页面 View，任务排序未接入。"
+    },
+    {
+      "id": "mainui.growth-benefits.tasks.default",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.tasks",
+      "note": "优先首个有红点日，否则首个已解锁未全领日；任务列表滚到首个可领取项。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "缺 config open_day、创角日与页面 View，默认页/首个可领滚动未接入。"
+    },
+    {
+      "id": "mainui.growth-benefits.tasks.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.tasks",
+      "note": "真实拖动、裁剪、末项可达与页签切换位置。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "当前不生成任务行，无法真实拖动、裁剪、末项可达。"
+    },
+    {
+      "id": "mainui.growth-benefits.tasks.arrow",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.tasks",
+      "note": "taskList 未到底时 arrowImg 显示，到底隐藏。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "未到底箭头没有业务滚动消费者。"
+    },
+    {
+      "id": "mainui.growth-benefits.task",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "shared-component",
+          "child": "mainui.growth-benefits.task.identity"
+        },
+        {
+          "id": "description",
+          "kind": "text",
+          "child": "mainui.growth-benefits.task.description"
+        },
+        {
+          "id": "progress",
+          "kind": "state",
+          "child": "mainui.growth-benefits.task.progress"
+        },
+        {
+          "id": "states",
+          "kind": "state-matrix",
+          "child": "mainui.growth-benefits.task.states"
+        },
+        {
+          "id": "jump",
+          "kind": "navigation",
+          "child": "mainui.growth-benefits.task.jump"
+        },
+        {
+          "id": "claim",
+          "kind": "transaction",
+          "child": "mainui.growth-benefits.task.claim"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.growth-benefits.task.identity, mainui.growth-benefits.task.description, mainui.growth-benefits.task.progress, mainui.growth-benefits.task.states, mainui.growth-benefits.task.jump, mainui.growth-benefits.task.claim"
+    },
+    {
+      "id": "mainui.growth-benefits.task.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.task",
+      "note": "共享 GrowthBenefitTaskItem 模板身份、实例链和宿主。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "Prefab 模板仍挂 Generated Bind，无业务 GrowthBenefitTaskItem 实例链。"
+    },
+    {
+      "id": "mainui.growth-benefits.task.description",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.task",
+      "note": "config desc 文案与长短文本布局。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "config_grow_welfare_info.desc 未加载到 Unity Model/View。"
+    },
+    {
+      "id": "mainui.growth-benefits.task.progress",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.task",
+      "note": "41720/41721 process 与 condition 目标值、达标绿/未达红。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "41720/41721 process 当前被控制器读掉，condition 目标未解析。"
+    },
+    {
+      "id": "mainui.growth-benefits.task.states",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.task",
+      "note": "缺状态/0 前往、1 领取+红点、2 已领取图矩阵。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "缺状态/0/1/2 对应前往/领取/已领矩阵未接入业务 View。"
+    },
+    {
+      "id": "mainui.growth-benefits.task.jump",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.task",
+      "note": "status=0/缺状态时 jump_id 走 OpenFun，并关闭 GrowthForce 外层。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "OpenFun jump_id 属跨模块导航文件岛外，且当前无任务业务 View；禁止猜映射。"
+    },
+    {
+      "id": "mainui.growth-benefits.task.claim",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.growth-benefits.task",
+      "note": "status=1 才发送 41722(task_id)，验证成功/失败、即时刷新、红点、全领隐入口与重开；本轮不点击。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "41722 是不可恢复发奖事务；本轮明确禁止点击，且当前无任务领取业务 View。"
+    },
+    {
+      "id": "mainui.growth-benefits.award",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "shared-component",
+          "child": "mainui.growth-benefits.award.identity"
+        },
+        {
+          "id": "content",
+          "kind": "item-list",
+          "child": "mainui.growth-benefits.award.content"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.growth-benefits.award.detail"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.growth-benefits.award.identity, mainui.growth-benefits.award.content, mainui.growth-benefits.award.detail"
+    },
+    {
+      "id": "mainui.growth-benefits.award.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.award",
+      "note": "GrowthBenefitsAwardItem 内嵌共享 BaseAwardItem，78x78。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "BaseAwardItem 位于 Common 文件岛外，当前模板无业务 View 接管；不能复制私有奖励格。"
+    },
+    {
+      "id": "mainui.growth-benefits.award.content",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.award",
+      "note": "reward Erlang 列表映射 type/type_id/count/lock，数量1隐藏数字。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "config reward Erlang 列表未加载/解析，奖励横列未生成。"
+    },
+    {
+      "id": "mainui.growth-benefits.award.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.award",
+      "note": "每个可见奖励格打开真实共享物品详情并正确关闭。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "共享 BaseAwardItem/Common 详情链位于本文件岛外，当前模板未激活。"
+    },
+    {
+      "id": "mainui.growth-benefits.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits",
+      "note": "关闭 GrowthForceView 返回主界面，子页/外层清理正确。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "外层 GrowthForceView/关闭链缺失且位于本文件岛外。"
+    },
+    {
+      "id": "mainui.growth-benefits.lifecycle",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits",
+      "control_inventory": [
+        {
+          "id": "update",
+          "kind": "live-update",
+          "child": "mainui.growth-benefits.lifecycle.update"
+        },
+        {
+          "id": "day-change",
+          "kind": "condition",
+          "child": "mainui.growth-benefits.lifecycle.day-change"
+        },
+        {
+          "id": "warm",
+          "kind": "reopen",
+          "child": "mainui.growth-benefits.lifecycle.warm"
+        },
+        {
+          "id": "viewports",
+          "kind": "visual",
+          "child": "mainui.growth-benefits.lifecycle.viewports"
+        },
+        {
+          "id": "performance",
+          "kind": "performance",
+          "child": "mainui.growth-benefits.lifecycle.performance"
+        },
+        {
+          "id": "sound",
+          "kind": "sound",
+          "child": "mainui.growth-benefits.lifecycle.sound"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.growth-benefits.lifecycle.update, mainui.growth-benefits.lifecycle.warm"
+    },
+    {
+      "id": "mainui.growth-benefits.lifecycle.update",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.lifecycle",
+      "note": "41720 全量、41721 增量、41722 结果使已打开页即时刷新且不重复克隆。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "41720/41721/41722 无已打开页面事件消费者，不能即时刷新。"
+    },
+    {
+      "id": "mainui.growth-benefits.lifecycle.day-change",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.lifecycle",
+      "note": "跨天复请求41720，解锁页签/红点/默认页即时变化。",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "runtime_gap": "控制器静态订阅跨天并重发41720，但需真实跨天页签/红点/默认页证据。",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.growth-benefits.lifecycle.warm",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.lifecycle",
+      "note": "隐藏/热重开无重复订阅、旧滚动或旧 tab。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "blocked_reason": "页面路由/业务 View 未接入，无法验证热重开与订阅清理。"
+    },
+    {
+      "id": "mainui.growth-benefits.lifecycle.viewports",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.lifecycle",
+      "note": "720x1280 与 1920x1080 老 H5/Unity 真实 Web old/unity/overlay/diff。",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "visual_match": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "runtime_gap": "未运行真实 old/unity/overlay/diff；需 720x1280 与 1920x1080。",
+      "applicable_gates": [
+        "visual_match"
+      ]
+    },
+    {
+      "id": "mainui.growth-benefits.lifecycle.performance",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.lifecycle",
+      "note": "cold/warm、列表分配、资源预检与打开前后零新增。",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "timing": false,
+        "resource_stable": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "runtime_gap": "未测 cold/warm、资源首次/二次预检与打开前后零新增。",
+      "applicable_gates": [
+        "timing",
+        "resource_stable"
+      ]
+    },
+    {
+      "id": "mainui.growth-benefits.lifecycle.sound",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.growth-benefits.lifecycle",
+      "note": "老端源码未发现页面专属声音调用；真实运行需确认仅通用点击声且无后到串台。",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_growthbenefits/static-audit.md"
+      ],
+      "runtime_gap": "源码未见专属声音调用，但仍需玩家运行确认点击/领取成功音与关闭后无后到串台。",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    }
+  ],
+  "summary": {
+    "total": 40,
+    "status_counts": {
+      "blocked": 32,
+      "needs-runtime-verify": 8
+    }
+  }
+}

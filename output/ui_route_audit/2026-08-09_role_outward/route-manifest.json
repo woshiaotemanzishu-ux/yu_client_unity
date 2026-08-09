@@ -1,0 +1,2980 @@
+{
+  "route": "mainui.role.outward",
+  "baseline": {
+    "authority": "Current old H5 under the same account/state/viewport is the final authority. This manifest is a static topology freeze; no runtime gate is claimed.",
+    "types": [
+      {
+        "type_id": 3,
+        "name": "垂神翼影",
+        "slug": "wing"
+      },
+      {
+        "type_id": 4,
+        "name": "古法符相",
+        "slug": "artifact"
+      },
+      {
+        "type_id": 5,
+        "name": "殒锋天刃",
+        "slug": "weapon"
+      },
+      {
+        "type_id": 12,
+        "name": "玄穹云披",
+        "slug": "back"
+      }
+    ],
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/pet/OutWardBaseView.ts",
+      "E:/GitProject/yu_client/h5/src/pet/IllusionBaseView.ts",
+      "E:/GitProject/yu_client/h5/src/pet/OutwardLvSystem.ts",
+      "E:/GitProject/yu_client/h5/src/pet/PetProptityView.ts",
+      "E:/GitProject/yu_client/h5/src/pet/wings/WingsComponentView.ts",
+      "E:/GitProject/yu_client/h5/src/pet/artifact/ArtifactComponentView.ts",
+      "E:/GitProject/yu_client/h5/src/pet/holydevice/HolyDeviceComponentView.ts",
+      "E:/GitProject/yu_client/h5/src/pet/backOrnament/BackOrnamentComponentView.ts"
+    ],
+    "unity_sources": [
+      "Assets/Prefabs/UI/Pet/PetModule.prefab",
+      "Assets/Scripts/Generated/UI/Pet/OutWardBaseViewBind.cs",
+      "Assets/Scripts/Generated/UI/Pet/IllusionBaseViewBind.cs",
+      "Assets/Scripts/Generated/UI/Pet/OutwardLvSystemBind.cs",
+      "Assets/Scripts/Generated/UI/Pet/PetProptityViewBind.cs",
+      "Assets/Scripts/Module/Core/Pet/Views/OutWardBaseView.cs",
+      "Assets/Scripts/Module/Core/OutWard/OutWardModel.cs",
+      "Assets/Scripts/Module/Core/OutWard/OutWardController.cs"
+    ],
+    "protocol_inventory": {
+      "reads": [
+        "16002",
+        "16006",
+        "16011",
+        "16028"
+      ],
+      "writes": [
+        "16003",
+        "16005",
+        "16008",
+        "16009",
+        "16010",
+        "16020",
+        "16029",
+        "16030"
+      ],
+      "note": "No write transaction is authorized or executed in this static implementation pass."
+    }
+  },
+  "nodes": [
+    {
+      "id": "mainui.role.outward",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        {
+          "id": "shared-root",
+          "kind": "shared-component",
+          "child": "mainui.role.outward.shared"
+        },
+        {
+          "id": "type-3-wing",
+          "kind": "top-tab",
+          "child": "mainui.role.outward.wing"
+        },
+        {
+          "id": "type-4-artifact",
+          "kind": "top-tab",
+          "child": "mainui.role.outward.artifact"
+        },
+        {
+          "id": "type-5-weapon",
+          "kind": "top-tab",
+          "child": "mainui.role.outward.weapon"
+        },
+        {
+          "id": "type-12-back",
+          "kind": "top-tab",
+          "child": "mainui.role.outward.back"
+        }
+      ],
+      "note": "Role outward route. Four top tabs share the same PetModule/OutWardBaseView implementation."
+    },
+    {
+      "id": "mainui.role.outward.shared",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "shared-state",
+          "child": "mainui.role.outward.shared.identity"
+        },
+        {
+          "id": "type-matrix",
+          "kind": "shared-state",
+          "child": "mainui.role.outward.shared.type-matrix"
+        },
+        {
+          "id": "protocol-read",
+          "kind": "shared-state",
+          "child": "mainui.role.outward.shared.protocol-read"
+        },
+        {
+          "id": "material-config",
+          "kind": "shared-state",
+          "child": "mainui.role.outward.shared.material-config"
+        },
+        {
+          "id": "shared-lifecycle",
+          "kind": "shared-state",
+          "child": "mainui.role.outward.shared.shared-lifecycle"
+        },
+        {
+          "id": "prefab-bind",
+          "kind": "shared-state",
+          "child": "mainui.role.outward.shared.prefab-bind"
+        },
+        {
+          "id": "missing-subviews",
+          "kind": "shared-state",
+          "child": "mainui.role.outward.shared.missing-subviews"
+        },
+        {
+          "id": "consumer-sample",
+          "kind": "shared-state",
+          "child": "mainui.role.outward.shared.consumer-sample"
+        }
+      ],
+      "note": "Shared implementation contract."
+    },
+    {
+      "id": "mainui.role.outward.shared.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.shared",
+      "note": "Prefab/GUID/Bind identity and one shared OutWardBaseView instance per RoleFlow page host."
+    },
+    {
+      "id": "mainui.role.outward.shared.type-matrix",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.shared",
+      "note": "Type 3/4/5/12 map to wing/fabao/weapon/back with w/a/d/b position keys."
+    },
+    {
+      "id": "mainui.role.outward.shared.protocol-read",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.shared",
+      "note": "Open requests 16002,16006,16011,16028 and refreshes from authoritative replies."
+    },
+    {
+      "id": "mainui.role.outward.shared.material-config",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.shared",
+      "note": "Training goods come from config_mount_prop(type=1); config_mount_goods is crystal data."
+    },
+    {
+      "id": "mainui.role.outward.shared.shared-lifecycle",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.shared",
+      "note": "Type switch, hide, reopen and destroy must clear stale model/effect instances and subscriptions."
+    },
+    {
+      "id": "mainui.role.outward.shared.prefab-bind",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.shared",
+      "note": "PetModule prefab has OutWardBaseView Bind nodes including three material and three crystal slots."
+    },
+    {
+      "id": "mainui.role.outward.shared.missing-subviews",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.shared",
+      "note": "Generated binds exist for IllusionBaseView, OutwardLvSystem and PetProptityView but no editable instances are baked into PetModule.prefab."
+    },
+    {
+      "id": "mainui.role.outward.shared.consumer-sample",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.shared",
+      "note": "All four role top tabs are the representative consumer matrix; horse/partner are shared-root regression samples required before final completion."
+    },
+    {
+      "id": "mainui.role.outward.wing",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward",
+      "control_inventory": [
+        {
+          "id": "header",
+          "kind": "state-group",
+          "child": "mainui.role.outward.wing.header"
+        },
+        {
+          "id": "model",
+          "kind": "dynamic-3d",
+          "child": "mainui.role.outward.wing.model"
+        },
+        {
+          "id": "property",
+          "kind": "popup",
+          "child": "mainui.role.outward.wing.property"
+        },
+        {
+          "id": "skills",
+          "kind": "item-list",
+          "child": "mainui.role.outward.wing.skills"
+        },
+        {
+          "id": "crystal",
+          "kind": "item-list",
+          "child": "mainui.role.outward.wing.crystal"
+        },
+        {
+          "id": "materials",
+          "kind": "item-list",
+          "child": "mainui.role.outward.wing.materials"
+        },
+        {
+          "id": "base-appearance",
+          "kind": "state-toggle",
+          "child": "mainui.role.outward.wing.base-appearance"
+        },
+        {
+          "id": "illusion",
+          "kind": "subpage",
+          "child": "mainui.role.outward.wing.illusion"
+        },
+        {
+          "id": "level-system",
+          "kind": "subpage",
+          "child": "mainui.role.outward.wing.level-system"
+        },
+        {
+          "id": "one-key-up",
+          "kind": "primary-action",
+          "child": "mainui.role.outward.wing.one-key-up"
+        },
+        {
+          "id": "fairy-wish",
+          "kind": "conditional-entry",
+          "child": "mainui.role.outward.wing.fairy-wish"
+        },
+        {
+          "id": "route-state",
+          "kind": "route-lifecycle",
+          "child": "mainui.role.outward.wing.route-state"
+        }
+      ],
+      "note": "垂神翼影, type_id=3; old subclass E:/GitProject/yu_client/h5/src/pet/wings/WingsComponentView.ts; Unity uses shared OutWardBaseView."
+    },
+    {
+      "id": "mainui.role.outward.wing.header",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing",
+      "control_inventory": [
+        {
+          "id": "name-stage",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.header.name-stage"
+        },
+        {
+          "id": "combat",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.header.combat"
+        },
+        {
+          "id": "role-visibility",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.header.role-visibility"
+        }
+      ],
+      "note": "垂神翼影 header control group."
+    },
+    {
+      "id": "mainui.role.outward.wing.header.name-stage",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.header",
+      "note": "Stage name from config_mount_stage; role outward display level/stage text uses current star as the old show_type=1 contract."
+    },
+    {
+      "id": "mainui.role.outward.wing.header.combat",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.header",
+      "note": "Combat is rendered from 16002."
+    },
+    {
+      "id": "mainui.role.outward.wing.header.role-visibility",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.header",
+      "note": "Star/shadow strip, previous/next browse, auto-buy and pet-equipment groups are hidden for role outward types."
+    },
+    {
+      "id": "mainui.role.outward.wing.model",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing",
+      "control_inventory": [
+        {
+          "id": "asset",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.model.asset"
+        },
+        {
+          "id": "placement",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.model.placement"
+        },
+        {
+          "id": "effect",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.model.effect"
+        },
+        {
+          "id": "dynamic",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.model.dynamic"
+        },
+        {
+          "id": "lifecycle",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.model.lifecycle"
+        }
+      ],
+      "note": "垂神翼影 model control group."
+    },
+    {
+      "id": "mainui.role.outward.wing.model.asset",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.model",
+      "note": "ride_figure selects module-specific Addressable model key."
+    },
+    {
+      "id": "mainui.role.outward.wing.model.placement",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.model",
+      "note": "ClientOutWardPos exact w/a/d/b key then default fallback drives scale, position and rotation."
+    },
+    {
+      "id": "mainui.role.outward.wing.model.effect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.model",
+      "note": "Always effect belongs to the model instance and must match the old module/resource."
+    },
+    {
+      "id": "mainui.role.outward.wing.model.dynamic",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.model",
+      "note": "Dedicated UIModelStage must render non-empty RT and changing pixels/action over two times."
+    },
+    {
+      "id": "mainui.role.outward.wing.model.lifecycle",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.model",
+      "note": "Type switch, hide, close and warm reopen show one current model with zero stale instances."
+    },
+    {
+      "id": "mainui.role.outward.wing.property",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing",
+      "control_inventory": [
+        {
+          "id": "open",
+          "kind": "navigation",
+          "child": "mainui.role.outward.wing.property.open"
+        },
+        {
+          "id": "content",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.property.content"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.role.outward.wing.property.close"
+        }
+      ],
+      "note": "垂神翼影 property control group."
+    },
+    {
+      "id": "mainui.role.outward.wing.property.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.property",
+      "note": "Property button opens PetProptityView above the page."
+    },
+    {
+      "id": "mainui.role.outward.wing.property.content",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.property",
+      "note": "Attribute rows match current 16002 attr_list."
+    },
+    {
+      "id": "mainui.role.outward.wing.property.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.property",
+      "note": "Close returns to the same outward page state."
+    },
+    {
+      "id": "mainui.role.outward.wing.skills",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.skills.display"
+        },
+        {
+          "id": "detail",
+          "kind": "navigation",
+          "child": "mainui.role.outward.wing.skills.detail"
+        }
+      ],
+      "note": "垂神翼影 skills control group."
+    },
+    {
+      "id": "mainui.role.outward.wing.skills.display",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.skills",
+      "note": "Skill slots, icons, lock/level state and arc positions match old client."
+    },
+    {
+      "id": "mainui.role.outward.wing.skills.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.skills",
+      "note": "Each visible skill opens its specific detail and returns."
+    },
+    {
+      "id": "mainui.role.outward.wing.crystal",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.crystal.display"
+        },
+        {
+          "id": "detail",
+          "kind": "navigation",
+          "child": "mainui.role.outward.wing.crystal.detail"
+        },
+        {
+          "id": "use",
+          "kind": "transaction",
+          "child": "mainui.role.outward.wing.crystal.use"
+        }
+      ],
+      "note": "垂神翼影 crystal control group."
+    },
+    {
+      "id": "mainui.role.outward.wing.crystal.display",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.crystal",
+      "note": "Three crystal slots use config_mount_goods and 16011 times/limit plus bag counts."
+    },
+    {
+      "id": "mainui.role.outward.wing.crystal.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.crystal",
+      "note": "Non-usable crystal opens its specific PetCrystalView detail."
+    },
+    {
+      "id": "mainui.role.outward.wing.crystal.use",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.wing.crystal",
+      "note": "Usable crystal sends 16010 only from real UI and verifies authoritative refresh and reopen."
+    },
+    {
+      "id": "mainui.role.outward.wing.materials",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.materials.display"
+        },
+        {
+          "id": "detail",
+          "kind": "navigation",
+          "child": "mainui.role.outward.wing.materials.detail"
+        }
+      ],
+      "note": "垂神翼影 materials control group."
+    },
+    {
+      "id": "mainui.role.outward.wing.materials.display",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.materials",
+      "note": "Three training material slots use config_mount_prop type=1 and real bag counts."
+    },
+    {
+      "id": "mainui.role.outward.wing.materials.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.materials",
+      "note": "Each material opens its specific item detail and returns."
+    },
+    {
+      "id": "mainui.role.outward.wing.base-appearance",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.base-appearance.state"
+        },
+        {
+          "id": "toggle",
+          "kind": "transaction",
+          "child": "mainui.role.outward.wing.base-appearance.toggle"
+        }
+      ],
+      "note": "垂神翼影 base-appearance control group."
+    },
+    {
+      "id": "mainui.role.outward.wing.base-appearance.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.base-appearance",
+      "note": "Using/unuse group reflects current base appearance FigureStage."
+    },
+    {
+      "id": "mainui.role.outward.wing.base-appearance.toggle",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.wing.base-appearance",
+      "note": "Real click sends 16003 type=1, then verifies immediate state and reopen consistency."
+    },
+    {
+      "id": "mainui.role.outward.wing.illusion",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing",
+      "control_inventory": [
+        {
+          "id": "open",
+          "kind": "navigation",
+          "child": "mainui.role.outward.wing.illusion.open"
+        },
+        {
+          "id": "list-scroll",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.illusion.list-scroll"
+        },
+        {
+          "id": "select-model",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.illusion.select-model"
+        },
+        {
+          "id": "wear",
+          "kind": "transaction",
+          "child": "mainui.role.outward.wing.illusion.wear"
+        },
+        {
+          "id": "activate",
+          "kind": "transaction",
+          "child": "mainui.role.outward.wing.illusion.activate"
+        },
+        {
+          "id": "stage-up",
+          "kind": "transaction",
+          "child": "mainui.role.outward.wing.illusion.stage-up"
+        },
+        {
+          "id": "star-up",
+          "kind": "transaction",
+          "child": "mainui.role.outward.wing.illusion.star-up"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.role.outward.wing.illusion.close"
+        }
+      ],
+      "note": "垂神翼影 illusion control group."
+    },
+    {
+      "id": "mainui.role.outward.wing.illusion.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.illusion",
+      "note": "Illusion button opens shared IllusionBaseView for the current type."
+    },
+    {
+      "id": "mainui.role.outward.wing.illusion.list-scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.illusion",
+      "note": "All illusion rows are enumerated; real scroll reaches the last item with correct clipping."
+    },
+    {
+      "id": "mainui.role.outward.wing.illusion.select-model",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.illusion",
+      "note": "Selected illusion detail and 3D model/effects update without stale accumulation."
+    },
+    {
+      "id": "mainui.role.outward.wing.illusion.wear",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.wing.illusion",
+      "note": "Wear/unwear sends 16003 and verifies immediate parent refresh plus reopen."
+    },
+    {
+      "id": "mainui.role.outward.wing.illusion.activate",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.wing.illusion",
+      "note": "Activation sends 16008 and verifies official reply/state."
+    },
+    {
+      "id": "mainui.role.outward.wing.illusion.stage-up",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.wing.illusion",
+      "note": "Stage-up sends 16009 and verifies resource consumption and immediate refresh."
+    },
+    {
+      "id": "mainui.role.outward.wing.illusion.star-up",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.wing.illusion",
+      "note": "Star-up sends 16020 and verifies official reply/state."
+    },
+    {
+      "id": "mainui.role.outward.wing.illusion.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.illusion",
+      "note": "Close returns to the same outward page."
+    },
+    {
+      "id": "mainui.role.outward.wing.level-system",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing",
+      "control_inventory": [
+        {
+          "id": "open",
+          "kind": "navigation",
+          "child": "mainui.role.outward.wing.level-system.open"
+        },
+        {
+          "id": "summary",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.level-system.summary"
+        },
+        {
+          "id": "skills",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.level-system.skills"
+        },
+        {
+          "id": "level-up",
+          "kind": "transaction",
+          "child": "mainui.role.outward.wing.level-system.level-up"
+        },
+        {
+          "id": "skill-up",
+          "kind": "transaction",
+          "child": "mainui.role.outward.wing.level-system.skill-up"
+        },
+        {
+          "id": "return",
+          "kind": "return",
+          "child": "mainui.role.outward.wing.level-system.return"
+        }
+      ],
+      "note": "垂神翼影 level-system control group."
+    },
+    {
+      "id": "mainui.role.outward.wing.level-system.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.level-system",
+      "note": "Level-system tab/switch opens OutwardLvSystem for the same type."
+    },
+    {
+      "id": "mainui.role.outward.wing.level-system.summary",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.level-system",
+      "note": "16028 level/exp/combat/attrs render correctly."
+    },
+    {
+      "id": "mainui.role.outward.wing.level-system.skills",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.level-system",
+      "note": "Level-system skills and per-skill detail match current state."
+    },
+    {
+      "id": "mainui.role.outward.wing.level-system.level-up",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.wing.level-system",
+      "note": "Level-up sends 16029 through real UI and verifies immediate/reopen state."
+    },
+    {
+      "id": "mainui.role.outward.wing.level-system.skill-up",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.wing.level-system",
+      "note": "Skill upgrade sends 16030 through real UI and verifies immediate/reopen state."
+    },
+    {
+      "id": "mainui.role.outward.wing.level-system.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.level-system",
+      "note": "Switch returns to cultivation page without stale state."
+    },
+    {
+      "id": "mainui.role.outward.wing.one-key-up",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing",
+      "control_inventory": [
+        {
+          "id": "present",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.one-key-up.present"
+        },
+        {
+          "id": "submit",
+          "kind": "transaction",
+          "child": "mainui.role.outward.wing.one-key-up.submit"
+        }
+      ],
+      "note": "垂神翼影 one-key-up control group."
+    },
+    {
+      "id": "mainui.role.outward.wing.one-key-up.present",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.one-key-up",
+      "note": "Role outward types show one-key upgrade and no auto-buy control."
+    },
+    {
+      "id": "mainui.role.outward.wing.one-key-up.submit",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.wing.one-key-up",
+      "note": "Real click sends 16005, verifies authoritative success/failure, materials/blessing/star immediate refresh and reopen."
+    },
+    {
+      "id": "mainui.role.outward.wing.fairy-wish",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing",
+      "control_inventory": [
+        {
+          "id": "visibility",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.fairy-wish.visibility"
+        },
+        {
+          "id": "open",
+          "kind": "navigation",
+          "child": "mainui.role.outward.wing.fairy-wish.open"
+        }
+      ],
+      "note": "垂神翼影 fairy-wish control group."
+    },
+    {
+      "id": "mainui.role.outward.wing.fairy-wish.visibility",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.fairy-wish",
+      "note": "Conditional entry follows config_fairy, role level and open-day state; type12 has no configured entry."
+    },
+    {
+      "id": "mainui.role.outward.wing.fairy-wish.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.fairy-wish",
+      "note": "Eligible entry opens the matching FairyWish page and returns to current outward page."
+    },
+    {
+      "id": "mainui.role.outward.wing.route-state",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing",
+      "control_inventory": [
+        {
+          "id": "open-ready",
+          "kind": "navigation",
+          "child": "mainui.role.outward.wing.route-state.open-ready"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.role.outward.wing.route-state.close"
+        },
+        {
+          "id": "warm-reopen",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.route-state.warm-reopen"
+        },
+        {
+          "id": "viewports",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.route-state.viewports"
+        },
+        {
+          "id": "performance",
+          "kind": "read",
+          "child": "mainui.role.outward.wing.route-state.performance"
+        }
+      ],
+      "note": "垂神翼影 route-state control group."
+    },
+    {
+      "id": "mainui.role.outward.wing.route-state.open-ready",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.route-state",
+      "note": "Role top tab opens current type and waits for 16002/16006/16011/16028 plus resources."
+    },
+    {
+      "id": "mainui.role.outward.wing.route-state.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.route-state",
+      "note": "Role window close clears the page and model stage."
+    },
+    {
+      "id": "mainui.role.outward.wing.route-state.warm-reopen",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.route-state",
+      "note": "Warm reopen preserves authoritative state and has no stale model/effect/placeholder."
+    },
+    {
+      "id": "mainui.role.outward.wing.route-state.viewports",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.route-state",
+      "note": "Full page passes old-vs-Unity real-Web comparison at 720x1280 and 1280x720."
+    },
+    {
+      "id": "mainui.role.outward.wing.route-state.performance",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.wing.route-state",
+      "note": "Cold/warm timing, model/render allocation and repeated-switch stability are recorded."
+    },
+    {
+      "id": "mainui.role.outward.artifact",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward",
+      "control_inventory": [
+        {
+          "id": "header",
+          "kind": "state-group",
+          "child": "mainui.role.outward.artifact.header"
+        },
+        {
+          "id": "model",
+          "kind": "dynamic-3d",
+          "child": "mainui.role.outward.artifact.model"
+        },
+        {
+          "id": "property",
+          "kind": "popup",
+          "child": "mainui.role.outward.artifact.property"
+        },
+        {
+          "id": "skills",
+          "kind": "item-list",
+          "child": "mainui.role.outward.artifact.skills"
+        },
+        {
+          "id": "crystal",
+          "kind": "item-list",
+          "child": "mainui.role.outward.artifact.crystal"
+        },
+        {
+          "id": "materials",
+          "kind": "item-list",
+          "child": "mainui.role.outward.artifact.materials"
+        },
+        {
+          "id": "base-appearance",
+          "kind": "state-toggle",
+          "child": "mainui.role.outward.artifact.base-appearance"
+        },
+        {
+          "id": "illusion",
+          "kind": "subpage",
+          "child": "mainui.role.outward.artifact.illusion"
+        },
+        {
+          "id": "level-system",
+          "kind": "subpage",
+          "child": "mainui.role.outward.artifact.level-system"
+        },
+        {
+          "id": "one-key-up",
+          "kind": "primary-action",
+          "child": "mainui.role.outward.artifact.one-key-up"
+        },
+        {
+          "id": "fairy-wish",
+          "kind": "conditional-entry",
+          "child": "mainui.role.outward.artifact.fairy-wish"
+        },
+        {
+          "id": "route-state",
+          "kind": "route-lifecycle",
+          "child": "mainui.role.outward.artifact.route-state"
+        }
+      ],
+      "note": "古法符相, type_id=4; old subclass E:/GitProject/yu_client/h5/src/pet/artifact/ArtifactComponentView.ts; Unity uses shared OutWardBaseView."
+    },
+    {
+      "id": "mainui.role.outward.artifact.header",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact",
+      "control_inventory": [
+        {
+          "id": "name-stage",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.header.name-stage"
+        },
+        {
+          "id": "combat",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.header.combat"
+        },
+        {
+          "id": "role-visibility",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.header.role-visibility"
+        }
+      ],
+      "note": "古法符相 header control group."
+    },
+    {
+      "id": "mainui.role.outward.artifact.header.name-stage",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.header",
+      "note": "Stage name from config_mount_stage; role outward display level/stage text uses current star as the old show_type=1 contract."
+    },
+    {
+      "id": "mainui.role.outward.artifact.header.combat",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.header",
+      "note": "Combat is rendered from 16002."
+    },
+    {
+      "id": "mainui.role.outward.artifact.header.role-visibility",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.header",
+      "note": "Star/shadow strip, previous/next browse, auto-buy and pet-equipment groups are hidden for role outward types."
+    },
+    {
+      "id": "mainui.role.outward.artifact.model",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact",
+      "control_inventory": [
+        {
+          "id": "asset",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.model.asset"
+        },
+        {
+          "id": "placement",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.model.placement"
+        },
+        {
+          "id": "effect",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.model.effect"
+        },
+        {
+          "id": "dynamic",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.model.dynamic"
+        },
+        {
+          "id": "lifecycle",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.model.lifecycle"
+        }
+      ],
+      "note": "古法符相 model control group."
+    },
+    {
+      "id": "mainui.role.outward.artifact.model.asset",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.model",
+      "note": "ride_figure selects module-specific Addressable model key."
+    },
+    {
+      "id": "mainui.role.outward.artifact.model.placement",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.model",
+      "note": "ClientOutWardPos exact w/a/d/b key then default fallback drives scale, position and rotation."
+    },
+    {
+      "id": "mainui.role.outward.artifact.model.effect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.model",
+      "note": "Always effect belongs to the model instance and must match the old module/resource."
+    },
+    {
+      "id": "mainui.role.outward.artifact.model.dynamic",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.model",
+      "note": "Dedicated UIModelStage must render non-empty RT and changing pixels/action over two times."
+    },
+    {
+      "id": "mainui.role.outward.artifact.model.lifecycle",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.model",
+      "note": "Type switch, hide, close and warm reopen show one current model with zero stale instances."
+    },
+    {
+      "id": "mainui.role.outward.artifact.property",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact",
+      "control_inventory": [
+        {
+          "id": "open",
+          "kind": "navigation",
+          "child": "mainui.role.outward.artifact.property.open"
+        },
+        {
+          "id": "content",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.property.content"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.role.outward.artifact.property.close"
+        }
+      ],
+      "note": "古法符相 property control group."
+    },
+    {
+      "id": "mainui.role.outward.artifact.property.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.property",
+      "note": "Property button opens PetProptityView above the page."
+    },
+    {
+      "id": "mainui.role.outward.artifact.property.content",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.property",
+      "note": "Attribute rows match current 16002 attr_list."
+    },
+    {
+      "id": "mainui.role.outward.artifact.property.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.property",
+      "note": "Close returns to the same outward page state."
+    },
+    {
+      "id": "mainui.role.outward.artifact.skills",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.skills.display"
+        },
+        {
+          "id": "detail",
+          "kind": "navigation",
+          "child": "mainui.role.outward.artifact.skills.detail"
+        }
+      ],
+      "note": "古法符相 skills control group."
+    },
+    {
+      "id": "mainui.role.outward.artifact.skills.display",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.skills",
+      "note": "Skill slots, icons, lock/level state and arc positions match old client."
+    },
+    {
+      "id": "mainui.role.outward.artifact.skills.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.skills",
+      "note": "Each visible skill opens its specific detail and returns."
+    },
+    {
+      "id": "mainui.role.outward.artifact.crystal",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.crystal.display"
+        },
+        {
+          "id": "detail",
+          "kind": "navigation",
+          "child": "mainui.role.outward.artifact.crystal.detail"
+        },
+        {
+          "id": "use",
+          "kind": "transaction",
+          "child": "mainui.role.outward.artifact.crystal.use"
+        }
+      ],
+      "note": "古法符相 crystal control group."
+    },
+    {
+      "id": "mainui.role.outward.artifact.crystal.display",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.crystal",
+      "note": "Three crystal slots use config_mount_goods and 16011 times/limit plus bag counts."
+    },
+    {
+      "id": "mainui.role.outward.artifact.crystal.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.crystal",
+      "note": "Non-usable crystal opens its specific PetCrystalView detail."
+    },
+    {
+      "id": "mainui.role.outward.artifact.crystal.use",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.artifact.crystal",
+      "note": "Usable crystal sends 16010 only from real UI and verifies authoritative refresh and reopen."
+    },
+    {
+      "id": "mainui.role.outward.artifact.materials",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.materials.display"
+        },
+        {
+          "id": "detail",
+          "kind": "navigation",
+          "child": "mainui.role.outward.artifact.materials.detail"
+        }
+      ],
+      "note": "古法符相 materials control group."
+    },
+    {
+      "id": "mainui.role.outward.artifact.materials.display",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.materials",
+      "note": "Three training material slots use config_mount_prop type=1 and real bag counts."
+    },
+    {
+      "id": "mainui.role.outward.artifact.materials.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.materials",
+      "note": "Each material opens its specific item detail and returns."
+    },
+    {
+      "id": "mainui.role.outward.artifact.base-appearance",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.base-appearance.state"
+        },
+        {
+          "id": "toggle",
+          "kind": "transaction",
+          "child": "mainui.role.outward.artifact.base-appearance.toggle"
+        }
+      ],
+      "note": "古法符相 base-appearance control group."
+    },
+    {
+      "id": "mainui.role.outward.artifact.base-appearance.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.base-appearance",
+      "note": "Using/unuse group reflects current base appearance FigureStage."
+    },
+    {
+      "id": "mainui.role.outward.artifact.base-appearance.toggle",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.artifact.base-appearance",
+      "note": "Real click sends 16003 type=1, then verifies immediate state and reopen consistency."
+    },
+    {
+      "id": "mainui.role.outward.artifact.illusion",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact",
+      "control_inventory": [
+        {
+          "id": "open",
+          "kind": "navigation",
+          "child": "mainui.role.outward.artifact.illusion.open"
+        },
+        {
+          "id": "list-scroll",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.illusion.list-scroll"
+        },
+        {
+          "id": "select-model",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.illusion.select-model"
+        },
+        {
+          "id": "wear",
+          "kind": "transaction",
+          "child": "mainui.role.outward.artifact.illusion.wear"
+        },
+        {
+          "id": "activate",
+          "kind": "transaction",
+          "child": "mainui.role.outward.artifact.illusion.activate"
+        },
+        {
+          "id": "stage-up",
+          "kind": "transaction",
+          "child": "mainui.role.outward.artifact.illusion.stage-up"
+        },
+        {
+          "id": "star-up",
+          "kind": "transaction",
+          "child": "mainui.role.outward.artifact.illusion.star-up"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.role.outward.artifact.illusion.close"
+        }
+      ],
+      "note": "古法符相 illusion control group."
+    },
+    {
+      "id": "mainui.role.outward.artifact.illusion.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.illusion",
+      "note": "Illusion button opens shared IllusionBaseView for the current type."
+    },
+    {
+      "id": "mainui.role.outward.artifact.illusion.list-scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.illusion",
+      "note": "All illusion rows are enumerated; real scroll reaches the last item with correct clipping."
+    },
+    {
+      "id": "mainui.role.outward.artifact.illusion.select-model",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.illusion",
+      "note": "Selected illusion detail and 3D model/effects update without stale accumulation."
+    },
+    {
+      "id": "mainui.role.outward.artifact.illusion.wear",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.artifact.illusion",
+      "note": "Wear/unwear sends 16003 and verifies immediate parent refresh plus reopen."
+    },
+    {
+      "id": "mainui.role.outward.artifact.illusion.activate",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.artifact.illusion",
+      "note": "Activation sends 16008 and verifies official reply/state."
+    },
+    {
+      "id": "mainui.role.outward.artifact.illusion.stage-up",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.artifact.illusion",
+      "note": "Stage-up sends 16009 and verifies resource consumption and immediate refresh."
+    },
+    {
+      "id": "mainui.role.outward.artifact.illusion.star-up",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.artifact.illusion",
+      "note": "Star-up sends 16020 and verifies official reply/state."
+    },
+    {
+      "id": "mainui.role.outward.artifact.illusion.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.illusion",
+      "note": "Close returns to the same outward page."
+    },
+    {
+      "id": "mainui.role.outward.artifact.level-system",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact",
+      "control_inventory": [
+        {
+          "id": "open",
+          "kind": "navigation",
+          "child": "mainui.role.outward.artifact.level-system.open"
+        },
+        {
+          "id": "summary",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.level-system.summary"
+        },
+        {
+          "id": "skills",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.level-system.skills"
+        },
+        {
+          "id": "level-up",
+          "kind": "transaction",
+          "child": "mainui.role.outward.artifact.level-system.level-up"
+        },
+        {
+          "id": "skill-up",
+          "kind": "transaction",
+          "child": "mainui.role.outward.artifact.level-system.skill-up"
+        },
+        {
+          "id": "return",
+          "kind": "return",
+          "child": "mainui.role.outward.artifact.level-system.return"
+        }
+      ],
+      "note": "古法符相 level-system control group."
+    },
+    {
+      "id": "mainui.role.outward.artifact.level-system.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.level-system",
+      "note": "Level-system tab/switch opens OutwardLvSystem for the same type."
+    },
+    {
+      "id": "mainui.role.outward.artifact.level-system.summary",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.level-system",
+      "note": "16028 level/exp/combat/attrs render correctly."
+    },
+    {
+      "id": "mainui.role.outward.artifact.level-system.skills",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.level-system",
+      "note": "Level-system skills and per-skill detail match current state."
+    },
+    {
+      "id": "mainui.role.outward.artifact.level-system.level-up",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.artifact.level-system",
+      "note": "Level-up sends 16029 through real UI and verifies immediate/reopen state."
+    },
+    {
+      "id": "mainui.role.outward.artifact.level-system.skill-up",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.artifact.level-system",
+      "note": "Skill upgrade sends 16030 through real UI and verifies immediate/reopen state."
+    },
+    {
+      "id": "mainui.role.outward.artifact.level-system.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.level-system",
+      "note": "Switch returns to cultivation page without stale state."
+    },
+    {
+      "id": "mainui.role.outward.artifact.one-key-up",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact",
+      "control_inventory": [
+        {
+          "id": "present",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.one-key-up.present"
+        },
+        {
+          "id": "submit",
+          "kind": "transaction",
+          "child": "mainui.role.outward.artifact.one-key-up.submit"
+        }
+      ],
+      "note": "古法符相 one-key-up control group."
+    },
+    {
+      "id": "mainui.role.outward.artifact.one-key-up.present",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.one-key-up",
+      "note": "Role outward types show one-key upgrade and no auto-buy control."
+    },
+    {
+      "id": "mainui.role.outward.artifact.one-key-up.submit",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.artifact.one-key-up",
+      "note": "Real click sends 16005, verifies authoritative success/failure, materials/blessing/star immediate refresh and reopen."
+    },
+    {
+      "id": "mainui.role.outward.artifact.fairy-wish",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact",
+      "control_inventory": [
+        {
+          "id": "visibility",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.fairy-wish.visibility"
+        },
+        {
+          "id": "open",
+          "kind": "navigation",
+          "child": "mainui.role.outward.artifact.fairy-wish.open"
+        }
+      ],
+      "note": "古法符相 fairy-wish control group."
+    },
+    {
+      "id": "mainui.role.outward.artifact.fairy-wish.visibility",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.fairy-wish",
+      "note": "Conditional entry follows config_fairy, role level and open-day state; type12 has no configured entry."
+    },
+    {
+      "id": "mainui.role.outward.artifact.fairy-wish.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.fairy-wish",
+      "note": "Eligible entry opens the matching FairyWish page and returns to current outward page."
+    },
+    {
+      "id": "mainui.role.outward.artifact.route-state",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact",
+      "control_inventory": [
+        {
+          "id": "open-ready",
+          "kind": "navigation",
+          "child": "mainui.role.outward.artifact.route-state.open-ready"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.role.outward.artifact.route-state.close"
+        },
+        {
+          "id": "warm-reopen",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.route-state.warm-reopen"
+        },
+        {
+          "id": "viewports",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.route-state.viewports"
+        },
+        {
+          "id": "performance",
+          "kind": "read",
+          "child": "mainui.role.outward.artifact.route-state.performance"
+        }
+      ],
+      "note": "古法符相 route-state control group."
+    },
+    {
+      "id": "mainui.role.outward.artifact.route-state.open-ready",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.route-state",
+      "note": "Role top tab opens current type and waits for 16002/16006/16011/16028 plus resources."
+    },
+    {
+      "id": "mainui.role.outward.artifact.route-state.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.route-state",
+      "note": "Role window close clears the page and model stage."
+    },
+    {
+      "id": "mainui.role.outward.artifact.route-state.warm-reopen",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.route-state",
+      "note": "Warm reopen preserves authoritative state and has no stale model/effect/placeholder."
+    },
+    {
+      "id": "mainui.role.outward.artifact.route-state.viewports",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.route-state",
+      "note": "Full page passes old-vs-Unity real-Web comparison at 720x1280 and 1280x720."
+    },
+    {
+      "id": "mainui.role.outward.artifact.route-state.performance",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.artifact.route-state",
+      "note": "Cold/warm timing, model/render allocation and repeated-switch stability are recorded."
+    },
+    {
+      "id": "mainui.role.outward.weapon",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward",
+      "control_inventory": [
+        {
+          "id": "header",
+          "kind": "state-group",
+          "child": "mainui.role.outward.weapon.header"
+        },
+        {
+          "id": "model",
+          "kind": "dynamic-3d",
+          "child": "mainui.role.outward.weapon.model"
+        },
+        {
+          "id": "property",
+          "kind": "popup",
+          "child": "mainui.role.outward.weapon.property"
+        },
+        {
+          "id": "skills",
+          "kind": "item-list",
+          "child": "mainui.role.outward.weapon.skills"
+        },
+        {
+          "id": "crystal",
+          "kind": "item-list",
+          "child": "mainui.role.outward.weapon.crystal"
+        },
+        {
+          "id": "materials",
+          "kind": "item-list",
+          "child": "mainui.role.outward.weapon.materials"
+        },
+        {
+          "id": "base-appearance",
+          "kind": "state-toggle",
+          "child": "mainui.role.outward.weapon.base-appearance"
+        },
+        {
+          "id": "illusion",
+          "kind": "subpage",
+          "child": "mainui.role.outward.weapon.illusion"
+        },
+        {
+          "id": "level-system",
+          "kind": "subpage",
+          "child": "mainui.role.outward.weapon.level-system"
+        },
+        {
+          "id": "one-key-up",
+          "kind": "primary-action",
+          "child": "mainui.role.outward.weapon.one-key-up"
+        },
+        {
+          "id": "fairy-wish",
+          "kind": "conditional-entry",
+          "child": "mainui.role.outward.weapon.fairy-wish"
+        },
+        {
+          "id": "route-state",
+          "kind": "route-lifecycle",
+          "child": "mainui.role.outward.weapon.route-state"
+        }
+      ],
+      "note": "殒锋天刃, type_id=5; old subclass E:/GitProject/yu_client/h5/src/pet/holydevice/HolyDeviceComponentView.ts; Unity uses shared OutWardBaseView."
+    },
+    {
+      "id": "mainui.role.outward.weapon.header",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon",
+      "control_inventory": [
+        {
+          "id": "name-stage",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.header.name-stage"
+        },
+        {
+          "id": "combat",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.header.combat"
+        },
+        {
+          "id": "role-visibility",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.header.role-visibility"
+        }
+      ],
+      "note": "殒锋天刃 header control group."
+    },
+    {
+      "id": "mainui.role.outward.weapon.header.name-stage",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.header",
+      "note": "Stage name from config_mount_stage; role outward display level/stage text uses current star as the old show_type=1 contract."
+    },
+    {
+      "id": "mainui.role.outward.weapon.header.combat",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.header",
+      "note": "Combat is rendered from 16002."
+    },
+    {
+      "id": "mainui.role.outward.weapon.header.role-visibility",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.header",
+      "note": "Star/shadow strip, previous/next browse, auto-buy and pet-equipment groups are hidden for role outward types."
+    },
+    {
+      "id": "mainui.role.outward.weapon.model",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon",
+      "control_inventory": [
+        {
+          "id": "asset",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.model.asset"
+        },
+        {
+          "id": "placement",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.model.placement"
+        },
+        {
+          "id": "effect",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.model.effect"
+        },
+        {
+          "id": "dynamic",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.model.dynamic"
+        },
+        {
+          "id": "lifecycle",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.model.lifecycle"
+        }
+      ],
+      "note": "殒锋天刃 model control group."
+    },
+    {
+      "id": "mainui.role.outward.weapon.model.asset",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.model",
+      "note": "ride_figure selects module-specific Addressable model key."
+    },
+    {
+      "id": "mainui.role.outward.weapon.model.placement",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.model",
+      "note": "ClientOutWardPos exact w/a/d/b key then default fallback drives scale, position and rotation."
+    },
+    {
+      "id": "mainui.role.outward.weapon.model.effect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.model",
+      "note": "Always effect belongs to the model instance and must match the old module/resource."
+    },
+    {
+      "id": "mainui.role.outward.weapon.model.dynamic",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.model",
+      "note": "Dedicated UIModelStage must render non-empty RT and changing pixels/action over two times."
+    },
+    {
+      "id": "mainui.role.outward.weapon.model.lifecycle",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.model",
+      "note": "Type switch, hide, close and warm reopen show one current model with zero stale instances."
+    },
+    {
+      "id": "mainui.role.outward.weapon.property",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon",
+      "control_inventory": [
+        {
+          "id": "open",
+          "kind": "navigation",
+          "child": "mainui.role.outward.weapon.property.open"
+        },
+        {
+          "id": "content",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.property.content"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.role.outward.weapon.property.close"
+        }
+      ],
+      "note": "殒锋天刃 property control group."
+    },
+    {
+      "id": "mainui.role.outward.weapon.property.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.property",
+      "note": "Property button opens PetProptityView above the page."
+    },
+    {
+      "id": "mainui.role.outward.weapon.property.content",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.property",
+      "note": "Attribute rows match current 16002 attr_list."
+    },
+    {
+      "id": "mainui.role.outward.weapon.property.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.property",
+      "note": "Close returns to the same outward page state."
+    },
+    {
+      "id": "mainui.role.outward.weapon.skills",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.skills.display"
+        },
+        {
+          "id": "detail",
+          "kind": "navigation",
+          "child": "mainui.role.outward.weapon.skills.detail"
+        }
+      ],
+      "note": "殒锋天刃 skills control group."
+    },
+    {
+      "id": "mainui.role.outward.weapon.skills.display",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.skills",
+      "note": "Skill slots, icons, lock/level state and arc positions match old client."
+    },
+    {
+      "id": "mainui.role.outward.weapon.skills.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.skills",
+      "note": "Each visible skill opens its specific detail and returns."
+    },
+    {
+      "id": "mainui.role.outward.weapon.crystal",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.crystal.display"
+        },
+        {
+          "id": "detail",
+          "kind": "navigation",
+          "child": "mainui.role.outward.weapon.crystal.detail"
+        },
+        {
+          "id": "use",
+          "kind": "transaction",
+          "child": "mainui.role.outward.weapon.crystal.use"
+        }
+      ],
+      "note": "殒锋天刃 crystal control group."
+    },
+    {
+      "id": "mainui.role.outward.weapon.crystal.display",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.crystal",
+      "note": "Three crystal slots use config_mount_goods and 16011 times/limit plus bag counts."
+    },
+    {
+      "id": "mainui.role.outward.weapon.crystal.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.crystal",
+      "note": "Non-usable crystal opens its specific PetCrystalView detail."
+    },
+    {
+      "id": "mainui.role.outward.weapon.crystal.use",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.weapon.crystal",
+      "note": "Usable crystal sends 16010 only from real UI and verifies authoritative refresh and reopen."
+    },
+    {
+      "id": "mainui.role.outward.weapon.materials",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.materials.display"
+        },
+        {
+          "id": "detail",
+          "kind": "navigation",
+          "child": "mainui.role.outward.weapon.materials.detail"
+        }
+      ],
+      "note": "殒锋天刃 materials control group."
+    },
+    {
+      "id": "mainui.role.outward.weapon.materials.display",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.materials",
+      "note": "Three training material slots use config_mount_prop type=1 and real bag counts."
+    },
+    {
+      "id": "mainui.role.outward.weapon.materials.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.materials",
+      "note": "Each material opens its specific item detail and returns."
+    },
+    {
+      "id": "mainui.role.outward.weapon.base-appearance",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.base-appearance.state"
+        },
+        {
+          "id": "toggle",
+          "kind": "transaction",
+          "child": "mainui.role.outward.weapon.base-appearance.toggle"
+        }
+      ],
+      "note": "殒锋天刃 base-appearance control group."
+    },
+    {
+      "id": "mainui.role.outward.weapon.base-appearance.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.base-appearance",
+      "note": "Using/unuse group reflects current base appearance FigureStage."
+    },
+    {
+      "id": "mainui.role.outward.weapon.base-appearance.toggle",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.weapon.base-appearance",
+      "note": "Real click sends 16003 type=1, then verifies immediate state and reopen consistency."
+    },
+    {
+      "id": "mainui.role.outward.weapon.illusion",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon",
+      "control_inventory": [
+        {
+          "id": "open",
+          "kind": "navigation",
+          "child": "mainui.role.outward.weapon.illusion.open"
+        },
+        {
+          "id": "list-scroll",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.illusion.list-scroll"
+        },
+        {
+          "id": "select-model",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.illusion.select-model"
+        },
+        {
+          "id": "wear",
+          "kind": "transaction",
+          "child": "mainui.role.outward.weapon.illusion.wear"
+        },
+        {
+          "id": "activate",
+          "kind": "transaction",
+          "child": "mainui.role.outward.weapon.illusion.activate"
+        },
+        {
+          "id": "stage-up",
+          "kind": "transaction",
+          "child": "mainui.role.outward.weapon.illusion.stage-up"
+        },
+        {
+          "id": "star-up",
+          "kind": "transaction",
+          "child": "mainui.role.outward.weapon.illusion.star-up"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.role.outward.weapon.illusion.close"
+        }
+      ],
+      "note": "殒锋天刃 illusion control group."
+    },
+    {
+      "id": "mainui.role.outward.weapon.illusion.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.illusion",
+      "note": "Illusion button opens shared IllusionBaseView for the current type."
+    },
+    {
+      "id": "mainui.role.outward.weapon.illusion.list-scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.illusion",
+      "note": "All illusion rows are enumerated; real scroll reaches the last item with correct clipping."
+    },
+    {
+      "id": "mainui.role.outward.weapon.illusion.select-model",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.illusion",
+      "note": "Selected illusion detail and 3D model/effects update without stale accumulation."
+    },
+    {
+      "id": "mainui.role.outward.weapon.illusion.wear",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.weapon.illusion",
+      "note": "Wear/unwear sends 16003 and verifies immediate parent refresh plus reopen."
+    },
+    {
+      "id": "mainui.role.outward.weapon.illusion.activate",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.weapon.illusion",
+      "note": "Activation sends 16008 and verifies official reply/state."
+    },
+    {
+      "id": "mainui.role.outward.weapon.illusion.stage-up",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.weapon.illusion",
+      "note": "Stage-up sends 16009 and verifies resource consumption and immediate refresh."
+    },
+    {
+      "id": "mainui.role.outward.weapon.illusion.star-up",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.weapon.illusion",
+      "note": "Star-up sends 16020 and verifies official reply/state."
+    },
+    {
+      "id": "mainui.role.outward.weapon.illusion.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.illusion",
+      "note": "Close returns to the same outward page."
+    },
+    {
+      "id": "mainui.role.outward.weapon.level-system",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon",
+      "control_inventory": [
+        {
+          "id": "open",
+          "kind": "navigation",
+          "child": "mainui.role.outward.weapon.level-system.open"
+        },
+        {
+          "id": "summary",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.level-system.summary"
+        },
+        {
+          "id": "skills",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.level-system.skills"
+        },
+        {
+          "id": "level-up",
+          "kind": "transaction",
+          "child": "mainui.role.outward.weapon.level-system.level-up"
+        },
+        {
+          "id": "skill-up",
+          "kind": "transaction",
+          "child": "mainui.role.outward.weapon.level-system.skill-up"
+        },
+        {
+          "id": "return",
+          "kind": "return",
+          "child": "mainui.role.outward.weapon.level-system.return"
+        }
+      ],
+      "note": "殒锋天刃 level-system control group."
+    },
+    {
+      "id": "mainui.role.outward.weapon.level-system.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.level-system",
+      "note": "Level-system tab/switch opens OutwardLvSystem for the same type."
+    },
+    {
+      "id": "mainui.role.outward.weapon.level-system.summary",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.level-system",
+      "note": "16028 level/exp/combat/attrs render correctly."
+    },
+    {
+      "id": "mainui.role.outward.weapon.level-system.skills",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.level-system",
+      "note": "Level-system skills and per-skill detail match current state."
+    },
+    {
+      "id": "mainui.role.outward.weapon.level-system.level-up",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.weapon.level-system",
+      "note": "Level-up sends 16029 through real UI and verifies immediate/reopen state."
+    },
+    {
+      "id": "mainui.role.outward.weapon.level-system.skill-up",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.weapon.level-system",
+      "note": "Skill upgrade sends 16030 through real UI and verifies immediate/reopen state."
+    },
+    {
+      "id": "mainui.role.outward.weapon.level-system.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.level-system",
+      "note": "Switch returns to cultivation page without stale state."
+    },
+    {
+      "id": "mainui.role.outward.weapon.one-key-up",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon",
+      "control_inventory": [
+        {
+          "id": "present",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.one-key-up.present"
+        },
+        {
+          "id": "submit",
+          "kind": "transaction",
+          "child": "mainui.role.outward.weapon.one-key-up.submit"
+        }
+      ],
+      "note": "殒锋天刃 one-key-up control group."
+    },
+    {
+      "id": "mainui.role.outward.weapon.one-key-up.present",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.one-key-up",
+      "note": "Role outward types show one-key upgrade and no auto-buy control."
+    },
+    {
+      "id": "mainui.role.outward.weapon.one-key-up.submit",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.weapon.one-key-up",
+      "note": "Real click sends 16005, verifies authoritative success/failure, materials/blessing/star immediate refresh and reopen."
+    },
+    {
+      "id": "mainui.role.outward.weapon.fairy-wish",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon",
+      "control_inventory": [
+        {
+          "id": "visibility",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.fairy-wish.visibility"
+        },
+        {
+          "id": "open",
+          "kind": "navigation",
+          "child": "mainui.role.outward.weapon.fairy-wish.open"
+        }
+      ],
+      "note": "殒锋天刃 fairy-wish control group."
+    },
+    {
+      "id": "mainui.role.outward.weapon.fairy-wish.visibility",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.fairy-wish",
+      "note": "Conditional entry follows config_fairy, role level and open-day state; type12 has no configured entry."
+    },
+    {
+      "id": "mainui.role.outward.weapon.fairy-wish.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.fairy-wish",
+      "note": "Eligible entry opens the matching FairyWish page and returns to current outward page."
+    },
+    {
+      "id": "mainui.role.outward.weapon.route-state",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon",
+      "control_inventory": [
+        {
+          "id": "open-ready",
+          "kind": "navigation",
+          "child": "mainui.role.outward.weapon.route-state.open-ready"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.role.outward.weapon.route-state.close"
+        },
+        {
+          "id": "warm-reopen",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.route-state.warm-reopen"
+        },
+        {
+          "id": "viewports",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.route-state.viewports"
+        },
+        {
+          "id": "performance",
+          "kind": "read",
+          "child": "mainui.role.outward.weapon.route-state.performance"
+        }
+      ],
+      "note": "殒锋天刃 route-state control group."
+    },
+    {
+      "id": "mainui.role.outward.weapon.route-state.open-ready",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.route-state",
+      "note": "Role top tab opens current type and waits for 16002/16006/16011/16028 plus resources."
+    },
+    {
+      "id": "mainui.role.outward.weapon.route-state.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.route-state",
+      "note": "Role window close clears the page and model stage."
+    },
+    {
+      "id": "mainui.role.outward.weapon.route-state.warm-reopen",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.route-state",
+      "note": "Warm reopen preserves authoritative state and has no stale model/effect/placeholder."
+    },
+    {
+      "id": "mainui.role.outward.weapon.route-state.viewports",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.route-state",
+      "note": "Full page passes old-vs-Unity real-Web comparison at 720x1280 and 1280x720."
+    },
+    {
+      "id": "mainui.role.outward.weapon.route-state.performance",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.weapon.route-state",
+      "note": "Cold/warm timing, model/render allocation and repeated-switch stability are recorded."
+    },
+    {
+      "id": "mainui.role.outward.back",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward",
+      "control_inventory": [
+        {
+          "id": "header",
+          "kind": "state-group",
+          "child": "mainui.role.outward.back.header"
+        },
+        {
+          "id": "model",
+          "kind": "dynamic-3d",
+          "child": "mainui.role.outward.back.model"
+        },
+        {
+          "id": "property",
+          "kind": "popup",
+          "child": "mainui.role.outward.back.property"
+        },
+        {
+          "id": "skills",
+          "kind": "item-list",
+          "child": "mainui.role.outward.back.skills"
+        },
+        {
+          "id": "crystal",
+          "kind": "item-list",
+          "child": "mainui.role.outward.back.crystal"
+        },
+        {
+          "id": "materials",
+          "kind": "item-list",
+          "child": "mainui.role.outward.back.materials"
+        },
+        {
+          "id": "base-appearance",
+          "kind": "state-toggle",
+          "child": "mainui.role.outward.back.base-appearance"
+        },
+        {
+          "id": "illusion",
+          "kind": "subpage",
+          "child": "mainui.role.outward.back.illusion"
+        },
+        {
+          "id": "level-system",
+          "kind": "subpage",
+          "child": "mainui.role.outward.back.level-system"
+        },
+        {
+          "id": "one-key-up",
+          "kind": "primary-action",
+          "child": "mainui.role.outward.back.one-key-up"
+        },
+        {
+          "id": "fairy-wish",
+          "kind": "conditional-entry",
+          "child": "mainui.role.outward.back.fairy-wish"
+        },
+        {
+          "id": "route-state",
+          "kind": "route-lifecycle",
+          "child": "mainui.role.outward.back.route-state"
+        }
+      ],
+      "note": "玄穹云披, type_id=12; old subclass E:/GitProject/yu_client/h5/src/pet/backOrnament/BackOrnamentComponentView.ts; Unity uses shared OutWardBaseView."
+    },
+    {
+      "id": "mainui.role.outward.back.header",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back",
+      "control_inventory": [
+        {
+          "id": "name-stage",
+          "kind": "read",
+          "child": "mainui.role.outward.back.header.name-stage"
+        },
+        {
+          "id": "combat",
+          "kind": "read",
+          "child": "mainui.role.outward.back.header.combat"
+        },
+        {
+          "id": "role-visibility",
+          "kind": "read",
+          "child": "mainui.role.outward.back.header.role-visibility"
+        }
+      ],
+      "note": "玄穹云披 header control group."
+    },
+    {
+      "id": "mainui.role.outward.back.header.name-stage",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.header",
+      "note": "Stage name from config_mount_stage; role outward display level/stage text uses current star as the old show_type=1 contract."
+    },
+    {
+      "id": "mainui.role.outward.back.header.combat",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.header",
+      "note": "Combat is rendered from 16002."
+    },
+    {
+      "id": "mainui.role.outward.back.header.role-visibility",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.header",
+      "note": "Star/shadow strip, previous/next browse, auto-buy and pet-equipment groups are hidden for role outward types."
+    },
+    {
+      "id": "mainui.role.outward.back.model",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back",
+      "control_inventory": [
+        {
+          "id": "asset",
+          "kind": "read",
+          "child": "mainui.role.outward.back.model.asset"
+        },
+        {
+          "id": "placement",
+          "kind": "read",
+          "child": "mainui.role.outward.back.model.placement"
+        },
+        {
+          "id": "effect",
+          "kind": "read",
+          "child": "mainui.role.outward.back.model.effect"
+        },
+        {
+          "id": "dynamic",
+          "kind": "read",
+          "child": "mainui.role.outward.back.model.dynamic"
+        },
+        {
+          "id": "lifecycle",
+          "kind": "read",
+          "child": "mainui.role.outward.back.model.lifecycle"
+        }
+      ],
+      "note": "玄穹云披 model control group."
+    },
+    {
+      "id": "mainui.role.outward.back.model.asset",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.model",
+      "note": "ride_figure selects module-specific Addressable model key."
+    },
+    {
+      "id": "mainui.role.outward.back.model.placement",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.model",
+      "note": "ClientOutWardPos exact w/a/d/b key then default fallback drives scale, position and rotation."
+    },
+    {
+      "id": "mainui.role.outward.back.model.effect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.model",
+      "note": "Always effect belongs to the model instance and must match the old module/resource."
+    },
+    {
+      "id": "mainui.role.outward.back.model.dynamic",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.model",
+      "note": "Dedicated UIModelStage must render non-empty RT and changing pixels/action over two times."
+    },
+    {
+      "id": "mainui.role.outward.back.model.lifecycle",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.model",
+      "note": "Type switch, hide, close and warm reopen show one current model with zero stale instances."
+    },
+    {
+      "id": "mainui.role.outward.back.property",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back",
+      "control_inventory": [
+        {
+          "id": "open",
+          "kind": "navigation",
+          "child": "mainui.role.outward.back.property.open"
+        },
+        {
+          "id": "content",
+          "kind": "read",
+          "child": "mainui.role.outward.back.property.content"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.role.outward.back.property.close"
+        }
+      ],
+      "note": "玄穹云披 property control group."
+    },
+    {
+      "id": "mainui.role.outward.back.property.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.property",
+      "note": "Property button opens PetProptityView above the page."
+    },
+    {
+      "id": "mainui.role.outward.back.property.content",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.property",
+      "note": "Attribute rows match current 16002 attr_list."
+    },
+    {
+      "id": "mainui.role.outward.back.property.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.property",
+      "note": "Close returns to the same outward page state."
+    },
+    {
+      "id": "mainui.role.outward.back.skills",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "read",
+          "child": "mainui.role.outward.back.skills.display"
+        },
+        {
+          "id": "detail",
+          "kind": "navigation",
+          "child": "mainui.role.outward.back.skills.detail"
+        }
+      ],
+      "note": "玄穹云披 skills control group."
+    },
+    {
+      "id": "mainui.role.outward.back.skills.display",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.skills",
+      "note": "Skill slots, icons, lock/level state and arc positions match old client."
+    },
+    {
+      "id": "mainui.role.outward.back.skills.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.skills",
+      "note": "Each visible skill opens its specific detail and returns."
+    },
+    {
+      "id": "mainui.role.outward.back.crystal",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "read",
+          "child": "mainui.role.outward.back.crystal.display"
+        },
+        {
+          "id": "detail",
+          "kind": "navigation",
+          "child": "mainui.role.outward.back.crystal.detail"
+        },
+        {
+          "id": "use",
+          "kind": "transaction",
+          "child": "mainui.role.outward.back.crystal.use"
+        }
+      ],
+      "note": "玄穹云披 crystal control group."
+    },
+    {
+      "id": "mainui.role.outward.back.crystal.display",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.crystal",
+      "note": "Three crystal slots use config_mount_goods and 16011 times/limit plus bag counts."
+    },
+    {
+      "id": "mainui.role.outward.back.crystal.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.crystal",
+      "note": "Non-usable crystal opens its specific PetCrystalView detail."
+    },
+    {
+      "id": "mainui.role.outward.back.crystal.use",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.back.crystal",
+      "note": "Usable crystal sends 16010 only from real UI and verifies authoritative refresh and reopen."
+    },
+    {
+      "id": "mainui.role.outward.back.materials",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "read",
+          "child": "mainui.role.outward.back.materials.display"
+        },
+        {
+          "id": "detail",
+          "kind": "navigation",
+          "child": "mainui.role.outward.back.materials.detail"
+        }
+      ],
+      "note": "玄穹云披 materials control group."
+    },
+    {
+      "id": "mainui.role.outward.back.materials.display",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.materials",
+      "note": "Three training material slots use config_mount_prop type=1 and real bag counts."
+    },
+    {
+      "id": "mainui.role.outward.back.materials.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.materials",
+      "note": "Each material opens its specific item detail and returns."
+    },
+    {
+      "id": "mainui.role.outward.back.base-appearance",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "read",
+          "child": "mainui.role.outward.back.base-appearance.state"
+        },
+        {
+          "id": "toggle",
+          "kind": "transaction",
+          "child": "mainui.role.outward.back.base-appearance.toggle"
+        }
+      ],
+      "note": "玄穹云披 base-appearance control group."
+    },
+    {
+      "id": "mainui.role.outward.back.base-appearance.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.base-appearance",
+      "note": "Using/unuse group reflects current base appearance FigureStage."
+    },
+    {
+      "id": "mainui.role.outward.back.base-appearance.toggle",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.back.base-appearance",
+      "note": "Real click sends 16003 type=1, then verifies immediate state and reopen consistency."
+    },
+    {
+      "id": "mainui.role.outward.back.illusion",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back",
+      "control_inventory": [
+        {
+          "id": "open",
+          "kind": "navigation",
+          "child": "mainui.role.outward.back.illusion.open"
+        },
+        {
+          "id": "list-scroll",
+          "kind": "read",
+          "child": "mainui.role.outward.back.illusion.list-scroll"
+        },
+        {
+          "id": "select-model",
+          "kind": "read",
+          "child": "mainui.role.outward.back.illusion.select-model"
+        },
+        {
+          "id": "wear",
+          "kind": "transaction",
+          "child": "mainui.role.outward.back.illusion.wear"
+        },
+        {
+          "id": "activate",
+          "kind": "transaction",
+          "child": "mainui.role.outward.back.illusion.activate"
+        },
+        {
+          "id": "stage-up",
+          "kind": "transaction",
+          "child": "mainui.role.outward.back.illusion.stage-up"
+        },
+        {
+          "id": "star-up",
+          "kind": "transaction",
+          "child": "mainui.role.outward.back.illusion.star-up"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.role.outward.back.illusion.close"
+        }
+      ],
+      "note": "玄穹云披 illusion control group."
+    },
+    {
+      "id": "mainui.role.outward.back.illusion.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.illusion",
+      "note": "Illusion button opens shared IllusionBaseView for the current type."
+    },
+    {
+      "id": "mainui.role.outward.back.illusion.list-scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.illusion",
+      "note": "All illusion rows are enumerated; real scroll reaches the last item with correct clipping."
+    },
+    {
+      "id": "mainui.role.outward.back.illusion.select-model",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.illusion",
+      "note": "Selected illusion detail and 3D model/effects update without stale accumulation."
+    },
+    {
+      "id": "mainui.role.outward.back.illusion.wear",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.back.illusion",
+      "note": "Wear/unwear sends 16003 and verifies immediate parent refresh plus reopen."
+    },
+    {
+      "id": "mainui.role.outward.back.illusion.activate",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.back.illusion",
+      "note": "Activation sends 16008 and verifies official reply/state."
+    },
+    {
+      "id": "mainui.role.outward.back.illusion.stage-up",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.back.illusion",
+      "note": "Stage-up sends 16009 and verifies resource consumption and immediate refresh."
+    },
+    {
+      "id": "mainui.role.outward.back.illusion.star-up",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.back.illusion",
+      "note": "Star-up sends 16020 and verifies official reply/state."
+    },
+    {
+      "id": "mainui.role.outward.back.illusion.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.illusion",
+      "note": "Close returns to the same outward page."
+    },
+    {
+      "id": "mainui.role.outward.back.level-system",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back",
+      "control_inventory": [
+        {
+          "id": "open",
+          "kind": "navigation",
+          "child": "mainui.role.outward.back.level-system.open"
+        },
+        {
+          "id": "summary",
+          "kind": "read",
+          "child": "mainui.role.outward.back.level-system.summary"
+        },
+        {
+          "id": "skills",
+          "kind": "read",
+          "child": "mainui.role.outward.back.level-system.skills"
+        },
+        {
+          "id": "level-up",
+          "kind": "transaction",
+          "child": "mainui.role.outward.back.level-system.level-up"
+        },
+        {
+          "id": "skill-up",
+          "kind": "transaction",
+          "child": "mainui.role.outward.back.level-system.skill-up"
+        },
+        {
+          "id": "return",
+          "kind": "return",
+          "child": "mainui.role.outward.back.level-system.return"
+        }
+      ],
+      "note": "玄穹云披 level-system control group."
+    },
+    {
+      "id": "mainui.role.outward.back.level-system.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.level-system",
+      "note": "Level-system tab/switch opens OutwardLvSystem for the same type."
+    },
+    {
+      "id": "mainui.role.outward.back.level-system.summary",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.level-system",
+      "note": "16028 level/exp/combat/attrs render correctly."
+    },
+    {
+      "id": "mainui.role.outward.back.level-system.skills",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.level-system",
+      "note": "Level-system skills and per-skill detail match current state."
+    },
+    {
+      "id": "mainui.role.outward.back.level-system.level-up",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.back.level-system",
+      "note": "Level-up sends 16029 through real UI and verifies immediate/reopen state."
+    },
+    {
+      "id": "mainui.role.outward.back.level-system.skill-up",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.back.level-system",
+      "note": "Skill upgrade sends 16030 through real UI and verifies immediate/reopen state."
+    },
+    {
+      "id": "mainui.role.outward.back.level-system.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.level-system",
+      "note": "Switch returns to cultivation page without stale state."
+    },
+    {
+      "id": "mainui.role.outward.back.one-key-up",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back",
+      "control_inventory": [
+        {
+          "id": "present",
+          "kind": "read",
+          "child": "mainui.role.outward.back.one-key-up.present"
+        },
+        {
+          "id": "submit",
+          "kind": "transaction",
+          "child": "mainui.role.outward.back.one-key-up.submit"
+        }
+      ],
+      "note": "玄穹云披 one-key-up control group."
+    },
+    {
+      "id": "mainui.role.outward.back.one-key-up.present",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.one-key-up",
+      "note": "Role outward types show one-key upgrade and no auto-buy control."
+    },
+    {
+      "id": "mainui.role.outward.back.one-key-up.submit",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.outward.back.one-key-up",
+      "note": "Real click sends 16005, verifies authoritative success/failure, materials/blessing/star immediate refresh and reopen."
+    },
+    {
+      "id": "mainui.role.outward.back.fairy-wish",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back",
+      "control_inventory": [
+        {
+          "id": "visibility",
+          "kind": "read",
+          "child": "mainui.role.outward.back.fairy-wish.visibility"
+        },
+        {
+          "id": "open",
+          "kind": "navigation",
+          "child": "mainui.role.outward.back.fairy-wish.open"
+        }
+      ],
+      "note": "玄穹云披 fairy-wish control group."
+    },
+    {
+      "id": "mainui.role.outward.back.fairy-wish.visibility",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.fairy-wish",
+      "note": "Conditional entry follows config_fairy, role level and open-day state; type12 has no configured entry."
+    },
+    {
+      "id": "mainui.role.outward.back.fairy-wish.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.fairy-wish",
+      "note": "Eligible entry opens the matching FairyWish page and returns to current outward page."
+    },
+    {
+      "id": "mainui.role.outward.back.route-state",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back",
+      "control_inventory": [
+        {
+          "id": "open-ready",
+          "kind": "navigation",
+          "child": "mainui.role.outward.back.route-state.open-ready"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.role.outward.back.route-state.close"
+        },
+        {
+          "id": "warm-reopen",
+          "kind": "read",
+          "child": "mainui.role.outward.back.route-state.warm-reopen"
+        },
+        {
+          "id": "viewports",
+          "kind": "read",
+          "child": "mainui.role.outward.back.route-state.viewports"
+        },
+        {
+          "id": "performance",
+          "kind": "read",
+          "child": "mainui.role.outward.back.route-state.performance"
+        }
+      ],
+      "note": "玄穹云披 route-state control group."
+    },
+    {
+      "id": "mainui.role.outward.back.route-state.open-ready",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.route-state",
+      "note": "Role top tab opens current type and waits for 16002/16006/16011/16028 plus resources."
+    },
+    {
+      "id": "mainui.role.outward.back.route-state.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.route-state",
+      "note": "Role window close clears the page and model stage."
+    },
+    {
+      "id": "mainui.role.outward.back.route-state.warm-reopen",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.route-state",
+      "note": "Warm reopen preserves authoritative state and has no stale model/effect/placeholder."
+    },
+    {
+      "id": "mainui.role.outward.back.route-state.viewports",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.route-state",
+      "note": "Full page passes old-vs-Unity real-Web comparison at 720x1280 and 1280x720."
+    },
+    {
+      "id": "mainui.role.outward.back.route-state.performance",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.outward.back.route-state",
+      "note": "Cold/warm timing, model/render allocation and repeated-switch stability are recorded."
+    }
+  ]
+}

@@ -111,16 +111,52 @@ namespace Shenxiao.Module.Core.Welfare
         public bool HasOnlineInfo { get; private set; }
         public int OnlineTime { get; private set; }
         public long OnlineLoginTime { get; private set; }
+        public long OnlineObservedAt { get; private set; }
         public IReadOnlyList<OnlineEntry> OnlineList => _onlineList;
         private readonly List<OnlineEntry> _onlineList = new List<OnlineEntry>();
+
+        /// <summary>
+        /// 41715 的 time 是回包时已经累计的在线秒数；老端在回包后继续用服务器时钟推进显示和红点。
+        /// login_time 仅保留协议原值，不能代替本次回包的观测时刻。
+        /// </summary>
+        public int CurrentOnlineTime
+        {
+            get
+            {
+                if (!HasOnlineInfo) return 0;
+                long elapsed = OnlineObservedAt > 0 ? System.Math.Max(0L, TimeUtil.NowSec() - OnlineObservedAt) : 0L;
+                long current = (long)OnlineTime + elapsed;
+                return current >= int.MaxValue ? int.MaxValue : (int)current;
+            }
+        }
 
         public void SetOnlineInfo(int time, long loginTime, List<OnlineEntry> list)
         {
             OnlineTime = time;
             OnlineLoginTime = loginTime;
+            OnlineObservedAt = TimeUtil.NowSec();
             _onlineList.Clear();
             if (list != null) _onlineList.AddRange(list);
             HasOnlineInfo = true;
+        }
+
+        /// <summary>
+        /// 返回下一个尚未领取档位变成可领取所需的秒数；0 表示已经可领，-1 表示没有待领取档位。
+        /// </summary>
+        public int GetNextOnlineRewardDelaySeconds()
+        {
+            int current = CurrentOnlineTime;
+            int nearest = int.MaxValue;
+            for (int i = 0; i < _onlineList.Count; i++)
+            {
+                OnlineEntry item = _onlineList[i];
+                if (item.State != 0) continue;
+                int target = WelfareConfigs.GetOnlineRewardTime(item.Id);
+                if (target == int.MaxValue) continue;
+                if (target <= current) return 0;
+                if (target < nearest) nearest = target;
+            }
+            return nearest == int.MaxValue ? -1 : nearest - current;
         }
 
         // ---- 心悦礼包(41719,pt_417.erl:52-54,326-340) ----
@@ -148,10 +184,11 @@ namespace Shenxiao.Module.Core.Welfare
             {
                 if (_checkinTotalState[i].Receive == 3) return true;
             }
+            int currentOnlineTime = CurrentOnlineTime;
             for (int i = 0; i < _onlineList.Count; i++)
             {
                 OnlineEntry item = _onlineList[i];
-                if (item.State == 0 && OnlineTime >= WelfareConfigs.GetOnlineRewardTime(item.Id)) return true;
+                if (item.State == 0 && currentOnlineTime >= WelfareConfigs.GetOnlineRewardTime(item.Id)) return true;
             }
             return false;
         }
@@ -177,6 +214,7 @@ namespace Shenxiao.Module.Core.Welfare
             HasOnlineInfo = false;
             OnlineTime = 0;
             OnlineLoginTime = 0;
+            OnlineObservedAt = 0;
             _onlineList.Clear();
 
             HasXinyueInfo = false;

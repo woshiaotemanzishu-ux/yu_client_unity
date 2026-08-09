@@ -1,0 +1,22 @@
+{
+  "route":"cross-server.boss-mystery",
+  "recorded_at":"2026-08-09T00:00:00+08:00",
+  "environment":"static",
+  "nodes":[
+    {"id":"cross-server.boss-mystery.floor-tabs","status":"needs-runtime-verify","runtime_gap":"缺同账号老端/Unity真实点击、滚动、选中态与两档viewport证据"},
+    {"id":"cross-server.boss-mystery.boss-cards","status":"needs-runtime-verify","runtime_gap":"已接真实46000快照克隆列表；缺列表裁切、末项可达、倒计时与配置展示实证"},
+    {"id":"cross-server.boss-mystery.attention","status":"blocked","blocked_reason":"可恢复写事务46007未获本轮账号写入授权，且特殊Boss/宝箱禁关注分支仍需真实状态核验"},
+    {"id":"cross-server.boss-mystery.drop-record","status":"blocked","blocked_reason":"页面内已请求46046，但共享掉落记录弹窗属于跨模块依赖且不在本文件岛"},
+    {"id":"cross-server.boss-mystery.stage-reward.close","status":"needs-runtime-verify","runtime_gap":"Prefab接管后关闭链未运行"},
+    {"id":"cross-server.boss-mystery.stage-reward.scroll","status":"needs-runtime-verify","runtime_gap":"三档奖励列表静态生成，缺ScrollRect真实拖动、资源/物品格与弹窗身份证据"},
+    {"id":"cross-server.boss-mystery.stage-reward.claim-1","status":"blocked","blocked_reason":"46038发奖为不可恢复事务，本轮无授权"},
+    {"id":"cross-server.boss-mystery.stage-reward.claim-2","status":"blocked","blocked_reason":"46038发奖为不可恢复事务，本轮无授权"},
+    {"id":"cross-server.boss-mystery.stage-reward.claim-3","status":"blocked","blocked_reason":"46038发奖为不可恢复事务，本轮无授权"},
+    {"id":"cross-server.boss-mystery.box-switch","status":"needs-runtime-verify","runtime_gap":"静态接入循环选择；老端同层普通/高级宝箱语义依赖46039与配置，缺运行态对照"},
+    {"id":"cross-server.boss-mystery.challenge","status":"blocked","blocked_reason":"46003进入场景会消耗次数/票券并切场景，本轮禁止账号写事务"},
+    {"id":"cross-server.boss-mystery.presentation","status":"needs-runtime-verify","runtime_gap":"当前仅接数据文本和模板；怪物模型、职业奖励预览、双帧RT像素和特效仍需页面专属实现与运行证据"},
+    {"id":"cross-server.boss-mystery.runtime-state","status":"needs-runtime-verify","runtime_gap":"46000/46037/46039已请求；人数、宝箱/特殊Boss剩余量、疲劳/成本和即时刷新仍缺权威运行探针"},
+    {"id":"cross-server.boss-mystery.instruction","status":"blocked","blocked_reason":"InstructionType.BossMystery位于CrossServer共享壳，超出本文件岛"},
+    {"id":"cross-server.boss-mystery.return","status":"blocked","blocked_reason":"CrossServerEnterView共享壳返回链不在本文件岛"}
+  ]
+}

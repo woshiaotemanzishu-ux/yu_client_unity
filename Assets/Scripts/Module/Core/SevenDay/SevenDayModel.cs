@@ -31,6 +31,8 @@ namespace Shenxiao.Module.Core.SevenDay
         private readonly int[] _currentDay = { 0, 0 };
         // 每个 act_type 的 openType 的 day 分组(仍有未领奖励的最小 day_type;全领完 = -1)
         private readonly int[] _openDayType = { -1, -1 };
+        // 每个 act_type/day_type 是否存在当前可领(status=1)档，用于对标老端 RefIconRed。
+        private readonly bool[,] _claimableByDayType = new bool[2, 2];
 
         /// <summary>
         /// 写入某 act_type 的信息(对标老端 SetSevenDayInfo + RefCurDayInfo):
@@ -41,6 +43,16 @@ namespace Shenxiao.Module.Core.SevenDay
             if (actType < 0 || actType > 1) return;
             _currentDay[actType] = currentDay;
             _openDayType[actType] = ComputeOpenDayType(dayIds, statuses);
+            _claimableByDayType[actType, 0] = false;
+            _claimableByDayType[actType, 1] = false;
+            int n = dayIds.Count < statuses.Count ? dayIds.Count : statuses.Count;
+            for (int i = 0; i < n; i++)
+            {
+                if (statuses[i] != 1) continue;
+                int dayType = dayIds[i] / LIMIT_DAY;
+                if (dayType >= 0 && dayType < _claimableByDayType.GetLength(1))
+                    _claimableByDayType[actType, dayType] = true;
+            }
         }
 
         // 取「仍有未领奖励(status<2)的最小 day 分组」(day_id/LIMIT_DAY);全部领完返回 -1。
@@ -73,6 +85,18 @@ namespace Shenxiao.Module.Core.SevenDay
             }
         }
 
+        /// <summary>图标是否显示可领红点(对标老端 RefIconRed/GetSevenDayRed)。</summary>
+        public bool IsIconRed(string iconType)
+        {
+            switch (iconType)
+            {
+                case ICON_OPEN: return _claimableByDayType[ACT_OPEN, 0];
+                case ICON_EIGHT: return _claimableByDayType[ACT_OPEN, 1];
+                case ICON_MERGE: return _claimableByDayType[ACT_MERGE, 0];
+                default: return false;
+            }
+        }
+
         /// <summary>
         /// 图标角标文字(对标老端:day_type>0 且 current_day==limit_day-1 时 SET_ICON_TEXT "明天可领")。
         /// 只有 175@8(openType "0@1",day_type=1>0)会命中。
@@ -89,6 +113,10 @@ namespace Shenxiao.Module.Core.SevenDay
             _currentDay[ACT_MERGE] = 0;
             _openDayType[ACT_OPEN] = -1;
             _openDayType[ACT_MERGE] = -1;
+            _claimableByDayType[ACT_OPEN, 0] = false;
+            _claimableByDayType[ACT_OPEN, 1] = false;
+            _claimableByDayType[ACT_MERGE, 0] = false;
+            _claimableByDayType[ACT_MERGE, 1] = false;
         }
     }
 }

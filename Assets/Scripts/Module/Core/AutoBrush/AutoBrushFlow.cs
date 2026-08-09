@@ -16,6 +16,7 @@ namespace Shenxiao.Module.Core.AutoBrush
 
         private static GameObject _moduleRoot;
         private static AutoBrushMainView _mainView;
+        private static AutoBrushRankView _rankView;
         private static AutoBrushResultView _resultView;
         private static bool _loading;
 
@@ -32,6 +33,7 @@ namespace Shenxiao.Module.Core.AutoBrush
 
         public static void CloseMain()
         {
+            _rankView?.Hide();
             _mainView?.Hide();
         }
 
@@ -40,10 +42,21 @@ namespace Shenxiao.Module.Core.AutoBrush
             _resultView?.Complete();
         }
 
+        public static void OpenRank()
+        {
+            _ = OpenRankAsync();
+        }
+
+        public static void CloseRank()
+        {
+            _rankView?.Hide();
+        }
+
         private static async Task OpenMainAsync()
         {
             if (!await EnsureLoaded()) return;
             _resultView?.Hide();
+            _rankView?.Hide();
             _mainView?.Show();
         }
 
@@ -56,13 +69,20 @@ namespace Shenxiao.Module.Core.AutoBrush
                 onCompleted?.Invoke();
                 return;
             }
+            _rankView?.Hide();
             _mainView?.Hide();
             _resultView?.Show(rewards, coin, exp, onCompleted);
         }
 
+        private static async Task OpenRankAsync()
+        {
+            if (!await EnsureLoaded()) return;
+            _rankView?.Show();
+        }
+
         private static async Task<bool> EnsureLoaded()
         {
-            if (_moduleRoot != null && _mainView != null && _resultView != null) return true;
+            if (_moduleRoot != null && _mainView != null && _rankView != null && _resultView != null) return true;
             if (_loading) return false;
             _loading = true;
 
@@ -98,7 +118,18 @@ namespace Shenxiao.Module.Core.AutoBrush
                 return false;
             }
 
+
+            AutoBrushRankViewBind rankBind = root.GetComponentInChildren<AutoBrushRankViewBind>(true);
+            if (rankBind == null)
+            {
+                GameLog.Error("AutoBrush", "AutoBrushModule missing AutoBrushRankViewBind.");
+                ResManager.ReleaseInstance(root);
+                _moduleRoot = null;
+                return false;
+            }
+
             _mainView = new AutoBrushMainView(mainBind);
+            _rankView = new AutoBrushRankView(rankBind);
             _resultView = new AutoBrushResultView(bind);
             return true;
         }
@@ -106,10 +137,12 @@ namespace Shenxiao.Module.Core.AutoBrush
         internal static void Reset()
         {
             _mainView?.Hide();
+            _rankView?.Hide();
             _resultView?.Hide();
             if (_moduleRoot != null) ResManager.ReleaseInstance(_moduleRoot);
             _moduleRoot = null;
             _mainView = null;
+            _rankView = null;
             _resultView = null;
             _loading = false;
         }

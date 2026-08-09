@@ -11,6 +11,12 @@ namespace Shenxiao.Module.Core.Vip
     {
         public static readonly VipModel Instance = new VipModel();
 
+        /// <summary>
+        /// Raised after a complete read-only VIP/recharge snapshot slice has been replaced.
+        /// Views consume this event only to refresh already-received state; it never starts a transaction.
+        /// </summary>
+        public event Action Changed;
+
         public struct RechargeProduct
         {
             public readonly int ProductId;
@@ -25,12 +31,15 @@ namespace Shenxiao.Module.Core.Vip
 
         private readonly Dictionary<int, RechargeProduct> _productById =
             new Dictionary<int, RechargeProduct>();
+        private IReadOnlyList<RechargeProduct> _rechargeProducts =
+            Array.AsReadOnly(Array.Empty<RechargeProduct>());
         private IReadOnlyList<WelfareCard> _welfareCards = Array.AsReadOnly(Array.Empty<WelfareCard>());
         private IReadOnlyList<PrivilegeCard> _privilegeCards = Array.AsReadOnly(Array.Empty<PrivilegeCard>());
 
         private VipModel() { }
 
         public IReadOnlyDictionary<int, RechargeProduct> ProductById => _productById;
+        public IReadOnlyList<RechargeProduct> RechargeProducts => _rechargeProducts;
         public IReadOnlyList<WelfareCard> WelfareCards => _welfareCards;
         public bool HasWelfareCardList { get; private set; }
         public VipInfoSnapshot VipInfo { get; private set; }
@@ -131,17 +140,40 @@ namespace Shenxiao.Module.Core.Vip
         public void SetRechargeProductList(List<RechargeProduct> products)
         {
             _productById.Clear();
-            if (products == null) return;
-            for (int i = 0; i < products.Count; i++)
+            int count = products?.Count ?? 0;
+            var copy = new RechargeProduct[count];
+            for (int i = 0; i < count; i++)
             {
                 RechargeProduct product = products[i];
-                _productById[product.ProductId] = product;
+                copy[i] = new RechargeProduct(product.ProductId, product.ReturnType);
+                _productById[product.ProductId] = copy[i];
             }
+
+            _rechargeProducts = Array.AsReadOnly(copy);
+            NotifyChanged();
         }
 
         public void SetRechargeOneProduct(int productId, int returnType)
         {
+            int count = _rechargeProducts.Count;
+            var copy = new RechargeProduct[count];
+            bool found = false;
+            for (int i = 0; i < count; i++)
+            {
+                RechargeProduct product = _rechargeProducts[i];
+                if (product.ProductId == productId)
+                {
+                    product = new RechargeProduct(productId, returnType);
+                    found = true;
+                }
+
+                copy[i] = product;
+            }
+
+            if (!found) return;
+            _rechargeProducts = Array.AsReadOnly(copy);
             _productById[productId] = new RechargeProduct(productId, returnType);
+            NotifyChanged();
         }
 
         public void ReplaceWelfareCards(IReadOnlyList<WelfareCard> cards)
@@ -156,6 +188,7 @@ namespace Shenxiao.Module.Core.Vip
 
             _welfareCards = Array.AsReadOnly(copy);
             HasWelfareCardList = true;
+            NotifyChanged();
         }
 
         public void ReplaceVipInfo(VipInfoSnapshot snapshot)
@@ -163,6 +196,7 @@ namespace Shenxiao.Module.Core.Vip
             if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
             VipInfo = new VipInfoSnapshot(snapshot.VipLevel, snapshot.VipExp, snapshot.NeedExp, snapshot.VipHide,
                 snapshot.GotRewards, snapshot.CanRewards, snapshot.UseCards);
+            NotifyChanged();
         }
 
         public void ReplacePrivilegeCards(IReadOnlyList<PrivilegeCard> cards)
@@ -177,35 +211,41 @@ namespace Shenxiao.Module.Core.Vip
 
             _privilegeCards = Array.AsReadOnly(copy);
             HasPrivilegeCards = true;
+            NotifyChanged();
         }
 
         public void ReplaceActivationNotice(CardNotice notice)
         {
             if (notice == null) throw new ArgumentNullException(nameof(notice));
             LastActivationNotice = new CardNotice(notice.CardType, notice.IsTempCard);
+            NotifyChanged();
         }
 
         public void ReplaceTimeoutNotice(CardNotice notice)
         {
             if (notice == null) throw new ArgumentNullException(nameof(notice));
             LastTimeoutNotice = new CardNotice(notice.CardType, notice.IsTempCard);
+            NotifyChanged();
         }
 
         public void MarkRechargeSuccessNotice()
         {
             HasRechargeSuccessNotice = true;
+            NotifyChanged();
         }
 
         public void ReplaceTotalRechargeGold(uint totalGold)
         {
             TotalRechargeGold = totalGold;
             HasTotalRechargeGold = true;
+            NotifyChanged();
         }
 
         public bool HaveFirstRecharge()
         {
-            foreach (RechargeProduct product in _productById.Values)
+            for (int i = 0; i < _rechargeProducts.Count; i++)
             {
+                RechargeProduct product = _rechargeProducts[i];
                 if (product.ReturnType == 1) return true;
             }
             return false;
@@ -214,6 +254,7 @@ namespace Shenxiao.Module.Core.Vip
         public void Reset()
         {
             _productById.Clear();
+            _rechargeProducts = Array.AsReadOnly(Array.Empty<RechargeProduct>());
             _welfareCards = Array.AsReadOnly(Array.Empty<WelfareCard>());
             HasWelfareCardList = false;
             VipInfo = null;
@@ -224,6 +265,12 @@ namespace Shenxiao.Module.Core.Vip
             HasRechargeSuccessNotice = false;
             HasTotalRechargeGold = false;
             TotalRechargeGold = 0;
+            NotifyChanged();
+        }
+
+        private void NotifyChanged()
+        {
+            Changed?.Invoke();
         }
 
         private static IReadOnlyList<ushort> FreezeU16(IReadOnlyList<ushort> source)

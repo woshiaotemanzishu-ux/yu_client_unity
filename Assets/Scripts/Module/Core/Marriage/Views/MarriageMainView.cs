@@ -17,9 +17,8 @@ namespace Shenxiao.Module.Core.Marriage
     /// 解除(_btn_break→MarriageBreakView)、送花(_btn_flower→MarriageFlowerView)、花房(_btn_flow→MarriageFlowView)、
     /// 婚宴(_btn_banquet→BanquetApplyView)、设计图(_btn_dsgt→MarriageDsgtView)。
     ///
-    /// 降级:MarriageModel(GetMateInfo/GetGiftInfo/BindVar)、BanquetModel、FriendModel/RoleManager、
-    /// RedDotManager、ResManager 角色模型、各 MarriageEvent/协议(17232/17238)与子窗均未移植 →
-    /// 红点先隐藏;按钮点击打日志「待对接」;OnShow 走列表空/默认降级。Null-guard 每处访问。
+    /// 当前:MarriageController/MarriageModel 已具备 17232/17238 查询/收包地基；Banquet、Friend/Role 数据消费、
+    /// 红点、角色模型、事件驱动显隐与子窗参数尚未接线。OnShow 仅恢复权威只读快照请求。
     /// </summary>
     public sealed class MarriageMainView : MarriageMainViewBind
     {
@@ -33,11 +32,12 @@ namespace Shenxiao.Module.Core.Marriage
         {
             // 老端 load_callback/LoadSuccess → InitEvent + 请求协议(17232/17238)+ SetSelfData/UpdateView:
             // 铺本人/伴侣模型、刷名字/性别/亲密度/天数、按是否已婚切换控件显隐。
-            // MarriageModel/BanquetModel/协议/角色模型均未移植 → 列表空、模型/默认降级。
-            GameLog.Info("Marriage", "MarriageMainView 打开 → 待对接 MarriageModel(列表空/默认降级)");
+            MarriageController.Instance.RequestMyMate();
+            MarriageController.Instance.RequestGiftInfo();
+            GameLog.Info("Marriage", "MarriageMainView 打开 → 已请求17232/17238权威快照,表现接线待运行态验证");
         }
 
-        /// <summary>红点:婚宴申请红点 banqRed(RedDotManager.CheckRedStatus(MARRIAGE_ASK)),数据未移植先隐藏。</summary>
+        /// <summary>红点:婚宴申请 banqRed；状态消费尚未接线，先隐藏。</summary>
         private void HideReds()
         {
             HideNode(banqRed);

@@ -12,6 +12,7 @@ namespace Shenxiao.Module.Core.AutoBrush
         public sealed class BossCfg
         {
             public int Id;
+            public int Power;
             public int Coin;
             public int ExpAdd;
             public string OtherRewardList = "";
@@ -26,23 +27,64 @@ namespace Shenxiao.Module.Core.AutoBrush
             public float SceneScale;
         }
 
+        public sealed class StageRewardCfg
+        {
+            public int Gate;
+            public AutoBrushModel.RewardEntry Reward;
+        }
+
         private static JObject _boss;
         private static JObject _client;
+        private static JObject _stageRewards;
         private static readonly Dictionary<int, BossCfg> _bossCache = new Dictionary<int, BossCfg>();
 
-        public static bool IsLoaded => _boss != null && _client != null;
+        public static bool IsLoaded => _boss != null && _client != null && _stageRewards != null;
         public static int MaxLevel { get; private set; }
 
         public static async Task EnsureLoaded()
         {
-            if (_boss != null && _client != null) return;
+            if (IsLoaded) return;
 
             _boss = await LoadConfig(GameResPath.GetServerConfigPath("config_enchantment_guard_boss"),
                 "config_enchantment_guard_boss");
             _client = await LoadConfig(GameResPath.GetClientConfigPath("configautobrush"),
                 "ConfigAutoBrush");
+            _stageRewards = await LoadConfig(GameResPath.GetServerConfigPath("config_enchantment_guard_stage_reward"),
+                "config_enchantment_guard_stage_reward");
             MaxLevel = ReadInt(_client, "max_level");
             if (MaxLevel > 0) AutoBrushModel.Instance.SetMaxLevel(MaxLevel);
+        }
+
+        public static StageRewardCfg GetStageReward(ulong gate)
+        {
+            if (_stageRewards == null) return null;
+            JObject obj = gate > 0 && gate <= int.MaxValue
+                ? _stageRewards[gate.ToString()] as JObject
+                : null;
+            if (obj == null && gate == 0)
+            {
+                int maxGate = 0;
+                foreach (JProperty property in _stageRewards.Properties())
+                {
+                    if (int.TryParse(property.Name, out int value) && value > maxGate
+                        && property.Value is JObject candidate)
+                    {
+                        maxGate = value;
+                        obj = candidate;
+                    }
+                }
+            }
+            if (obj == null) return null;
+
+            JArray rewards = ParseArray(ReadString(obj, "reward"));
+            if (rewards == null || rewards.Count == 0) return null;
+            JToken reward = rewards[0];
+            return new StageRewardCfg
+            {
+                Gate = ReadInt(obj, "gate"),
+                Reward = new AutoBrushModel.RewardEntry(
+                    ReadIndexedInt(reward, 0), ReadIndexedInt(reward, 1), ReadIndexedLong(reward, 2)),
+            };
         }
 
         public static BossCfg GetBoss(int level)
@@ -54,6 +96,7 @@ namespace Shenxiao.Module.Core.AutoBrush
             BossCfg cfg = new BossCfg
             {
                 Id = ReadInt(obj, "0"),
+                Power = ReadInt(obj, "1"),
                 Coin = ReadInt(obj, "2"),
                 ExpAdd = ReadInt(obj, "5"),
                 OtherRewardList = ReadString(obj, "6"),

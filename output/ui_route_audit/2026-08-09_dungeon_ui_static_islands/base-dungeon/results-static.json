@@ -1,0 +1,2312 @@
+{
+  "nodes": [
+    {
+      "id": "mainui.base-dungeon.limit-tower.icon-state",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "61117 驱动图标显隐/红点与会话内持续显示已静态接线；禁止启动 Unity/Web，本轮缺真实账号条件矩阵。",
+      "applicable_gates": [
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "331@97 已注册 MainUIRouter 并加载现有 DungeonTowerModule/BaseWindowSkin；缺 GraphicRaycaster、目标身份和 cold/warm。",
+      "applicable_gates": [
+        "click",
+        "result",
+        "target_identity",
+        "timing"
+      ],
+      "gates": {
+        "click": false,
+        "result": false,
+        "target_identity": false,
+        "timing": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.round-theme",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "三轮标题/内容底图已按老端固定资源名接线；ui_limit_tower_1..3 大背景当前未入 Unity 资源闭包，且缺真实 Web 像素证据。",
+      "applicable_gates": [
+        "runtime_state",
+        "resource_stable",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "resource_stable": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.progress",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "61117 pass_list 已保留；总关数依赖缺失的 config_limit_tower_round，当前安全隐藏 fill，需配置入库后真实复验。",
+      "applicable_gates": [
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.countdown",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "over_time 倒计时已按服务端时钟每秒刷新；缺隐藏/重开/到零与真实像素复验。",
+      "applicable_gates": [
+        "runtime_state",
+        "reopen",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "reopen": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.big-reward-state",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "reward_mode 0/1/2 显隐及 61118 成功后即时切换已静态接线；未执行账号写事务，缺三态运行证据。",
+      "applicable_gates": [
+        "runtime_state",
+        "immediate",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "immediate": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.big-reward-item",
+      "status": "blocked",
+      "blocked_reason": "大奖物品详情依赖 config_limit_tower_round.big_reward 与 Common 物品详情链；二者不在本岛可写闭包。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.big-reward-claim",
+      "status": "blocked",
+      "blocked_reason": "61118 是真实发奖写事务；本轮无账号写授权且缺 Common 恭喜弹窗/奖励即时到账与重开证据，禁止执行。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.drag",
+      "status": "blocked",
+      "blocked_reason": "老端为 6 个复用项沿贝塞尔曲线拖动；Unity 缺权威关卡目录与具名曲线槽位，禁止用普通纵向列表或代码猜坐标。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.return",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "入口复用 BaseWindowSkin 返回链并调用 View.Hide；未做真实射线点击、遮罩优先级和关闭重开。",
+      "applicable_gates": [
+        "click",
+        "return_chain",
+        "reopen"
+      ],
+      "gates": {
+        "click": false,
+        "return_chain": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40101 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40101 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40101 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101",
+      "status": "blocked",
+      "blocked_reason": "关卡 40101 属当前老端 round=1 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40101 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40101 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40102 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40102 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40102 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102",
+      "status": "blocked",
+      "blocked_reason": "关卡 40102 属当前老端 round=1 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40102 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40102 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40103 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40103 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40103 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103",
+      "status": "blocked",
+      "blocked_reason": "关卡 40103 属当前老端 round=1 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40103 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40103 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40104 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40104 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40104 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104",
+      "status": "blocked",
+      "blocked_reason": "关卡 40104 属当前老端 round=1 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40104 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40104 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40105 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40105 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40105 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105",
+      "status": "blocked",
+      "blocked_reason": "关卡 40105 属当前老端 round=1 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40105 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40105 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40106 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40106 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40106 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106",
+      "status": "blocked",
+      "blocked_reason": "关卡 40106 属当前老端 round=1 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40106 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40106 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40107 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40107 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40107 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107",
+      "status": "blocked",
+      "blocked_reason": "关卡 40107 属当前老端 round=1 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40107 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40107 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40108 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40108 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40108 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108",
+      "status": "blocked",
+      "blocked_reason": "关卡 40108 属当前老端 round=1 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40108 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40108 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40109 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40109 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40109 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109",
+      "status": "blocked",
+      "blocked_reason": "关卡 40109 属当前老端 round=1 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40109 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40109 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40110 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40110 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40110 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110",
+      "status": "blocked",
+      "blocked_reason": "关卡 40110 属当前老端 round=1 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40110 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40110 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40201 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40201 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40201 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201",
+      "status": "blocked",
+      "blocked_reason": "关卡 40201 属当前老端 round=2 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40201 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40201 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40202 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40202 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40202 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202",
+      "status": "blocked",
+      "blocked_reason": "关卡 40202 属当前老端 round=2 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40202 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40202 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40203 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40203 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40203 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203",
+      "status": "blocked",
+      "blocked_reason": "关卡 40203 属当前老端 round=2 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40203 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40203 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40204 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40204 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40204 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204",
+      "status": "blocked",
+      "blocked_reason": "关卡 40204 属当前老端 round=2 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40204 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40204 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40205 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40205 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40205 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205",
+      "status": "blocked",
+      "blocked_reason": "关卡 40205 属当前老端 round=2 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40205 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40205 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40206 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40206 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40206 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206",
+      "status": "blocked",
+      "blocked_reason": "关卡 40206 属当前老端 round=2 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40206 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40206 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40207 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40207 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40207 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207",
+      "status": "blocked",
+      "blocked_reason": "关卡 40207 属当前老端 round=2 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40207 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40207 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40208 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40208 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40208 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208",
+      "status": "blocked",
+      "blocked_reason": "关卡 40208 属当前老端 round=2 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40208 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40208 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40209 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40209 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40209 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209",
+      "status": "blocked",
+      "blocked_reason": "关卡 40209 属当前老端 round=2 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40209 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40209 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40210 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40210 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40210 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210",
+      "status": "blocked",
+      "blocked_reason": "关卡 40210 属当前老端 round=2 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40210 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40210 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40211 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40211 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40211 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211",
+      "status": "blocked",
+      "blocked_reason": "关卡 40211 属当前老端 round=2 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40211 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40211 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40212 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40212 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40212 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212",
+      "status": "blocked",
+      "blocked_reason": "关卡 40212 属当前老端 round=2 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40212 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40212 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40213 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40213 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40213 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213",
+      "status": "blocked",
+      "blocked_reason": "关卡 40213 属当前老端 round=2 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40213 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40213 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40214 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40214 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40214 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214",
+      "status": "blocked",
+      "blocked_reason": "关卡 40214 属当前老端 round=2 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40214 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40214 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40215 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40215 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40215 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215",
+      "status": "blocked",
+      "blocked_reason": "关卡 40215 属当前老端 round=2 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40215 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40215 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40301 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40301 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40301 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301",
+      "status": "blocked",
+      "blocked_reason": "关卡 40301 属当前老端 round=3 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40301 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40301 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40302 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40302 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40302 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302",
+      "status": "blocked",
+      "blocked_reason": "关卡 40302 属当前老端 round=3 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40302 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40302 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40303 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40303 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40303 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303",
+      "status": "blocked",
+      "blocked_reason": "关卡 40303 属当前老端 round=3 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40303 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40303 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40304 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40304 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40304 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304",
+      "status": "blocked",
+      "blocked_reason": "关卡 40304 属当前老端 round=3 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40304 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40304 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40305 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40305 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40305 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305",
+      "status": "blocked",
+      "blocked_reason": "关卡 40305 属当前老端 round=3 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40305 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40305 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40306 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40306 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40306 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306",
+      "status": "blocked",
+      "blocked_reason": "关卡 40306 属当前老端 round=3 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40306 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40306 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40307 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40307 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40307 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307",
+      "status": "blocked",
+      "blocked_reason": "关卡 40307 属当前老端 round=3 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40307 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40307 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40308 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40308 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40308 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308",
+      "status": "blocked",
+      "blocked_reason": "关卡 40308 属当前老端 round=3 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40308 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40308 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40309 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40309 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40309 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309",
+      "status": "blocked",
+      "blocked_reason": "关卡 40309 属当前老端 round=3 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40309 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40309 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40310 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40310 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40310 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310",
+      "status": "blocked",
+      "blocked_reason": "关卡 40310 属当前老端 round=3 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40310 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40310 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40311 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40311 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40311 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311",
+      "status": "blocked",
+      "blocked_reason": "关卡 40311 属当前老端 round=3 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40311 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40311 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40312 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40312 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40312 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312",
+      "status": "blocked",
+      "blocked_reason": "关卡 40312 属当前老端 round=3 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40312 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40312 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40313 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40313 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40313 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313",
+      "status": "blocked",
+      "blocked_reason": "关卡 40313 属当前老端 round=3 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40313 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40313 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40314 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40314 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40314 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314",
+      "status": "blocked",
+      "blocked_reason": "关卡 40314 属当前老端 round=3 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40314 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40314 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40315 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40315 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40315 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315",
+      "status": "blocked",
+      "blocked_reason": "关卡 40315 属当前老端 round=3 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40315 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40315 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40316 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40316 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40316 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316",
+      "status": "blocked",
+      "blocked_reason": "关卡 40316 属当前老端 round=3 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40316 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40316 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40317 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40317 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40317 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317",
+      "status": "blocked",
+      "blocked_reason": "关卡 40317 属当前老端 round=3 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40317 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40317 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40318 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40318 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40318 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318",
+      "status": "blocked",
+      "blocked_reason": "关卡 40318 属当前老端 round=3 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40318 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40318 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40319 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40319 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40319 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319",
+      "status": "blocked",
+      "blocked_reason": "关卡 40319 属当前老端 round=3 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40319 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40319 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail.rewards.item-1",
+      "status": "blocked",
+      "blocked_reason": "关卡 40320 第 1 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail.rewards.item-2",
+      "status": "blocked",
+      "blocked_reason": "关卡 40320 第 2 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail.rewards.item-3",
+      "status": "blocked",
+      "blocked_reason": "关卡 40320 第 3 个奖励需 config_dungeon_grade 与 Common 物品详情；本岛不复制共享组件、不猜奖励映射。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320",
+      "status": "blocked",
+      "blocked_reason": "关卡 40320 属当前老端 round=3 固定目录；Unity 缺 config_limit_tower_round 闭包和曲线列表实现，尚不能生成/点击真实格。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail.state",
+      "status": "blocked",
+      "blocked_reason": "关卡 40320 的名称、推荐战力、前置可挑战、当前战力颜色与选中红点依赖 config_dungeon + Role 权威态，未做同账号运行核查。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail.challenge",
+      "status": "blocked",
+      "blocked_reason": "关卡 40320 挑战进入需 Dungeon 61001/TryToEnterDungeon/战斗场景生命周期；跨岛且为真实账号操作，只登记 blocker。",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/audit-summary.md"
+      ]
+    }
+  ]
+}

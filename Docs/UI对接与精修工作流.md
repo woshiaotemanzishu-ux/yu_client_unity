@@ -2,6 +2,10 @@
 
 “UI 对接”和“UI 精修”是本项目对同一套端到端工作的两个称呼，不是两个阶段、两套任务或两个完成等级。用户使用任意一个词时，都执行完整流程；不能把“对接”理解成只接协议和点击，也不能把“精修”理解成只调位置和像素。
 
+## 验收事实源
+
+当前老客户端在同账号、同状态、同 viewport 下的真实运行最终表现，是跨客户端唯一验收目标，覆盖功能语义、状态、几何、层级、资源、动画时序、合成和生命周期。老端源码、配置和运行树只用于解释结果；Prefab 是 Unity 侧唯一可编辑实现源；转换器、公共架构和静态断言只是实现与诊断手段。发生冲突时修改 Unity，禁止为了保住通用方案而重新解释或降低老端标准。老端存在版本或状态分支时，先固定实际入口、版本、账号状态和时间点再采证；用户运行复验可推翻历史绿灯，但只关闭其明确观察到的精确范围。
+
 ## 固定流程
 
 1. 用 `audit-game-ui-route` 建立页面控件树，先列同层清单，再沿一条分支深度优先点到叶子。
@@ -10,6 +14,18 @@
 3. 目标尚无可编辑 Prefab 时，仅首次调用 `convert-module` 落地；已有 Prefab 时调用 `fix-view` 增量修改，禁止为精修重转模块或全量覆盖。
 4. 修复后返回原路线，用真实 `GraphicRaycaster→PointerClick`、真实拖动、协议/状态断言、截图/diff和资源幂等证据复验。
 5. 只有全部适用叶子通过四层完成定义，父页面才可标记 `done`；用户新截图可以推翻旧结论并把路线回卷为 `defect`。
+
+## GM 测试态不是 blocker
+
+账号缺等级、任务、物品、货币、功能开放或成就进度时，优先通过项目现有 GM 通道准备最小前置态：服务端 `11100` 下发当前清单，`11101` 执行命令；老 H5 可用 `CheatModel`，Unity PlayMode 可用「神霄/GM 秘籍」/`GmCheatController`。日常同账号对照优先使用 `111111`；不可恢复写入、互斥状态矩阵或需要反复重置时，通过现有注册链创建专用测试号。
+
+每条需要造状态的路线保存 `account/commands/order/expected/reset/probes` 配方，并把执行日志和权威状态探针绑定到 `runtime_state` 证据。GM 只准备前置条件；被测的领取、升级、穿戴、购买等事务仍必须由真实 UI 点击和正式协议完成。不得用 GM 直接写完目标结果后代替事务、即时刷新或关闭重开验收。具体命令与安全边界见 `.agents/skills/audit-game-ui-route/references/gm-test-state.md`。
+
+## 可选架构：独立 Laya UI 层
+
+当页面的一比一视觉优先级远高于原生 UGUI 可编辑性，且逐节点转换/精修成本失控时，可以先做“Unity 持续运行 + Laya 页面独立覆盖层”样板。该路线直接运行旧端页面，不再用截图 diff 猜测节点，因此同 viewport、同资源和同配置下的视觉事实就是旧端自身。
+
+这不是默认替换方案。正式采用前必须逐项通过：Unity 是唯一账号/网络权威；Laya 只收状态、回传点击意图；页面资源可按模块裁剪；打开/关闭原子切换像素与输入；冷/热耗时、内存和包体可接受；WebGL 两档 viewport 与 Android/iOS 均有真实运行证据。未通过这些门槛时只能标记为架构 POC，不得拿它完成现有 UGUI 路线。首个成就样板与边界见 `Docs/RuntimeCompare/独立LayaUI层-成就样板-20260808.md`。
 
 ## 共享组件优先与状态矩阵
 
@@ -25,7 +41,23 @@
 
 共享 Camera/RenderTexture/RawImage 会脱离宿主原有 UGUI 层级。列表物品、滚动卡片等实例除了裁自己的宿主矩形，还要与有效祖先 `RectMask2D/Mask` 求交；验收固定覆盖完整可见、部分进入裁切、完全滚出后目标 alpha 为零三态。不能因为物品图标已经被 `Viewport` 裁掉，就假设页面根共享 RawImage 中的特效也会自动消失。
 
-schema 5 路线台账新增 `shared_component_identity` 和 `component_state_matrix` 两个门禁，证据分别写入 `component_evidence[]` 与 `component_state_evidence[]`。历史 schema 4 台账保持兼容；用户新截图推翻旧结论时，重开受影响组件变体、目标路线叶和所选代表消费者并补新门禁，不机械重开全部直接消费者。
+schema 6 路线台账保留 `shared_component_identity` 和 `component_state_matrix` 两个门禁，证据分别写入结构化 `component_evidence[]` 与 `component_state_evidence[]`。历史 schema 2～5 台账保持只读兼容；用户新截图推翻旧结论时，重开受影响组件变体、目标路线叶和所选代表消费者并补新门禁，不机械重开全部直接消费者，也不得只修改历史台账的 schema 数字伪造升级。
+
+## schema 6 稳定性门禁
+
+2026-08-08 对既有流程复盘发现：规则文字已经覆盖页面身份、滚动、动态特效和真实 Web，但旧台账执行器仍允许空 `applicable_gates`、任意字符串证据、旧绿灯残留和“先覆盖正式账再校验”；共鸣专用更新器还硬编码 schema 4 并先把全部节点重置为 `done`。这些执行缺口会让规则看似完整、实际仍需人工多轮回卷。
+
+现统一执行以下约束：
+
+1. 新路线只由 `route_ledger.py init` 创建 schema 6 正式账，且 `init` 拒绝覆盖已存在目标；路线专用脚本只生成 manifest/results，不直接修改正式 `route-ledger.json`。
+2. `apply` 在内存合并、回卷父状态、复算汇总并校验候选，全部通过后才原子替换正式账。失败候选不会污染或部分改写台账；同一路径使用非阻塞跨进程写锁，并发第二写者明确失败、读取最新账后再重放，不得静默覆盖另一批结果。
+3. `manifest_source` 的路径/SHA-256、路线名、节点集合及 `parent/type/risk/control_inventory` 构成不可变拓扑合同。发现漏控件或条件控件变化时，保留旧账并从修正版 manifest 初始化新版本台账，禁止原地改树后沿用旧完成态。
+4. `done` 叶的每个适用闸都绑定 `gate_runs` 与 `gate_evidence`。文件证据必须存在且 SHA-256 一致；人工观察必须写明来源、带时区时间和精确覆盖范围。
+5. schema 6 的完成结果必须在本批 results 中显式刷新全部适用闸，不能复用节点里残留的旧 `true`。新证据用 `invalidate_gates` 精确作废受影响闸，旧绑定转入 `evidence_history` 并自动回卷父状态。
+6. 动态特效证据结构固定包含所有者、老端调用参数、动画属性到材质/Shader 的消费链、同一 Handle 双帧与正像素差、alpha 包围盒、隐藏/重开；滚动宿主再加完整/部分/完全离开三态，最后一态 alpha 必须为零。
+7. 根页面 `done` 必须由 `route_run_id` 绑定真实 Web run；该 run 同时保存 Git commit、dirty 指纹、Player/catalog SHA-256、`720×1280`/`1920×1080`、老端断线、Unity 有效会话和 Headless 报告。根页降级时旧 ID 必须清除；重新完成的 Web run 不得早于任一完成叶所用 run，且 Git/dirty 指纹必须一致。Editor、旧 Web 批次或局部用户确认只能关闭其覆盖的叶子，不能升级整页。
+
+详细 JSON 合同见 `.agents/skills/audit-game-ui-route/references/route-ledger-schema.md`。2026-08-07 共鸣 458 节点账保留为 schema 4 历史快照；下一次真实复验从现有 manifest 新建 schema 6 台账，不再重放硬编码旧绿灯。
 
 ## 真实 Web 对比与构建节奏
 
@@ -38,10 +70,19 @@ schema 5 路线台账新增 `shared_component_identity` 和 `component_state_mat
 ## 执行纠偏与页面吞吐
 
 - 角色界面等长任务保持完整页面/控件粒度，但实现按共享结构批量完成；逐叶台账不等于逐叶手工重复截图。
+- 项目级排程先运行 `ui_route_master.py` 递归汇总现有台账。该工具只读 `route-ledger`/manifest，明确分开当前 schema 6 与历史 schema 2～5，并输出确定性的 JSON/Markdown 总控索引；它不校验、更不写回任何正式台账。总控索引用来发现重复路线、历史绿灯和待升级岛，具体页面结果仍只通过 `route_ledger.py init/apply/validate` 落账。
 - 选择一个页面后，该页全部控件、条件状态、弹窗、滚动、模型/特效、声音、返回、重开和适用事务都进入本批范围；完成或明确 `blocked` 前不换页。
 - 执行中每约十分钟检查一次：当前动作是否仍直接推进选定页面、对比是否来自最新真实 Web、是否把基础设施/Git/证据整理混入页面工时、是否在无新信息地重复验证。发现偏航立即停下并纠正。
 - 每个页面先修共享 Prefab、绑定、初始化和一条代表路径，再批量覆盖同构控件；真实 Web 对比后只改资源/Prefab的尾项优先走内容构建，C# 缺陷汇总后一次修完再重打壳。
 - 页面可见效果是主要产出指标。普通页面不复制数百行专项验收 Case；通用打开、点击、滚动、截图和几何断言应数据化复用，专项代码只用于独特协议、场景生命周期或渲染机制。
+
+### 复杂页签/标签的前置几何合同
+
+弧形、放射形、折叠页签、竖排文字和 `width/height=0` 的自动尺寸文本，在进入截图盲调前必须先生成一次页面根几何表：`old_rect/unity_rect/reference_corner/pivot/runtime_size/parent_transform/state/text_bounds`。一组同尺寸节点若统一偏移半宽/半高，直接按参考角/pivot 根因处理；离散弧形位置保存为 Prefab 具名槽位，连续纯文字才使用只包文字的 preferred-width LayoutGroup。一次采集全部展开/选中/红点/长短文本状态，一批修改、组件级全状态通过后，只做一次整页复验。详见 [UI 复杂页签与标签定位](UI复杂页签与标签定位.md)。
+
+### UI 离屏特效的分层诊断
+
+特效问题按“宿主几何与裁切 → 模拟/缓存拓扑 → 原始 RT RGBA → 最终 Canvas 合成”四层定位。数量、大小和方向已经一致而出现灰片、变色或透明区域实心化时，优先比较源纹理透明像素、粒子材质 blend、原始 RT alpha 与 RawImage 合成，不再先改粒子数、缩放、方向或缓存拓扑。最终证据同时包含 Editor/WebGL、原始 RT/最终 Canvas，以及同链正常 UI 特效和场景特效控制样本。
 
 ### 工时基准与节约判断
 

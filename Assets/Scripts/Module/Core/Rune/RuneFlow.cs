@@ -34,7 +34,11 @@ namespace Shenxiao.Module.Core.Rune
 
         public static void Close()
         {
-            if (_mainView != null) _mainView.Hide();
+            if (_moduleRoot == null) return;
+            foreach (BaseView view in _moduleRoot.GetComponentsInChildren<BaseView>(true))
+            {
+                if (view.IsShown) view.Hide();
+            }
         }
 
         /// <summary>打开符文模块内子窗(转化/技能/觉醒/属性/分解…),叠在主面板上;按 View 子类名查找。未移植查不到 → 日志降级。</summary>

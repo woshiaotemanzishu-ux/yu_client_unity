@@ -1,0 +1,73 @@
+{
+  "route": "mainui.level-reward",
+  "baseline": {
+    "authority": "当前老 H5 在同账号、同状态、同 viewport 下的真实运行结果是最终权威；本清单仅冻结静态拓扑，不声称真实 Web 完成。",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/levelReward/LevelRewardView.ts",
+      "E:/GitProject/yu_client/h5/src/levelReward/LevelRewardItem.ts",
+      "E:/GitProject/yu_client/h5/src/levelReward/LevelReward.ts",
+      "E:/GitProject/yu_client/h5/src/commonModel/WelfareModel.ts",
+      "E:/GitProject/yu_client/h5/src/commonController/WelfareController.ts",
+      "E:/GitProject/yu_client/cdn/resource/config/server/config_rush_giftbag.json"
+    ],
+    "unity_sources": [
+      "Assets/Prefabs/UI/LevelReward/LevelRewardModule.prefab",
+      "Assets/Scripts/Module/Core/LevelReward/LevelRewardFlow.cs",
+      "Assets/Scripts/Module/Core/LevelReward/Views/LevelRewardView.cs",
+      "Assets/Scripts/Module/Core/LevelReward/Views/LevelRewardItem.cs",
+      "Assets/Scripts/Module/Core/LevelReward/Views/LevelReward.cs",
+      "Assets/Scripts/Module/Core/RushGift/RushGiftModel.cs",
+      "Assets/Scripts/Module/Core/RushGift/RushGiftController.cs"
+    ],
+    "protocol_inventory": {
+      "reads": ["41700"],
+      "writes": ["41701"],
+      "note": "41701 领取是不可恢复写事务，本轮只枚举、不点击。"
+    },
+    "component_dependencies": [
+      {"component":"EquipmentItem","consumer":"LevelReward","scope":"Common shared item; read-only dependency"},
+      {"component":"RewardFlyService/legacy ShowActFlyReward","consumer":"LevelRewardItem claim success","scope":"MainUI/Common dependency; report only"},
+      {"component":"ArrowComponent/story finger","consumer":"LevelRewardItem eligible main-task state","scope":"Common/Task dependency; report only"}
+    ]
+  },
+  "nodes": [
+    {"id":"mainui.level-reward","type":"page","risk":"read-only","parent":null,"control_inventory":[{"id":"entry","kind":"conditional-entry","child":"mainui.level-reward.entry"},{"id":"shell","kind":"page-shell","child":"mainui.level-reward.shell"},{"id":"list","kind":"reward-list","child":"mainui.level-reward.list"},{"id":"row","kind":"shared-row","child":"mainui.level-reward.row"},{"id":"reward","kind":"shared-reward","child":"mainui.level-reward.reward"},{"id":"return","kind":"return","child":"mainui.level-reward.return"},{"id":"lifecycle","kind":"route-lifecycle","child":"mainui.level-reward.lifecycle"}]},
+
+    {"id":"mainui.level-reward.entry","type":"page","risk":"read-only","parent":"mainui.level-reward","control_inventory":[{"id":"visible","kind":"condition","child":"mainui.level-reward.entry.visible"},{"id":"red","kind":"state","child":"mainui.level-reward.entry.red"},{"id":"open","kind":"navigation","child":"mainui.level-reward.entry.open"}]},
+    {"id":"mainui.level-reward.entry.visible","type":"read","risk":"read-only","parent":"mainui.level-reward.entry","note":"41700 有未领项且功能开启时的入口显隐。"},
+    {"id":"mainui.level-reward.entry.red","type":"read","risk":"read-only","parent":"mainui.level-reward.entry","note":"任一 received=1 时入口红点/提示状态。"},
+    {"id":"mainui.level-reward.entry.open","type":"navigation","risk":"read-only","parent":"mainui.level-reward.entry","note":"可见二级 HUD 入口真实点击打开 LevelRewardView。"},
+
+    {"id":"mainui.level-reward.shell","type":"page","risk":"read-only","parent":"mainui.level-reward","control_inventory":[{"id":"identity","kind":"page-identity","child":"mainui.level-reward.shell.identity"},{"id":"title","kind":"image","child":"mainui.level-reward.shell.title"},{"id":"tips","kind":"text-image","child":"mainui.level-reward.shell.tips"}]},
+    {"id":"mainui.level-reward.shell.identity","type":"read","risk":"read-only","parent":"mainui.level-reward.shell","note":"Activity/UI 层页面身份、根尺寸、背景与层级。"},
+    {"id":"mainui.level-reward.shell.title","type":"read","risk":"read-only","parent":"mainui.level-reward.shell","note":"uicjhl_001 标题图。"},
+    {"id":"mainui.level-reward.shell.tips","type":"read","risk":"read-only","parent":"mainui.level-reward.shell","note":"提示图、Label 与条件文案。"},
+
+    {"id":"mainui.level-reward.list","type":"page","risk":"read-only","parent":"mainui.level-reward","control_inventory":[{"id":"structure","kind":"scroll","child":"mainui.level-reward.list.structure"},{"id":"sort","kind":"sort","child":"mainui.level-reward.list.sort"},{"id":"empty","kind":"state","child":"mainui.level-reward.list.empty"},{"id":"scroll","kind":"interaction","child":"mainui.level-reward.list.scroll"}]},
+    {"id":"mainui.level-reward.list.structure","type":"read","risk":"read-only","parent":"mainui.level-reward.list","note":"Vertical ScrollRect→Viewport/Mask→Content/Layout。"},
+    {"id":"mainui.level-reward.list.sort","type":"read","risk":"read-only","parent":"mainui.level-reward.list","note":"按 received 状态优先、再按 lv 升序。"},
+    {"id":"mainui.level-reward.list.empty","type":"read","risk":"read-only","parent":"mainui.level-reward.list","note":"41700 未到/空包状态不显示烤制假数据。"},
+    {"id":"mainui.level-reward.list.scroll","type":"read","risk":"read-only","parent":"mainui.level-reward.list","note":"真实拖动、裁剪、末项可达与重开位置。"},
+
+    {"id":"mainui.level-reward.row","type":"page","risk":"read-only","parent":"mainui.level-reward","control_inventory":[{"id":"level","kind":"text","child":"mainui.level-reward.row.level"},{"id":"remain","kind":"conditional-text","child":"mainui.level-reward.row.remain"},{"id":"states","kind":"state-matrix","child":"mainui.level-reward.row.states"},{"id":"claim","kind":"transaction","child":"mainui.level-reward.row.claim"}]},
+    {"id":"mainui.level-reward.row.level","type":"read","risk":"read-only","parent":"mainui.level-reward.row","note":"bag_lv>370 显示 bag_lv-370 并显示 destiny_gp。"},
+    {"id":"mainui.level-reward.row.remain","type":"read","risk":"read-only","parent":"mainui.level-reward.row","note":"剩余 N/上限、领完文案与颜色。"},
+    {"id":"mainui.level-reward.row.states","type":"read","risk":"read-only","parent":"mainui.level-reward.row","note":"received=0/1/2/3/4 的按钮、灰态、红点、已领图矩阵。"},
+    {"id":"mainui.level-reward.row.claim","type":"transaction","risk":"destructive-write","parent":"mainui.level-reward.row","note":"received=1 才发送 41701(lv)，验证回包、即时刷新、飞奖与重开；本轮不点击。"},
+
+    {"id":"mainui.level-reward.reward","type":"page","risk":"read-only","parent":"mainui.level-reward","control_inventory":[{"id":"identity","kind":"shared-component","child":"mainui.level-reward.reward.identity"},{"id":"content","kind":"item-grid","child":"mainui.level-reward.reward.content"},{"id":"limit","kind":"state-matrix","child":"mainui.level-reward.reward.limit"},{"id":"detail","kind":"popup","child":"mainui.level-reward.reward.detail"}]},
+    {"id":"mainui.level-reward.reward.identity","type":"read","risk":"read-only","parent":"mainui.level-reward.reward","note":"共享 EquipmentItem 身份/GUID/宿主与空/有数据状态。"},
+    {"id":"mainui.level-reward.reward.content","type":"read","risk":"read-only","parent":"mainui.level-reward.reward","note":"性别奖励 bag_gift_man/woman 与 limit_gift_man/woman 映射、数量、锁定态。"},
+    {"id":"mainui.level-reward.reward.limit","type":"read","risk":"read-only","parent":"mainui.level-reward.reward","note":"限量奖励剩余/领完对应 limit/mask/draw 三态。"},
+    {"id":"mainui.level-reward.reward.detail","type":"navigation","risk":"read-only","parent":"mainui.level-reward.reward","note":"每个奖励格打开真实共享物品详情并正确关闭。"},
+
+    {"id":"mainui.level-reward.return","type":"return","risk":"read-only","parent":"mainui.level-reward","note":"再次点击入口/外层返回关闭当前页并回到主界面。"},
+
+    {"id":"mainui.level-reward.lifecycle","type":"page","risk":"read-only","parent":"mainui.level-reward","control_inventory":[{"id":"update","kind":"live-update","child":"mainui.level-reward.lifecycle.update"},{"id":"warm","kind":"reopen","child":"mainui.level-reward.lifecycle.warm"},{"id":"viewports","kind":"visual","child":"mainui.level-reward.lifecycle.viewports"},{"id":"performance","kind":"performance","child":"mainui.level-reward.lifecycle.performance"},{"id":"sound","kind":"sound","child":"mainui.level-reward.lifecycle.sound"}]},
+    {"id":"mainui.level-reward.lifecycle.update","type":"read","risk":"read-only","parent":"mainui.level-reward.lifecycle","note":"41700 到达时已打开页即时刷新，列表无重复克隆。"},
+    {"id":"mainui.level-reward.lifecycle.warm","type":"read","risk":"read-only","parent":"mainui.level-reward.lifecycle","note":"隐藏/热重开状态、滚动和事件订阅一致。"},
+    {"id":"mainui.level-reward.lifecycle.viewports","type":"read","risk":"read-only","parent":"mainui.level-reward.lifecycle","note":"720x1280 与 1920x1080 老 H5/Unity 真实 Web old/unity/overlay/diff。"},
+    {"id":"mainui.level-reward.lifecycle.performance","type":"read","risk":"read-only","parent":"mainui.level-reward.lifecycle","note":"cold/warm 首屏与可交互就绪、资源零新增。"},
+    {"id":"mainui.level-reward.lifecycle.sound","type":"read","risk":"read-only","parent":"mainui.level-reward.lifecycle","note":"老端源码未发现页面专属声音调用；真实运行需确认仅通用点击声且无后到串台。"}
+  ]
+}

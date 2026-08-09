@@ -1,0 +1,1842 @@
+{
+  "schema": 6,
+  "route": "mainui.kf1vn",
+  "baseline": {
+    "authority": "当前老 H5 同账号、同状态、同 viewport 的真实最终表现是唯一验收目标；本账仅冻结静态拓扑，禁止把源码、Prefab 或协议缓存写成运行通过。",
+    "legacy_runtime": "not-captured-this-turn: browser/runtime explicitly prohibited",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/commonController/Kf1vnController.ts",
+      "E:/GitProject/yu_client/h5/src/commonModel/Kf1vnModel.ts",
+      "E:/GitProject/yu_client/h5/src/kf1vn/*.ts (26 files)",
+      "E:/GitProject/yu_client/h5/laya/pages/resource/game/kf1vn/*.scene (26 files)"
+    ],
+    "unity_sources": [
+      "Assets/Prefabs/UI/Kf1vn/Kf1vnModule.prefab",
+      "Assets/Prefabs/UI/Kf1vn/Kf1vnTabItem.prefab",
+      "Assets/Scripts/Generated/UI/Kf1vn/*Bind.cs (26 files)",
+      "Assets/Scripts/Module/Core/Kf1vn/Kf1vnController.cs",
+      "Assets/Scripts/Module/Core/Kf1vn/Kf1vnModel.cs"
+    ],
+    "protocol_inventory": {
+      "safe_reads_and_pushes": [
+        62100,
+        62101,
+        62103,
+        62104,
+        62105,
+        62108,
+        62109,
+        62110,
+        62112,
+        62113,
+        62116,
+        62117,
+        62119,
+        62120,
+        62123,
+        62132,
+        62133,
+        62135
+      ],
+      "send_only": [
+        62107
+      ],
+      "blocked_transactions": [
+        62102,
+        62118,
+        62121,
+        62134
+      ],
+      "dead_empty_consumer": [
+        62111
+      ]
+    },
+    "static_defect": "Kf1vn has editable Prefabs and Generated Bind roots but no business View, Flow or Bootstrap in the Kf1vn production island."
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_kf1vn_static_v1/route-manifest.json",
+    "sha256": "f99a9ab30510fca9932c84add59c77818078111b3ca7a2d11992d1f46c7fcd5f"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "mainui.kf1vn",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        {
+          "id": "entry",
+          "kind": "entry-page",
+          "child": "mainui.kf1vn.entry"
+        },
+        {
+          "id": "shop",
+          "kind": "popup-tree",
+          "child": "mainui.kf1vn.shop"
+        },
+        {
+          "id": "rank",
+          "kind": "popup-tree",
+          "child": "mainui.kf1vn.rank"
+        },
+        {
+          "id": "reward",
+          "kind": "popup-tree",
+          "child": "mainui.kf1vn.reward"
+        },
+        {
+          "id": "wait",
+          "kind": "scene-overlay",
+          "child": "mainui.kf1vn.wait"
+        },
+        {
+          "id": "platform",
+          "kind": "scene-overlay",
+          "child": "mainui.kf1vn.platform"
+        },
+        {
+          "id": "quiz",
+          "kind": "transaction-popup",
+          "child": "mainui.kf1vn.quiz"
+        },
+        {
+          "id": "fight",
+          "kind": "scene-overlay",
+          "child": "mainui.kf1vn.fight"
+        },
+        {
+          "id": "transitions",
+          "kind": "result-overlays",
+          "child": "mainui.kf1vn.transitions"
+        },
+        {
+          "id": "components",
+          "kind": "component-matrix",
+          "child": "mainui.kf1vn.components"
+        },
+        {
+          "id": "route-state",
+          "kind": "lifecycle",
+          "child": "mainui.kf1vn.route-state"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.kf1vn.entry, mainui.kf1vn.shop, mainui.kf1vn.wait, mainui.kf1vn.platform, mainui.kf1vn.quiz, mainui.kf1vn.fight"
+    },
+    {
+      "id": "mainui.kf1vn.entry",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "visual-state",
+          "child": "mainui.kf1vn.entry.identity"
+        },
+        {
+          "id": "champion",
+          "kind": "model-card",
+          "child": "mainui.kf1vn.entry.champion"
+        },
+        {
+          "id": "rules",
+          "kind": "scroll-text",
+          "child": "mainui.kf1vn.entry.rules"
+        },
+        {
+          "id": "timer",
+          "kind": "conditional-state",
+          "child": "mainui.kf1vn.entry.timer"
+        },
+        {
+          "id": "shop",
+          "kind": "button",
+          "child": "mainui.kf1vn.entry.shop"
+        },
+        {
+          "id": "rank",
+          "kind": "button",
+          "child": "mainui.kf1vn.entry.rank"
+        },
+        {
+          "id": "reward",
+          "kind": "button",
+          "child": "mainui.kf1vn.entry.reward"
+        },
+        {
+          "id": "enter",
+          "kind": "conditional-transaction",
+          "child": "mainui.kf1vn.entry.enter"
+        },
+        {
+          "id": "red-dots",
+          "kind": "state",
+          "child": "mainui.kf1vn.entry.red-dots"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.kf1vn.entry.close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.kf1vn.entry.enter"
+    },
+    {
+      "id": "mainui.kf1vn.entry.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.entry",
+      "note": "Kf1vnEnterView root, title/background/mask and stage 0..6 identity.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No Unity/real-Web run was authorized; player-visible identity, state and visual comparison remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.entry.champion",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.entry",
+      "note": "62136 historical/current champion name/server/head/model slot; cross-module model evidence required.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No Unity/real-Web run was authorized; real champion head/model render and state remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.entry.rules",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.entry",
+      "note": "ConfigInstruction[621] scroll text, clipping and full content reachability.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No Unity/real-Web run was authorized; real scroll, clipping and full-text reachability remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.entry.timer",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.entry",
+      "note": "Stage 0 next opening and stage 1..5 absolute countdown wording; stage 6 closed.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No Unity/real-Web run was authorized; stage countdown wording and time progression remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.entry.shop",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.entry",
+      "note": "shopBtn opens Kf1vnShopView default tab 0.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Generated Bind/Prefab exist but no Kf1vn business View/Flow is present; raycast click, target identity and cold/warm remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.entry.rank",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.entry",
+      "note": "rankBtn opens current two-tab Kf1vnRankView.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Generated Bind/Prefab exist but no Kf1vn business View/Flow is present; raycast click, target identity and cold/warm remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.entry.reward",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.entry",
+      "note": "rewardBtn opens current two-tab Kf1vnRewardView.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Generated Bind/Prefab exist but no Kf1vn business View/Flow is present; raycast click, target identity and cold/warm remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.entry.enter",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.kf1vn.entry",
+      "note": "Stage1 explicit sign 62102; stage2..5 enter 62103/scene. No authorization and 62102 remains hard-negative.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "62102 registration is a hard-negative persistent transaction and later entry requires cross-server scene lifecycle; this turn forbids account writes, challenge/entry and cross-module files."
+    },
+    {
+      "id": "mainui.kf1vn.entry.red-dots",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.entry",
+      "note": "Sign red dot plus shop/claim composite red dot across stage/history/Goods updates.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; stage/sign/shop/history red-dot matrix and immediate refresh remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.entry.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.entry",
+      "note": "Close overlay and return input to previous UI.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; real close hit target, input return and reopen remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.shop",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "popup",
+          "child": "mainui.kf1vn.shop.identity"
+        },
+        {
+          "id": "exchange-tab",
+          "kind": "tab",
+          "child": "mainui.kf1vn.shop.exchange"
+        },
+        {
+          "id": "history-tab",
+          "kind": "tab",
+          "child": "mainui.kf1vn.shop.history"
+        },
+        {
+          "id": "red-dots",
+          "kind": "state",
+          "child": "mainui.kf1vn.shop.red-dots"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.kf1vn.shop.close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.kf1vn.shop.exchange, mainui.kf1vn.shop.history"
+    },
+    {
+      "id": "mainui.kf1vn.shop.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.shop",
+      "note": "Kf1vnShopView popup identity, background, mask and selected default index.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No Unity/real-Web run was authorized; popup identity/background/mask/default tab remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.shop.exchange",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.shop",
+      "control_inventory": [
+        {
+          "id": "tab",
+          "kind": "tab",
+          "child": "mainui.kf1vn.shop.exchange.tab"
+        },
+        {
+          "id": "currency",
+          "kind": "state",
+          "child": "mainui.kf1vn.shop.exchange.currency"
+        },
+        {
+          "id": "list",
+          "kind": "scroll-list",
+          "child": "mainui.kf1vn.shop.exchange.list"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.kf1vn.shop.exchange.detail"
+        },
+        {
+          "id": "conditions",
+          "kind": "conditional-state",
+          "child": "mainui.kf1vn.shop.exchange.conditions"
+        },
+        {
+          "id": "buy",
+          "kind": "transaction",
+          "child": "mainui.kf1vn.shop.exchange.buy"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.kf1vn.shop.exchange.buy"
+    },
+    {
+      "id": "mainui.kf1vn.shop.exchange.tab",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.shop.exchange",
+      "note": "Exchange tab selection, re-entry and reset-to-top.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; real tab click/selection/reset-to-top remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.shop.exchange.currency",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.shop.exchange",
+      "note": "ExchangeShopType=4 special score icon/count with Goods event refresh.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Goods special-score runtime is outside this island and was not run; icon/count refresh remains unverified."
+    },
+    {
+      "id": "mainui.kf1vn.shop.exchange.list",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.shop.exchange",
+      "note": "Vertical Kf1vnShopExchangeItem list, ScrollRect structure, clipping, empty and last item.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; ScrollRect structure, raycast drag, clipping, empty state and last row remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.shop.exchange.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.shop.exchange",
+      "note": "Each visible obtain/cost BaseAwardItem opens the exact goods detail identity.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Common BaseAwardItem and goods detail runtime were not run; each visible cell target identity remains unverified."
+    },
+    {
+      "id": "mainui.kf1vn.shop.exchange.conditions",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.shop.exchange",
+      "note": "Available/insufficient/level limit/sold out/remaining count state matrix.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime/account matrix was authorized; available/insufficient/level-limit/sold-out states remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.shop.exchange.buy",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.kf1vn.shop.exchange",
+      "note": "Goods exchange consumes special score and grants goods; Common/Goods and purchase authorization are outside this island.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Exchange consumes special score and grants goods through forbidden Goods/Common dependencies; purchase/account writes are explicitly prohibited this turn."
+    },
+    {
+      "id": "mainui.kf1vn.shop.history",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.shop",
+      "control_inventory": [
+        {
+          "id": "tab",
+          "kind": "tab",
+          "child": "mainui.kf1vn.shop.history.tab"
+        },
+        {
+          "id": "list",
+          "kind": "scroll-list",
+          "child": "mainui.kf1vn.shop.history.list"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.kf1vn.shop.history.detail"
+        },
+        {
+          "id": "states",
+          "kind": "conditional-state",
+          "child": "mainui.kf1vn.shop.history.states"
+        },
+        {
+          "id": "claim",
+          "kind": "transaction",
+          "child": "mainui.kf1vn.shop.history.claim"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.kf1vn.shop.history.claim"
+    },
+    {
+      "id": "mainui.kf1vn.shop.history.tab",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.shop.history",
+      "note": "Quiz history tab selection, optional direct-open index 1 and 62133 refresh.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; direct-open index, 62133 query, tab selection and return remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.shop.history.list",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.shop.history",
+      "note": "Quiz history list/empty state, wire order, repeated keys, true drag and last row.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; history ordering, repeated keys, empty state, raycast drag and last row remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.shop.history.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.shop.history",
+      "note": "Cost and result reward BaseAwardItem detail identities per visible row.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Common BaseAwardItem and goods detail runtime were not run; cost/reward detail identity remains unverified."
+    },
+    {
+      "id": "mainui.kf1vn.shop.history.states",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.shop.history",
+      "note": "Pending/can-claim/claimed, bet result and red-dot matrix.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No real account state was authorized; pending/can-claim/claimed and red-dot states remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.shop.history.claim",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.kf1vn.shop.history",
+      "note": "62134 key:u64 persists claim and sends goods/mail; key echo is not asset authority.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "62134 is a hard-negative persistent reward transaction with bag/mail authority; reward/account writes are explicitly prohibited this turn."
+    },
+    {
+      "id": "mainui.kf1vn.shop.red-dots",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.shop",
+      "note": "Exchange and history tab red dots, open-once shop suppression and parent icon refresh.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; both tab dots, open-once suppression and parent refresh remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.shop.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.shop",
+      "note": "Close popup and restore originating entry/wait/platform page.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; close chain and restoration of each originating page remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.rank",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "popup",
+          "child": "mainui.kf1vn.rank.identity"
+        },
+        {
+          "id": "qualification",
+          "kind": "tab",
+          "child": "mainui.kf1vn.rank.qualification"
+        },
+        {
+          "id": "leader",
+          "kind": "tab",
+          "child": "mainui.kf1vn.rank.leader"
+        },
+        {
+          "id": "list",
+          "kind": "scroll-list",
+          "child": "mainui.kf1vn.rank.list"
+        },
+        {
+          "id": "states",
+          "kind": "state",
+          "child": "mainui.kf1vn.rank.states"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.kf1vn.rank.close"
+        }
+      ],
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.kf1vn.rank.identity, mainui.kf1vn.rank.qualification, mainui.kf1vn.rank.leader, mainui.kf1vn.rank.list, mainui.kf1vn.rank.states, mainui.kf1vn.rank.close"
+    },
+    {
+      "id": "mainui.kf1vn.rank.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.rank",
+      "note": "Kf1vnRankView root, mask, background and two-tab version identity.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No Unity/real-Web run was authorized; exact popup identity and version remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.rank.qualification",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.rank",
+      "note": "Qualification tab requests/consumes 62110 by area.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; 62110 area query, tab click and live state remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.rank.leader",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.rank",
+      "note": "Leader tab requests/consumes 62116 by area; daily_award is display-only raw.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; 62116 area query, display-only awards and tab state remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.rank.list",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.rank",
+      "note": "Kf1vnRankItem list with top3/normal ranks, true scroll/clipping/empty/last row.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; top3/normal rows, true drag, clipping, empty and last row remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.rank.states",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.rank",
+      "note": "Qualification score/win-loss versus leader 1vN/platform/survival states and own-rank tip.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime/account matrix was authorized; both rank data shapes and own-rank tip remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.rank.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.rank",
+      "note": "Close and return to originating page.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; close and return-chain behavior remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.reward",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "popup",
+          "child": "mainui.kf1vn.reward.identity"
+        },
+        {
+          "id": "score-tab",
+          "kind": "tab",
+          "child": "mainui.kf1vn.reward.score-tab"
+        },
+        {
+          "id": "leader-tab",
+          "kind": "tab",
+          "child": "mainui.kf1vn.reward.leader-tab"
+        },
+        {
+          "id": "lists",
+          "kind": "scroll-list",
+          "child": "mainui.kf1vn.reward.lists"
+        },
+        {
+          "id": "details",
+          "kind": "popup",
+          "child": "mainui.kf1vn.reward.details"
+        },
+        {
+          "id": "designation",
+          "kind": "effect-state",
+          "child": "mainui.kf1vn.reward.designation"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.kf1vn.reward.close"
+        }
+      ],
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.kf1vn.reward.identity, mainui.kf1vn.reward.score-tab, mainui.kf1vn.reward.leader-tab, mainui.kf1vn.reward.lists, mainui.kf1vn.reward.details, mainui.kf1vn.reward.designation, mainui.kf1vn.reward.close"
+    },
+    {
+      "id": "mainui.kf1vn.reward.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.reward",
+      "note": "Kf1vnRewardView popup identity and tab defaults.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No Unity/real-Web run was authorized; exact popup identity and tab default remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.reward.score-tab",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.reward",
+      "note": "config_kf_1vn_score_reward ticket score/rank rewards.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; score reward config rendering and tab click remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.reward.leader-tab",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.reward",
+      "note": "config_kf_1vn_race_2_award challenge-round rewards.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; leader reward config rendering and tab click remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.reward.lists",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.reward",
+      "note": "TicketRewardItem/PlatformRewardItem scroll, clipping, 1/2/3+ item states and empty rows.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; list layout, clipping, item counts and last rows remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.reward.details",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.reward",
+      "note": "Every visible BaseAwardItem opens exact item detail and closes in the correct layer.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Common BaseAwardItem runtime was not run; each reward detail identity remains unverified."
+    },
+    {
+      "id": "mainui.kf1vn.reward.designation",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.reward",
+      "note": "Designation reward icon versus dynamic effect owner/resource/state; double-frame required if applicable.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No Unity/real-Web render was authorized; effect ownership, two frames, alpha footprint and lifecycle remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.reward.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.reward",
+      "note": "Close and return to entry page.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; close and return-chain behavior remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.wait",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn",
+      "control_inventory": [
+        {
+          "id": "stage",
+          "kind": "state",
+          "child": "mainui.kf1vn.wait.stage"
+        },
+        {
+          "id": "record",
+          "kind": "state",
+          "child": "mainui.kf1vn.wait.record"
+        },
+        {
+          "id": "rank",
+          "kind": "button",
+          "child": "mainui.kf1vn.wait.rank"
+        },
+        {
+          "id": "look",
+          "kind": "conditional-button",
+          "child": "mainui.kf1vn.wait.look"
+        },
+        {
+          "id": "history",
+          "kind": "button",
+          "child": "mainui.kf1vn.wait.history"
+        },
+        {
+          "id": "shop",
+          "kind": "button",
+          "child": "mainui.kf1vn.wait.shop"
+        },
+        {
+          "id": "red-dots",
+          "kind": "state",
+          "child": "mainui.kf1vn.wait.red-dots"
+        },
+        {
+          "id": "exit",
+          "kind": "return-transaction",
+          "child": "mainui.kf1vn.wait.exit"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.kf1vn.wait.exit"
+    },
+    {
+      "id": "mainui.kf1vn.wait.stage",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.wait",
+      "note": "Stage2..6 layout matrix, qualification/leader countdown, sub-stage, end and gray mask.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No live scene/runtime was authorized; stage2..6 layouts, timers and gray-mask matrix remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.wait.record",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.wait",
+      "note": "62104 left count/score/win/lose/exp/def count and 62119 waiting rank/top name.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No live scene/runtime was authorized; 62104/62119 player-visible values and immediate updates remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.wait.rank",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.wait",
+      "note": "rankBtn opens Kf1vnRankView.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; rankBtn raycast route and cold/warm target identity remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.wait.look",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.wait",
+      "note": "lookBtn is a second conditional hit target for the same current rank page; must be independently clicked.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; the independent lookBtn hit target and route remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.wait.history",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.wait",
+      "note": "historyBtn opens Kf1vnShopView index 1.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; historyBtn direct-open route and return remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.wait.shop",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.wait",
+      "note": "shopBtn opens Kf1vnShopView index 0 and returns correctly.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; shopBtn route, red dot and return remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.wait.red-dots",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.wait",
+      "note": "Shop and claim-history red dots and stage-conditioned button positions.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No live account/runtime was authorized; shop/history dots and conditional positions remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.wait.exit",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.kf1vn.wait",
+      "note": "Confirm then send-only 62107 exits live cross-server scene; no S2C ACK, scene lifecycle is outside this island.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "62107 is send-only and exits a real cross-server scene; this turn forbids live entry/exit and Scene/MainUI dependencies are outside the Kf1vn island."
+    },
+    {
+      "id": "mainui.kf1vn.platform",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn",
+      "control_inventory": [
+        {
+          "id": "progress",
+          "kind": "state",
+          "child": "mainui.kf1vn.platform.progress"
+        },
+        {
+          "id": "list",
+          "kind": "scroll-list",
+          "child": "mainui.kf1vn.platform.list"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.kf1vn.platform.detail"
+        },
+        {
+          "id": "quiz",
+          "kind": "transaction",
+          "child": "mainui.kf1vn.platform.quiz"
+        },
+        {
+          "id": "watch",
+          "kind": "transaction",
+          "child": "mainui.kf1vn.platform.watch"
+        },
+        {
+          "id": "rank",
+          "kind": "button",
+          "child": "mainui.kf1vn.platform.rank"
+        },
+        {
+          "id": "history",
+          "kind": "button",
+          "child": "mainui.kf1vn.platform.history"
+        },
+        {
+          "id": "shop",
+          "kind": "button",
+          "child": "mainui.kf1vn.platform.shop"
+        },
+        {
+          "id": "exit",
+          "kind": "return-transaction",
+          "child": "mainui.kf1vn.platform.exit"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.kf1vn.platform.quiz, mainui.kf1vn.platform.watch, mainui.kf1vn.platform.exit"
+    },
+    {
+      "id": "mainui.kf1vn.platform.progress",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.platform",
+      "note": "Stage5 substage 1/2/3 progress/timers, turn 1vN label and empty state.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No live runtime was authorized; three substages, countdown and turn progression remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.platform.list",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.platform",
+      "note": "62117 battle list and nested challengers, true drag/clipping/last item, live 62123/62135 updates.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; 62117 nested list, deltas, true drag, clipping and last item remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.platform.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.platform",
+      "note": "lick_conta opens Kf1vnChallengerDetailView with ordered challenger list and close-by-mask.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; each visible row detail identity, ordered challengers and mask close remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.platform.quiz",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.kf1vn.platform",
+      "note": "quizBtn opens selection; confirm 62118 deducts real assets and is hard-negative.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "62118 is a hard-negative real-asset bet transaction; transaction UI, wallet fingerprint and writes are explicitly prohibited."
+    },
+    {
+      "id": "mainui.kf1vn.platform.watch",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.kf1vn.platform",
+      "note": "lookBtn sends 62121; success has no same-id ACK and switches to ghost scene. Hard-negative.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "62121 is a hard-negative ghost-scene transition with no success ACK; scene/reconnect lifecycle is outside the island and live watch is prohibited."
+    },
+    {
+      "id": "mainui.kf1vn.platform.rank",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.platform",
+      "note": "rankBtn opens Kf1vnRankView.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; rank route, target identity and return remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.platform.history",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.platform",
+      "note": "historyBtn opens shop history tab with claim red dot.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; history route, claim dot and return remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.platform.shop",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.platform",
+      "note": "shopBtn opens exchange tab with shop red dot.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; exchange route, shop dot and return remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.platform.exit",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.kf1vn.platform",
+      "note": "quitBtn confirmation then 62107 and live scene return; no success ACK.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "62107 exits a real cross-server/ghost scene; live exit and cross-module scene lifecycle are prohibited."
+    },
+    {
+      "id": "mainui.kf1vn.quiz",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "popup",
+          "child": "mainui.kf1vn.quiz.identity"
+        },
+        {
+          "id": "opponent",
+          "kind": "selection-list",
+          "child": "mainui.kf1vn.quiz.opponent"
+        },
+        {
+          "id": "stake",
+          "kind": "radio-list",
+          "child": "mainui.kf1vn.quiz.stake"
+        },
+        {
+          "id": "preview",
+          "kind": "state",
+          "child": "mainui.kf1vn.quiz.preview"
+        },
+        {
+          "id": "confirm",
+          "kind": "transaction",
+          "child": "mainui.kf1vn.quiz.confirm"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.kf1vn.quiz.close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.kf1vn.quiz.confirm"
+    },
+    {
+      "id": "mainui.kf1vn.quiz.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.quiz",
+      "note": "Kf1vnQuizSelectView popup identity, background, mask, stage/title/countdown.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No Unity/real-Web run was authorized; popup identity, stage title and countdown remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.quiz.opponent",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.quiz",
+      "note": "Kf1vnQuizSelectItem challenger choice, selected/unselected and long-name states.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; selection clicks, selected state, list layout and long names remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.quiz.stake",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.quiz",
+      "note": "Kf1vnQuizRadioItem cost type/amount and enough/insufficient selection matrix.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No wallet/runtime was authorized; radio selection, enough/insufficient states and icons remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.quiz.preview",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.quiz",
+      "note": "config_kf_1vn_bet/bet_opt/match cost and win/lose reward preview, Goods mapping and wallet gap.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No live config/Goods/wallet runtime was authorized; cost and result preview mapping remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.quiz.confirm",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.kf1vn.quiz",
+      "note": "Explicit confirmation then 62118(turn,battle,opt,cost); real asset deduction, single-flight and authoritative refresh required.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "62118 deducts real assets and persists a bet; it remains hard-negative and this turn forbids account writes."
+    },
+    {
+      "id": "mainui.kf1vn.quiz.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.quiz",
+      "note": "closeBtn/mask closes without sending and returns selection state safely.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; close/mask behavior and zero-outbound assertion remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.fight",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "scene-overlay",
+          "child": "mainui.kf1vn.fight.identity"
+        },
+        {
+          "id": "hud",
+          "kind": "state",
+          "child": "mainui.kf1vn.fight.hud"
+        },
+        {
+          "id": "roles",
+          "kind": "scroll-list",
+          "child": "mainui.kf1vn.fight.roles"
+        },
+        {
+          "id": "scene",
+          "kind": "scene-model",
+          "child": "mainui.kf1vn.fight.scene"
+        },
+        {
+          "id": "exit",
+          "kind": "return-transaction",
+          "child": "mainui.kf1vn.fight.exit"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.kf1vn.fight.scene, mainui.kf1vn.fight.exit"
+    },
+    {
+      "id": "mainui.kf1vn.fight.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.fight",
+      "note": "Kf1vnFightSceneView qualification/leader/visitor page identity and overlay layering.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No live scene/runtime was authorized; qualification/leader/visitor overlay identity remains unverified."
+    },
+    {
+      "id": "mainui.kf1vn.fight.hud",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.fight",
+      "note": "62105/62112 participants, loading/fight countdown, names/heads/power/HP and viewing indicator.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No live scene/runtime was authorized; participants, timers, HP and viewing state remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.fight.roles",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.fight",
+      "note": "Kf1vnRoleHpItem dynamic list, HP events, clipping and no stale rows.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No live scene/runtime was authorized; dynamic HP rows, event refresh, clipping and stale-row cleanup remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.fight.scene",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.fight",
+      "note": "Real scene actors, AutoFight, skill overlay, visitor lifecycle and scene-ready/reconnect; cross-module blocker.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Real actors, AutoFight, skill overlay, ghost/participant identity and reconnect depend on forbidden Scene/MainUI/Common files and a live match."
+    },
+    {
+      "id": "mainui.kf1vn.fight.exit",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.kf1vn.fight",
+      "note": "Exit confirmation and 62107 send-only; leave live battle/ghost scene with no ACK.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "62107 leaves a live battle/ghost scene and has no success ACK; this turn forbids the live scene transaction."
+    },
+    {
+      "id": "mainui.kf1vn.transitions",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn",
+      "control_inventory": [
+        {
+          "id": "match",
+          "kind": "timed-overlay",
+          "child": "mainui.kf1vn.transitions.match"
+        },
+        {
+          "id": "platform-match",
+          "kind": "timed-overlay",
+          "child": "mainui.kf1vn.transitions.platform-match"
+        },
+        {
+          "id": "fight-result",
+          "kind": "result-overlay",
+          "child": "mainui.kf1vn.transitions.fight-result"
+        },
+        {
+          "id": "settlement",
+          "kind": "result-overlay",
+          "child": "mainui.kf1vn.transitions.settlement"
+        }
+      ],
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.kf1vn.transitions.match, mainui.kf1vn.transitions.platform-match, mainui.kf1vn.transitions.fight-result, mainui.kf1vn.transitions.settlement"
+    },
+    {
+      "id": "mainui.kf1vn.transitions.match",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.transitions",
+      "note": "Kf1vnMatchSuccessView qualification/leader layout, role heads, VS tween, voice 3, countdown and auto-close.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime/audio was authorized; VS tween, role layout, voice, countdown and auto-close remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.transitions.platform-match",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.transitions",
+      "note": "Kf1vnPlatformMatchSuccessView leader plus challenger scroll, VS tween, voice 3 and auto-close.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime/audio was authorized; challenger scroll, VS tween, voice and auto-close remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.transitions.fight-result",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.transitions",
+      "note": "62108/62113 ticket/leader styles, timeout, score/remaining challengers, rewards, fighting voice and 62107 close lifecycle.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No live result/runtime/audio was authorized; both styles, rewards, timeout, voice, 62107 close and reopen remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.transitions.settlement",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.transitions",
+      "note": "62109/62120 ticket/platform styles, ObjectList display-only rewards, rank/score/turn, background close and effect state.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No live result/runtime was authorized; both styles, display-only rewards, effects and close lifecycle remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.components",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn",
+      "control_inventory": [
+        {
+          "id": "tab-item",
+          "kind": "shared-component",
+          "child": "mainui.kf1vn.components.tab-item"
+        },
+        {
+          "id": "rank-item",
+          "kind": "shared-component",
+          "child": "mainui.kf1vn.components.rank-item"
+        },
+        {
+          "id": "battle-item",
+          "kind": "shared-component",
+          "child": "mainui.kf1vn.components.battle-item"
+        },
+        {
+          "id": "history-item",
+          "kind": "shared-component",
+          "child": "mainui.kf1vn.components.history-item"
+        },
+        {
+          "id": "award-item",
+          "kind": "cross-module-component",
+          "child": "mainui.kf1vn.components.award-item"
+        },
+        {
+          "id": "head-item",
+          "kind": "cross-module-component",
+          "child": "mainui.kf1vn.components.head-item"
+        }
+      ],
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.kf1vn.components.tab-item, mainui.kf1vn.components.rank-item, mainui.kf1vn.components.battle-item, mainui.kf1vn.components.history-item, mainui.kf1vn.components.award-item, mainui.kf1vn.components.head-item"
+    },
+    {
+      "id": "mainui.kf1vn.components.tab-item",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.components",
+      "note": "Kf1vnTabItem consumers Shop/Rank/Reward; selected/unselected, red on/off and short/long text.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Prefab identity is static-only; Shop/Rank/Reward consumers and selected/red/text state matrix were not run."
+    },
+    {
+      "id": "mainui.kf1vn.components.rank-item",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.components",
+      "note": "Qualification/leader shapes, top3/normal, empty/data and target viewports.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Template identity is static-only; qualification/leader/top3/normal/empty/data/viewport matrix was not run."
+    },
+    {
+      "id": "mainui.kf1vn.components.battle-item",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.components",
+      "note": "PlatformPlayingItem wait/live/end, detail/quiz/watch/bet variants; transaction variants blocked.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Template identity is static-only; wait/live/end/detail variants were not run and quiz/watch variants are blocked."
+    },
+    {
+      "id": "mainui.kf1vn.components.history-item",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.components",
+      "note": "QuizHistoryItem pending/can-claim/claimed, red on/off, cost/reward data.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Template identity is static-only; pending/can-claim/claimed/red/cost/reward matrix was not run."
+    },
+    {
+      "id": "mainui.kf1vn.components.award-item",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.components",
+      "note": "Common BaseAwardItem direct consumers across shop/history/quiz/reward/results; Common is a no-write dependency.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Common BaseAwardItem is a no-write dependency; its Kf1vn consumer variants and target popup identities were not run."
+    },
+    {
+      "id": "mainui.kf1vn.components.head-item",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.components",
+      "note": "CustomHeadItem across entry/detail/match/result; Common is a no-write dependency.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Common CustomHeadItem is a no-write dependency; its Kf1vn consumer variants and real heads were not run."
+    },
+    {
+      "id": "mainui.kf1vn.route-state",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn",
+      "control_inventory": [
+        {
+          "id": "business-binding",
+          "kind": "implementation",
+          "child": "mainui.kf1vn.route-state.business-binding"
+        },
+        {
+          "id": "protocol",
+          "kind": "protocol-order",
+          "child": "mainui.kf1vn.route-state.protocol"
+        },
+        {
+          "id": "conditions",
+          "kind": "state-matrix",
+          "child": "mainui.kf1vn.route-state.conditions"
+        },
+        {
+          "id": "resources",
+          "kind": "resource-closure",
+          "child": "mainui.kf1vn.route-state.resources"
+        },
+        {
+          "id": "sounds",
+          "kind": "sound-lifecycle",
+          "child": "mainui.kf1vn.route-state.sounds"
+        },
+        {
+          "id": "scrolling",
+          "kind": "interaction",
+          "child": "mainui.kf1vn.route-state.scrolling"
+        },
+        {
+          "id": "reopen",
+          "kind": "lifecycle",
+          "child": "mainui.kf1vn.route-state.reopen"
+        },
+        {
+          "id": "cold-warm",
+          "kind": "performance",
+          "child": "mainui.kf1vn.route-state.cold-warm"
+        },
+        {
+          "id": "viewports",
+          "kind": "visual",
+          "child": "mainui.kf1vn.route-state.viewports"
+        }
+      ],
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.kf1vn.route-state.business-binding",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.route-state",
+      "note": "Static scan found 26 Generated Bind classes and editable Prefabs but no Kf1vn business View subclass, Flow or Bootstrap; player-visible UI is not taken over.",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.kf1vn.route-state.protocol",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.route-state",
+      "note": "GAME_START 62101->62133, first/changed stage queries, 18 safe slices, 62107 send-only and hard-negative isolation.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Static Controller/Model protocol boundaries were reconciled, but no live frames, state event consumers or UI refresh were run."
+    },
+    {
+      "id": "mainui.kf1vn.route-state.conditions",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.route-state",
+      "note": "Stage0..6, substage1..4, signed/unsigned, area1/2, visitor/participant, empty/nonempty, red dot and open-level/day matrix.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No live account/runtime was authorized; the full stage/substage/sign/area/visitor/empty/red/open matrix remains unverified."
+    },
+    {
+      "id": "mainui.kf1vn.route-state.resources",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.route-state",
+      "note": "Nine Kf1vn/config/Goods tables, dedicated sprites/atlas, Prefab/GUID/Addressables and double preflight imported=0 configured=0.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Static filename closure was checked only; Addressables resolution, two preflights and player-click zero-added resources were not run."
+    },
+    {
+      "id": "mainui.kf1vn.route-state.sounds",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.route-state",
+      "note": "Three fighting-voice call sites, first/hot play, close/replace cleanup and no late audio.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Three legacy fighting-voice call sites were found; Unity consumers, cold/hot timing, cancellation and no-late-audio were not run."
+    },
+    {
+      "id": "mainui.kf1vn.route-state.scrolling",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.route-state",
+      "note": "Rules, shop, history, rank, reward, challenger and HP ScrollRect tree, real raycast drag, clipping and last item.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No GraphicRaycaster drag was authorized; all ScrollRect structures, content deltas, clipping and last items remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.route-state.reopen",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.route-state",
+      "note": "Hide/reopen, dynamic clones, timers/tweens/voice/events, scene exit and return-chain zero residue.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime was authorized; hide/reopen, dynamic clone, timer/tween/audio/event cleanup and return chains remain unverified."
+    },
+    {
+      "id": "mainui.kf1vn.route-state.cold-warm",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.route-state",
+      "note": "Cold/warm first-visible and interactive-ready for every popup/scene overlay and detail route.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No runtime/browser was authorized; cold/warm first-visible and interactive-ready timings were not measured."
+    },
+    {
+      "id": "mainui.kf1vn.route-state.viewports",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.kf1vn.route-state",
+      "note": "Real old/unity/overlay/diff at 720x1280 and 1920x1080, same account/state and matching player/catalog hashes.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "No browser was authorized; real old/unity/overlay/diff at 720x1280 and 1920x1080 with matching Player/catalog hashes were not captured."
+    }
+  ],
+  "summary": {
+    "total": 98,
+    "status_counts": {
+      "blocked": 19,
+      "defect": 2,
+      "needs-runtime-verify": 77
+    }
+  }
+}

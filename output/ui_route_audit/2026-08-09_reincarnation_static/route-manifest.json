@@ -1,0 +1,401 @@
+{
+  "route": "mainui.reincarnation",
+  "baseline": {
+    "captured_at": "2026-08-09T00:00:00+08:00",
+    "scope": "static source reconciliation only",
+    "legacy_runtime": "not-captured: browser and foreground runtime operation are forbidden for this batch",
+    "legacy_source": "E:/GitProject/yu_client/h5/src/reincarnation plus commonController/ReincarnationController.ts and commonModel/ReincarnationModel.ts",
+    "unity_source": "Assets/Scripts/Module/Core/Reincarnation",
+    "unity_prefab": "absent",
+    "completion_boundary": "all runtime, visual, interaction, protocol-transaction and reopen gates remain blocked"
+  },
+  "nodes": [
+    {
+      "id": "mainui.reincarnation",
+      "parent": null,
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "tab-transfer", "kind": "tab", "child": "mainui.reincarnation.transfer" },
+        { "id": "window-close", "kind": "button", "child": "mainui.reincarnation.close" }
+      ]
+    },
+    {
+      "id": "mainui.reincarnation.transfer",
+      "parent": "mainui.reincarnation",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "summary-groups", "kind": "conditional-state", "child": "mainui.reincarnation.transfer.summary" },
+        { "id": "task-list", "kind": "list", "child": "mainui.reincarnation.transfer.tasks" },
+        { "id": "awakening-progress", "kind": "conditional-page", "child": "mainui.reincarnation.transfer.progression" },
+        { "id": "rebirth-btn", "kind": "button", "child": "mainui.reincarnation.transfer.rebirth" },
+        { "id": "stage-btn", "kind": "button", "child": "mainui.reincarnation.transfer.stage-submit" },
+        { "id": "lock-img", "kind": "button", "child": "mainui.reincarnation.transfer.lock-entry" },
+        { "id": "box-guard", "kind": "button", "child": "mainui.reincarnation.transfer.guard-entry" },
+        { "id": "key-all-btn", "kind": "button", "child": "mainui.reincarnation.transfer.one-key-complete" },
+        { "id": "go-btn", "kind": "button", "child": "mainui.reincarnation.transfer.go" },
+        { "id": "dan-box", "kind": "button", "child": "mainui.reincarnation.transfer.dan" },
+        { "id": "gift-icon", "kind": "conditional-button", "child": "mainui.reincarnation.transfer.gift" },
+        { "id": "skill-list", "kind": "list", "child": "mainui.reincarnation.transfer.skills" },
+        { "id": "rebirth-success-popup", "kind": "conditional-popup", "child": "mainui.reincarnation.transfer.success" },
+        { "id": "dungeon-return", "kind": "conditional-return-chain", "child": "mainui.reincarnation.transfer.dungeon-return" }
+      ]
+    },
+    {
+      "id": "mainui.reincarnation.close",
+      "parent": "mainui.reincarnation",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.summary",
+      "parent": "mainui.reincarnation.transfer",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.tasks",
+      "parent": "mainui.reincarnation.transfer",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "task-scroll", "kind": "scroll-list", "child": "mainui.reincarnation.transfer.tasks.scroll" },
+        { "id": "finish-btn", "kind": "conditional-button", "child": "mainui.reincarnation.transfer.tasks.finish" },
+        { "id": "way-btn", "kind": "conditional-button", "child": "mainui.reincarnation.transfer.tasks.way" },
+        { "id": "submit-btn", "kind": "conditional-button", "child": "mainui.reincarnation.transfer.tasks.submit" },
+        { "id": "click-group", "kind": "row-click", "child": "mainui.reincarnation.transfer.tasks.click-go" }
+      ]
+    },
+    {
+      "id": "mainui.reincarnation.transfer.tasks.scroll",
+      "parent": "mainui.reincarnation.transfer.tasks",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.tasks.finish",
+      "parent": "mainui.reincarnation.transfer.tasks",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.tasks.way",
+      "parent": "mainui.reincarnation.transfer.tasks",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.tasks.submit",
+      "parent": "mainui.reincarnation.transfer.tasks",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.tasks.click-go",
+      "parent": "mainui.reincarnation.transfer.tasks",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.progression",
+      "parent": "mainui.reincarnation.transfer",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "turn-selector", "kind": "pager", "child": "mainui.reincarnation.transfer.progression.turn-switch" },
+        { "id": "cell-grid", "kind": "dynamic-grid", "child": "mainui.reincarnation.transfer.progression.cells" },
+        { "id": "turn-summary", "kind": "conditional-state", "child": "mainui.reincarnation.transfer.progression.turn-summary" }
+      ]
+    },
+    {
+      "id": "mainui.reincarnation.transfer.progression.turn-switch",
+      "parent": "mainui.reincarnation.transfer.progression",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "left-btn", "kind": "button", "child": "mainui.reincarnation.transfer.progression.turn-switch.left" },
+        { "id": "right-btn", "kind": "button", "child": "mainui.reincarnation.transfer.progression.turn-switch.right" },
+        { "id": "turn-point", "kind": "tab", "child": "mainui.reincarnation.transfer.progression.turn-switch.point" }
+      ]
+    },
+    {
+      "id": "mainui.reincarnation.transfer.progression.turn-switch.left",
+      "parent": "mainui.reincarnation.transfer.progression.turn-switch",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.progression.turn-switch.right",
+      "parent": "mainui.reincarnation.transfer.progression.turn-switch",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.progression.turn-switch.point",
+      "parent": "mainui.reincarnation.transfer.progression.turn-switch",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.progression.cells",
+      "parent": "mainui.reincarnation.transfer.progression",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "locked-cell", "kind": "conditional-cell", "child": "mainui.reincarnation.transfer.progression.cells.locked" },
+        { "id": "available-cell", "kind": "conditional-cell", "child": "mainui.reincarnation.transfer.progression.cells.available" },
+        { "id": "lit-cell", "kind": "conditional-cell", "child": "mainui.reincarnation.transfer.progression.cells.lit" },
+        { "id": "cell-effect", "kind": "dynamic-effect", "child": "mainui.reincarnation.transfer.progression.cells.effect" }
+      ]
+    },
+    {
+      "id": "mainui.reincarnation.transfer.progression.cells.locked",
+      "parent": "mainui.reincarnation.transfer.progression.cells",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "locked-state", "kind": "conditional-state", "child": "mainui.reincarnation.transfer.progression.cells.locked.state" },
+        { "id": "locked-close", "kind": "button", "child": "mainui.reincarnation.transfer.progression.cells.locked.close" }
+      ]
+    },
+    {
+      "id": "mainui.reincarnation.transfer.progression.cells.locked.state",
+      "parent": "mainui.reincarnation.transfer.progression.cells.locked",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.progression.cells.locked.close",
+      "parent": "mainui.reincarnation.transfer.progression.cells.locked",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.progression.cells.available",
+      "parent": "mainui.reincarnation.transfer.progression.cells",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "available-state", "kind": "conditional-state", "child": "mainui.reincarnation.transfer.progression.cells.available.state" },
+        { "id": "lightup-btn", "kind": "button", "child": "mainui.reincarnation.transfer.progression.cells.available.lightup" },
+        { "id": "shop-btn", "kind": "button", "child": "mainui.reincarnation.transfer.progression.cells.available.shop" },
+        { "id": "available-close", "kind": "button", "child": "mainui.reincarnation.transfer.progression.cells.available.close" }
+      ]
+    },
+    {
+      "id": "mainui.reincarnation.transfer.progression.cells.available.state",
+      "parent": "mainui.reincarnation.transfer.progression.cells.available",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.progression.cells.available.lightup",
+      "parent": "mainui.reincarnation.transfer.progression.cells.available",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.progression.cells.available.shop",
+      "parent": "mainui.reincarnation.transfer.progression.cells.available",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.progression.cells.available.close",
+      "parent": "mainui.reincarnation.transfer.progression.cells.available",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.progression.cells.lit",
+      "parent": "mainui.reincarnation.transfer.progression.cells",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "lit-attributes", "kind": "scroll-content", "child": "mainui.reincarnation.transfer.progression.cells.lit.state" },
+        { "id": "lit-close", "kind": "background-click", "child": "mainui.reincarnation.transfer.progression.cells.lit.close" }
+      ]
+    },
+    {
+      "id": "mainui.reincarnation.transfer.progression.cells.lit.state",
+      "parent": "mainui.reincarnation.transfer.progression.cells.lit",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.progression.cells.lit.close",
+      "parent": "mainui.reincarnation.transfer.progression.cells.lit",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.progression.cells.effect",
+      "parent": "mainui.reincarnation.transfer.progression.cells",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.progression.turn-summary",
+      "parent": "mainui.reincarnation.transfer.progression",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.rebirth",
+      "parent": "mainui.reincarnation.transfer",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.stage-submit",
+      "parent": "mainui.reincarnation.transfer",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.lock-entry",
+      "parent": "mainui.reincarnation.transfer",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.guard-entry",
+      "parent": "mainui.reincarnation.transfer",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.one-key-complete",
+      "parent": "mainui.reincarnation.transfer",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.go",
+      "parent": "mainui.reincarnation.transfer",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.dan",
+      "parent": "mainui.reincarnation.transfer",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "dan-cost", "kind": "conditional-state", "child": "mainui.reincarnation.transfer.dan.cost" },
+        { "id": "dan-task-list", "kind": "horizontal-list", "child": "mainui.reincarnation.transfer.dan.tasks" },
+        { "id": "dan-up-btn", "kind": "button", "child": "mainui.reincarnation.transfer.dan.upgrade" },
+        { "id": "dan-close", "kind": "background-click", "child": "mainui.reincarnation.transfer.dan.close" }
+      ]
+    },
+    {
+      "id": "mainui.reincarnation.transfer.dan.cost",
+      "parent": "mainui.reincarnation.transfer.dan",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.dan.tasks",
+      "parent": "mainui.reincarnation.transfer.dan",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.dan.upgrade",
+      "parent": "mainui.reincarnation.transfer.dan",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.dan.close",
+      "parent": "mainui.reincarnation.transfer.dan",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.gift",
+      "parent": "mainui.reincarnation.transfer",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.skills",
+      "parent": "mainui.reincarnation.transfer",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "before-skill", "kind": "item-click", "child": "mainui.reincarnation.transfer.skills.before" },
+        { "id": "after-skill", "kind": "item-click", "child": "mainui.reincarnation.transfer.skills.after" },
+        { "id": "skill-state", "kind": "conditional-state", "child": "mainui.reincarnation.transfer.skills.state" }
+      ]
+    },
+    {
+      "id": "mainui.reincarnation.transfer.skills.before",
+      "parent": "mainui.reincarnation.transfer.skills",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.skills.after",
+      "parent": "mainui.reincarnation.transfer.skills",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.skills.state",
+      "parent": "mainui.reincarnation.transfer.skills",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.success",
+      "parent": "mainui.reincarnation.transfer",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "success-close", "kind": "background-click", "child": "mainui.reincarnation.transfer.success.close" },
+        { "id": "success-attributes", "kind": "list", "child": "mainui.reincarnation.transfer.success.attributes" },
+        { "id": "success-skill", "kind": "item-click", "child": "mainui.reincarnation.transfer.success.skill-detail" },
+        { "id": "success-appearance", "kind": "model-or-image", "child": "mainui.reincarnation.transfer.success.appearance" },
+        { "id": "success-effect", "kind": "dynamic-effect", "child": "mainui.reincarnation.transfer.success.effect" }
+      ]
+    },
+    {
+      "id": "mainui.reincarnation.transfer.success.close",
+      "parent": "mainui.reincarnation.transfer.success",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.success.attributes",
+      "parent": "mainui.reincarnation.transfer.success",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.success.skill-detail",
+      "parent": "mainui.reincarnation.transfer.success",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.success.appearance",
+      "parent": "mainui.reincarnation.transfer.success",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.success.effect",
+      "parent": "mainui.reincarnation.transfer.success",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.reincarnation.transfer.dungeon-return",
+      "parent": "mainui.reincarnation.transfer",
+      "type": "read",
+      "risk": "read-only"
+    }
+  ]
+}

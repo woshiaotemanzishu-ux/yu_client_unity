@@ -1,0 +1,697 @@
+{
+  "schema": 6,
+  "route": "cross-server.boss-domain",
+  "baseline": {
+    "legacy_shell": "CrossServerEnterView[1] -> BossDomainView",
+    "unity_prefab": "Assets/Prefabs/UI/Bossdomain/BossdomainModule.prefab",
+    "audit_level": "static-only"
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-domain/route-manifest.json",
+    "sha256": "5954ef856f38dbaf2cf7c9d06dc36ff2b7e850ca93185e48307a8f1e8f94fde6"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "cross-server.boss-domain",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "boss-list",
+          "kind": "vertical-list",
+          "child": "cross-server.boss-domain.boss-list"
+        },
+        {
+          "id": "boss-select",
+          "kind": "list-item",
+          "child": "cross-server.boss-domain.boss-select"
+        },
+        {
+          "id": "attention",
+          "kind": "toggle",
+          "child": "cross-server.boss-domain.attention"
+        },
+        {
+          "id": "assist-toggle",
+          "kind": "conditional-toggle",
+          "child": "cross-server.boss-domain.assist-alert"
+        },
+        {
+          "id": "buy-count",
+          "kind": "button",
+          "child": "cross-server.boss-domain.buy-count"
+        },
+        {
+          "id": "drop-record",
+          "kind": "button",
+          "child": "cross-server.boss-domain.drop-record"
+        },
+        {
+          "id": "stage-reward",
+          "kind": "button",
+          "child": "cross-server.boss-domain.stage-reward"
+        },
+        {
+          "id": "challenge",
+          "kind": "conditional-button",
+          "child": "cross-server.boss-domain.challenge"
+        },
+        {
+          "id": "model-rating-condition",
+          "kind": "dynamic-content",
+          "child": "cross-server.boss-domain.presentation"
+        },
+        {
+          "id": "scene",
+          "kind": "navigation",
+          "child": "cross-server.boss-domain.scene"
+        },
+        {
+          "id": "instruction",
+          "kind": "shell-button",
+          "child": "cross-server.boss-domain.instruction"
+        },
+        {
+          "id": "return",
+          "kind": "shell-return",
+          "child": "cross-server.boss-domain.return"
+        }
+      ],
+      "parent": null,
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: cross-server.boss-domain.attention, cross-server.boss-domain.buy-count, cross-server.boss-domain.drop-record, cross-server.boss-domain.stage-reward, cross-server.boss-domain.challenge, cross-server.boss-domain.scene, cross-server.boss-domain.instruction, cross-server.boss-domain.return"
+    },
+    {
+      "id": "cross-server.boss-domain.boss-list",
+      "parent": "cross-server.boss-domain",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "已按47101列表与config_decoration_boss.role_num接列表项；缺同账号真实滚动、裁切、末项可达、倒计时与资源证据"
+    },
+    {
+      "id": "cross-server.boss-domain.boss-select",
+      "parent": "cross-server.boss-domain",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "静态接选择态；名称、等级、头像与条件依赖config_mon/角色模块，未用ID占位冒充"
+    },
+    {
+      "id": "cross-server.boss-domain.attention",
+      "parent": "cross-server.boss-domain",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "47106为可恢复写事务，本轮禁止账号写；缺关注成功即时刷新与关闭重开验证"
+    },
+    {
+      "id": "cross-server.boss-domain.assist-alert",
+      "parent": "cross-server.boss-domain",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "check",
+          "kind": "checkbox",
+          "child": "cross-server.boss-domain.assist-alert.check"
+        },
+        {
+          "id": "confirm",
+          "kind": "button",
+          "child": "cross-server.boss-domain.assist-alert.confirm"
+        },
+        {
+          "id": "cancel",
+          "kind": "button",
+          "child": "cross-server.boss-domain.assist-alert.cancel"
+        },
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "cross-server.boss-domain.assist-alert.close"
+        }
+      ],
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: cross-server.boss-domain.assist-alert.check, cross-server.boss-domain.assist-alert.confirm, cross-server.boss-domain.assist-alert.cancel, cross-server.boss-domain.assist-alert.close"
+    },
+    {
+      "id": "cross-server.boss-domain.assist-alert.check",
+      "parent": "cross-server.boss-domain.assist-alert",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "本地checkbox接线，缺老端config_decoration_boss_kv[19]文案与状态矩阵"
+    },
+    {
+      "id": "cross-server.boss-domain.assist-alert.confirm",
+      "parent": "cross-server.boss-domain.assist-alert",
+      "type": "return",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "确认后切本页协助模式，并映射47102 type=2；未执行真实写事务"
+    },
+    {
+      "id": "cross-server.boss-domain.assist-alert.cancel",
+      "parent": "cross-server.boss-domain.assist-alert",
+      "type": "return",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "关闭链静态接入，未运行"
+    },
+    {
+      "id": "cross-server.boss-domain.assist-alert.close",
+      "parent": "cross-server.boss-domain.assist-alert",
+      "type": "return",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "关闭链静态接入，未运行"
+    },
+    {
+      "id": "cross-server.boss-domain.buy-count",
+      "parent": "cross-server.boss-domain",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {
+          "id": "confirm",
+          "kind": "transaction-button",
+          "child": "cross-server.boss-domain.buy-count.confirm"
+        },
+        {
+          "id": "cancel",
+          "kind": "button",
+          "child": "cross-server.boss-domain.buy-count.cancel"
+        },
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "cross-server.boss-domain.buy-count.close"
+        },
+        {
+          "id": "price-limit-vip",
+          "kind": "conditional-state",
+          "child": "cross-server.boss-domain.buy-count.price-limit"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: cross-server.boss-domain.buy-count.confirm, cross-server.boss-domain.buy-count.price-limit"
+    },
+    {
+      "id": "cross-server.boss-domain.buy-count.confirm",
+      "parent": "cross-server.boss-domain.buy-count",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "47104购买次数为不可恢复货币事务，本轮无账号写授权；价格/上限/VIP配置未接"
+    },
+    {
+      "id": "cross-server.boss-domain.buy-count.cancel",
+      "parent": "cross-server.boss-domain.buy-count",
+      "type": "return",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "关闭链静态接入，未运行"
+    },
+    {
+      "id": "cross-server.boss-domain.buy-count.close",
+      "parent": "cross-server.boss-domain.buy-count",
+      "type": "return",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "关闭链静态接入，未运行"
+    },
+    {
+      "id": "cross-server.boss-domain.buy-count.price-limit",
+      "parent": "cross-server.boss-domain.buy-count",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端依赖config_decoration_boss_kv、VIP与货币共享模型，超出本文件岛"
+    },
+    {
+      "id": "cross-server.boss-domain.drop-record",
+      "parent": "cross-server.boss-domain",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "已发47108请求入口，但独立掉落记录弹窗与物品详情属于共享依赖，不在本文件岛"
+    },
+    {
+      "id": "cross-server.boss-domain.stage-reward",
+      "parent": "cross-server.boss-domain",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "scroll",
+          "kind": "reward-list",
+          "child": "cross-server.boss-domain.stage-reward.scroll"
+        },
+        {
+          "id": "close",
+          "kind": "background-close",
+          "child": "cross-server.boss-domain.stage-reward.close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: cross-server.boss-domain.stage-reward.scroll"
+    },
+    {
+      "id": "cross-server.boss-domain.stage-reward.scroll",
+      "parent": "cross-server.boss-domain.stage-reward",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "奖励数据与EquipmentItem共享组件未获跨模块闭包，未用空列表冒充完成"
+    },
+    {
+      "id": "cross-server.boss-domain.stage-reward.close",
+      "parent": "cross-server.boss-domain.stage-reward",
+      "type": "return",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "背景关闭链静态接入，未运行"
+    },
+    {
+      "id": "cross-server.boss-domain.challenge",
+      "parent": "cross-server.boss-domain",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "CTA已按普通/协助剩余次数映射47102 type=1/2；真实点击会切场景并消耗次数，且等级、九霄冥饰评分、星座套装与高阶Boss提示仍依赖跨模块角色状态，本轮未授权账号写"
+    },
+    {
+      "id": "cross-server.boss-domain.presentation",
+      "parent": "cross-server.boss-domain",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "未猜Boss名称/等级/头像/模型；缺config_mon、模型渲染双帧RT、评分与条件共享链"
+    },
+    {
+      "id": "cross-server.boss-domain.scene",
+      "parent": "cross-server.boss-domain",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {
+          "id": "exit",
+          "kind": "button",
+          "child": "cross-server.boss-domain.scene.exit"
+        },
+        {
+          "id": "guild-help",
+          "kind": "button",
+          "child": "cross-server.boss-domain.scene.guild-help"
+        },
+        {
+          "id": "double-card",
+          "kind": "button",
+          "child": "cross-server.boss-domain.scene.double-card"
+        },
+        {
+          "id": "ownership-panel",
+          "kind": "dynamic-panel",
+          "child": "cross-server.boss-domain.scene.ownership-panel"
+        },
+        {
+          "id": "fight-target",
+          "kind": "combat-button",
+          "child": "cross-server.boss-domain.scene.fight-target"
+        },
+        {
+          "id": "scene-state",
+          "kind": "conditional-state",
+          "child": "cross-server.boss-domain.scene.state"
+        },
+        {
+          "id": "settlement",
+          "kind": "event-popup",
+          "child": "cross-server.boss-domain.scene.settlement"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: cross-server.boss-domain.scene.exit, cross-server.boss-domain.scene.guild-help, cross-server.boss-domain.scene.double-card, cross-server.boss-domain.scene.ownership-panel, cross-server.boss-domain.scene.fight-target, cross-server.boss-domain.scene.settlement"
+    },
+    {
+      "id": "cross-server.boss-domain.scene.exit",
+      "parent": "cross-server.boss-domain.scene",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端必须先走共享Alert确认再发47103；共享Alert不在本文件岛，未直连绕过确认"
+    },
+    {
+      "id": "cross-server.boss-domain.scene.guild-help",
+      "parent": "cross-server.boss-domain.scene",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "47111为仙宗召援写事务，本轮禁止账号写且缺5秒冷却运行验证"
+    },
+    {
+      "id": "cross-server.boss-domain.scene.double-card",
+      "parent": "cross-server.boss-domain.scene",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {
+          "id": "use-or-get",
+          "kind": "transaction-button",
+          "child": "cross-server.boss-domain.scene.double-card.use"
+        },
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "cross-server.boss-domain.scene.double-card.close"
+        },
+        {
+          "id": "state-rewards",
+          "kind": "conditional-state",
+          "child": "cross-server.boss-domain.scene.double-card.state"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: cross-server.boss-domain.scene.double-card.use"
+    },
+    {
+      "id": "cross-server.boss-domain.scene.double-card.use",
+      "parent": "cross-server.boss-domain.scene.double-card",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "双倍卡获取/使用依赖背包与商城共享事务，超出本文件岛"
+    },
+    {
+      "id": "cross-server.boss-domain.scene.double-card.close",
+      "parent": "cross-server.boss-domain.scene.double-card",
+      "type": "return",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "关闭链静态接入，未运行"
+    },
+    {
+      "id": "cross-server.boss-domain.scene.double-card.state",
+      "parent": "cross-server.boss-domain.scene.double-card",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "读取DecorationInBuff；缺真实道具、奖励格与切场重进证据"
+    },
+    {
+      "id": "cross-server.boss-domain.scene.ownership-panel",
+      "parent": "cross-server.boss-domain.scene",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {
+          "id": "rank-scroll",
+          "kind": "vertical-list",
+          "child": "cross-server.boss-domain.scene.ownership-panel.rank"
+        },
+        {
+          "id": "assist-instruction",
+          "kind": "button",
+          "child": "cross-server.boss-domain.scene.ownership-panel.instruction"
+        },
+        {
+          "id": "guild-assist",
+          "kind": "transaction-button",
+          "child": "cross-server.boss-domain.scene.ownership-panel.assist"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: cross-server.boss-domain.scene.ownership-panel.rank, cross-server.boss-domain.scene.ownership-panel.instruction, cross-server.boss-domain.scene.ownership-panel.assist"
+    },
+    {
+      "id": "cross-server.boss-domain.scene.ownership-panel.rank",
+      "parent": "cross-server.boss-domain.scene.ownership-panel",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "47109/47112模型已有但排名列表模板/克隆与场景归属数据未在本页完成"
+    },
+    {
+      "id": "cross-server.boss-domain.scene.ownership-panel.instruction",
+      "parent": "cross-server.boss-domain.scene.ownership-panel",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "InstructionGuildHelp属于共享Instruction/Guild模块，不在本文件岛"
+    },
+    {
+      "id": "cross-server.boss-domain.scene.ownership-panel.assist",
+      "parent": "cross-server.boss-domain.scene.ownership-panel",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端40401/40403仙宗协助属于Guild共享协议与状态，不得在Boss文件岛复制"
+    },
+    {
+      "id": "cross-server.boss-domain.scene.fight-target",
+      "parent": "cross-server.boss-domain.scene",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖场景角色、归属者、寻路和自动战斗管理器，跨模块依赖仅登记"
+    },
+    {
+      "id": "cross-server.boss-domain.scene.state",
+      "parent": "cross-server.boss-domain.scene",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "47114/47115/47116模型与只读请求已接；缺退出/复活倒计时、归属者、双倍、协助角色即时状态"
+    },
+    {
+      "id": "cross-server.boss-domain.scene.settlement",
+      "parent": "cross-server.boss-domain.scene",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "normal-reward",
+          "kind": "reward-list",
+          "child": "cross-server.boss-domain.scene.settlement.normal"
+        },
+        {
+          "id": "double-reward",
+          "kind": "reward-list",
+          "child": "cross-server.boss-domain.scene.settlement.double"
+        },
+        {
+          "id": "dismiss",
+          "kind": "background-close",
+          "child": "cross-server.boss-domain.scene.settlement.dismiss"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: cross-server.boss-domain.scene.settlement.normal, cross-server.boss-domain.scene.settlement.double"
+    },
+    {
+      "id": "cross-server.boss-domain.scene.settlement.normal",
+      "parent": "cross-server.boss-domain.scene.settlement",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "47113模型已落地，EquipmentItem奖励格共享组件与两套列表未获文件闭包"
+    },
+    {
+      "id": "cross-server.boss-domain.scene.settlement.double",
+      "parent": "cross-server.boss-domain.scene.settlement",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "47113双倍奖励模型已落地，缺共享奖励格、滚动与真实结算证据"
+    },
+    {
+      "id": "cross-server.boss-domain.scene.settlement.dismiss",
+      "parent": "cross-server.boss-domain.scene.settlement",
+      "type": "return",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "背景关闭静态接线，未运行"
+    },
+    {
+      "id": "cross-server.boss-domain.instruction",
+      "parent": "cross-server.boss-domain",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "CrossServer共享Instruction入口不在本文件岛"
+    },
+    {
+      "id": "cross-server.boss-domain.return",
+      "parent": "cross-server.boss-domain",
+      "type": "return",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "CrossServerEnterView共享返回链不在本文件岛"
+    }
+  ],
+  "summary": {
+    "total": 39,
+    "status_counts": {
+      "blocked": 24,
+      "needs-runtime-verify": 15
+    }
+  }
+}

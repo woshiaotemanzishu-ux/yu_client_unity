@@ -3,6 +3,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { spawnSync } = require('child_process');
 
 const repoRoot = path.resolve(__dirname, '..', '..');
 const ledgerPath = path.join(
@@ -12,6 +13,34 @@ const ledgerPath = path.join(
   '2026-08-07_resonance',
   'route-ledger.json',
 );
+
+const args = process.argv.slice(2);
+const outputIndex = args.indexOf('--output');
+if (!args.includes('--legacy-replay') || outputIndex < 0 || !args[outputIndex + 1]) {
+  console.error(
+    [
+      'This script is a frozen replay of the 2026-08-07 evidence snapshot.',
+      'It must not update the official route-ledger.json because doing so would reset later invalidations.',
+      'For current results use route_ledger.py apply.  To inspect the historical replay only, run:',
+      '  node Tools/Conversion/update_resonance_route_ledger.cjs --legacy-replay --output <candidate.json>',
+    ].join('\n'),
+  );
+  process.exit(2);
+}
+const candidatePath = path.resolve(args[outputIndex + 1]);
+const pathKey = (value) => {
+  const resolved = path.resolve(value);
+  return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
+};
+const refersToSameExistingFile = (left, right) => {
+  if (!fs.existsSync(left) || !fs.existsSync(right)) return false;
+  const leftStat = fs.statSync(left);
+  const rightStat = fs.statSync(right);
+  return leftStat.ino !== 0 && leftStat.dev === rightStat.dev && leftStat.ino === rightStat.ino;
+};
+if (pathKey(candidatePath) === pathKey(ledgerPath) || refersToSameExistingFile(candidatePath, ledgerPath)) {
+  throw new Error('legacy replay output must not be the official route-ledger.json');
+}
 
 const OLD_ROOT = 'output/ui_route_audit/2026-08-07_resonance/old_full';
 const UNITY_ROOT = 'output/ui_route_audit/2026-08-07_resonance/unity_editor/2026-08-07_1452_instruction_final';
@@ -318,5 +347,36 @@ ledger.summary = {
   },
 };
 
-fs.writeFileSync(ledgerPath, `${JSON.stringify(ledger, null, 2)}\n`, 'utf8');
-console.log(JSON.stringify({ ledger: path.relative(repoRoot, ledgerPath), statusCounts }, null, 2));
+fs.mkdirSync(path.dirname(candidatePath), { recursive: true });
+fs.writeFileSync(candidatePath, `${JSON.stringify(ledger, null, 2)}\n`, 'utf8');
+
+const validator = path.join(
+  repoRoot,
+  '.agents',
+  'skills',
+  'audit-game-ui-route',
+  'scripts',
+  'route_ledger.py',
+);
+const validation = spawnSync(process.env.PYTHON || 'python', [validator, 'validate', candidatePath], {
+  cwd: repoRoot,
+  encoding: 'utf8',
+  windowsHide: true,
+});
+if (validation.stdout) process.stdout.write(validation.stdout);
+if (validation.stderr) process.stderr.write(validation.stderr);
+if (validation.status !== 0) {
+  throw new Error(`legacy replay candidate failed validation with exit ${validation.status}`);
+}
+
+console.log(
+  JSON.stringify(
+    {
+      candidate: path.relative(repoRoot, candidatePath),
+      officialLedgerUnchanged: path.relative(repoRoot, ledgerPath),
+      statusCounts,
+    },
+    null,
+    2,
+  ),
+);

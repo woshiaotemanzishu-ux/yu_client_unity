@@ -1,0 +1,371 @@
+{
+  "route": "mainui.role.person.achievement.v1",
+  "baseline": {
+    "account": "111111",
+    "viewport": "720x1280",
+    "legacy_run": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5",
+    "write_policy": "enumerate-only; 40902 and 40905 are not clicked without current-turn authorization"
+  },
+  "nodes": [
+    {
+      "id": "mainui.role.person.achievement",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "person-achievement-entry", "kind": "button", "child": "mainui.role.person.achievement.open" },
+        { "id": "achievement-window", "kind": "navigation-result", "child": "mainui.role.person.achievement.window" }
+      ]
+    },
+    {
+      "id": "mainui.role.person.achievement.open",
+      "parent": "mainui.role.person.achievement",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window",
+      "parent": "mainui.role.person.achievement",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "ready-state", "kind": "state", "child": "mainui.role.person.achievement.window.ready" },
+        { "id": "achievement-tabs", "kind": "tab-strip", "child": "mainui.role.person.achievement.window.tabs" },
+        { "id": "detail-scroll", "kind": "scroll-container", "child": "mainui.role.person.achievement.window.detail-scroll" },
+        { "id": "entry-claim", "kind": "conditional-button", "child": "mainui.role.person.achievement.window.entry-claim" },
+        { "id": "shared-reward-item", "kind": "shared-component", "child": "mainui.role.person.achievement.window.shared-award" },
+        { "id": "achievement-return", "kind": "button", "child": "mainui.role.person.achievement.window.return" },
+        { "id": "warm-reopen", "kind": "navigation", "child": "mainui.role.person.achievement.window.warm-reopen" }
+      ]
+    },
+    {
+      "id": "mainui.role.person.achievement.window.ready",
+      "parent": "mainui.role.person.achievement.window",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs",
+      "parent": "mainui.role.person.achievement.window",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "tab-strip-horizontal-scroll", "kind": "scroll-container", "child": "mainui.role.person.achievement.window.tabs.scroll" },
+        { "id": "top-overview", "kind": "tab", "child": "mainui.role.person.achievement.window.tabs.overview" },
+        { "id": "top-personal", "kind": "tab", "child": "mainui.role.person.achievement.window.tabs.personal" },
+        { "id": "top-partner", "kind": "tab", "child": "mainui.role.person.achievement.window.tabs.partner" },
+        { "id": "top-equipment", "kind": "tab", "child": "mainui.role.person.achievement.window.tabs.equipment" },
+        { "id": "top-social", "kind": "tab", "child": "mainui.role.person.achievement.window.tabs.social" },
+        { "id": "top-daily", "kind": "tab", "child": "mainui.role.person.achievement.window.tabs.daily" },
+        { "id": "top-journey", "kind": "tab", "child": "mainui.role.person.achievement.window.tabs.journey" }
+      ]
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.scroll",
+      "parent": "mainui.role.person.achievement.window.tabs",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.overview",
+      "parent": "mainui.role.person.achievement.window.tabs",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.overview.content",
+      "parent": "mainui.role.person.achievement.window.tabs.overview",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "stage-progress", "kind": "state", "child": "mainui.role.person.achievement.window.tabs.overview.content.stage" },
+        { "id": "stage-attributes", "kind": "state-list", "child": "mainui.role.person.achievement.window.tabs.overview.content.attributes" },
+        { "id": "six-type-progress", "kind": "state-list", "child": "mainui.role.person.achievement.window.tabs.overview.content.types" },
+        { "id": "overview-achievement-rows", "kind": "list", "child": "mainui.role.person.achievement.window.tabs.overview.content.rows" },
+        { "id": "overview-scroll", "kind": "scroll-container", "child": "mainui.role.person.achievement.window.tabs.overview.content.scroll" },
+        { "id": "stage-claim", "kind": "conditional-button", "child": "mainui.role.person.achievement.window.tabs.overview.content.stage-claim" }
+      ]
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.overview.content.stage",
+      "parent": "mainui.role.person.achievement.window.tabs.overview.content",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.overview.content.attributes",
+      "parent": "mainui.role.person.achievement.window.tabs.overview.content",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.overview.content.types",
+      "parent": "mainui.role.person.achievement.window.tabs.overview.content",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.overview.content.rows",
+      "parent": "mainui.role.person.achievement.window.tabs.overview.content",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.overview.content.scroll",
+      "parent": "mainui.role.person.achievement.window.tabs.overview.content",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.overview.content.stage-claim",
+      "parent": "mainui.role.person.achievement.window.tabs.overview.content",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.personal",
+      "parent": "mainui.role.person.achievement.window.tabs",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.personal.character",
+      "parent": "mainui.role.person.achievement.window.tabs.personal",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.personal.character.list",
+      "parent": "mainui.role.person.achievement.window.tabs.personal.character",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.personal.fashion",
+      "parent": "mainui.role.person.achievement.window.tabs.personal",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.personal.fashion.list",
+      "parent": "mainui.role.person.achievement.window.tabs.personal.fashion",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.personal.soul",
+      "parent": "mainui.role.person.achievement.window.tabs.personal",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.personal.soul.list",
+      "parent": "mainui.role.person.achievement.window.tabs.personal.soul",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.personal.compose",
+      "parent": "mainui.role.person.achievement.window.tabs.personal",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.personal.compose.list",
+      "parent": "mainui.role.person.achievement.window.tabs.personal.compose",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.partner",
+      "parent": "mainui.role.person.achievement.window.tabs",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.partner.cultivate",
+      "parent": "mainui.role.person.achievement.window.tabs.partner",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.partner.cultivate.list",
+      "parent": "mainui.role.person.achievement.window.tabs.partner.cultivate",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.equipment",
+      "parent": "mainui.role.person.achievement.window.tabs",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.equipment.forge",
+      "parent": "mainui.role.person.achievement.window.tabs.equipment",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.equipment.forge.list",
+      "parent": "mainui.role.person.achievement.window.tabs.equipment.forge",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.equipment.wear",
+      "parent": "mainui.role.person.achievement.window.tabs.equipment",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.equipment.wear.list",
+      "parent": "mainui.role.person.achievement.window.tabs.equipment.wear",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.equipment.resonance",
+      "parent": "mainui.role.person.achievement.window.tabs.equipment",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.equipment.resonance.list",
+      "parent": "mainui.role.person.achievement.window.tabs.equipment.resonance",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.social",
+      "parent": "mainui.role.person.achievement.window.tabs",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.social.friend",
+      "parent": "mainui.role.person.achievement.window.tabs.social",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.social.friend.list",
+      "parent": "mainui.role.person.achievement.window.tabs.social.friend",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.social.guild",
+      "parent": "mainui.role.person.achievement.window.tabs.social",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.social.guild.list",
+      "parent": "mainui.role.person.achievement.window.tabs.social.guild",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.daily",
+      "parent": "mainui.role.person.achievement.window.tabs",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.daily.routine",
+      "parent": "mainui.role.person.achievement.window.tabs.daily",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.daily.routine.list",
+      "parent": "mainui.role.person.achievement.window.tabs.daily.routine",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.daily.wealth",
+      "parent": "mainui.role.person.achievement.window.tabs.daily",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.daily.wealth.list",
+      "parent": "mainui.role.person.achievement.window.tabs.daily.wealth",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.journey",
+      "parent": "mainui.role.person.achievement.window.tabs",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.journey.activity",
+      "parent": "mainui.role.person.achievement.window.tabs.journey",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.journey.activity.list",
+      "parent": "mainui.role.person.achievement.window.tabs.journey.activity",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.journey.dungeon",
+      "parent": "mainui.role.person.achievement.window.tabs.journey",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.journey.dungeon.list",
+      "parent": "mainui.role.person.achievement.window.tabs.journey.dungeon",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.journey.demon",
+      "parent": "mainui.role.person.achievement.window.tabs.journey",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.journey.demon.list",
+      "parent": "mainui.role.person.achievement.window.tabs.journey.demon",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.detail-scroll",
+      "parent": "mainui.role.person.achievement.window",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.entry-claim",
+      "parent": "mainui.role.person.achievement.window",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.shared-award",
+      "parent": "mainui.role.person.achievement.window",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.return",
+      "parent": "mainui.role.person.achievement.window",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.warm-reopen",
+      "parent": "mainui.role.person.achievement.window",
+      "type": "navigation",
+      "risk": "read-only"
+    }
+  ]
+}

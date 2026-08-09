@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
@@ -22,6 +23,7 @@ namespace Shenxiao.Module.Core.RedPacket
         private static GameObject _moduleRoot;
         private static RedPacketMainView _mainView;
         private static bool _loading;
+        private static int _generation;
 
         public static void Toggle()
         {
@@ -60,48 +62,77 @@ namespace Shenxiao.Module.Core.RedPacket
             }
 
             if (_loading) return;
+            int generation = _generation;
             _loading = true;
-            string key = GameResPath.GetUIPrefab(MODULE, PREFAB);
-            GameObject root = await MainUIRouteFallback.InstantiateOrShowAsync("redpacket", "RedPacket", key, ViewManager.GetLayer(UILayer.Window));
-            _loading = false;
-
-            if (root == null)
+            GameObject root = null;
+            try
             {
-                GameLog.Error("RedPacket", "RedPacketModule prefab load failed: {0}", key);
-                return;
+                string key = GameResPath.GetUIPrefab(MODULE, PREFAB);
+                root = await MainUIRouteFallback.InstantiateOrShowAsync("redpacket", "RedPacket", key, ViewManager.GetLayer(UILayer.Window));
+
+                if (generation != _generation)
+                {
+                    if (root != null) ResManager.ReleaseInstance(root);
+                    return;
+                }
+                if (root == null)
+                {
+                    GameLog.Error("RedPacket", "RedPacketModule prefab load failed: {0}", key);
+                    return;
+                }
+
+                _moduleRoot = root;
+                root = null;
+                _moduleRoot.name = PREFAB;
+
+                foreach (Transform c in _moduleRoot.transform)
+                {
+                    c.gameObject.SetActive(false);
+                }
+
+                foreach (BaseView v in _moduleRoot.GetComponentsInChildren<BaseView>(true))
+                {
+                    if (v is RedPacketMainView rv) { _mainView = rv; break; }
+                }
+
+                if (_mainView == null)
+                {
+                    GameLog.Warn("RedPacket", "RedPacketModule 缺 RedPacketMainView(重跑 redPacket 流水线:转换+回填)");
+                    MainUIRouteFallback.ShowUnavailable("redpacket", "RedPacket", "RedPacketModule missing RedPacketMainView");
+                    Reset();
+                    return;
+                }
+                if (generation != _generation)
+                {
+                    Reset();
+                    return;
+                }
+
+                _mainView.Show();
+                GameLog.Info("RedPacket", "红包面板打开: {0}", key);
             }
-
-            _moduleRoot = root;
-            _moduleRoot.name = PREFAB;
-
-            foreach (Transform c in root.transform)
+            catch (Exception ex)
             {
-                c.gameObject.SetActive(false);
+                if (root != null) ResManager.ReleaseInstance(root);
+                if (generation == _generation) Reset();
+                GameLog.Error("RedPacket", "RedPacketModule open failed: {0}", ex.Message);
             }
-
-            foreach (BaseView v in root.GetComponentsInChildren<BaseView>(true))
+            finally
             {
-                if (v is RedPacketMainView rv) { _mainView = rv; break; }
+                if (generation == _generation) _loading = false;
             }
-
-            if (_mainView == null)
-            {
-                GameLog.Warn("RedPacket", "RedPacketModule 缺 RedPacketMainView(重跑 redPacket 流水线:转换+回填)");
-                MainUIRouteFallback.ShowUnavailable("redpacket", "RedPacket", "RedPacketModule missing RedPacketMainView");
-                Reset();
-                return;
-            }
-
-            _mainView.Show();
-            GameLog.Info("RedPacket", "红包面板打开: {0}", key);
         }
 
         internal static void Reset()
         {
-            if (_moduleRoot != null) ResManager.ReleaseInstance(_moduleRoot);
+            _generation++;
+            RedPacketMainView view = _mainView;
+            GameObject root = _moduleRoot;
             _moduleRoot = null;
             _mainView = null;
             _loading = false;
+            if (view != null) view.PrepareForRelease();
+            if (root != null) ResManager.ReleaseInstance(root);
         }
     }
 }

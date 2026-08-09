@@ -1281,10 +1281,14 @@ namespace Shenxiao.Module.Core.Dungeon
             List<DungeonModel.RuneRewardEntry> rewards = r.ReadArray(rr =>
                 new DungeonModel.RuneRewardEntry(rr.ReadU32(), rr.ReadU8(), rr.ReadU8()));
             DungeonModel.Instance.ApplyDungeonRuneRewardInfo(dunType, rewards);
+            EventDispatcher.Emit(GlobalEvent.EVT_DUNGEON_UPDATE);
         }
 
-        private void On61115(NetReader r) =>
+        private void On61115(NetReader r)
+        {
             DungeonModel.Instance.ApplyDungeonRuneDailyStatus(r.ReadU8(), r.ReadU32());
+            EventDispatcher.Emit(GlobalEvent.EVT_DUNGEON_UPDATE);
+        }
 
         /// <summary>61058 神纹跳关奖励主动通知；仅保留服务端实际下发的有序原始快照。</summary>
         private void On61058(NetReader r)

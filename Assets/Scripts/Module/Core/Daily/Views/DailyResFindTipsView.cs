@@ -1,6 +1,7 @@
 using Shenxiao.Generated.UI.Daily;
 using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
+using Shenxiao.Common.Tips;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,19 +12,18 @@ namespace Shenxiao.Module.Core.Daily
     /// (slider_group/_tpl_WithBtnHSlider)+ 取消(cancleBtn)/确认(confirmBtn)/关闭(closeBtn)。由
     /// DailyResFindItem 的找回按钮经 DailyFlow.OpenSub 叠开。
     ///
-    /// UI 简化(规格§0 裁决):老端"滑杆吃正常/超额次数二段配额+绑钻不足换算勾玉二次确认"未接线,
-    /// 简化为"全额找回"一键——按 <see cref="Pending"/> 的 Lefttimes/LefttimesVip 全量传给 41903。
-    /// ⚠轮10交叉验收 blocker 订正:type 默认改为 2=金币/免费(老端 resFindCheck 默认 [false,true] →
-    /// money_type 默认 2,DailyResFindView.ts:48/76-91);此前误默认 1=绑钻,会在玩家毫无确认的情况下直接
-    /// 扣绑钻。type=1 付费路径待 config_res_act 导入、能判定金币/绑钻分支后再开,且必须先加二次确认弹窗
-    /// (老端付费路径必带 Alert)。滑条模板仍隐藏。
+    /// 当前保留“全额找回”简化路径：type 默认 2=免费，type=1=绑玉由父页选择；两种写入均在确认后发送，
+    /// type=1 明确提示绑玉不足时可能消耗勾玉。老端滑杆的正常/超额次数分段和精确价格依赖 config_res_act，
+    /// 该表尚未纳入 Daily 配置闭包，因此滑条模板仍隐藏并作为运行收口 blocker。
     /// </summary>
     public sealed class DailyResFindTipsView : DailyResFindTipsViewBind
     {
         /// <summary>由 DailyResFindItem.findBtn 点击前写入,弹窗读取后清空。</summary>
         public static DailyModel.ResFindVo Pending;
+        public static int PendingType = 2;
 
         private DailyModel.ResFindVo _vo;
+        private int _moneyType = 2;
 
         protected override void OnInit()
         {
@@ -36,7 +36,9 @@ namespace Shenxiao.Module.Core.Daily
         protected override void OnShow(object args)
         {
             _vo = Pending;
+            _moneyType = PendingType;
             Pending = null;
+            PendingType = 2;
             if (_vo == null)
             {
                 if (title != null) title.text = "资源找回";
@@ -44,7 +46,8 @@ namespace Shenxiao.Module.Core.Daily
                 return;
             }
             if (title != null) title.text = "资源找回 " + _vo.ActId + "@" + _vo.ActSub;
-            if (price != null) price.text = "全额找回 " + (_vo.Lefttimes + _vo.LefttimesVip) + " 次";
+            int times = _moneyType == 1 ? _vo.Lefttimes + _vo.LefttimesVip : _vo.Lefttimes;
+            if (price != null) price.text = (_moneyType == 1 ? "绑玉找回 " : "免费找回 ") + times + " 次";
         }
 
         private void OnConfirm()
@@ -55,9 +58,18 @@ namespace Shenxiao.Module.Core.Daily
                 Hide();
                 return;
             }
-            DailyController.Instance.ResFind(_vo.ActId, _vo.ActSub, 2, _vo.Lefttimes, _vo.LefttimesVip);
-            GameLog.Info("Daily", "点击[资源找回·确认] act={0}@{1} times={2}+{3}", _vo.ActId, _vo.ActSub, _vo.Lefttimes, _vo.LefttimesVip);
-            Hide();
+            int displayTimes = _moneyType == 1 ? _vo.Lefttimes + _vo.LefttimesVip : _vo.Lefttimes;
+            int times = _vo.Lefttimes;
+            int vipTimes = _moneyType == 1 ? _vo.LefttimesVip : 0;
+            string text = _moneyType == 1
+                ? "是否使用绑玉找回该奖励？\n（绑玉不足时可能消耗勾玉代替）"
+                : "是否免费找回该奖励？";
+            TipsManager.Confirm(text, () =>
+            {
+                DailyController.Instance.ResFind(_vo.ActId, _vo.ActSub, _moneyType, times, vipTimes);
+                GameLog.Info("Daily", "点击[资源找回·确认] act={0}@{1} type={2} display={3} times={4}+{5}", _vo.ActId, _vo.ActSub, _moneyType, displayTimes, times, vipTimes);
+                Hide();
+            });
         }
 
         private static void BindClick(Component target, System.Action onClick)

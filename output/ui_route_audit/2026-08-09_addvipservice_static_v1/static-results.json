@@ -1,0 +1,27 @@
+{
+  "updated_at": "2026-08-09T15:29:00+08:00",
+  "summary_details": {
+    "completion_level": "static inventory only",
+    "prefab": "existing and preserved",
+    "blocker": "business View and ClientAddVipService consumption chain are missing; required integration leaves the permitted file island",
+    "runtime": "not run by instruction",
+    "transactions": "page has no recharge/claim/purchase controls"
+  },
+  "nodes": [
+    {"id": "addvip.entry_condition", "status": "blocked", "blocked_reason": "ClientAddVipService 未迁移且 ChannelWhitelist 为空，图标 114 保守恒隐藏；配置/主界面链在禁止修改范围"},
+    {"id": "addvip.entry_open", "status": "blocked", "blocked_reason": "入口恒隐藏且没有消费 AddVipServiceViewBind 的业务 View，无法真实打开页面"},
+    {"id": "addvip.config_selection", "status": "blocked", "blocked_reason": "必需的 ClientAddVipService 渠道配置及 Unity 消费链缺失，本轮禁止修改 ClientConfigSync"},
+    {"id": "addvip.image.background", "status": "blocked", "blocked_reason": "Prefab 节点存在但业务 View 缺失，运行时资源赋值链不可达"},
+    {"id": "addvip.image.title", "status": "blocked", "blocked_reason": "配置 title 与业务 View 消费链缺失，无法确定当前渠道资源"},
+    {"id": "addvip.image.link", "status": "blocked", "blocked_reason": "配置 code 与业务 View 消费链缺失，无法确定当前渠道二维码/联系资源"},
+    {"id": "addvip.image.bg1", "status": "blocked", "blocked_reason": "页面业务 View/入口链缺失，不能取得真实运行态像素证据"},
+    {"id": "addvip.image.bg3", "status": "blocked", "blocked_reason": "页面业务 View/入口链缺失，不能取得真实运行态像素证据"},
+    {"id": "addvip.image.divider", "status": "blocked", "blocked_reason": "业务 View 缺失，common2/com_line_5 的运行时赋值与像素不可验证"},
+    {"id": "addvip.text.title", "status": "blocked", "blocked_reason": "配置 des1 与 HTML/居中业务布局链缺失"},
+    {"id": "addvip.text.description", "status": "blocked", "blocked_reason": "配置 des 与 HTML/自动高度业务布局链缺失"},
+    {"id": "addvip.rewards.data", "status": "blocked", "blocked_reason": "配置 reward 与 GoodsModel 映射消费链缺失，不能猜测奖励集合"},
+    {"id": "addvip.rewards.layout", "status": "blocked", "blocked_reason": "Prefab 有 Content/模板，但业务克隆链缺失，无法核对 1/2/3 项居中与溢出"},
+    {"id": "addvip.rewards.item_detail", "status": "blocked", "blocked_reason": "业务克隆与数据链缺失，无法逐格核对 EquipmentItem 详情身份及返回"},
+    {"id": "addvip.close", "status": "blocked", "blocked_reason": "没有消费 Bind 的业务 View，close 未绑定；无法验证关闭、遮罩穿透与通用点击声音"}
+  ]
+}

@@ -1,0 +1,1741 @@
+{
+  "route": "mainui.pet.window",
+  "baseline": {
+    "authority": "当前老客户端同账号同状态真实运行结果；本轮禁止启动 Unity/浏览器，仅进行老端源码、Unity Prefab/View/Flow/Controller/协议静态调和。",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/pet/MountPetView.ts",
+      "E:/GitProject/yu_client/h5/src/pet/Horse/HorseComponentView.ts",
+      "E:/GitProject/yu_client/h5/src/pet/partner/PartnerComponentView.ts",
+      "E:/GitProject/yu_client/h5/src/pet/OutWardBaseView.ts",
+      "E:/GitProject/yu_client/h5/src/pet/OutwardLvSystem.ts",
+      "E:/GitProject/yu_client/h5/src/pet/IllusionBaseView.ts",
+      "E:/GitProject/yu_client/h5/src/pet/OutwardStarView.ts",
+      "E:/GitProject/yu_client/h5/src/pet/PetCrystalView.ts",
+      "E:/GitProject/yu_client/h5/src/pet/PetSkillView.ts",
+      "E:/GitProject/yu_client/h5/src/pet/PetBlessView.ts",
+      "E:/GitProject/yu_client/h5/src/partner/PartnerBaseView.ts",
+      "E:/GitProject/yu_client/h5/src/partner/PartnerDetailsView.ts",
+      "E:/GitProject/yu_client/h5/src/partnerAwake/PartnerAwakeMainView.ts",
+      "E:/GitProject/yu_client/h5/src/demon/DemonMainView.ts"
+    ],
+    "unity_sources": [
+      "Assets/Prefabs/UI/Pet/PetModule.prefab",
+      "Assets/Prefabs/UI/Pet/PetRoundItem.prefab",
+      "Assets/Prefabs/UI/PetEquip/PetEquipModule.prefab",
+      "Assets/Prefabs/UI/PetEquip/PetEquipOutItem.prefab",
+      "Assets/Prefabs/UI/Demon/DemonMainView.prefab",
+      "Assets/Scripts/Module/Core/Pet",
+      "Assets/Scripts/Module/Core/OutWard",
+      "Assets/Scripts/Module/Core/PetEquip",
+      "Assets/Scripts/Module/Core/Demon"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "mainui.pet.window",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        {
+          "id": "mainui-pet-entry",
+          "kind": "button",
+          "child": "mainui.pet.window.entry"
+        },
+        {
+          "id": "window-close",
+          "kind": "return",
+          "child": "mainui.pet.window.close"
+        },
+        {
+          "id": "tab-horse",
+          "kind": "tab",
+          "child": "mainui.pet.window.horse"
+        },
+        {
+          "id": "tab-partner",
+          "kind": "tab",
+          "child": "mainui.pet.window.partner"
+        },
+        {
+          "id": "tab-witch-or-awake",
+          "kind": "conditional-tab",
+          "child": "mainui.pet.window.witch"
+        },
+        {
+          "id": "tab-demon",
+          "kind": "tab",
+          "child": "mainui.pet.window.demon"
+        },
+        {
+          "id": "close-blessing-popup",
+          "kind": "conditional-popup",
+          "child": "mainui.pet.window.blessing"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.entry",
+      "parent": "mainui.pet.window",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.close",
+      "parent": "mainui.pet.window",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window",
+      "control_inventory": [
+        {
+          "id": "model-preview",
+          "kind": "dynamic-model",
+          "child": "mainui.pet.window.horse.model"
+        },
+        {
+          "id": "fight-power",
+          "kind": "display",
+          "child": "mainui.pet.window.horse.fight-power"
+        },
+        {
+          "id": "appearance-selector",
+          "kind": "selector",
+          "child": "mainui.pet.window.horse.appearance"
+        },
+        {
+          "id": "tab-cultivation",
+          "kind": "tab",
+          "child": "mainui.pet.window.horse.cultivation"
+        },
+        {
+          "id": "tab-level",
+          "kind": "tab",
+          "child": "mainui.pet.window.horse.level"
+        },
+        {
+          "id": "property-popup",
+          "kind": "button",
+          "child": "mainui.pet.window.horse.property"
+        },
+        {
+          "id": "illusion-entry",
+          "kind": "button",
+          "child": "mainui.pet.window.horse.illusion"
+        },
+        {
+          "id": "pet-equipment-entry",
+          "kind": "button",
+          "child": "mainui.pet.window.horse.equipment"
+        },
+        {
+          "id": "fairy-wish-entry",
+          "kind": "conditional-button",
+          "child": "mainui.pet.window.horse.fairy-wish"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.partner",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window",
+      "control_inventory": [
+        {
+          "id": "model-preview",
+          "kind": "dynamic-model",
+          "child": "mainui.pet.window.partner.model"
+        },
+        {
+          "id": "fight-power",
+          "kind": "display",
+          "child": "mainui.pet.window.partner.fight-power"
+        },
+        {
+          "id": "appearance-selector",
+          "kind": "selector",
+          "child": "mainui.pet.window.partner.appearance"
+        },
+        {
+          "id": "tab-cultivation",
+          "kind": "tab",
+          "child": "mainui.pet.window.partner.cultivation"
+        },
+        {
+          "id": "tab-level",
+          "kind": "tab",
+          "child": "mainui.pet.window.partner.level"
+        },
+        {
+          "id": "property-popup",
+          "kind": "button",
+          "child": "mainui.pet.window.partner.property"
+        },
+        {
+          "id": "illusion-entry",
+          "kind": "button",
+          "child": "mainui.pet.window.partner.illusion"
+        },
+        {
+          "id": "pet-equipment-entry",
+          "kind": "button",
+          "child": "mainui.pet.window.partner.equipment"
+        },
+        {
+          "id": "fairy-wish-entry",
+          "kind": "conditional-button",
+          "child": "mainui.pet.window.partner.fairy-wish"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.witch",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window",
+      "control_inventory": [
+        {
+          "id": "partner-or-awake-branch",
+          "kind": "conditional-state",
+          "child": "mainui.pet.window.witch.branch-state"
+        },
+        {
+          "id": "partner-collection",
+          "kind": "conditional-page",
+          "child": "mainui.pet.window.witch.collection"
+        },
+        {
+          "id": "partner-awake",
+          "kind": "conditional-page",
+          "child": "mainui.pet.window.witch.awake"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.demon",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window",
+      "control_inventory": [
+        {
+          "id": "demon-list",
+          "kind": "scroll-list",
+          "child": "mainui.pet.window.demon.list"
+        },
+        {
+          "id": "demon-model-preview",
+          "kind": "dynamic-model",
+          "child": "mainui.pet.window.demon.model"
+        },
+        {
+          "id": "fight-power",
+          "kind": "display",
+          "child": "mainui.pet.window.demon.fight-power"
+        },
+        {
+          "id": "fetters-entry",
+          "kind": "button",
+          "child": "mainui.pet.window.demon.fetters"
+        },
+        {
+          "id": "awaken-button",
+          "kind": "button",
+          "child": "mainui.pet.window.demon.awaken"
+        },
+        {
+          "id": "level-up-button",
+          "kind": "button",
+          "child": "mainui.pet.window.demon.level-up"
+        },
+        {
+          "id": "star-up-button",
+          "kind": "button",
+          "child": "mainui.pet.window.demon.star-up"
+        },
+        {
+          "id": "live-skill-detail",
+          "kind": "button",
+          "child": "mainui.pet.window.demon.skill"
+        },
+        {
+          "id": "painting-entry",
+          "kind": "button",
+          "child": "mainui.pet.window.demon.painting"
+        },
+        {
+          "id": "shop-entry",
+          "kind": "button",
+          "child": "mainui.pet.window.demon.shop"
+        },
+        {
+          "id": "rotary-entry",
+          "kind": "button",
+          "child": "mainui.pet.window.demon.rotary"
+        },
+        {
+          "id": "talent-list",
+          "kind": "list",
+          "child": "mainui.pet.window.demon.talents"
+        },
+        {
+          "id": "talent-select",
+          "kind": "button",
+          "child": "mainui.pet.window.demon.talent-select"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.blessing",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window",
+      "control_inventory": [
+        {
+          "id": "reenter-pet",
+          "kind": "button",
+          "child": "mainui.pet.window.blessing.enter"
+        },
+        {
+          "id": "cancel",
+          "kind": "button",
+          "child": "mainui.pet.window.blessing.cancel"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.pet.window.blessing.close"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.horse.model",
+      "parent": "mainui.pet.window.horse",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.fight-power",
+      "parent": "mainui.pet.window.horse",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.appearance",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window.horse",
+      "control_inventory": [
+        {
+          "id": "previous-stage",
+          "kind": "button",
+          "child": "mainui.pet.window.horse.appearance.previous"
+        },
+        {
+          "id": "next-stage",
+          "kind": "button",
+          "child": "mainui.pet.window.horse.appearance.next"
+        },
+        {
+          "id": "current-name-stage",
+          "kind": "display",
+          "child": "mainui.pet.window.horse.appearance.current"
+        },
+        {
+          "id": "base-or-illusion-state",
+          "kind": "state",
+          "child": "mainui.pet.window.horse.appearance.base-illusion"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.horse.appearance.previous",
+      "parent": "mainui.pet.window.horse.appearance",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.appearance.next",
+      "parent": "mainui.pet.window.horse.appearance",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.appearance.current",
+      "parent": "mainui.pet.window.horse.appearance",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.appearance.base-illusion",
+      "parent": "mainui.pet.window.horse.appearance",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.cultivation",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window.horse",
+      "control_inventory": [
+        {
+          "id": "stage-star-blessing",
+          "kind": "state",
+          "child": "mainui.pet.window.horse.cultivation.stage-star"
+        },
+        {
+          "id": "attribute-summary",
+          "kind": "list",
+          "child": "mainui.pet.window.horse.cultivation.attributes"
+        },
+        {
+          "id": "material-list",
+          "kind": "cost",
+          "child": "mainui.pet.window.horse.cultivation.materials"
+        },
+        {
+          "id": "auto-buy-toggle",
+          "kind": "toggle",
+          "child": "mainui.pet.window.horse.cultivation.auto-buy"
+        },
+        {
+          "id": "one-key-upgrade",
+          "kind": "button",
+          "child": "mainui.pet.window.horse.cultivation.upgrade"
+        },
+        {
+          "id": "skill-orbs",
+          "kind": "list",
+          "child": "mainui.pet.window.horse.cultivation.skills"
+        },
+        {
+          "id": "crystal-slots",
+          "kind": "list",
+          "child": "mainui.pet.window.horse.cultivation.crystals"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.horse.cultivation.stage-star",
+      "parent": "mainui.pet.window.horse.cultivation",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.cultivation.attributes",
+      "parent": "mainui.pet.window.horse.cultivation",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.cultivation.materials",
+      "parent": "mainui.pet.window.horse.cultivation",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.cultivation.auto-buy",
+      "parent": "mainui.pet.window.horse.cultivation",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.pet.window.horse.cultivation.upgrade",
+      "parent": "mainui.pet.window.horse.cultivation",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.horse.cultivation.skills",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window.horse.cultivation",
+      "control_inventory": [
+        {
+          "id": "skill-list",
+          "kind": "list",
+          "child": "mainui.pet.window.horse.cultivation.skills.list"
+        },
+        {
+          "id": "skill-detail",
+          "kind": "button",
+          "child": "mainui.pet.window.horse.cultivation.skills.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.horse.cultivation.skills.list",
+      "parent": "mainui.pet.window.horse.cultivation.skills",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.cultivation.skills.detail",
+      "parent": "mainui.pet.window.horse.cultivation.skills",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.cultivation.crystals",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window.horse.cultivation",
+      "control_inventory": [
+        {
+          "id": "crystal-list-and-limits",
+          "kind": "list",
+          "child": "mainui.pet.window.horse.cultivation.crystals.list"
+        },
+        {
+          "id": "crystal-detail",
+          "kind": "button",
+          "child": "mainui.pet.window.horse.cultivation.crystals.detail"
+        },
+        {
+          "id": "consume-crystal",
+          "kind": "button",
+          "child": "mainui.pet.window.horse.cultivation.crystals.consume"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.horse.cultivation.crystals.list",
+      "parent": "mainui.pet.window.horse.cultivation.crystals",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.cultivation.crystals.detail",
+      "parent": "mainui.pet.window.horse.cultivation.crystals",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.cultivation.crystals.consume",
+      "parent": "mainui.pet.window.horse.cultivation.crystals",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.horse.level",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window.horse",
+      "control_inventory": [
+        {
+          "id": "level-exp-fight",
+          "kind": "state",
+          "child": "mainui.pet.window.horse.level.state"
+        },
+        {
+          "id": "level-material-list",
+          "kind": "cost",
+          "child": "mainui.pet.window.horse.level.materials"
+        },
+        {
+          "id": "auto-material-toggle",
+          "kind": "toggle",
+          "child": "mainui.pet.window.horse.level.auto"
+        },
+        {
+          "id": "one-key-or-stop-upgrade",
+          "kind": "button",
+          "child": "mainui.pet.window.horse.level.upgrade"
+        },
+        {
+          "id": "level-skill-entry",
+          "kind": "button",
+          "child": "mainui.pet.window.horse.level.skills"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.horse.level.state",
+      "parent": "mainui.pet.window.horse.level",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.level.materials",
+      "parent": "mainui.pet.window.horse.level",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.level.auto",
+      "parent": "mainui.pet.window.horse.level",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.pet.window.horse.level.upgrade",
+      "parent": "mainui.pet.window.horse.level",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.horse.level.skills",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window.horse.level",
+      "control_inventory": [
+        {
+          "id": "level-skill-list",
+          "kind": "list",
+          "child": "mainui.pet.window.horse.level.skills.list"
+        },
+        {
+          "id": "level-skill-detail",
+          "kind": "button",
+          "child": "mainui.pet.window.horse.level.skills.detail"
+        },
+        {
+          "id": "level-skill-upgrade",
+          "kind": "button",
+          "child": "mainui.pet.window.horse.level.skills.upgrade"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.horse.level.skills.list",
+      "parent": "mainui.pet.window.horse.level.skills",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.level.skills.detail",
+      "parent": "mainui.pet.window.horse.level.skills",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.level.skills.upgrade",
+      "parent": "mainui.pet.window.horse.level.skills",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.horse.property",
+      "parent": "mainui.pet.window.horse",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.illusion",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window.horse",
+      "control_inventory": [
+        {
+          "id": "illusion-list",
+          "kind": "scroll-list",
+          "child": "mainui.pet.window.horse.illusion.list"
+        },
+        {
+          "id": "illusion-select",
+          "kind": "selection",
+          "child": "mainui.pet.window.horse.illusion.select"
+        },
+        {
+          "id": "illusion-model-preview",
+          "kind": "dynamic-model",
+          "child": "mainui.pet.window.horse.illusion.model"
+        },
+        {
+          "id": "illusion-attributes-source",
+          "kind": "details",
+          "child": "mainui.pet.window.horse.illusion.detail"
+        },
+        {
+          "id": "wear-or-cancel",
+          "kind": "button",
+          "child": "mainui.pet.window.horse.illusion.wear"
+        },
+        {
+          "id": "activate-illusion",
+          "kind": "button",
+          "child": "mainui.pet.window.horse.illusion.activate"
+        },
+        {
+          "id": "illusion-stage-up",
+          "kind": "button",
+          "child": "mainui.pet.window.horse.illusion.stage-up"
+        },
+        {
+          "id": "illusion-star-up",
+          "kind": "button",
+          "child": "mainui.pet.window.horse.illusion.star-up"
+        },
+        {
+          "id": "illusion-close",
+          "kind": "return",
+          "child": "mainui.pet.window.horse.illusion.close"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.horse.illusion.list",
+      "parent": "mainui.pet.window.horse.illusion",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.illusion.select",
+      "parent": "mainui.pet.window.horse.illusion",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.illusion.model",
+      "parent": "mainui.pet.window.horse.illusion",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.illusion.detail",
+      "parent": "mainui.pet.window.horse.illusion",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.illusion.wear",
+      "parent": "mainui.pet.window.horse.illusion",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.pet.window.horse.illusion.activate",
+      "parent": "mainui.pet.window.horse.illusion",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.horse.illusion.stage-up",
+      "parent": "mainui.pet.window.horse.illusion",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.horse.illusion.star-up",
+      "parent": "mainui.pet.window.horse.illusion",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.horse.illusion.close",
+      "parent": "mainui.pet.window.horse.illusion",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.equipment",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window.horse",
+      "control_inventory": [
+        {
+          "id": "equipped-slots",
+          "kind": "slot-list",
+          "child": "mainui.pet.window.horse.equipment.slots"
+        },
+        {
+          "id": "equipment-bag-list",
+          "kind": "scroll-list",
+          "child": "mainui.pet.window.horse.equipment.bag"
+        },
+        {
+          "id": "equipment-detail",
+          "kind": "button",
+          "child": "mainui.pet.window.horse.equipment.detail"
+        },
+        {
+          "id": "wear-equipment",
+          "kind": "button",
+          "child": "mainui.pet.window.horse.equipment.wear"
+        },
+        {
+          "id": "strengthen-equipment",
+          "kind": "button",
+          "child": "mainui.pet.window.horse.equipment.strengthen"
+        },
+        {
+          "id": "polish-equipment",
+          "kind": "button",
+          "child": "mainui.pet.window.horse.equipment.polish"
+        },
+        {
+          "id": "equipment-close",
+          "kind": "return",
+          "child": "mainui.pet.window.horse.equipment.close"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.horse.equipment.slots",
+      "parent": "mainui.pet.window.horse.equipment",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.equipment.bag",
+      "parent": "mainui.pet.window.horse.equipment",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.equipment.detail",
+      "parent": "mainui.pet.window.horse.equipment",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.equipment.wear",
+      "parent": "mainui.pet.window.horse.equipment",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.horse.equipment.strengthen",
+      "parent": "mainui.pet.window.horse.equipment",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.horse.equipment.polish",
+      "parent": "mainui.pet.window.horse.equipment",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.horse.equipment.close",
+      "parent": "mainui.pet.window.horse.equipment",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.horse.fairy-wish",
+      "parent": "mainui.pet.window.horse",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.model",
+      "parent": "mainui.pet.window.partner",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.fight-power",
+      "parent": "mainui.pet.window.partner",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.appearance",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window.partner",
+      "control_inventory": [
+        {
+          "id": "previous-stage",
+          "kind": "button",
+          "child": "mainui.pet.window.partner.appearance.previous"
+        },
+        {
+          "id": "next-stage",
+          "kind": "button",
+          "child": "mainui.pet.window.partner.appearance.next"
+        },
+        {
+          "id": "current-name-stage",
+          "kind": "display",
+          "child": "mainui.pet.window.partner.appearance.current"
+        },
+        {
+          "id": "base-or-illusion-state",
+          "kind": "state",
+          "child": "mainui.pet.window.partner.appearance.base-illusion"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.partner.appearance.previous",
+      "parent": "mainui.pet.window.partner.appearance",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.appearance.next",
+      "parent": "mainui.pet.window.partner.appearance",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.appearance.current",
+      "parent": "mainui.pet.window.partner.appearance",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.appearance.base-illusion",
+      "parent": "mainui.pet.window.partner.appearance",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.cultivation",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window.partner",
+      "control_inventory": [
+        {
+          "id": "stage-star-blessing",
+          "kind": "state",
+          "child": "mainui.pet.window.partner.cultivation.stage-star"
+        },
+        {
+          "id": "attribute-summary",
+          "kind": "list",
+          "child": "mainui.pet.window.partner.cultivation.attributes"
+        },
+        {
+          "id": "material-list",
+          "kind": "cost",
+          "child": "mainui.pet.window.partner.cultivation.materials"
+        },
+        {
+          "id": "auto-buy-toggle",
+          "kind": "toggle",
+          "child": "mainui.pet.window.partner.cultivation.auto-buy"
+        },
+        {
+          "id": "one-key-upgrade",
+          "kind": "button",
+          "child": "mainui.pet.window.partner.cultivation.upgrade"
+        },
+        {
+          "id": "skill-orbs",
+          "kind": "list",
+          "child": "mainui.pet.window.partner.cultivation.skills"
+        },
+        {
+          "id": "crystal-slots",
+          "kind": "list",
+          "child": "mainui.pet.window.partner.cultivation.crystals"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.partner.cultivation.stage-star",
+      "parent": "mainui.pet.window.partner.cultivation",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.cultivation.attributes",
+      "parent": "mainui.pet.window.partner.cultivation",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.cultivation.materials",
+      "parent": "mainui.pet.window.partner.cultivation",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.cultivation.auto-buy",
+      "parent": "mainui.pet.window.partner.cultivation",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.pet.window.partner.cultivation.upgrade",
+      "parent": "mainui.pet.window.partner.cultivation",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.partner.cultivation.skills",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window.partner.cultivation",
+      "control_inventory": [
+        {
+          "id": "skill-list",
+          "kind": "list",
+          "child": "mainui.pet.window.partner.cultivation.skills.list"
+        },
+        {
+          "id": "skill-detail",
+          "kind": "button",
+          "child": "mainui.pet.window.partner.cultivation.skills.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.partner.cultivation.skills.list",
+      "parent": "mainui.pet.window.partner.cultivation.skills",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.cultivation.skills.detail",
+      "parent": "mainui.pet.window.partner.cultivation.skills",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.cultivation.crystals",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window.partner.cultivation",
+      "control_inventory": [
+        {
+          "id": "crystal-list-and-limits",
+          "kind": "list",
+          "child": "mainui.pet.window.partner.cultivation.crystals.list"
+        },
+        {
+          "id": "crystal-detail",
+          "kind": "button",
+          "child": "mainui.pet.window.partner.cultivation.crystals.detail"
+        },
+        {
+          "id": "consume-crystal",
+          "kind": "button",
+          "child": "mainui.pet.window.partner.cultivation.crystals.consume"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.partner.cultivation.crystals.list",
+      "parent": "mainui.pet.window.partner.cultivation.crystals",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.cultivation.crystals.detail",
+      "parent": "mainui.pet.window.partner.cultivation.crystals",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.cultivation.crystals.consume",
+      "parent": "mainui.pet.window.partner.cultivation.crystals",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.partner.level",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window.partner",
+      "control_inventory": [
+        {
+          "id": "level-exp-fight",
+          "kind": "state",
+          "child": "mainui.pet.window.partner.level.state"
+        },
+        {
+          "id": "level-material-list",
+          "kind": "cost",
+          "child": "mainui.pet.window.partner.level.materials"
+        },
+        {
+          "id": "auto-material-toggle",
+          "kind": "toggle",
+          "child": "mainui.pet.window.partner.level.auto"
+        },
+        {
+          "id": "one-key-or-stop-upgrade",
+          "kind": "button",
+          "child": "mainui.pet.window.partner.level.upgrade"
+        },
+        {
+          "id": "level-skill-entry",
+          "kind": "button",
+          "child": "mainui.pet.window.partner.level.skills"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.partner.level.state",
+      "parent": "mainui.pet.window.partner.level",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.level.materials",
+      "parent": "mainui.pet.window.partner.level",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.level.auto",
+      "parent": "mainui.pet.window.partner.level",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.pet.window.partner.level.upgrade",
+      "parent": "mainui.pet.window.partner.level",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.partner.level.skills",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window.partner.level",
+      "control_inventory": [
+        {
+          "id": "level-skill-list",
+          "kind": "list",
+          "child": "mainui.pet.window.partner.level.skills.list"
+        },
+        {
+          "id": "level-skill-detail",
+          "kind": "button",
+          "child": "mainui.pet.window.partner.level.skills.detail"
+        },
+        {
+          "id": "level-skill-upgrade",
+          "kind": "button",
+          "child": "mainui.pet.window.partner.level.skills.upgrade"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.partner.level.skills.list",
+      "parent": "mainui.pet.window.partner.level.skills",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.level.skills.detail",
+      "parent": "mainui.pet.window.partner.level.skills",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.level.skills.upgrade",
+      "parent": "mainui.pet.window.partner.level.skills",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.partner.property",
+      "parent": "mainui.pet.window.partner",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.illusion",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window.partner",
+      "control_inventory": [
+        {
+          "id": "illusion-list",
+          "kind": "scroll-list",
+          "child": "mainui.pet.window.partner.illusion.list"
+        },
+        {
+          "id": "illusion-select",
+          "kind": "selection",
+          "child": "mainui.pet.window.partner.illusion.select"
+        },
+        {
+          "id": "illusion-model-preview",
+          "kind": "dynamic-model",
+          "child": "mainui.pet.window.partner.illusion.model"
+        },
+        {
+          "id": "illusion-attributes-source",
+          "kind": "details",
+          "child": "mainui.pet.window.partner.illusion.detail"
+        },
+        {
+          "id": "wear-or-cancel",
+          "kind": "button",
+          "child": "mainui.pet.window.partner.illusion.wear"
+        },
+        {
+          "id": "activate-illusion",
+          "kind": "button",
+          "child": "mainui.pet.window.partner.illusion.activate"
+        },
+        {
+          "id": "illusion-stage-up",
+          "kind": "button",
+          "child": "mainui.pet.window.partner.illusion.stage-up"
+        },
+        {
+          "id": "illusion-star-up",
+          "kind": "button",
+          "child": "mainui.pet.window.partner.illusion.star-up"
+        },
+        {
+          "id": "illusion-close",
+          "kind": "return",
+          "child": "mainui.pet.window.partner.illusion.close"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.partner.illusion.list",
+      "parent": "mainui.pet.window.partner.illusion",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.illusion.select",
+      "parent": "mainui.pet.window.partner.illusion",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.illusion.model",
+      "parent": "mainui.pet.window.partner.illusion",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.illusion.detail",
+      "parent": "mainui.pet.window.partner.illusion",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.illusion.wear",
+      "parent": "mainui.pet.window.partner.illusion",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.pet.window.partner.illusion.activate",
+      "parent": "mainui.pet.window.partner.illusion",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.partner.illusion.stage-up",
+      "parent": "mainui.pet.window.partner.illusion",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.partner.illusion.star-up",
+      "parent": "mainui.pet.window.partner.illusion",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.partner.illusion.close",
+      "parent": "mainui.pet.window.partner.illusion",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.equipment",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window.partner",
+      "control_inventory": [
+        {
+          "id": "equipped-slots",
+          "kind": "slot-list",
+          "child": "mainui.pet.window.partner.equipment.slots"
+        },
+        {
+          "id": "equipment-bag-list",
+          "kind": "scroll-list",
+          "child": "mainui.pet.window.partner.equipment.bag"
+        },
+        {
+          "id": "equipment-detail",
+          "kind": "button",
+          "child": "mainui.pet.window.partner.equipment.detail"
+        },
+        {
+          "id": "wear-equipment",
+          "kind": "button",
+          "child": "mainui.pet.window.partner.equipment.wear"
+        },
+        {
+          "id": "strengthen-equipment",
+          "kind": "button",
+          "child": "mainui.pet.window.partner.equipment.strengthen"
+        },
+        {
+          "id": "polish-equipment",
+          "kind": "button",
+          "child": "mainui.pet.window.partner.equipment.polish"
+        },
+        {
+          "id": "equipment-close",
+          "kind": "return",
+          "child": "mainui.pet.window.partner.equipment.close"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.partner.equipment.slots",
+      "parent": "mainui.pet.window.partner.equipment",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.equipment.bag",
+      "parent": "mainui.pet.window.partner.equipment",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.equipment.detail",
+      "parent": "mainui.pet.window.partner.equipment",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.equipment.wear",
+      "parent": "mainui.pet.window.partner.equipment",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.partner.equipment.strengthen",
+      "parent": "mainui.pet.window.partner.equipment",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.partner.equipment.polish",
+      "parent": "mainui.pet.window.partner.equipment",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.partner.equipment.close",
+      "parent": "mainui.pet.window.partner.equipment",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.partner.fairy-wish",
+      "parent": "mainui.pet.window.partner",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.witch.branch-state",
+      "parent": "mainui.pet.window.witch",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.witch.collection",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window.witch",
+      "control_inventory": [
+        {
+          "id": "partner-list",
+          "kind": "scroll-list",
+          "child": "mainui.pet.window.witch.collection.list"
+        },
+        {
+          "id": "selected-partner-model",
+          "kind": "dynamic-model",
+          "child": "mainui.pet.window.witch.collection.model"
+        },
+        {
+          "id": "attribute-biography-toggle",
+          "kind": "toggle",
+          "child": "mainui.pet.window.witch.collection.view-toggle"
+        },
+        {
+          "id": "attribute-tip",
+          "kind": "button",
+          "child": "mainui.pet.window.witch.collection.attribute-tip"
+        },
+        {
+          "id": "fight-toggle",
+          "kind": "toggle",
+          "child": "mainui.pet.window.witch.collection.fight"
+        },
+        {
+          "id": "follow-toggle",
+          "kind": "toggle",
+          "child": "mainui.pet.window.witch.collection.follow"
+        },
+        {
+          "id": "auto-battle-toggle",
+          "kind": "toggle",
+          "child": "mainui.pet.window.witch.collection.auto"
+        },
+        {
+          "id": "partner-details",
+          "kind": "details",
+          "child": "mainui.pet.window.witch.collection.details"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.witch.collection.list",
+      "parent": "mainui.pet.window.witch.collection",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.witch.collection.model",
+      "parent": "mainui.pet.window.witch.collection",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.witch.collection.view-toggle",
+      "parent": "mainui.pet.window.witch.collection",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.pet.window.witch.collection.attribute-tip",
+      "parent": "mainui.pet.window.witch.collection",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.witch.collection.fight",
+      "parent": "mainui.pet.window.witch.collection",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.witch.collection.follow",
+      "parent": "mainui.pet.window.witch.collection",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.witch.collection.auto",
+      "parent": "mainui.pet.window.witch.collection",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.pet.window.witch.collection.details",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window.witch.collection",
+      "control_inventory": [
+        {
+          "id": "skill-list",
+          "kind": "list",
+          "child": "mainui.pet.window.witch.collection.details.skill-list"
+        },
+        {
+          "id": "skill-detail",
+          "kind": "button",
+          "child": "mainui.pet.window.witch.collection.details.skill-detail"
+        },
+        {
+          "id": "source-description",
+          "kind": "button",
+          "child": "mainui.pet.window.witch.collection.details.source"
+        },
+        {
+          "id": "biography-tabs-and-list",
+          "kind": "scroll-list",
+          "child": "mainui.pet.window.witch.collection.details.biography"
+        },
+        {
+          "id": "biography-unlock",
+          "kind": "button",
+          "child": "mainui.pet.window.witch.collection.details.biography-unlock"
+        },
+        {
+          "id": "activate-or-upgrade",
+          "kind": "button",
+          "child": "mainui.pet.window.witch.collection.details.activate"
+        },
+        {
+          "id": "exchange-entry",
+          "kind": "button",
+          "child": "mainui.pet.window.witch.collection.details.exchange"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.witch.collection.details.skill-list",
+      "parent": "mainui.pet.window.witch.collection.details",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.witch.collection.details.skill-detail",
+      "parent": "mainui.pet.window.witch.collection.details",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.witch.collection.details.source",
+      "parent": "mainui.pet.window.witch.collection.details",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.witch.collection.details.biography",
+      "parent": "mainui.pet.window.witch.collection.details",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.witch.collection.details.biography-unlock",
+      "parent": "mainui.pet.window.witch.collection.details",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.witch.collection.details.activate",
+      "parent": "mainui.pet.window.witch.collection.details",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.witch.collection.details.exchange",
+      "parent": "mainui.pet.window.witch.collection.details",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.witch.awake",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.pet.window.witch",
+      "control_inventory": [
+        {
+          "id": "phase-one-tab",
+          "kind": "tab",
+          "child": "mainui.pet.window.witch.awake.phase-one"
+        },
+        {
+          "id": "phase-two-tab",
+          "kind": "tab",
+          "child": "mainui.pet.window.witch.awake.phase-two"
+        },
+        {
+          "id": "locked-phase-tab",
+          "kind": "conditional-tab",
+          "child": "mainui.pet.window.witch.awake.locked-phase"
+        },
+        {
+          "id": "property-popup",
+          "kind": "button",
+          "child": "mainui.pet.window.witch.awake.property"
+        },
+        {
+          "id": "awake-skill-list",
+          "kind": "list",
+          "child": "mainui.pet.window.witch.awake.skills"
+        },
+        {
+          "id": "awake-skill-detail",
+          "kind": "button",
+          "child": "mainui.pet.window.witch.awake.skill-detail"
+        },
+        {
+          "id": "awake-task-scroll",
+          "kind": "scroll-list",
+          "child": "mainui.pet.window.witch.awake.task-list"
+        },
+        {
+          "id": "awake-task-action",
+          "kind": "button",
+          "child": "mainui.pet.window.witch.awake.task-action"
+        },
+        {
+          "id": "task-scroll-left",
+          "kind": "button",
+          "child": "mainui.pet.window.witch.awake.scroll-left"
+        },
+        {
+          "id": "task-scroll-right",
+          "kind": "button",
+          "child": "mainui.pet.window.witch.awake.scroll-right"
+        },
+        {
+          "id": "awake-model-preview",
+          "kind": "dynamic-model",
+          "child": "mainui.pet.window.witch.awake.model"
+        }
+      ]
+    },
+    {
+      "id": "mainui.pet.window.witch.awake.phase-one",
+      "parent": "mainui.pet.window.witch.awake",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.witch.awake.phase-two",
+      "parent": "mainui.pet.window.witch.awake",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.witch.awake.locked-phase",
+      "parent": "mainui.pet.window.witch.awake",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.witch.awake.property",
+      "parent": "mainui.pet.window.witch.awake",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.witch.awake.skills",
+      "parent": "mainui.pet.window.witch.awake",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.witch.awake.skill-detail",
+      "parent": "mainui.pet.window.witch.awake",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.witch.awake.task-list",
+      "parent": "mainui.pet.window.witch.awake",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.witch.awake.task-action",
+      "parent": "mainui.pet.window.witch.awake",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.witch.awake.scroll-left",
+      "parent": "mainui.pet.window.witch.awake",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.witch.awake.scroll-right",
+      "parent": "mainui.pet.window.witch.awake",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.witch.awake.model",
+      "parent": "mainui.pet.window.witch.awake",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.demon.list",
+      "parent": "mainui.pet.window.demon",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.demon.model",
+      "parent": "mainui.pet.window.demon",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.demon.fight-power",
+      "parent": "mainui.pet.window.demon",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.demon.fetters",
+      "parent": "mainui.pet.window.demon",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.demon.awaken",
+      "parent": "mainui.pet.window.demon",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.demon.level-up",
+      "parent": "mainui.pet.window.demon",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.demon.star-up",
+      "parent": "mainui.pet.window.demon",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.pet.window.demon.skill",
+      "parent": "mainui.pet.window.demon",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.demon.painting",
+      "parent": "mainui.pet.window.demon",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.demon.shop",
+      "parent": "mainui.pet.window.demon",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.demon.rotary",
+      "parent": "mainui.pet.window.demon",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.demon.talents",
+      "parent": "mainui.pet.window.demon",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.demon.talent-select",
+      "parent": "mainui.pet.window.demon",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.blessing.enter",
+      "parent": "mainui.pet.window.blessing",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.blessing.cancel",
+      "parent": "mainui.pet.window.blessing",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.pet.window.blessing.close",
+      "parent": "mainui.pet.window.blessing",
+      "type": "return",
+      "risk": "read-only"
+    }
+  ]
+}

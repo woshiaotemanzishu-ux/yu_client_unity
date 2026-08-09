@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.AutoBrush;
@@ -20,11 +22,19 @@ namespace Shenxiao.Module.Core.AutoBrush
         private int _renderEpoch;
         private int _showLevel;
         private bool _eventsBound;
+        private readonly UIEffectSlot _stageEffectSlot;
+        private UIEffectStage.Handle _stageEffect;
+        private bool _stageEffectLoading;
+        private bool _stageEffectShouldShow;
+        private int _stageEffectVersion;
+        private int _stageIconVersion;
 
         public AutoBrushMainView(AutoBrushMainViewBind bind)
         {
             _bind = bind;
             if (_bind?._tpl_EquipmentItem != null) _bind._tpl_EquipmentItem.SetActive(false);
+            if (_bind?._box_show_effect != null)
+                _stageEffectSlot = _bind._box_show_effect.GetComponent<UIEffectSlot>();
         }
 
         public bool IsShown => _bind != null && _bind.gameObject.activeSelf;
@@ -36,12 +46,15 @@ namespace Shenxiao.Module.Core.AutoBrush
             _bind.transform.SetAsLastSibling();
             BindEvents();
             BindClicks();
+            AutoBrushController.Instance.RequestRankInfo();
             _ = RenderAsync();
         }
 
         public void Hide()
         {
             UnbindEvents();
+            _stageIconVersion++;
+            SetStageEffectVisible(false);
             ClearRewardCells();
             if (_bind != null) _bind.Hide();
         }
@@ -97,11 +110,20 @@ namespace Shenxiao.Module.Core.AutoBrush
         private void RefreshBrushInfo()
         {
             AutoBrushModel.BrushStrangeInfo info = AutoBrushModel.Instance.BrushInfo;
-            bool hasInfo = info != null && info.NeedTimes > 0;
+            TaskVo task = TaskModel.Instance.MainLineTaskVo;
+            bool suppressForActivationTask = task != null
+                && task.TaskId == AutoBrushModel.IgnoreRedTaskId
+                && task.HasFinish == 0;
+            bool hasInfo = info != null && info.NeedTimes > 0 && !suppressForActivationTask;
             bool ready = hasInfo && info.CurrentTimes >= info.NeedTimes;
+            AutoBrushConfigs.BossCfg boss = AutoBrushConfigs.GetBoss(_showLevel);
+            bool showEnterRed = ready
+                && !AutoBrushModel.Instance.AutoBrushState
+                && boss != null
+                && RoleModel.Instance.CombatPower >= boss.Power;
 
             SetActive(_bind._box_enter, hasInfo && ready);
-            SetActive(_bind._img_enter_red, hasInfo && ready);
+            SetActive(_bind._img_enter_red, showEnterRed);
             SetActive(_bind._html_desc, hasInfo && !ready);
             SetActive(_bind._lb_go, hasInfo && !ready);
             SetActive(_bind._box_assist, false);
@@ -133,6 +155,87 @@ namespace Shenxiao.Module.Core.AutoBrush
             }
             SetActive(_bind._box_show_effect, claimable);
             SetActive(_bind._img_show_red, claimable);
+            SetStageEffectVisible(claimable);
+            SetStageRewardIcon(valid, gate);
+        }
+
+        private void SetStageRewardIcon(bool valid, ulong gate)
+        {
+            int version = ++_stageIconVersion;
+            if (!valid)
+            {
+                SetActive(_bind?._img_show, false);
+                return;
+            }
+            AutoBrushConfigs.StageRewardCfg stage = AutoBrushConfigs.GetStageReward(gate);
+            if (_bind._img_show == null || stage == null || stage.Reward.Count <= 0)
+            {
+                SetActive(_bind?._img_show, false);
+                return;
+            }
+
+            (int goodsId, _) = GoodsModel.GetMappingTypeId(stage.Reward.Style, stage.Reward.RawTypeId);
+            if (goodsId <= 0) goodsId = stage.Reward.RawTypeId;
+            string icon = GoodsModel.GetGoodsIcon(goodsId);
+            if (string.IsNullOrEmpty(icon))
+            {
+                SetActive(_bind._img_show, false);
+                return;
+            }
+            _ = LoadStageRewardIconAsync(version, GameResPath.GetGoodsIconPath(icon));
+        }
+
+        private async Task LoadStageRewardIconAsync(int version, string path)
+        {
+            Sprite sprite = await ResManager.LoadAsync<Sprite>(path);
+            if (version != _stageIconVersion || !IsShown || _bind._img_show == null) return;
+            if (sprite == null)
+            {
+                SetActive(_bind._img_show, false);
+                return;
+            }
+            _bind._img_show.sprite = sprite;
+            _bind._img_show.enabled = true;
+            Color color = _bind._img_show.color;
+            color.a = 1f;
+            _bind._img_show.color = color;
+            SetActive(_bind._img_show, true);
+        }
+
+        private void SetStageEffectVisible(bool visible)
+        {
+            _stageEffectShouldShow = visible;
+            if (!visible)
+            {
+                ClearStageEffect();
+                return;
+            }
+            if (_stageEffectSlot == null || _stageEffect != null || _stageEffectLoading) return;
+            _stageEffectLoading = true;
+            int version = ++_stageEffectVersion;
+            _ = LoadStageEffectAsync(version);
+        }
+
+        private async Task LoadStageEffectAsync(int version)
+        {
+            UIEffectStage.Handle handle = await UIEffectStage.AddAsync(
+                _stageEffectSlot, _bind._box_show_effect);
+            if (version != _stageEffectVersion || !_stageEffectShouldShow || !IsShown)
+            {
+                handle?.Dispose();
+                return;
+            }
+            _stageEffectLoading = false;
+            _stageEffect = handle;
+        }
+
+        private void ClearStageEffect()
+        {
+            _stageEffectVersion++;
+            _stageEffectLoading = false;
+            if (_stageEffect == null) return;
+            _stageEffect.Dispose();
+            _stageEffect = null;
         }
 
         private async Task BuildRewardCells(int epoch, IReadOnlyList<AutoBrushModel.RewardEntry> rewards)
@@ -191,7 +294,7 @@ namespace Shenxiao.Module.Core.AutoBrush
             BindClick(_bind._box_enter, EnterDungeon);
             BindClick(_bind._img_enter, EnterDungeon);
             BindClick(_bind._lb_go, GoBrushMonster);
-            BindClick(_bind._img_rank, () => GameLog.Info("AutoBrush", "AutoBrushRankView not migrated yet"));
+            BindClick(_bind._img_rank, AutoBrushFlow.OpenRank);
             BindClick(_bind._box_assist, () => GameLog.Info("AutoBrush", "guild assist not migrated yet"));
             BindClick(_bind._box_show, ClaimStageReward);
             BindClick(_bind._box_click, ClaimStageReward);

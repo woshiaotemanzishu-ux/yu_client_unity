@@ -1,0 +1,771 @@
+{
+  "schema": 6,
+  "route": "mainstronger.158",
+  "baseline": {
+    "authority": "当前老客户端同账号、同状态、同 viewport 的真实运行结果；本轮仅做老端源码与 Unity 静态闭包，禁止启动 Unity/浏览器。",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/mainUI/MainUIStrongerView.ts",
+      "E:/GitProject/yu_client/h5/src/mainUI/MainUIStrongerBtn.ts",
+      "E:/GitProject/yu_client/h5/src/mainUI/MainUIStrongerTalkBoard.ts",
+      "E:/GitProject/yu_client/h5/src/commonModel/MainStrongerModel.ts",
+      "E:/GitProject/yu_client/h5/src/commonController/MainStrongerController.ts",
+      "E:/GitProject/yu_client/cdn/resource/config/client/ConfigFeatureBinding.json"
+    ],
+    "unity_sources": [
+      "Assets/Scripts/Module/Core/MainStronger",
+      "Assets/Scripts/Generated/UI/MainStronger",
+      "Assets/Scripts/Module/Core/MainUI/MainUIRouter.cs",
+      "Assets/Scripts/Module/Core/MainUI/Views/ActivityIcon.cs"
+    ]
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_main_stronger/route-manifest.json",
+    "sha256": "72eb675d0afe583f0d1573508b96d2b6592009b96839928ace6362078a9c492b"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "mainstronger.158",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        {
+          "id": "fixed-entry-158",
+          "kind": "entry",
+          "child": "mainstronger.158.entry"
+        },
+        {
+          "id": "popup-shell",
+          "kind": "window",
+          "child": "mainstronger.158.shell"
+        },
+        {
+          "id": "recommendation-list",
+          "kind": "list",
+          "child": "mainstronger.158.list"
+        },
+        {
+          "id": "banner-carousel",
+          "kind": "conditional-block",
+          "child": "mainstronger.158.banner"
+        },
+        {
+          "id": "protocol-and-lifecycle",
+          "kind": "lifecycle",
+          "child": "mainstronger.158.lifecycle"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainstronger.158.entry, mainstronger.158.shell, mainstronger.158.list, mainstronger.158.banner, mainstronger.158.lifecycle"
+    },
+    {
+      "id": "mainstronger.158.entry",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainstronger.158",
+      "control_inventory": [
+        {
+          "id": "func-open",
+          "kind": "conditional-state",
+          "child": "mainstronger.158.entry.open-gate"
+        },
+        {
+          "id": "red-count",
+          "kind": "red-dot",
+          "child": "mainstronger.158.entry.red"
+        },
+        {
+          "id": "top-bubble",
+          "kind": "conditional-popup",
+          "child": "mainstronger.158.entry.bubble"
+        },
+        {
+          "id": "route-158",
+          "kind": "button",
+          "child": "mainstronger.158.entry.route"
+        },
+        {
+          "id": "click-anchor",
+          "kind": "position",
+          "child": "mainstronger.158.entry.anchor"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainstronger.158.entry.red, mainstronger.158.entry.bubble, mainstronger.158.entry.anchor"
+    },
+    {
+      "id": "mainstronger.158.entry.open-gate",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.entry",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "runtime_gap": "已静态接入 FuncOpenConfig[MainStronger]；未启动 Unity/老 H5，尚未验证任务 101340 前后真实显隐与提示。"
+    },
+    {
+      "id": "mainstronger.158.entry.red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.entry",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "MainUI/业务红点发布者属于跨模块文件岛；当前尚未向 MainStrongerModel 发布完整红点，也未按 StrongerCount 更新 158 数量与显隐。"
+    },
+    {
+      "id": "mainstronger.158.entry.bubble",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.entry",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "气泡宿主 MainUIStrongerTalkBoard 位于 MainUI ActivityIcon.prefab；本轮禁止修改 MainUI，session 显隐和置顶文案契约仅登记。"
+    },
+    {
+      "id": "mainstronger.158.entry.route",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainstronger.158.entry",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "runtime_gap": "MainStrongerBootstrap 已注册路由 158 且隔离编译通过；未获授权运行 GraphicRaycaster 点击，页面资源仍有独立 blocker。"
+    },
+    {
+      "id": "mainstronger.158.entry.anchor",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.entry",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "当前 MainUIRouter 仅提供无参 Action，ActivityIcon 未把世界坐标传给 MainStronger；跨 MainUI 接口本轮只登记。"
+    },
+    {
+      "id": "mainstronger.158.shell",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainstronger.158",
+      "control_inventory": [
+        {
+          "id": "prefab",
+          "kind": "resource",
+          "child": "mainstronger.158.shell.prefab"
+        },
+        {
+          "id": "client-config",
+          "kind": "resource",
+          "child": "mainstronger.158.shell.config"
+        },
+        {
+          "id": "images",
+          "kind": "resource",
+          "child": "mainstronger.158.shell.resources"
+        },
+        {
+          "id": "activity-layer",
+          "kind": "layer",
+          "child": "mainstronger.158.shell.layer"
+        },
+        {
+          "id": "root-geometry",
+          "kind": "visual",
+          "child": "mainstronger.158.shell.geometry"
+        },
+        {
+          "id": "close-button",
+          "kind": "button",
+          "child": "mainstronger.158.shell.close"
+        },
+        {
+          "id": "background-close",
+          "kind": "mask-button",
+          "child": "mainstronger.158.shell.background-close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainstronger.158.shell.prefab, mainstronger.158.shell.config, mainstronger.158.shell.resources, mainstronger.158.shell.geometry, mainstronger.158.shell.close, mainstronger.158.shell.background-close"
+    },
+    {
+      "id": "mainstronger.158.shell.prefab",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.shell",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "仓库不存在 Assets/Prefabs/UI/MainStronger/MainUIStrongerView.prefab；正常 convert-module 需要老端运行快照和 Unity 烘焙，本轮均被禁止。"
+    },
+    {
+      "id": "mainstronger.158.shell.config",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.shell",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "Unity 侧缺少可加载的 ConfigFeatureBinding；本轮禁止修改 ClientConfigSync/Addressables，配置解析器明确拒绝伪数据。"
+    },
+    {
+      "id": "mainstronger.158.shell.resources",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.shell",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "Unity 侧无 resource/game/mainStronger 最小资源闭包，且本轮禁止 Addressables 登记；未复制未登记资产冒充完成。"
+    },
+    {
+      "id": "mainstronger.158.shell.layer",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.shell",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "runtime_gap": "MainStrongerFlow 已选择 UILayer.Popup 对应老端 Activity 层；缺 Prefab 且未运行，尚无真实层级与遮挡证据。"
+    },
+    {
+      "id": "mainstronger.158.shell.geometry",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.shell",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "194x320、透明背景与点击锚点必须落在可编辑 Prefab；当前 Prefab 不存在，禁止用运行时代码写视觉布局。"
+    },
+    {
+      "id": "mainstronger.158.shell.close",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainstronger.158.shell",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "View 代码已有关闭绑定，但当前没有含 btnClose 真实绑定的 Prefab，不能完成真实点击/遮挡/清理门禁。"
+    },
+    {
+      "id": "mainstronger.158.shell.background-close",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainstronger.158.shell",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "透明背景点击层属于首次转换 Prefab 结构；当前不存在且本轮禁止启动转换流程。"
+    },
+    {
+      "id": "mainstronger.158.list",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainstronger.158",
+      "control_inventory": [
+        {
+          "id": "scroll-structure",
+          "kind": "scroll",
+          "child": "mainstronger.158.list.scroll"
+        },
+        {
+          "id": "current-feature-set",
+          "kind": "state-list",
+          "child": "mainstronger.158.list.red-publishers"
+        },
+        {
+          "id": "sort",
+          "kind": "ordering",
+          "child": "mainstronger.158.list.sort"
+        },
+        {
+          "id": "item-label",
+          "kind": "text",
+          "child": "mainstronger.158.list.label"
+        },
+        {
+          "id": "normal-jump",
+          "kind": "button",
+          "child": "mainstronger.158.list.jump"
+        },
+        {
+          "id": "skill-awake",
+          "kind": "conditional-button",
+          "child": "mainstronger.158.list.skill-awake"
+        },
+        {
+          "id": "close-on-jump",
+          "kind": "lifecycle",
+          "child": "mainstronger.158.list.close-on-jump"
+        },
+        {
+          "id": "empty-state",
+          "kind": "conditional-state",
+          "child": "mainstronger.158.list.empty"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainstronger.158.list.scroll, mainstronger.158.list.red-publishers, mainstronger.158.list.label, mainstronger.158.list.jump, mainstronger.158.list.skill-awake"
+    },
+    {
+      "id": "mainstronger.158.list.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.list",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "代码会向 ScrollRect.content 克隆并调用 Show，但缺真实 Prefab 的 Viewport/RectMask2D/LayoutGroup，不能验证拖动与末项可达。"
+    },
+    {
+      "id": "mainstronger.158.list.red-publishers",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.list",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "42 个 FeatureBinding 条目的红点来源分布在各业务模块；本轮只提供 PublishRedState 接口，禁止跨模块修改发布者。"
+    },
+    {
+      "id": "mainstronger.158.list.sort",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.list",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "runtime_gap": "静态实现置顶优先、order 降序、普通 id 升序；旧配置静态基线为 40,10001,37，尚无真实运行列表证据。"
+    },
+    {
+      "id": "mainstronger.158.list.label",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.list",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "数据绑定代码已实现，但 ConfigFeatureBinding 与 MainUIStrongerBtn Prefab/字体/图片闭包均缺失。"
+    },
+    {
+      "id": "mainstronger.158.list.jump",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainstronger.158.list",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "已提供 RegisterFeatureOpener(func, opener)，但目标模块尚未逐项注册老端 OpenFun 数字映射；禁止在本模块猜测跨页关系。"
+    },
+    {
+      "id": "mainstronger.158.list.skill-awake",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainstronger.158.list",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "技能觉醒 10001 需要 Task 模块发布任务资格、选中任务并执行；本轮禁止修改 Task，当前仅提供显式接口。"
+    },
+    {
+      "id": "mainstronger.158.list.close-on-jump",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainstronger.158.list",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "runtime_gap": "MainStrongerFlow.TryOpen 在调用目标 opener 前先释放页面；隔离编译通过，尚无真实页面生命周期证据。"
+    },
+    {
+      "id": "mainstronger.158.list.empty",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.list",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "runtime_gap": "无已注册 opener/红点时模型返回空列表且不造假；缺 Prefab，尚未验证空态实际是否与老端一致。"
+    },
+    {
+      "id": "mainstronger.158.banner",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainstronger.158",
+      "control_inventory": [
+        {
+          "id": "visibility",
+          "kind": "conditional-state",
+          "child": "mainstronger.158.banner.visibility"
+        },
+        {
+          "id": "max-eight-order",
+          "kind": "ordering",
+          "child": "mainstronger.158.banner.data"
+        },
+        {
+          "id": "left-center-right",
+          "kind": "visual",
+          "child": "mainstronger.158.banner.images"
+        },
+        {
+          "id": "page-dots",
+          "kind": "state-visual",
+          "child": "mainstronger.158.banner.dots"
+        },
+        {
+          "id": "auto-2.4s",
+          "kind": "animation",
+          "child": "mainstronger.158.banner.auto"
+        },
+        {
+          "id": "drag",
+          "kind": "drag",
+          "child": "mainstronger.158.banner.drag"
+        },
+        {
+          "id": "skip-id",
+          "kind": "button",
+          "child": "mainstronger.158.banner.skip"
+        },
+        {
+          "id": "act-skip",
+          "kind": "button",
+          "child": "mainstronger.158.banner.activity"
+        },
+        {
+          "id": "close-after-click",
+          "kind": "return",
+          "child": "mainstronger.158.banner.close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainstronger.158.banner.visibility, mainstronger.158.banner.data, mainstronger.158.banner.images, mainstronger.158.banner.dots, mainstronger.158.banner.auto, mainstronger.158.banner.drag, mainstronger.158.banner.skip, mainstronger.158.banner.activity, mainstronger.158.banner.close"
+    },
+    {
+      "id": "mainstronger.158.banner.visibility",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.banner",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "config_banner 与 Activity 状态矩阵未闭包；当前代码整组隐藏，不能把降级隐藏当老端完成态。"
+    },
+    {
+      "id": "mainstronger.158.banner.data",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.banner",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "缺 config_banner provider、开服/合服/等级/图标/活动/功能条件接口；最多 8 条与 show_id 排序未接运行数据。"
+    },
+    {
+      "id": "mainstronger.158.banner.images",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.banner",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "左/中/右图片节点虽有 Generated Bind，但无可编辑 Prefab、mainStronger 图片资源与 banner 数据。"
+    },
+    {
+      "id": "mainstronger.158.banner.dots",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.banner",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "圆点需 Prefab、ui_bq_xz_01/02 资源与当前页状态；三者均未闭包。"
+    },
+    {
+      "id": "mainstronger.158.banner.auto",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.banner",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "2.4 秒自动轮播依赖真实 banner 与可见页面；本轮禁止运行，且关闭清 timer 尚不能取证。"
+    },
+    {
+      "id": "mainstronger.158.banner.drag",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.banner",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "缺真实 Panel/Mask/三图布局与数据，无法执行 GraphicRaycaster 拖动和回弹验证。"
+    },
+    {
+      "id": "mainstronger.158.banner.skip",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainstronger.158.banner",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "skip_id 依赖完整 OpenFun 数字分发与条件校验；本轮仅登记跨模块契约。"
+    },
+    {
+      "id": "mainstronger.158.banner.activity",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainstronger.158.banner",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "act_skip 与 331@98/100 开服天数分支属于 Activity 路线；本轮禁止修改 Activity 文件。"
+    },
+    {
+      "id": "mainstronger.158.banner.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainstronger.158.banner",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "广告点击成功后的关闭必须随真实 skip/activity 路径复验；当前两条目标链均未接。"
+    },
+    {
+      "id": "mainstronger.158.lifecycle",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainstronger.158",
+      "control_inventory": [
+        {
+          "id": "no-own-protocol",
+          "kind": "protocol",
+          "child": "mainstronger.158.lifecycle.protocol"
+        },
+        {
+          "id": "disconnect-reset",
+          "kind": "lifecycle",
+          "child": "mainstronger.158.lifecycle.reset"
+        },
+        {
+          "id": "close-reopen",
+          "kind": "lifecycle",
+          "child": "mainstronger.158.lifecycle.reopen"
+        },
+        {
+          "id": "destination-return",
+          "kind": "return",
+          "child": "mainstronger.158.lifecycle.return"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainstronger.158.lifecycle.reopen, mainstronger.158.lifecycle.return"
+    },
+    {
+      "id": "mainstronger.158.lifecycle.protocol",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.lifecycle",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "runtime_gap": "静态核对确认 MainStronger 自身无协议/写事务，只消费配置、红点、任务并跳页；尚未用真实点击验证无意外发包。"
+    },
+    {
+      "id": "mainstronger.158.lifecycle.reset",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainstronger.158.lifecycle",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "runtime_gap": "Bootstrap 已在非自动重连断线时释放页面并清推荐状态；未运行断线/重连路径。"
+    },
+    {
+      "id": "mainstronger.158.lifecycle.reopen",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainstronger.158.lifecycle",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "缺 Prefab、配置、红点发布者与真实运行授权，无法验证关闭重开即时刷新和冷暖耗时。"
+    },
+    {
+      "id": "mainstronger.158.lifecycle.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainstronger.158.lifecycle",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_main_stronger/static-audit.md"
+      ],
+      "blocked_reason": "目标功能 opener 尚未注册，无法沿每个目标页返回 MainUI/再开 158；跨模块返回链只登记。"
+    }
+  ],
+  "summary": {
+    "total": 39,
+    "status_counts": {
+      "blocked": 31,
+      "needs-runtime-verify": 8
+    }
+  }
+}

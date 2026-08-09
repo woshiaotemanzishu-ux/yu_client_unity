@@ -1,0 +1,589 @@
+{
+    "nodes":  [
+                  {
+                      "id":  "scene.dialogue.npc-task.entry.12101",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.entry.12102",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.entry.dedupe",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.entry.default",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.entry.empty",
+                      "status":  "blocked",
+                      "blocked_reason":  "Empty-talk routing may send 30003/30004; no task write transaction was authorized for this run.",
+                      "note":  "Static audit recorded the exact implementation or authorization blocker.",
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.background.dim",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.background.click",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.background.wedding",
+                      "status":  "blocked",
+                      "blocked_reason":  "Wedding-scene background and click suppression depend on Banquet runtime state that is not implemented in the Unity dialogue flow.",
+                      "note":  "Static audit recorded the exact implementation or authorization blocker.",
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.background.layers",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.speaker.npc",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.speaker.role",
+                      "status":  "blocked",
+                      "blocked_reason":  "ROLE nodes still require the current-role model, outfit parts and authoritative player name branch.",
+                      "note":  "Static audit recorded the exact implementation or authorization blocker.",
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.speaker.override",
+                      "status":  "blocked",
+                      "blocked_reason":  "Per-content speaker id is not preserved by TalkConfigs.TalkContentBlock yet.",
+                      "note":  "Static audit recorded the exact implementation or authorization blocker.",
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.speaker.system",
+                      "status":  "blocked",
+                      "blocked_reason":  "System narrator id 99999 and blank-name/no-model behavior are not implemented.",
+                      "note":  "Static audit recorded the exact implementation or authorization blocker.",
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.speaker.wedding",
+                      "status":  "blocked",
+                      "blocked_reason":  "Wedding bride/groom/officiant speaker branches and dress mapping are not implemented.",
+                      "note":  "Static audit recorded the exact implementation or authorization blocker.",
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.speaker.animation",
+                      "status":  "blocked",
+                      "blocked_reason":  "Old 120ms speaker entry animation is not implemented.",
+                      "note":  "Static audit recorded the exact implementation or authorization blocker.",
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.speaker.idle",
+                      "status":  "blocked",
+                      "blocked_reason":  "Old casual/idle/replay sequencing and scene-NPC action handoff are not implemented.",
+                      "note":  "Static audit recorded the exact implementation or authorization blocker.",
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.skip",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.content.name",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.content.text",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.content.next",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.content.continue-label",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.content.action",
+                      "status":  "blocked",
+                      "blocked_reason":  "This leaf can send 30003/30004/30007; no task write transaction was authorized.",
+                      "note":  "Static audit recorded the exact implementation or authorization blocker.",
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.content.animation",
+                      "status":  "blocked",
+                      "blocked_reason":  "Old 80ms bottom-panel entry animation is not implemented.",
+                      "note":  "Static audit recorded the exact implementation or authorization blocker.",
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.reward.text",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.reward.list",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.reward.item",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.reward.submit",
+                      "status":  "blocked",
+                      "blocked_reason":  "This leaf can submit task writes; no task write transaction was authorized.",
+                      "note":  "Static audit recorded the exact implementation or authorization blocker.",
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.reward.empty",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.auto.off",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.auto.continue",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.auto.finish",
+                      "status":  "blocked",
+                      "blocked_reason":  "Finish countdown ends in a task write and cannot be runtime-tested without transaction authorization.",
+                      "note":  "Static audit recorded the exact implementation or authorization blocker.",
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.auto.submit",
+                      "status":  "blocked",
+                      "blocked_reason":  "Automatic action can send a task write; no task write transaction was authorized.",
+                      "note":  "Static audit recorded the exact implementation or authorization blocker.",
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.auto.cancel",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.protocol.30003",
+                      "status":  "blocked",
+                      "blocked_reason":  "Accept-task transaction 30003 was not authorized.",
+                      "note":  "Static audit recorded the exact implementation or authorization blocker.",
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.protocol.30004",
+                      "status":  "blocked",
+                      "blocked_reason":  "Finish-task transaction 30004 was not authorized.",
+                      "note":  "Static audit recorded the exact implementation or authorization blocker.",
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.protocol.30007",
+                      "status":  "blocked",
+                      "blocked_reason":  "Talk-event transaction 30007 was not authorized.",
+                      "note":  "Static audit recorded the exact implementation or authorization blocker.",
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.protocol.refresh",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.protocol.success",
+                      "status":  "blocked",
+                      "blocked_reason":  "Immediate success state requires an authorized real UI transaction and authoritative response.",
+                      "note":  "Static audit recorded the exact implementation or authorization blocker.",
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.protocol.failure",
+                      "status":  "blocked",
+                      "blocked_reason":  "Failure-state preservation requires an authorized real UI transaction and authoritative error response.",
+                      "note":  "Static audit recorded the exact implementation or authorization blocker.",
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.protocol.reopen",
+                      "status":  "blocked",
+                      "blocked_reason":  "Reopen consistency depends on an authorized task write followed by authoritative refresh.",
+                      "note":  "Static audit recorded the exact implementation or authorization blocker.",
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.lifecycle.stop",
+                      "status":  "blocked",
+                      "blocked_reason":  "The old STOP_AUTO_DO_TASK equivalent is absent from the current shared GlobalEvent contract.",
+                      "note":  "Static audit recorded the exact implementation or authorization blocker.",
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.lifecycle.scene-change",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.lifecycle.model",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.lifecycle.reward",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.lifecycle.retry",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.lifecycle.performance",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  },
+                  {
+                      "id":  "scene.dialogue.npc-task.lifecycle.web",
+                      "status":  "needs-runtime-verify",
+                      "runtime_gap":  "The control/data/lifecycle path is statically present or guarded, but no same-account Unity/Web player-visible run was executed.",
+                      "note":  "Static implementation is not runtime completion evidence.",
+                      "applicable_gates":  [
+                                               "runtime_state"
+                                           ],
+                      "gates":  {
+                                    "runtime_state":  false
+                                },
+                      "evidence":  [
+                                       "output/ui_route_audit/2026-08-09_dialogue/static-audit.md"
+                                   ]
+                  }
+              ]
+}

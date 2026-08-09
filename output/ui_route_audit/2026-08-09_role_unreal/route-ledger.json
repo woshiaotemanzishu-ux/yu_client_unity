@@ -1,0 +1,991 @@
+{
+  "schema": 6,
+  "route": "mainui.role.unreal",
+  "baseline": {
+    "authority": "Current old H5 under the same account, state and viewport is final authority. The 2026-08-09 read-only run proves the current Role entry hidden; it does not prove Unreal content runtime completion.",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/role/EquipmentView.ts",
+      "E:/GitProject/yu_client/h5/src/common/OpenFun.ts",
+      "E:/GitProject/yu_client/h5/src/unreal/UnrealBagView.ts",
+      "E:/GitProject/yu_client/h5/src/unreal/UnrealStrengthenView.ts",
+      "E:/GitProject/yu_client/h5/src/unreal/UnrealDecomposeView.ts",
+      "E:/GitProject/yu_client/h5/src/unreal/UnrealDismantleView.ts"
+    ],
+    "unity_sources": [
+      "Tools/ModuleManifest/unreal.manifest.json",
+      "Assets/Prefabs/UI/Role/RoleModule.prefab",
+      "Assets/Scripts/Module/Core/Role/RoleFlow.cs",
+      "Assets/Scripts/Module/Core/Rune/RuneFlow.cs"
+    ],
+    "protocol_inventory": {
+      "reads": [
+        "14904",
+        "14906",
+        "14907",
+        "14908",
+        "15010"
+      ],
+      "writes": [
+        "14901",
+        "14902",
+        "14903",
+        "14905",
+        "GoodsModel.RESOLVE_GOODS"
+      ],
+      "note": "No write transaction was executed during this topology and blocked-entry pass."
+    }
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_role_unreal/route-manifest.json",
+    "sha256": "c63237aca14f1ba08689d919f7f9c1381f1085453bebea22854346e9202bac0c"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "mainui.role.unreal",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        {
+          "id": "role-entry",
+          "kind": "conditional-button",
+          "child": "mainui.role.unreal.entry"
+        },
+        {
+          "id": "secret-treasure-shell",
+          "kind": "shared-window",
+          "child": "mainui.role.unreal.shell"
+        },
+        {
+          "id": "unreal-bag",
+          "kind": "tab-content",
+          "child": "mainui.role.unreal.bag"
+        },
+        {
+          "id": "strengthen",
+          "kind": "window-content",
+          "child": "mainui.role.unreal.strengthen"
+        },
+        {
+          "id": "decompose",
+          "kind": "modal",
+          "child": "mainui.role.unreal.decompose"
+        },
+        {
+          "id": "dismantle",
+          "kind": "modal",
+          "child": "mainui.role.unreal.dismantle"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.role.unreal.entry"
+    },
+    {
+      "id": "mainui.role.unreal.entry",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal",
+      "control_inventory": [
+        {
+          "id": "group6-visible",
+          "kind": "conditional-state",
+          "child": "mainui.role.unreal.entry.visible"
+        },
+        {
+          "id": "openfun113",
+          "kind": "conditional-navigation",
+          "child": "mainui.role.unreal.entry.openfun113"
+        },
+        {
+          "id": "item-openfun195",
+          "kind": "conditional-navigation",
+          "child": "mainui.role.unreal.entry.openfun195"
+        },
+        {
+          "id": "level-condition",
+          "kind": "state",
+          "child": "mainui.role.unreal.entry.level-condition"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.role.unreal.entry.visible, mainui.role.unreal.entry.openfun113, mainui.role.unreal.entry.openfun195"
+    },
+    {
+      "id": "mainui.role.unreal.entry.visible",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.entry",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_unreal/old_readonly_v4/blocked.json",
+        "output/ui_route_audit/2026-08-09_role_unreal/old_readonly_v4/shots/20_role_person.png"
+      ],
+      "note": "Read-only old-client capture proved the Role control hidden; no account mutation or synthetic click was used.",
+      "blocked_reason": "Current old EquipmentView serializes _Group6 as visible=false and account 111111 (Lv.260) cannot expose the level-360 Unreal route."
+    },
+    {
+      "id": "mainui.role.unreal.entry.openfun113",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.entry",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_unreal/old_readonly_v4/blocked.json"
+      ],
+      "note": "The code path is implementation evidence only and cannot substitute for current runtime reachability.",
+      "blocked_reason": "OpenFun 113 remains in source but its current Role control is hidden, so there is no authorized real-pointer path for this account/state."
+    },
+    {
+      "id": "mainui.role.unreal.entry.openfun195",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.entry",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Tools/ModuleManifest/unreal.manifest.json",
+        "output/ui_route_audit/2026-08-09_role_unreal/old_readonly_v4/blocked.json"
+      ],
+      "note": "Do not GM the target result or inject OpenFun from page JavaScript; re-run through a real visible item-use control.",
+      "blocked_reason": "The item-use OpenFun 195 route requires a real Unreal item and an eligible state; neither was prepared because no reversible dedicated-account recipe or write authorization is available."
+    },
+    {
+      "id": "mainui.role.unreal.entry.level-condition",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.entry",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.shell",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal",
+      "control_inventory": [
+        {
+          "id": "title",
+          "kind": "state",
+          "child": "mainui.role.unreal.shell.title"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.role.unreal.shell.close"
+        },
+        {
+          "id": "currency",
+          "kind": "shared-state",
+          "child": "mainui.role.unreal.shell.currency"
+        },
+        {
+          "id": "rune-tab",
+          "kind": "tab",
+          "child": "mainui.role.unreal.shell.tab-rune"
+        },
+        {
+          "id": "monbook-tab",
+          "kind": "conditional-tab",
+          "child": "mainui.role.unreal.shell.tab-monbook"
+        },
+        {
+          "id": "lung-tab",
+          "kind": "conditional-tab",
+          "child": "mainui.role.unreal.shell.tab-lung"
+        },
+        {
+          "id": "unreal-tab",
+          "kind": "conditional-tab",
+          "child": "mainui.role.unreal.shell.tab-unreal"
+        },
+        {
+          "id": "godbeast-tab",
+          "kind": "conditional-tab",
+          "child": "mainui.role.unreal.shell.tab-godbeast"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.shell.title",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.shell",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.shell.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.shell",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.shell.currency",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.shell",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.shell.tab-rune",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.shell",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.shell.tab-monbook",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.shell",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.shell.tab-lung",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.shell",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.shell.tab-unreal",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.shell",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.shell.tab-godbeast",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.shell",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.bag",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal",
+      "control_inventory": [
+        {
+          "id": "equipped-slots",
+          "kind": "six-slot-group",
+          "child": "mainui.role.unreal.bag.equipped"
+        },
+        {
+          "id": "bag-list",
+          "kind": "scroll-list",
+          "child": "mainui.role.unreal.bag.list"
+        },
+        {
+          "id": "bag-item",
+          "kind": "list-item-button",
+          "child": "mainui.role.unreal.bag.item-detail"
+        },
+        {
+          "id": "capacity",
+          "kind": "state",
+          "child": "mainui.role.unreal.bag.capacity"
+        },
+        {
+          "id": "score",
+          "kind": "state",
+          "child": "mainui.role.unreal.bag.score"
+        },
+        {
+          "id": "empty",
+          "kind": "conditional-state",
+          "child": "mainui.role.unreal.bag.empty"
+        },
+        {
+          "id": "strengthen",
+          "kind": "button",
+          "child": "mainui.role.unreal.bag.open-strengthen"
+        },
+        {
+          "id": "decompose",
+          "kind": "button",
+          "child": "mainui.role.unreal.bag.open-decompose"
+        },
+        {
+          "id": "composite",
+          "kind": "button",
+          "child": "mainui.role.unreal.bag.open-composite"
+        },
+        {
+          "id": "get",
+          "kind": "button",
+          "child": "mainui.role.unreal.bag.open-get"
+        },
+        {
+          "id": "gift",
+          "kind": "conditional-button",
+          "child": "mainui.role.unreal.bag.gift"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.bag.equipped",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.bag",
+      "control_inventory": [
+        {
+          "id": "pos1",
+          "kind": "slot",
+          "child": "mainui.role.unreal.bag.equipped.pos1"
+        },
+        {
+          "id": "pos2",
+          "kind": "slot",
+          "child": "mainui.role.unreal.bag.equipped.pos2"
+        },
+        {
+          "id": "pos3",
+          "kind": "slot",
+          "child": "mainui.role.unreal.bag.equipped.pos3"
+        },
+        {
+          "id": "pos4",
+          "kind": "slot",
+          "child": "mainui.role.unreal.bag.equipped.pos4"
+        },
+        {
+          "id": "pos5",
+          "kind": "slot",
+          "child": "mainui.role.unreal.bag.equipped.pos5"
+        },
+        {
+          "id": "pos6",
+          "kind": "slot",
+          "child": "mainui.role.unreal.bag.equipped.pos6"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.bag.equipped.pos1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.bag.equipped",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.bag.equipped.pos2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.bag.equipped",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.bag.equipped.pos3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.bag.equipped",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.bag.equipped.pos4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.bag.equipped",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.bag.equipped.pos5",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.bag.equipped",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.bag.equipped.pos6",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.bag.equipped",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.bag.list",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.bag.item-detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.bag.capacity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.bag.score",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.bag.empty",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.bag.open-strengthen",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.bag.open-decompose",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.bag.open-composite",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.bag.open-get",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.bag.gift",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.strengthen",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal",
+      "control_inventory": [
+        {
+          "id": "six-position-tabs",
+          "kind": "slot-list",
+          "child": "mainui.role.unreal.strengthen.positions"
+        },
+        {
+          "id": "current-next-attrs",
+          "kind": "scroll-list",
+          "child": "mainui.role.unreal.strengthen.attrs"
+        },
+        {
+          "id": "cost-list",
+          "kind": "item-list",
+          "child": "mainui.role.unreal.strengthen.costs"
+        },
+        {
+          "id": "strengthen",
+          "kind": "button",
+          "child": "mainui.role.unreal.strengthen.level-up"
+        },
+        {
+          "id": "stage",
+          "kind": "conditional-button",
+          "child": "mainui.role.unreal.strengthen.stage-up"
+        },
+        {
+          "id": "empty",
+          "kind": "conditional-state",
+          "child": "mainui.role.unreal.strengthen.empty"
+        },
+        {
+          "id": "max",
+          "kind": "conditional-state",
+          "child": "mainui.role.unreal.strengthen.max"
+        },
+        {
+          "id": "success-effect",
+          "kind": "conditional-effect",
+          "child": "mainui.role.unreal.strengthen.effect"
+        },
+        {
+          "id": "return",
+          "kind": "return",
+          "child": "mainui.role.unreal.strengthen.return"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.strengthen.positions",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.strengthen",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.strengthen.attrs",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.strengthen",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.strengthen.costs",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.strengthen",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.strengthen.level-up",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.unreal.strengthen",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.strengthen.stage-up",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.unreal.strengthen",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.strengthen.empty",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.strengthen",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.strengthen.max",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.strengthen",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.strengthen.effect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.strengthen",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.strengthen.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.strengthen",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.decompose",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal",
+      "control_inventory": [
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.role.unreal.decompose.close"
+        },
+        {
+          "id": "grade-filters",
+          "kind": "three-toggle-group",
+          "child": "mainui.role.unreal.decompose.filters"
+        },
+        {
+          "id": "item-list",
+          "kind": "scroll-multiselect-list",
+          "child": "mainui.role.unreal.decompose.items"
+        },
+        {
+          "id": "reward-list",
+          "kind": "item-list",
+          "child": "mainui.role.unreal.decompose.rewards"
+        },
+        {
+          "id": "empty",
+          "kind": "conditional-state",
+          "child": "mainui.role.unreal.decompose.empty"
+        },
+        {
+          "id": "confirm",
+          "kind": "button",
+          "child": "mainui.role.unreal.decompose.confirm"
+        },
+        {
+          "id": "continue-get",
+          "kind": "conditional-button",
+          "child": "mainui.role.unreal.decompose.continue-get"
+        },
+        {
+          "id": "success",
+          "kind": "conditional-state",
+          "child": "mainui.role.unreal.decompose.success"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.decompose.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.decompose",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.decompose.filters",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.role.unreal.decompose",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.decompose.items",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.role.unreal.decompose",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.decompose.rewards",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.decompose",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.decompose.empty",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.decompose",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.decompose.confirm",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.unreal.decompose",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.decompose.continue-get",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.decompose",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.decompose.success",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.decompose",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.dismantle",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal",
+      "control_inventory": [
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.role.unreal.dismantle.close"
+        },
+        {
+          "id": "reward-list",
+          "kind": "item-list",
+          "child": "mainui.role.unreal.dismantle.rewards"
+        },
+        {
+          "id": "cancel",
+          "kind": "button",
+          "child": "mainui.role.unreal.dismantle.cancel"
+        },
+        {
+          "id": "confirm",
+          "kind": "button",
+          "child": "mainui.role.unreal.dismantle.confirm"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.dismantle.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.dismantle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.dismantle.rewards",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.dismantle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.dismantle.cancel",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.dismantle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.unreal.dismantle.confirm",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.unreal.dismantle",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    }
+  ],
+  "summary": {
+    "total": 57,
+    "status_counts": {
+      "blocked": 5,
+      "not-run": 52
+    }
+  }
+}

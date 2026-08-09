@@ -29,7 +29,8 @@ namespace Shenxiao.Common.Tips
             Show(text);
         }
 
-        public static void Confirm(string text, System.Action onYes, System.Action onNo = null)
+        public static void Confirm(string text, System.Action onYes, System.Action onNo = null,
+            string yesLabel = "确认", string noLabel = "取消")
         {
             GameLog.Info("Tip", "confirm: {0}", text);
             if (ViewManager.GetLayer(UILayer.Tip) == null)
@@ -37,7 +38,7 @@ namespace Shenxiao.Common.Tips
                 onYes?.Invoke(); // headless/启动早期:保持旧语义(CLI 验证依赖)
                 return;
             }
-            ConfirmDialog.Show(text, onYes, onNo);
+            ConfirmDialog.Show(text, onYes, onNo, yesLabel, noLabel);
         }
 
         // ---- prefab 版(首选):TipToastView 排队/动画自管,这里只负责懒加载与转发 ----

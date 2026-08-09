@@ -25,6 +25,7 @@ namespace Shenxiao.Module.Core.Dialogue
 
         /// <summary>该节点点击后是否会触发任务协议(接/交/对话事件),即"动作节点"。</summary>
         public static bool IsActionNode(int type)
-            => type == TRIGGER || type == FINISH || type == FINISH_AND_TRIGGER || type == TALK_EVENT;
+            => type == TRIGGER || type == FINISH || type == TRIGGER_AND_FINISH
+               || type == FINISH_AND_TRIGGER || type == TALK_EVENT;
     }
 }

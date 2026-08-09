@@ -1,0 +1,1719 @@
+{
+  "schema": 6,
+  "route": "mainui.boss.field",
+  "baseline": {
+    "old_h5_source": "E:/GitProject/yu_client/h5/src/bossField",
+    "unity_prefab": "Assets/Prefabs/UI/BossField/BossFieldModule.prefab",
+    "unity_runtime": "not-run",
+    "real_web_same_account": "not-run"
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/route-manifest.json",
+    "sha256": "1c7f1f15b0ec742e28b7274409f69d17259e0da6ba7e481aa9bf24b6ce13b630"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "mainui.boss.field",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        {
+          "id": "entry",
+          "kind": "boss-main-navigation",
+          "child": "mainui.boss.field.entry"
+        },
+        {
+          "id": "identity",
+          "kind": "page-popup-prefab-identity",
+          "child": "mainui.boss.field.identity"
+        },
+        {
+          "id": "state",
+          "kind": "46000-46043-authoritative-state",
+          "child": "mainui.boss.field.state"
+        },
+        {
+          "id": "field-main",
+          "kind": "field-special-infinite-main-page",
+          "child": "mainui.boss.field.main"
+        },
+        {
+          "id": "abyss",
+          "kind": "abyss-page-and-failure-popup",
+          "child": "mainui.boss.field.abyss"
+        },
+        {
+          "id": "relive",
+          "kind": "scene-dependent-relive-popup",
+          "child": "mainui.boss.field.relive"
+        },
+        {
+          "id": "soul-shop",
+          "kind": "soul-of-war-shop-popup",
+          "child": "mainui.boss.field.shop"
+        },
+        {
+          "id": "tired",
+          "kind": "tired-item-popup",
+          "child": "mainui.boss.field.tired"
+        },
+        {
+          "id": "vit-buy",
+          "kind": "vit-recovery-popup",
+          "child": "mainui.boss.field.vit-buy"
+        },
+        {
+          "id": "legacy",
+          "kind": "legacy-unmapped-view-candidates",
+          "child": "mainui.boss.field.legacy"
+        },
+        {
+          "id": "lifecycle",
+          "kind": "cold-warm-hide-reopen",
+          "child": "mainui.boss.field.lifecycle"
+        },
+        {
+          "id": "presentation",
+          "kind": "visual-effect-sound-performance",
+          "child": "mainui.boss.field.presentation"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.boss.field.entry, mainui.boss.field.main, mainui.boss.field.abyss, mainui.boss.field.relive, mainui.boss.field.shop, mainui.boss.field.tired, mainui.boss.field.vit-buy, mainui.boss.field.legacy"
+    },
+    {
+      "id": "mainui.boss.field.entry",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.field",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldFlow.cs"
+      ],
+      "blocked_reason": "BossFieldFlow 已实现；Boss 主入口/页签注册由并行 Boss 主路线统一接线，本岛不改共享入口。"
+    },
+    {
+      "id": "mainui.boss.field.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Prefabs/UI/BossField/BossFieldModule.prefab",
+        "Assets/Prefabs/UI/BossField/BossFieldRewardItem.prefab"
+      ],
+      "runtime_gap": "13 个当前活跃 Bind 已由 Prefab 精准切换业务 subclass；未运行 Unity/Web 验证最终层级与像素。",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ]
+    },
+    {
+      "id": "mainui.boss.field.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "protocol_roundtrip": false,
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldEnterView.cs"
+      ],
+      "runtime_gap": "46000/46043 请求和事件订阅静态存在；缺同账号真实回包、即时刷新和重开。",
+      "applicable_gates": [
+        "protocol_roundtrip",
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.boss.field.main",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.boss.field",
+      "control_inventory": [
+        {
+          "id": "types",
+          "kind": "field-special-infinite-conditional-types",
+          "child": "mainui.boss.field.main.types"
+        },
+        {
+          "id": "tabs",
+          "kind": "layer-tab-list-and-red",
+          "child": "mainui.boss.field.main.tabs"
+        },
+        {
+          "id": "boss-list",
+          "kind": "vertical-boss-list",
+          "child": "mainui.boss.field.main.boss-list"
+        },
+        {
+          "id": "scroll",
+          "kind": "tab-and-boss-scroll-last-item",
+          "child": "mainui.boss.field.main.scroll"
+        },
+        {
+          "id": "select",
+          "kind": "boss-select",
+          "child": "mainui.boss.field.main.select"
+        },
+        {
+          "id": "item-states",
+          "kind": "alive-dead-countdown-level-peace-probability",
+          "child": "mainui.boss.field.main.item-states"
+        },
+        {
+          "id": "model",
+          "kind": "dynamic-boss-model",
+          "child": "mainui.boss.field.main.model"
+        },
+        {
+          "id": "rewards",
+          "kind": "career-reward-list-active-drop",
+          "child": "mainui.boss.field.main.rewards"
+        },
+        {
+          "id": "reward-detail",
+          "kind": "per-reward-equipment-detail",
+          "child": "mainui.boss.field.main.reward-detail"
+        },
+        {
+          "id": "reward-scroll",
+          "kind": "reward-scroll-last-item",
+          "child": "mainui.boss.field.main.reward-scroll"
+        },
+        {
+          "id": "remind",
+          "kind": "conditional-remind-toggle-46007",
+          "child": "mainui.boss.field.main.remind"
+        },
+        {
+          "id": "first-blood",
+          "kind": "first-blood-conditional-state",
+          "child": "mainui.boss.field.main.first-blood"
+        },
+        {
+          "id": "drop-tip",
+          "kind": "level-drop-and-no-vit-tips",
+          "child": "mainui.boss.field.main.drop-tip"
+        },
+        {
+          "id": "drop-log",
+          "kind": "drop-record-popup",
+          "child": "mainui.boss.field.main.drop-log"
+        },
+        {
+          "id": "shop",
+          "kind": "level-300-shop-and-red",
+          "child": "mainui.boss.field.main.shop"
+        },
+        {
+          "id": "vit",
+          "kind": "vit-current-max-recover-timer-back-vit",
+          "child": "mainui.boss.field.main.vit"
+        },
+        {
+          "id": "tired-open",
+          "kind": "plus-open-tired-popup",
+          "child": "mainui.boss.field.main.tired-open"
+        },
+        {
+          "id": "go",
+          "kind": "46003-enter-scene-matrix",
+          "child": "mainui.boss.field.main.go"
+        },
+        {
+          "id": "go-result",
+          "kind": "enter-result-immediate-state",
+          "child": "mainui.boss.field.main.go-result"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.boss.field.main.types, mainui.boss.field.main.tabs, mainui.boss.field.main.boss-list, mainui.boss.field.main.scroll, mainui.boss.field.main.select, mainui.boss.field.main.item-states, mainui.boss.field.main.model, mainui.boss.field.main.rewards, mainui.boss.field.main.reward-detail, mainui.boss.field.main.reward-scroll, mainui.boss.field.main.remind, mainui.boss.field.main.first-blood, mainui.boss.field.main.drop-tip, mainui.boss.field.main.drop-log, mainui.boss.field.main.go, mainui.boss.field.main.go-result"
+    },
+    {
+      "id": "mainui.boss.field.main.types",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.main",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "老端 GuideTaskDone 决定 field/fieldspecial/field_infinite 类型；Unity 当前无该权威任务条件接线与可见类型控件。"
+    },
+    {
+      "id": "mainui.boss.field.main.tabs",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.main",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Prefabs/UI/BossField/BossFieldModule.prefab"
+      ],
+      "blocked_reason": "BossFieldTabItem 在老端动态创建；当前 Generated/Prefab 无对应模板或 Bind，禁止运行时自造视觉树。"
+    },
+    {
+      "id": "mainui.boss.field.main.boss-list",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.main",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Prefabs/UI/BossField/BossFieldModule.prefab"
+      ],
+      "blocked_reason": "BossCommonRoomItem 在老端动态创建；当前 Generated/Prefab 无对应模板或 Bind，不能完整显示每只 Boss。"
+    },
+    {
+      "id": "mainui.boss.field.main.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.main",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "缺权威动态 tab/boss item 数量，无法验证拖动、裁剪和末项。"
+    },
+    {
+      "id": "mainui.boss.field.main.select",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.main",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldEnterView.cs"
+      ],
+      "blocked_reason": "当前仅从 46000 选首项并落到 RoomItem；无玩家可见 BossCommonRoomItem 可逐项选择。"
+    },
+    {
+      "id": "mainui.boss.field.main.item-states",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.main",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "BossCommonRoomItem 的头像、阶数、名称、open/max level、peace、arrow_num 和倒计时字段未进入当前 BossConfigs API/Prefab 模板。"
+    },
+    {
+      "id": "mainui.boss.field.main.model",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.main",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "monster icon 到 UIModel/姿态/动作/特效的资源闭包未接；Renderer/RT 存在也不能假定出帧。"
+    },
+    {
+      "id": "mainui.boss.field.main.rewards",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.main",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldRewardItem.cs"
+      ],
+      "blocked_reason": "ratio_goods/职业映射/active drop 未由 BossConfigs 暴露；RewardItem 只完成 runtime 接管点，不伪造奖励。"
+    },
+    {
+      "id": "mainui.boss.field.main.reward-detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.main",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "奖励数据缺失且详情由 Common EquipmentItem 共享路线承载。"
+    },
+    {
+      "id": "mainui.boss.field.main.reward-scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.main",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "无权威奖励项列表，无法验证滚动与末项。"
+    },
+    {
+      "id": "mainui.boss.field.main.remind",
+      "type": "transaction",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.field.main",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldEnterView.cs"
+      ],
+      "blocked_reason": "已接正式 SetBossRemind(46007)，但本轮禁止账号写事务，未验证成败回包和即时状态。"
+    },
+    {
+      "id": "mainui.boss.field.main.first-blood",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.main",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "FirstBloodModel/合服时间跨模块状态尚未接到本页面。"
+    },
+    {
+      "id": "mainui.boss.field.main.drop-tip",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.main",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "drop_lv、Boss 等级与体力提示配置未由当前 BossConfigs 暴露。"
+    },
+    {
+      "id": "mainui.boss.field.main.drop-log",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.main",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldEnterView.cs"
+      ],
+      "blocked_reason": "按钮可请求 46002，但掉落记录弹窗属于 Boss 主路线且当前 BossField Prefab 无对应 View。"
+    },
+    {
+      "id": "mainui.boss.field.main.shop",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.main",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false,
+        "popup_identity": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldEnterView.cs"
+      ],
+      "runtime_gap": "按钮已打开 Prefab 内 SoulShop；等级300显隐与红点仍需真实状态。",
+      "applicable_gates": [
+        "runtime_state",
+        "popup_identity"
+      ]
+    },
+    {
+      "id": "mainui.boss.field.main.vit",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.main",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldRoomItem.cs"
+      ],
+      "runtime_gap": "BossModel 46043/44 的 Vit/MaxVit/BackVit 已绑定；缺倒计时、月卡加速和真实刷新证据。",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.boss.field.main.tired-open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.main",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false,
+        "popup_identity": false,
+        "reopen": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldRoomItem.cs"
+      ],
+      "runtime_gap": "加号已打开 BossFieldTiredNewView；未真实点击、遮罩和复开。",
+      "applicable_gates": [
+        "runtime_state",
+        "popup_identity",
+        "reopen"
+      ]
+    },
+    {
+      "id": "mainui.boss.field.main.go",
+      "type": "transaction",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.field.main",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldRoomItem.cs"
+      ],
+      "blocked_reason": "已接正式 46003，但缺等级/高等级/无掉落/场景不可切换/同层换目标矩阵且本轮禁止账号写事务。"
+    },
+    {
+      "id": "mainui.boss.field.main.go-result",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.main",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "需真实 46003 成败/隐式场景确认、父页即时状态、切场和重开证据。"
+    },
+    {
+      "id": "mainui.boss.field.abyss",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.boss.field",
+      "control_inventory": [
+        {
+          "id": "entry",
+          "kind": "abyss-route-entry",
+          "child": "mainui.boss.field.abyss.entry"
+        },
+        {
+          "id": "layers",
+          "kind": "horizontal-layer-tabs-red-scroll",
+          "child": "mainui.boss.field.abyss.layers"
+        },
+        {
+          "id": "boss-slots",
+          "kind": "eight-map-boss-slots-select",
+          "child": "mainui.boss.field.abyss.boss-slots"
+        },
+        {
+          "id": "player-count",
+          "kind": "three-second-scene-player-count",
+          "child": "mainui.boss.field.abyss.player-count"
+        },
+        {
+          "id": "vip",
+          "kind": "vip-card-level-free-cost-conditions",
+          "child": "mainui.boss.field.abyss.vip"
+        },
+        {
+          "id": "cost-alert",
+          "kind": "bound-jade-replace-recharge-checkbox-alert",
+          "child": "mainui.boss.field.abyss.cost-alert"
+        },
+        {
+          "id": "go",
+          "kind": "46003-enter-or-target-switch",
+          "child": "mainui.boss.field.abyss.go"
+        },
+        {
+          "id": "model",
+          "kind": "monster-model-action",
+          "child": "mainui.boss.field.abyss.model"
+        },
+        {
+          "id": "rewards",
+          "kind": "career-rewards-active-drop-detail-scroll",
+          "child": "mainui.boss.field.abyss.rewards"
+        },
+        {
+          "id": "remind",
+          "kind": "46007-remind-toggle",
+          "child": "mainui.boss.field.abyss.remind"
+        },
+        {
+          "id": "first-blood",
+          "kind": "first-blood-state",
+          "child": "mainui.boss.field.abyss.first-blood"
+        },
+        {
+          "id": "drop-shop",
+          "kind": "drop-record-and-soul-shop",
+          "child": "mainui.boss.field.abyss.drop-shop"
+        },
+        {
+          "id": "failure",
+          "kind": "failure-owner-power-countdown-any-click",
+          "child": "mainui.boss.field.abyss.failure"
+        },
+        {
+          "id": "failure-close",
+          "kind": "failure-close-leave-46004",
+          "child": "mainui.boss.field.abyss.failure-close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.boss.field.abyss.layers, mainui.boss.field.abyss.boss-slots, mainui.boss.field.abyss.player-count, mainui.boss.field.abyss.vip, mainui.boss.field.abyss.cost-alert, mainui.boss.field.abyss.go, mainui.boss.field.abyss.model, mainui.boss.field.abyss.rewards, mainui.boss.field.abyss.remind, mainui.boss.field.abyss.first-blood, mainui.boss.field.abyss.drop-shop, mainui.boss.field.abyss.failure-close"
+    },
+    {
+      "id": "mainui.boss.field.abyss.entry",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.abyss",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldFlow.cs"
+      ],
+      "runtime_gap": "BossFieldFlow.OpenAbyss 和 Prefab runtime page 已存在；Boss 主页签尚未接且未运行。",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.boss.field.abyss.layers",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.abyss",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "BossFieldTabItem 动态模板与 ClientBossBg 分层地图配置未落到可编辑 Prefab/当前 API。"
+    },
+    {
+      "id": "mainui.boss.field.abyss.boss-slots",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.abyss",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossAbyssRoomItem.cs"
+      ],
+      "blocked_reason": "八个具名槽已绑定 46000 索引点击，但老端 BossSuitItem 头像/状态/位置数据与 selected 视觉未迁移，不能视为完整列表。"
+    },
+    {
+      "id": "mainui.boss.field.abyss.player-count",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.abyss",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "老端每3秒请求场景人数；Unity 当前无对应 SceneEventType 消费 API。"
+    },
+    {
+      "id": "mainui.boss.field.abyss.vip",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.abyss",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "enter_vip/free_vip/enter_vip_card/invalid_card/enter_cost 未由当前 BossConfigs/BossModel 暴露。"
+    },
+    {
+      "id": "mainui.boss.field.abyss.cost-alert",
+      "type": "transaction",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.field.abyss",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "绑定勾玉替代、充值、登录内不再提示及离场确认均属跨 Role/VIP/Alert/Scene 状态，且可能消费货币。"
+    },
+    {
+      "id": "mainui.boss.field.abyss.go",
+      "type": "transaction",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.field.abyss",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossAbyssRoomItem.cs"
+      ],
+      "blocked_reason": "按钮已接 46003，但未实现完整 VIP/费用/场景矩阵，本轮亦禁止账号写事务。"
+    },
+    {
+      "id": "mainui.boss.field.abyss.model",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.abyss",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "monster model/action/RT 出帧闭包缺失。"
+    },
+    {
+      "id": "mainui.boss.field.abyss.rewards",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.abyss",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "ratio_goods/active drop/EquipmentItem 详情与滚动未接。"
+    },
+    {
+      "id": "mainui.boss.field.abyss.remind",
+      "type": "transaction",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.field.abyss",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossAbyssEnterView.cs"
+      ],
+      "blocked_reason": "已接 46007；本轮未授权执行，未验证回包与即时状态。"
+    },
+    {
+      "id": "mainui.boss.field.abyss.first-blood",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.abyss",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "FirstBloodModel/合服时间跨模块状态未接。"
+    },
+    {
+      "id": "mainui.boss.field.abyss.drop-shop",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.abyss",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossAbyssEnterView.cs"
+      ],
+      "blocked_reason": "商店可达但掉落记录弹窗缺失，且等级显隐/红点未完成；组合叶不能收口。"
+    },
+    {
+      "id": "mainui.boss.field.abyss.failure",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.abyss",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false,
+        "effect_match": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossAbyssFailureView.cs"
+      ],
+      "runtime_gap": "归属者/战力参数、10秒倒计时和任意位置关闭已接；缺真实失败推送、头像、特效和像素。",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match",
+        "effect_match"
+      ]
+    },
+    {
+      "id": "mainui.boss.field.abyss.failure-close",
+      "type": "return",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.field.abyss",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossAbyssFailureView.cs"
+      ],
+      "blocked_reason": "老端关闭时仅在 Abyss 场景发送 46004；当前缺权威场景判定，未猜测发送。"
+    },
+    {
+      "id": "mainui.boss.field.relive",
+      "type": "page",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.field",
+      "control_inventory": [
+        {
+          "id": "scene-matrix",
+          "kind": "scene-specific-button-cost-mode-matrix",
+          "child": "mainui.boss.field.relive.scene-matrix"
+        },
+        {
+          "id": "normal",
+          "kind": "paid-relive",
+          "child": "mainui.boss.field.relive.normal"
+        },
+        {
+          "id": "free",
+          "kind": "free-relive",
+          "child": "mainui.boss.field.relive.free"
+        },
+        {
+          "id": "snatch",
+          "kind": "relive-and-snatch",
+          "child": "mainui.boss.field.relive.snatch"
+        },
+        {
+          "id": "killer",
+          "kind": "role-monster-killer-head-name-power",
+          "child": "mainui.boss.field.relive.killer"
+        },
+        {
+          "id": "countdown",
+          "kind": "countdown-safe-transport",
+          "child": "mainui.boss.field.relive.countdown"
+        },
+        {
+          "id": "help",
+          "kind": "guild-help-40060-cooldown",
+          "child": "mainui.boss.field.relive.help"
+        },
+        {
+          "id": "auto",
+          "kind": "auto-relive-toggle-bound-jade-countdown",
+          "child": "mainui.boss.field.relive.auto"
+        },
+        {
+          "id": "potion",
+          "kind": "scene-potion-count-detail",
+          "child": "mainui.boss.field.relive.potion"
+        },
+        {
+          "id": "sound",
+          "kind": "fighting-voice-open-close",
+          "child": "mainui.boss.field.relive.sound"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.boss.field.relive.scene-matrix, mainui.boss.field.relive.normal, mainui.boss.field.relive.free, mainui.boss.field.relive.snatch, mainui.boss.field.relive.countdown, mainui.boss.field.relive.help, mainui.boss.field.relive.auto, mainui.boss.field.relive.potion, mainui.boss.field.relive.sound"
+    },
+    {
+      "id": "mainui.boss.field.relive.scene-matrix",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.relive",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "14类场景的按钮组合、费用和 RELIVE_BY_TYPE mode 依赖权威 SceneType；当前 ReliveModel 不提供该矩阵。"
+    },
+    {
+      "id": "mainui.boss.field.relive.normal",
+      "type": "transaction",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.field.relive",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldReliveView.cs"
+      ],
+      "blocked_reason": "缺场景专属合法 mode/费用，代码明确拒绝猜测发送。"
+    },
+    {
+      "id": "mainui.boss.field.relive.free",
+      "type": "transaction",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.field.relive",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldReliveView.cs"
+      ],
+      "blocked_reason": "已接 ReliveModel.DEFAULT_RELIVE_TYPE=22，但复活会改变账号/场景状态，本轮未授权执行。"
+    },
+    {
+      "id": "mainui.boss.field.relive.snatch",
+      "type": "transaction",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.field.relive",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldReliveView.cs"
+      ],
+      "blocked_reason": "缺场景专属合法 mode/费用，代码明确拒绝猜测发送。"
+    },
+    {
+      "id": "mainui.boss.field.relive.killer",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.relive",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldReliveView.cs"
+      ],
+      "runtime_gap": "ReliveModel killer type/name 已绑定角色/怪物容器；缺头像、战力、遮罩和真实死亡态。",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ]
+    },
+    {
+      "id": "mainui.boss.field.relive.countdown",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.relive",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "next revive/safe transport/auto countdown 的场景时钟和自动操作未接。"
+    },
+    {
+      "id": "mainui.boss.field.relive.help",
+      "type": "transaction",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.field.relive",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldReliveView.cs"
+      ],
+      "blocked_reason": "40060 公会帮助、可见条件和冷却属于 Guild/Scene 跨模块且会写状态。"
+    },
+    {
+      "id": "mainui.boss.field.relive.auto",
+      "type": "transaction",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.field.relive",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldReliveView.cs"
+      ],
+      "blocked_reason": "自动复活、20绑定勾玉门槛和倒计时依赖场景/货币状态，本轮未接写事务。"
+    },
+    {
+      "id": "mainui.boss.field.relive.potion",
+      "type": "navigation",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.field.relive",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldReliveView.cs"
+      ],
+      "blocked_reason": "场景复活药配置、Bag数量和 Common 详情未形成闭包。"
+    },
+    {
+      "id": "mainui.boss.field.relive.sound",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.relive",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "老端 PlayFightingVoice(1) 打开及关闭停止未接，声音资源消费链不在本岛。"
+    },
+    {
+      "id": "mainui.boss.field.shop",
+      "type": "page",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.field",
+      "control_inventory": [
+        {
+          "id": "open-close",
+          "kind": "popup-open-close-mask-reopen",
+          "child": "mainui.boss.field.shop.open-close"
+        },
+        {
+          "id": "state",
+          "kind": "15301-type17-authoritative-list",
+          "child": "mainui.boss.field.shop.state"
+        },
+        {
+          "id": "list",
+          "kind": "vertical-three-column-list-scroll-last",
+          "child": "mainui.boss.field.shop.list"
+        },
+        {
+          "id": "item",
+          "kind": "name-price-quota-soldout",
+          "child": "mainui.boss.field.shop.item"
+        },
+        {
+          "id": "detail",
+          "kind": "per-item-detail",
+          "child": "mainui.boss.field.shop.detail"
+        },
+        {
+          "id": "buy",
+          "kind": "15302-buy-one",
+          "child": "mainui.boss.field.shop.buy"
+        },
+        {
+          "id": "buy-result",
+          "kind": "success-failure-immediate-refresh",
+          "child": "mainui.boss.field.shop.buy-result"
+        },
+        {
+          "id": "currency",
+          "kind": "36240001-current-count",
+          "child": "mainui.boss.field.shop.currency"
+        },
+        {
+          "id": "question",
+          "kind": "SoulOfWar-instruction",
+          "child": "mainui.boss.field.shop.question"
+        },
+        {
+          "id": "buff",
+          "kind": "37110001-buff-item-time",
+          "child": "mainui.boss.field.shop.buff"
+        },
+        {
+          "id": "buff-alert",
+          "kind": "use-alert-detail-close-cancel",
+          "child": "mainui.boss.field.shop.buff-alert"
+        },
+        {
+          "id": "buff-use",
+          "kind": "goods-use-or-empty-state",
+          "child": "mainui.boss.field.shop.buff-use"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.boss.field.shop.detail, mainui.boss.field.shop.buy, mainui.boss.field.shop.buy-result, mainui.boss.field.shop.question, mainui.boss.field.shop.buff, mainui.boss.field.shop.buff-alert, mainui.boss.field.shop.buff-use"
+    },
+    {
+      "id": "mainui.boss.field.shop.open-close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.shop",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false,
+        "popup_identity": false,
+        "reopen": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldSoulShopView.cs"
+      ],
+      "runtime_gap": "close 已 Hide，Flow 可打开；缺遮罩、层级、cold/warm 和返回链。",
+      "applicable_gates": [
+        "runtime_state",
+        "popup_identity",
+        "reopen"
+      ]
+    },
+    {
+      "id": "mainui.boss.field.shop.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.shop",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "protocol_roundtrip": false,
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldSoulShopView.cs"
+      ],
+      "runtime_gap": "OnShow 请求 15301 type=17 并订阅全量/单项/购买成功；缺真实回包。",
+      "applicable_gates": [
+        "protocol_roundtrip",
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.boss.field.shop.list",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.shop",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "scroll_interaction": false,
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldSoulShopItem.cs"
+      ],
+      "runtime_gap": "真实 ShopModel 列表按3个一行克隆且走 Show；未拖动、裁剪、点击末项。",
+      "applicable_gates": [
+        "scroll_interaction",
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.boss.field.shop.item",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.shop",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldSoulShopSubItem.cs"
+      ],
+      "runtime_gap": "Goods name、price、quota、SoldOut已绑定；图标/货币类型/条件与最终像素未验。",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ]
+    },
+    {
+      "id": "mainui.boss.field.shop.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.shop",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldSoulShopSubItem.cs"
+      ],
+      "blocked_reason": "每商品详情属于 Common 共享组件，本岛只记录 goods id，不打开伪弹窗。"
+    },
+    {
+      "id": "mainui.boss.field.shop.buy",
+      "type": "transaction",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.field.shop",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldSoulShopSubItem.cs"
+      ],
+      "blocked_reason": "已接正式 15302 BuyGoods(keyId,1)，购买消耗货币；本轮禁止账号写事务。"
+    },
+    {
+      "id": "mainui.boss.field.shop.buy-result",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.shop",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "需真实成败回包、SoldOut即时刷新、关闭重开及奖励飞行；本轮未执行。"
+    },
+    {
+      "id": "mainui.boss.field.shop.currency",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.shop",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldSoulShopView.cs"
+      ],
+      "runtime_gap": "36240001 由老端 BossFieldSoulShopView.ts 常量和当前 BagModel 读取链绑定；缺同账号数值与图标像素。",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ]
+    },
+    {
+      "id": "mainui.boss.field.shop.question",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.shop",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldSoulShopView.cs"
+      ],
+      "blocked_reason": "InstructionType.SoulOfWar 由 Common 说明弹窗承载，禁止跨岛修改。"
+    },
+    {
+      "id": "mainui.boss.field.shop.buff",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.shop",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "37110001 数量、buff结束时间和图标详情未接到当前 Shop View。"
+    },
+    {
+      "id": "mainui.boss.field.shop.buff-alert",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.shop",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldSoulShopAlert.cs"
+      ],
+      "blocked_reason": "BossFieldSoulShopAlert subclass 的 close/cancel/use接口已接，但入口缺 Goods/Bag 权威使用流程。"
+    },
+    {
+      "id": "mainui.boss.field.shop.buff-use",
+      "type": "transaction",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.field.shop",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "使用37110001会修改背包/buff，且无当前 GoodsController 正式入口与本轮账号写授权。"
+    },
+    {
+      "id": "mainui.boss.field.tired",
+      "type": "page",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.field",
+      "control_inventory": [
+        {
+          "id": "close",
+          "kind": "popup-close",
+          "child": "mainui.boss.field.tired.close"
+        },
+        {
+          "id": "state",
+          "kind": "current-max-cost-recover-timer",
+          "child": "mainui.boss.field.tired.state"
+        },
+        {
+          "id": "item",
+          "kind": "38160001-item-count-detail",
+          "child": "mainui.boss.field.tired.item"
+        },
+        {
+          "id": "use",
+          "kind": "goods-use-overcap-confirm",
+          "child": "mainui.boss.field.tired.use"
+        },
+        {
+          "id": "source",
+          "kind": "no-item-material-source",
+          "child": "mainui.boss.field.tired.source"
+        },
+        {
+          "id": "vip",
+          "kind": "vip-next-tier-left-right",
+          "child": "mainui.boss.field.tired.vip"
+        },
+        {
+          "id": "vip-go",
+          "kind": "OpenFun-66-or-8",
+          "child": "mainui.boss.field.tired.vip-go"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.boss.field.tired.item, mainui.boss.field.tired.use, mainui.boss.field.tired.source, mainui.boss.field.tired.vip, mainui.boss.field.tired.vip-go"
+    },
+    {
+      "id": "mainui.boss.field.tired.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.tired",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false,
+        "reopen": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldTiredNewView.cs"
+      ],
+      "runtime_gap": "close 已绑定 Hide；缺遮罩和重开。",
+      "applicable_gates": [
+        "runtime_state",
+        "reopen"
+      ]
+    },
+    {
+      "id": "mainui.boss.field.tired.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.tired",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldTiredNewView.cs"
+      ],
+      "runtime_gap": "Vit/MaxVit 静态绑定；Boss存活特定消耗、恢复时间、日恢复上限仍缺真实状态。",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.boss.field.tired.item",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.tired",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "38160001 EquipmentItem/数量/详情属于 Bag/Common 且当前模板只隐藏，未伪造。"
+    },
+    {
+      "id": "mainui.boss.field.tired.use",
+      "type": "transaction",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.field.tired",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldTiredNewView.cs"
+      ],
+      "blocked_reason": "道具使用及超上限确认会写 Bag/Vit，当前只记录 blocker且本轮无授权。"
+    },
+    {
+      "id": "mainui.boss.field.tired.source",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.tired",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "MaterialsTool 来源弹窗为 Common/Goods 跨模块。"
+    },
+    {
+      "id": "mainui.boss.field.tired.vip",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.tired",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "vip_flag、下一VIP体力上限配置和卡类型未进入当前页面权威 API。"
+    },
+    {
+      "id": "mainui.boss.field.tired.vip-go",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.tired",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldTiredNewView.cs"
+      ],
+      "blocked_reason": "老端 OpenFun 66/8 属 VIP 跨模块路由，当前只记录 blocker。"
+    },
+    {
+      "id": "mainui.boss.field.vit-buy",
+      "type": "page",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.field",
+      "control_inventory": [
+        {
+          "id": "close-cancel",
+          "kind": "close-and-cancel",
+          "child": "mainui.boss.field.vit-buy.close-cancel"
+        },
+        {
+          "id": "back",
+          "kind": "back-vit-current-state",
+          "child": "mainui.boss.field.vit-buy.back"
+        },
+        {
+          "id": "slider",
+          "kind": "one-to-back-vit-slider",
+          "child": "mainui.boss.field.vit-buy.slider"
+        },
+        {
+          "id": "price",
+          "kind": "selected-count-price-two-currencies",
+          "child": "mainui.boss.field.vit-buy.price"
+        },
+        {
+          "id": "confirm",
+          "kind": "46045-confirm",
+          "child": "mainui.boss.field.vit-buy.confirm"
+        },
+        {
+          "id": "currency-alert",
+          "kind": "bound-unbound-jade-recharge-alert",
+          "child": "mainui.boss.field.vit-buy.currency-alert"
+        },
+        {
+          "id": "result",
+          "kind": "success-immediate-close-refresh-reopen",
+          "child": "mainui.boss.field.vit-buy.result"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.boss.field.vit-buy.slider, mainui.boss.field.vit-buy.price, mainui.boss.field.vit-buy.confirm, mainui.boss.field.vit-buy.currency-alert, mainui.boss.field.vit-buy.result"
+    },
+    {
+      "id": "mainui.boss.field.vit-buy.close-cancel",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.vit-buy",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false,
+        "reopen": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldVitBuyView.cs"
+      ],
+      "runtime_gap": "close/cancel 已 Hide；缺遮罩与重开。",
+      "applicable_gates": [
+        "runtime_state",
+        "reopen"
+      ]
+    },
+    {
+      "id": "mainui.boss.field.vit-buy.back",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.vit-buy",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldVitBuyView.cs"
+      ],
+      "runtime_gap": "BackVit 已绑定文案；缺同账号真实值。",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.boss.field.vit-buy.slider",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.vit-buy",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Prefabs/UI/BossField/BossFieldModule.prefab"
+      ],
+      "blocked_reason": "Prefab 仅有隐藏 WithBtnHSlider 模板，无当前 runtime slider 绑定；禁止猜默认数量。"
+    },
+    {
+      "id": "mainui.boss.field.vit-buy.price",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.vit-buy",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "找回价格/两货币公式未由当前 BossModel/Configs 暴露。"
+    },
+    {
+      "id": "mainui.boss.field.vit-buy.confirm",
+      "type": "transaction",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.field.vit-buy",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldVitBuyView.cs"
+      ],
+      "blocked_reason": "代码因 slider 值缺失明确拒绝猜测发送 46045；恢复体力也会写账号状态。"
+    },
+    {
+      "id": "mainui.boss.field.vit-buy.currency-alert",
+      "type": "navigation",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.field.vit-buy",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "绑定/非绑勾玉替代和充值弹窗依赖 Role/VIP/Alert 跨模块。"
+    },
+    {
+      "id": "mainui.boss.field.vit-buy.result",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field.vit-buy",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "需46045成败、即时关闭、主页面刷新、关闭重开；本轮未执行写事务。"
+    },
+    {
+      "id": "mainui.boss.field.legacy",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "blocked_reason": "BossFieldTiredAlert、BossFieldVitView/VitItem 老端源码均注释疑似废弃；BossFieldResultView 仅 scene/json 无当前 TS 消费证据。保留现有 Bind/Prefab，不接管、不声称删除。"
+    },
+    {
+      "id": "mainui.boss.field.lifecycle",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false,
+        "reopen": false,
+        "return_chain": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "Assets/Scripts/Module/Core/Boss/Views/BossField/BossFieldFlow.cs"
+      ],
+      "runtime_gap": "Flow区分page/popup，View订阅均在Show且Hide/Dispose取消；缺异步后到、cold/warm、切页、死亡弹窗和重进一致性。",
+      "applicable_gates": [
+        "runtime_state",
+        "reopen",
+        "return_chain"
+      ]
+    },
+    {
+      "id": "mainui.boss.field.presentation",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.field",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "render_completion": false,
+        "visual_match": false,
+        "effect_match": false,
+        "sound_match": false,
+        "performance": false,
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/audit-summary.md"
+      ],
+      "runtime_gap": "本轮禁止Unity/浏览器；缺350ms/1000ms/ready、两档viewport、old/unity/diff、模型RT、特效两帧、声音和性能证据。",
+      "applicable_gates": [
+        "render_completion",
+        "visual_match",
+        "effect_match",
+        "sound_match",
+        "performance",
+        "runtime_state"
+      ]
+    }
+  ],
+  "summary": {
+    "total": 82,
+    "status_counts": {
+      "blocked": 63,
+      "needs-runtime-verify": 19
+    }
+  }
+}

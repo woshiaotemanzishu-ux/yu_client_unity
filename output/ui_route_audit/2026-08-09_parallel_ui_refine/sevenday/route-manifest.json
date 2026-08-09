@@ -1,0 +1,802 @@
+{
+  "route": "mainui.activity.sevenday",
+  "nodes": [
+    {
+      "id": "mainui.activity.sevenday",
+      "parent": null,
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "icon.175",
+          "kind": "activity-icon",
+          "child": "mainui.activity.sevenday.icon.175"
+        },
+        {
+          "id": "icon.175_at_8",
+          "kind": "activity-icon",
+          "child": "mainui.activity.sevenday.icon.175_at_8"
+        },
+        {
+          "id": "icon.175_1",
+          "kind": "activity-icon",
+          "child": "mainui.activity.sevenday.icon.175_1"
+        },
+        {
+          "id": "snapshot.open",
+          "kind": "protocol-snapshot",
+          "child": "mainui.activity.sevenday.snapshot.open"
+        },
+        {
+          "id": "snapshot.merge",
+          "kind": "protocol-snapshot",
+          "child": "mainui.activity.sevenday.snapshot.merge"
+        },
+        {
+          "id": "refresh.level",
+          "kind": "condition-refresh",
+          "child": "mainui.activity.sevenday.refresh.level"
+        },
+        {
+          "id": "refresh.task",
+          "kind": "condition-refresh",
+          "child": "mainui.activity.sevenday.refresh.task"
+        },
+        {
+          "id": "icon.lifecycle",
+          "kind": "conditional-visibility",
+          "child": "mainui.activity.sevenday.icon.lifecycle"
+        },
+        {
+          "id": "icon.red-dot",
+          "kind": "red-dot",
+          "child": "mainui.activity.sevenday.icon.red-dot"
+        }
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.icon.175",
+      "parent": "mainui.activity.sevenday",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.icon.175_at_8",
+      "parent": "mainui.activity.sevenday",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.icon.175_1",
+      "parent": "mainui.activity.sevenday",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.snapshot.open",
+      "parent": "mainui.activity.sevenday",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.snapshot.merge",
+      "parent": "mainui.activity.sevenday",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.refresh.level",
+      "parent": "mainui.activity.sevenday",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.refresh.task",
+      "parent": "mainui.activity.sevenday",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.icon.lifecycle",
+      "parent": "mainui.activity.sevenday",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.icon.red-dot",
+      "parent": "mainui.activity.sevenday",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open",
+      "parent": "mainui.activity.sevenday.icon.175",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "tab.day-1",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.open.tab.day-1"
+        },
+        {
+          "id": "tab.day-2",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.open.tab.day-2"
+        },
+        {
+          "id": "tab.day-3",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.open.tab.day-3"
+        },
+        {
+          "id": "tab.day-4",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.open.tab.day-4"
+        },
+        {
+          "id": "tab.day-5",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.open.tab.day-5"
+        },
+        {
+          "id": "tab.day-6",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.open.tab.day-6"
+        },
+        {
+          "id": "tab.day-7",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.open.tab.day-7"
+        },
+        {
+          "id": "dynamic-presentation",
+          "kind": "visual-state",
+          "child": "mainui.activity.sevenday.page.open.dynamic-presentation"
+        },
+        {
+          "id": "reward-list",
+          "kind": "scroll-list",
+          "child": "mainui.activity.sevenday.page.open.reward-list"
+        },
+        {
+          "id": "reward-detail.slot-1",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.open.reward-detail.slot-1"
+        },
+        {
+          "id": "reward-detail.slot-2",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.open.reward-detail.slot-2"
+        },
+        {
+          "id": "reward-detail.slot-3",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.open.reward-detail.slot-3"
+        },
+        {
+          "id": "reward-detail.slot-4",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.open.reward-detail.slot-4"
+        },
+        {
+          "id": "claim.unavailable",
+          "kind": "claim-button-state",
+          "child": "mainui.activity.sevenday.page.open.claim.unavailable"
+        },
+        {
+          "id": "claim.available",
+          "kind": "claim-button",
+          "child": "mainui.activity.sevenday.page.open.claim.available"
+        },
+        {
+          "id": "claim.received",
+          "kind": "claim-button-state",
+          "child": "mainui.activity.sevenday.page.open.claim.received"
+        },
+        {
+          "id": "red-dot",
+          "kind": "red-dot",
+          "child": "mainui.activity.sevenday.page.open.red-dot"
+        },
+        {
+          "id": "close",
+          "kind": "close-button",
+          "child": "mainui.activity.sevenday.page.open.close"
+        }
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.tab.day-1",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.tab.day-2",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.tab.day-3",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.tab.day-4",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.tab.day-5",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.tab.day-6",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.tab.day-7",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.dynamic-presentation",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.reward-list",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.reward-detail.slot-1",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.reward-detail.slot-2",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.reward-detail.slot-3",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.reward-detail.slot-4",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.claim.unavailable",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.claim.available",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.claim.received",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.red-dot",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.close",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.claim.available.protocol",
+      "parent": "mainui.activity.sevenday.page.open.claim.available",
+      "type": "destructive-write",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.claim.available.immediate-refresh",
+      "parent": "mainui.activity.sevenday.page.open.claim.available",
+      "type": "read",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.claim.available.success-popup",
+      "parent": "mainui.activity.sevenday.page.open.claim.available",
+      "type": "navigation",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.claim.available.reopen",
+      "parent": "mainui.activity.sevenday.page.open.claim.available",
+      "type": "read",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight",
+      "parent": "mainui.activity.sevenday.icon.175_at_8",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "tab.day-8",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.eight.tab.day-8"
+        },
+        {
+          "id": "tab.day-9",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.eight.tab.day-9"
+        },
+        {
+          "id": "tab.day-10",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.eight.tab.day-10"
+        },
+        {
+          "id": "tab.day-11",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.eight.tab.day-11"
+        },
+        {
+          "id": "tab.day-12",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.eight.tab.day-12"
+        },
+        {
+          "id": "tab.day-13",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.eight.tab.day-13"
+        },
+        {
+          "id": "tab.day-14",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.eight.tab.day-14"
+        },
+        {
+          "id": "dynamic-presentation",
+          "kind": "visual-state",
+          "child": "mainui.activity.sevenday.page.eight.dynamic-presentation"
+        },
+        {
+          "id": "reward-list",
+          "kind": "scroll-list",
+          "child": "mainui.activity.sevenday.page.eight.reward-list"
+        },
+        {
+          "id": "reward-detail.slot-1",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.eight.reward-detail.slot-1"
+        },
+        {
+          "id": "reward-detail.slot-2",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.eight.reward-detail.slot-2"
+        },
+        {
+          "id": "reward-detail.slot-3",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.eight.reward-detail.slot-3"
+        },
+        {
+          "id": "reward-detail.slot-4",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.eight.reward-detail.slot-4"
+        },
+        {
+          "id": "claim.unavailable",
+          "kind": "claim-button-state",
+          "child": "mainui.activity.sevenday.page.eight.claim.unavailable"
+        },
+        {
+          "id": "claim.available",
+          "kind": "claim-button",
+          "child": "mainui.activity.sevenday.page.eight.claim.available"
+        },
+        {
+          "id": "claim.received",
+          "kind": "claim-button-state",
+          "child": "mainui.activity.sevenday.page.eight.claim.received"
+        },
+        {
+          "id": "red-dot",
+          "kind": "red-dot",
+          "child": "mainui.activity.sevenday.page.eight.red-dot"
+        },
+        {
+          "id": "close",
+          "kind": "close-button",
+          "child": "mainui.activity.sevenday.page.eight.close"
+        }
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.tab.day-8",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.tab.day-9",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.tab.day-10",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.tab.day-11",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.tab.day-12",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.tab.day-13",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.tab.day-14",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.dynamic-presentation",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.reward-list",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.reward-detail.slot-1",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.reward-detail.slot-2",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.reward-detail.slot-3",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.reward-detail.slot-4",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.claim.unavailable",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.claim.available",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.claim.received",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.red-dot",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.close",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.claim.available.protocol",
+      "parent": "mainui.activity.sevenday.page.eight.claim.available",
+      "type": "destructive-write",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.claim.available.immediate-refresh",
+      "parent": "mainui.activity.sevenday.page.eight.claim.available",
+      "type": "read",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.claim.available.success-popup",
+      "parent": "mainui.activity.sevenday.page.eight.claim.available",
+      "type": "navigation",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.claim.available.reopen",
+      "parent": "mainui.activity.sevenday.page.eight.claim.available",
+      "type": "read",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge",
+      "parent": "mainui.activity.sevenday.icon.175_1",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "tab.day-1",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.merge.tab.day-1"
+        },
+        {
+          "id": "tab.day-2",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.merge.tab.day-2"
+        },
+        {
+          "id": "tab.day-3",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.merge.tab.day-3"
+        },
+        {
+          "id": "tab.day-4",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.merge.tab.day-4"
+        },
+        {
+          "id": "tab.day-5",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.merge.tab.day-5"
+        },
+        {
+          "id": "tab.day-6",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.merge.tab.day-6"
+        },
+        {
+          "id": "tab.day-7",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.merge.tab.day-7"
+        },
+        {
+          "id": "dynamic-presentation",
+          "kind": "visual-state",
+          "child": "mainui.activity.sevenday.page.merge.dynamic-presentation"
+        },
+        {
+          "id": "reward-list",
+          "kind": "scroll-list",
+          "child": "mainui.activity.sevenday.page.merge.reward-list"
+        },
+        {
+          "id": "reward-detail.slot-1",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.merge.reward-detail.slot-1"
+        },
+        {
+          "id": "reward-detail.slot-2",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.merge.reward-detail.slot-2"
+        },
+        {
+          "id": "reward-detail.slot-3",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.merge.reward-detail.slot-3"
+        },
+        {
+          "id": "reward-detail.slot-4",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.merge.reward-detail.slot-4"
+        },
+        {
+          "id": "claim.unavailable",
+          "kind": "claim-button-state",
+          "child": "mainui.activity.sevenday.page.merge.claim.unavailable"
+        },
+        {
+          "id": "claim.available",
+          "kind": "claim-button",
+          "child": "mainui.activity.sevenday.page.merge.claim.available"
+        },
+        {
+          "id": "claim.received",
+          "kind": "claim-button-state",
+          "child": "mainui.activity.sevenday.page.merge.claim.received"
+        },
+        {
+          "id": "red-dot",
+          "kind": "red-dot",
+          "child": "mainui.activity.sevenday.page.merge.red-dot"
+        },
+        {
+          "id": "close",
+          "kind": "close-button",
+          "child": "mainui.activity.sevenday.page.merge.close"
+        }
+      ]
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.tab.day-1",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.tab.day-2",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.tab.day-3",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.tab.day-4",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.tab.day-5",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.tab.day-6",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.tab.day-7",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "tab",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.dynamic-presentation",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.reward-list",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.reward-detail.slot-1",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.reward-detail.slot-2",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.reward-detail.slot-3",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.reward-detail.slot-4",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.claim.unavailable",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.claim.available",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.claim.received",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.red-dot",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.close",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.claim.available.protocol",
+      "parent": "mainui.activity.sevenday.page.merge.claim.available",
+      "type": "destructive-write",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.claim.available.immediate-refresh",
+      "parent": "mainui.activity.sevenday.page.merge.claim.available",
+      "type": "read",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.claim.available.success-popup",
+      "parent": "mainui.activity.sevenday.page.merge.claim.available",
+      "type": "navigation",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.claim.available.reopen",
+      "parent": "mainui.activity.sevenday.page.merge.claim.available",
+      "type": "read",
+      "risk": "destructive-write"
+    }
+  ]
+}

@@ -7,6 +7,7 @@ namespace Shenxiao.Module.Core.ListDuobao
     {
         public void SetData(ListDuobaoConfigs.StageRow row, int gotType, long score, GameObject goodsTemplate)
         {
+            if (!IsInitialized) Show();
             if (row == null) return;
             if (_lb_msg != null) _lb_msg.text = "积分达到" + row.NeedValue + "可领取";
             if (_lb_score != null) _lb_score.text = "(" + score + "/" + row.NeedValue + ")";
@@ -15,8 +16,9 @@ namespace Shenxiao.Module.Core.ListDuobao
             if (_gp_item == null || goodsTemplate == null) return;
             Transform parent = _gp_item.content != null ? _gp_item.content : _gp_item.transform;
             GameObject go = Instantiate(goodsTemplate, parent);
-            go.SetActive(true);
-            go.GetComponent<ListGoodsItem>()?.SetData(row.Reward);
+            ListGoodsItem goods = go.GetComponent<ListGoodsItem>();
+            if (goods != null) goods.SetData(row.Reward);
+            else go.SetActive(true);
         }
     }
 }

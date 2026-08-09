@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Shenxiao.Common.UI3D;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
@@ -8,6 +10,7 @@ using Shenxiao.Generated.UI.Common;
 using Shenxiao.Generated.UI.Pet;
 using Shenxiao.Generated.UI.PetEquip;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.FunctionOpen;
 using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.OutWard;
 using Shenxiao.Module.Core.PetEquip;
@@ -38,13 +41,18 @@ namespace Shenxiao.Module.Core.Pet
         private int _typeId = 1;
         private bool _subscribed;
         private PetEquipOutItemBind[] _petEquipSlots;
+        private UIModelStage _modelStage;
+        private int _modelEpoch;
+        private string _modelKey;
 
         /// <summary>切换培养对象(1=御风云骑/坐骑,2=剑魄同修/侍魂,3=翼影,4=古法符相,5=殒锋天刃,12=玄穹云披),
         /// PetFlow/RoleFlow 页签驱动。</summary>
         public void SetType(int typeId)
         {
             if (typeId <= 0) return;
+            if (_typeId != typeId) ClearOutwardModel();
             _typeId = typeId;
+            ApplyRoleOutwardStaticState();
             // 打开页时补拉一次。对标老端 OPEN_MOUNTPET_VIEW 的完整四包初始化:
             // 16002 阶星 + 16006 幻化列表 + 16011 魔晶次数 + 16028 等级线。
             OutWardController.Instance.RequestPanelData(_typeId);
@@ -55,6 +63,7 @@ namespace Shenxiao.Module.Core.Pet
         protected override void OnInit()
         {
             HideStaticStates();
+            ApplyRoleOutwardStaticState();
             BindButtons();
             BindPetEquipSlots();
             Subscribe();
@@ -74,24 +83,28 @@ namespace Shenxiao.Module.Core.Pet
             await Common.GoodsModel.EnsureLoaded();
             await Skill.SkillConfigs.EnsureLoaded();
             await FuncOpenConfig.EnsureLoaded();
+            await ClientOutWardPosConfigs.EnsureLoaded();
             if (this == null || !gameObject.activeInHierarchy) return;
             Refresh();
         }
 
         protected override void OnHide()
         {
+            ClearOutwardModel();
             MainUIGuideManager.Instance.HideMainUiFinger(this);
         }
 
         protected override void OnDispose()
         {
             Unsubscribe();
+            DisposeOutwardModel();
             MainUIGuideManager.Instance.HideMainUiFinger(this);
         }
 
         private void OnDestroy()
         {
             Unsubscribe();
+            DisposeOutwardModel();
         }
 
         private void Subscribe()
@@ -165,11 +178,13 @@ namespace Shenxiao.Module.Core.Pet
 
         private void Refresh()
         {
+            ApplyRoleOutwardStaticState();
             RefreshPetEquipEntry();
             OutWardModel.OutWardVo vo = OutWardModel.Instance.Get(_typeId);
             int career = RoleModel.Instance.Career;
 
             SetMaterials();
+            SetCrystals();
 
             if (vo == null)
             {
@@ -180,18 +195,26 @@ namespace Shenxiao.Module.Core.Pet
                 SetStars(0, 0);
                 SetCombat(0);
                 SetSkills(null);
+                ClearOutwardModel();
                 return;
             }
 
             if (res_name != null) res_name.text = OutWardConfigs.GetStageName(_typeId, vo.Stage, career);
-            if (res_stage != null) res_stage.text = vo.Stage + "阶";
+            bool roleOutward = IsRoleOutwardType(_typeId);
+            if (res_stage != null) res_stage.text = (roleOutward ? vo.Star : vo.Stage) + "阶";
             if (lvsystem_lv != null && vo.HasLv) lvsystem_lv.text = "Lv." + vo.Level;
 
             SetStars(vo.Star, OutWardConfigs.GetMaxStar(_typeId, vo.Stage, career));
             SetCombat(vo.Combat);
             SetBlessing(vo.Blessing, OutWardConfigs.GetMaxBlessing(_typeId, vo.Stage, vo.Star));
+            if (roleOutward && level_text != null) level_text.text = "Lv." + vo.Star;
             SetAutoBuy(vo.AutoBuy == 1);
             SetSkills(vo.Skills);
+            if (roleOutward)
+            {
+                SetBaseAppearanceState(vo);
+                RefreshOutwardModel(vo, career);
+            }
         }
 
         /// <summary>技能球(skill_group 烤入的 PetRoundItem 实例,对标老端 SetSkillData):16002 skill_list 有几个填几个,
@@ -232,6 +255,49 @@ namespace Shenxiao.Module.Core.Pet
                     _ = ResManager.SetImageAsync(slots[i].icon, GameResPath.GetGoodsIconPath(iconName), nativeSize: false);
                 }
                 if (slots[i].num_text != null) slots[i].num_text.text = CountInBag(goodsId).ToString();
+            }
+        }
+
+        /// <summary>
+        /// 魔晶槽来自 config_mount_goods，次数来自 16011；本层只渲染，不代替真实 UI 点击执行 16010。
+        /// </summary>
+        private void SetCrystals()
+        {
+            if (crystal_group == null) return;
+            IReadOnlyList<int> goods = OutWardConfigs.GetCrystalGoodsIds(_typeId);
+            IReadOnlyList<(int goodsId, int times, int timesLim)> counters =
+                OutWardModel.Instance.GetCrystalCounters(_typeId);
+            PetRoundItemBind[] slots = crystal_group.GetComponentsInChildren<PetRoundItemBind>(true);
+            for (int i = 0; i < slots.Length; i++)
+            {
+                bool has = i < goods.Count;
+                PetRoundItemBind slot = slots[i];
+                slot.gameObject.SetActive(has);
+                if (!has) continue;
+
+                int goodsId = goods[i];
+                int times = 0;
+                int limit = 0;
+                if (counters != null)
+                {
+                    for (int j = 0; j < counters.Count; j++)
+                    {
+                        if (counters[j].goodsId != goodsId) continue;
+                        times = counters[j].times;
+                        limit = counters[j].timesLim;
+                        break;
+                    }
+                }
+
+                string iconName = Common.GoodsModel.GetGoodsIcon(goodsId);
+                if (slot.icon != null && !string.IsNullOrEmpty(iconName))
+                    _ = ResManager.SetImageAsync(slot.icon, GameResPath.GetGoodsIconPath(iconName), nativeSize: false);
+                if (slot.bottom_text != null)
+                    slot.bottom_text.text = limit > 0 ? times + "/" + limit : times.ToString();
+                if (slot.red_dot != null)
+                    slot.red_dot.gameObject.SetActive(limit > times && CountInBag(goodsId) > 0);
+                if (slot.skill_info_gp != null) slot.skill_info_gp.gameObject.SetActive(false);
+                if (slot.up_arrow1 != null) slot.up_arrow1.gameObject.SetActive(false);
             }
         }
 
@@ -291,8 +357,145 @@ namespace Shenxiao.Module.Core.Pet
 
         private void SetAutoBuy(bool on)
         {
+            bool visible = !IsRoleOutwardType(_typeId) && (_typeId == 1 || _typeId == 2);
+            if (autoGp != null) autoGp.gameObject.SetActive(visible);
+            if (!visible) return;
             if (_Image14 != null) _Image14.gameObject.SetActive(!on);
             if (autoImg != null) autoImg.gameObject.SetActive(on);
+        }
+
+        private static bool IsRoleOutwardType(int typeId)
+        {
+            return typeId == 3 || typeId == 4 || typeId == 5 || typeId == 12;
+        }
+
+        /// <summary>
+        /// The four show_type=1 pages do not browse stages. Their inline appearance state compares the
+        /// current base stage with the authoritative FigureStage from 16002.
+        /// </summary>
+        private void SetBaseAppearanceState(OutWardModel.OutWardVo vo)
+        {
+            if (vo == null || !IsRoleOutwardType(_typeId)) return;
+            bool usingBase = vo.FigureStage == vo.Stage;
+            if (illu_group != null) illu_group.gameObject.SetActive(true);
+            if (using_gp != null) using_gp.gameObject.SetActive(usingBase);
+            if (unuse_gp != null) unuse_gp.gameObject.SetActive(!usingBase);
+            if (preview_image != null) preview_image.gameObject.SetActive(false);
+        }
+
+        /// <summary>Old show_type=1 subclasses share these visibility rules.</summary>
+        private void ApplyRoleOutwardStaticState()
+        {
+            if (!IsRoleOutwardType(_typeId)) return;
+            HideNode(star_group);
+            HideNode(shadow_group);
+            HideNode(star_effect);
+            HideNode(before_btn);
+            HideNode(after_btn);
+            HideNode(autoGp);
+            HideNode(_group_equip);
+            if (bag_btn != null) bag_btn.gameObject.SetActive(false);
+            if (lv_button_text != null) lv_button_text.text = "一键提升";
+        }
+
+        private void RefreshOutwardModel(OutWardModel.OutWardVo vo, int career)
+        {
+            if (res == null || vo == null) return;
+            int showId = OutWardConfigs.GetStageModelRes(_typeId, vo.Stage, career);
+            if (showId <= 0 || !TryGetModelProfile(_typeId, out string module, out string prefix, out string fallback))
+            {
+                ClearOutwardModel();
+                return;
+            }
+
+            string address = BuildModelAddress(module, showId);
+            if (_modelKey == address) return;
+            _modelStage?.ClearStage();
+            _modelKey = address;
+            int epoch = ++_modelEpoch;
+            _ = LoadOutwardModelAsync(epoch, address, module, prefix, fallback, showId);
+        }
+
+        private async Task LoadOutwardModelAsync(int epoch, string address, string module,
+            string prefix, string fallback, int showId)
+        {
+            GameObject prefab = await ResManager.LoadAsync<GameObject>(address);
+            await ClientOutWardPosConfigs.EnsureLoaded();
+            if (!this || epoch != _modelEpoch || _modelKey != address || !gameObject.activeInHierarchy || res == null)
+                return;
+            if (prefab == null)
+            {
+                GameLog.Warn("OutWard", "role outward model missing: type={0} address={1}", _typeId, address);
+                _modelKey = null;
+                return;
+            }
+
+            UiModelParameterConfigs.ModelParam mp = ClientOutWardPosConfigs.Get(prefix + "_" + showId, fallback);
+            GameObject instance = Instantiate(prefab);
+            if (!this || epoch != _modelEpoch || _modelKey != address || !gameObject.activeInHierarchy || res == null)
+            {
+                Destroy(instance);
+                return;
+            }
+
+            if (_modelStage == null) _modelStage = new UIModelStage();
+            _modelStage.EnableDragRotate(true);
+            res.gameObject.SetActive(true);
+            _modelStage.PlaceInstance(res, instance, mp.Scale, mp.Position, mp.Rotate);
+            _ = EffectBinder.AttachAlways(instance, module, showId.ToString());
+            _ = PlayOutwardIdleAsync(instance, module, showId);
+        }
+
+        private static async Task PlayOutwardIdleAsync(GameObject instance, string module, int showId)
+        {
+            if (instance == null) return;
+            const string action = "idle";
+            Animation anim = instance.GetComponent<Animation>();
+            if (anim != null && anim.GetClip(action) != null)
+            {
+                anim.Play(action);
+                return;
+            }
+            AnimationClip clip = await ResManager.LoadAsync<AnimationClip>(
+                "object/" + module + "/action/" + showId + "/" + action);
+            if (instance == null || clip == null) return;
+            if (anim == null) anim = instance.AddComponent<Animation>();
+            if (anim.GetClip(action) == null) anim.AddClip(clip, action);
+            anim.Play(action);
+        }
+
+        private static bool TryGetModelProfile(int typeId, out string module, out string prefix, out string fallback)
+        {
+            switch (typeId)
+            {
+                case 3: module = "wing"; prefix = "w"; fallback = "default_wing"; return true;
+                case 4: module = "fabao"; prefix = "a"; fallback = "default_artifact"; return true;
+                case 5: module = "weapon"; prefix = "d"; fallback = "default_weapon"; return true;
+                case 12: module = "back"; prefix = "b"; fallback = "default_back_ornament"; return true;
+                default: module = null; prefix = null; fallback = null; return false;
+            }
+        }
+
+        private static string BuildModelAddress(string module, int showId)
+        {
+            string name = module == "weapon" ? "model_weapon_r_" + showId : "model_" + module + "_" + showId;
+            return "object/" + module + "/" + name + "/" + name;
+        }
+
+        private void ClearOutwardModel()
+        {
+            _modelEpoch++;
+            _modelKey = null;
+            _modelStage?.ClearStage();
+        }
+
+        private void DisposeOutwardModel()
+        {
+            _modelEpoch++;
+            _modelKey = null;
+            if (_modelStage == null) return;
+            _modelStage.Dispose();
+            _modelStage = null;
         }
 
         // ---------------------------------------------------------------- 交互

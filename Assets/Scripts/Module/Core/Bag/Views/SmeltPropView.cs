@@ -1,4 +1,5 @@
 using Shenxiao.Generated.UI.Bag;
+using Shenxiao.Framework.UI;
 
 namespace Shenxiao.Module.Core.Bag
 {
@@ -10,6 +11,24 @@ namespace Shenxiao.Module.Core.Bag
     /// </summary>
     public sealed class SmeltPropView : SmeltPropViewBind
     {
+        public sealed class Presentation
+        {
+            public string Title;
+            public string Text;
+        }
+
+        public override UILayer Layer => UILayer.Popup;
+
+        protected override void OnShow(object args)
+        {
+            if (args is Presentation data) SetData(data.Title, data.Text);
+        }
+
+        protected override void OnHide()
+        {
+            BagFlow.NotifyActivitySubHidden(this);
+        }
+
         /// <summary>填熔炼属性(对标 SetData)。</summary>
         public void SetData(string title, string propText)
         {

@@ -1,0 +1,4106 @@
+{
+  "route": "mainui.base-dungeon.limit-tower",
+  "baseline": {
+    "legacy_bundle": "E:/GitProject/yu_client/cdn/js/bundle.js",
+    "legacy_round_config": "E:/GitProject/yu_client/cdn/resource/config/server/config_limit_tower_round.json",
+    "unity_prefab": "Assets/Prefabs/UI/DungeonTower/DungeonTowerModule.prefab",
+    "generated_binds": [
+      "Assets/Scripts/Generated/UI/DungeonTower/DungeonTowerViewBind.cs",
+      "Assets/Scripts/Generated/UI/DungeonTower/DungeonTowerItemBind.cs"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "mainui.base-dungeon.limit-tower",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "activity-icon-331-97",
+          "kind": "conditional-entry",
+          "child": "mainui.base-dungeon.limit-tower.icon-state"
+        },
+        {
+          "id": "activity-icon-click",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.icon-state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open",
+      "control_inventory": [
+        {
+          "id": "round-theme",
+          "kind": "conditional-visual",
+          "child": "mainui.base-dungeon.limit-tower.open.page.round-theme"
+        },
+        {
+          "id": "progress",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.progress"
+        },
+        {
+          "id": "countdown",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.countdown"
+        },
+        {
+          "id": "big-reward-state",
+          "kind": "conditional-state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.big-reward-state"
+        },
+        {
+          "id": "big-reward-item",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.big-reward-item"
+        },
+        {
+          "id": "big-reward-claim",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.big-reward-claim"
+        },
+        {
+          "id": "stage-list",
+          "kind": "conditional-list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.base-dungeon.limit-tower.open.page.return"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.round-theme",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.progress",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.countdown",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.big-reward-state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.big-reward-item",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.big-reward-claim",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page",
+      "control_inventory": [
+        {
+          "id": "curve-drag",
+          "kind": "scroll",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.drag"
+        },
+        {
+          "id": "round-1",
+          "kind": "conditional-group",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1"
+        },
+        {
+          "id": "round-2",
+          "kind": "conditional-group",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2"
+        },
+        {
+          "id": "round-3",
+          "kind": "conditional-group",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.drag",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list",
+      "control_inventory": [
+        {
+          "id": "stage-40101",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101"
+        },
+        {
+          "id": "stage-40102",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102"
+        },
+        {
+          "id": "stage-40103",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103"
+        },
+        {
+          "id": "stage-40104",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104"
+        },
+        {
+          "id": "stage-40105",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105"
+        },
+        {
+          "id": "stage-40106",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106"
+        },
+        {
+          "id": "stage-40107",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107"
+        },
+        {
+          "id": "stage-40108",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108"
+        },
+        {
+          "id": "stage-40109",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109"
+        },
+        {
+          "id": "stage-40110",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40101.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40102.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40103.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40104.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40105.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40106.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40107.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40108.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40109.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-1.stage-40110.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list",
+      "control_inventory": [
+        {
+          "id": "stage-40201",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201"
+        },
+        {
+          "id": "stage-40202",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202"
+        },
+        {
+          "id": "stage-40203",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203"
+        },
+        {
+          "id": "stage-40204",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204"
+        },
+        {
+          "id": "stage-40205",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205"
+        },
+        {
+          "id": "stage-40206",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206"
+        },
+        {
+          "id": "stage-40207",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207"
+        },
+        {
+          "id": "stage-40208",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208"
+        },
+        {
+          "id": "stage-40209",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209"
+        },
+        {
+          "id": "stage-40210",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210"
+        },
+        {
+          "id": "stage-40211",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211"
+        },
+        {
+          "id": "stage-40212",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212"
+        },
+        {
+          "id": "stage-40213",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213"
+        },
+        {
+          "id": "stage-40214",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214"
+        },
+        {
+          "id": "stage-40215",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40201.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40202.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40203.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40204.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40205.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40206.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40207.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40208.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40209.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40210.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40211.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40212.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40213.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40214.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-2.stage-40215.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list",
+      "control_inventory": [
+        {
+          "id": "stage-40301",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301"
+        },
+        {
+          "id": "stage-40302",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302"
+        },
+        {
+          "id": "stage-40303",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303"
+        },
+        {
+          "id": "stage-40304",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304"
+        },
+        {
+          "id": "stage-40305",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305"
+        },
+        {
+          "id": "stage-40306",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306"
+        },
+        {
+          "id": "stage-40307",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307"
+        },
+        {
+          "id": "stage-40308",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308"
+        },
+        {
+          "id": "stage-40309",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309"
+        },
+        {
+          "id": "stage-40310",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310"
+        },
+        {
+          "id": "stage-40311",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311"
+        },
+        {
+          "id": "stage-40312",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312"
+        },
+        {
+          "id": "stage-40313",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313"
+        },
+        {
+          "id": "stage-40314",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314"
+        },
+        {
+          "id": "stage-40315",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315"
+        },
+        {
+          "id": "stage-40316",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316"
+        },
+        {
+          "id": "stage-40317",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317"
+        },
+        {
+          "id": "stage-40318",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318"
+        },
+        {
+          "id": "stage-40319",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319"
+        },
+        {
+          "id": "stage-40320",
+          "kind": "list-item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40301.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40302.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40303.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40304.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40305.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40306.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40307.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40308.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40309.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40310.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40311.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40312.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40313.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40314.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40315.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40316.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40317.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40318.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40319.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320",
+      "control_inventory": [
+        {
+          "id": "stage-state",
+          "kind": "state",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail.state"
+        },
+        {
+          "id": "reward-list",
+          "kind": "list",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail.rewards"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail.challenge"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail.rewards",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail",
+      "control_inventory": [
+        {
+          "id": "reward-1",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail.rewards.item-1"
+        },
+        {
+          "id": "reward-2",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail.rewards.item-2"
+        },
+        {
+          "id": "reward-3",
+          "kind": "item",
+          "child": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail.rewards.item-3"
+        }
+      ]
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail.rewards.item-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail.rewards.item-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail.rewards.item-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail.rewards"
+    },
+    {
+      "id": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail.challenge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.base-dungeon.limit-tower.open.page.stage-list.round-3.stage-40320.detail"
+    }
+  ]
+}

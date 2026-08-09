@@ -1,0 +1,730 @@
+[
+  {
+    "id": "mainui.bag.window.open",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.close",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.role.summary",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.role.model",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.role.equipment-slots",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.grid.scroll",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.grid.slots",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.grid.item-detail",
+    "status": "blocked",
+    "blocked_reason": "目标由 Common/Equipment 共享详情或比较窗承载；超出 Bag 独占写入范围，只登记跨岛依赖",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.grid.equipment-compare",
+    "status": "blocked",
+    "blocked_reason": "目标由 Common/Equipment 共享详情或比较窗承载；超出 Bag 独占写入范围，只登记跨岛依赖",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.one-key-equip",
+    "status": "blocked",
+    "blocked_reason": "15201 会修改账号物品/容量/穿戴状态；本轮没有真实写事务授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.resonance",
+    "status": "blocked",
+    "blocked_reason": "目标功能属于共鸣/守护/龙珠跨模块闭包；当前 Bag 入口未形成完整可达链，本轮禁止跨岛修改",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.guard-1",
+    "status": "blocked",
+    "blocked_reason": "目标功能属于共鸣/守护/龙珠跨模块闭包；当前 Bag 入口未形成完整可达链，本轮禁止跨岛修改",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.guard-2",
+    "status": "blocked",
+    "blocked_reason": "目标功能属于共鸣/守护/龙珠跨模块闭包；当前 Bag 入口未形成完整可达链，本轮禁止跨岛修改",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.dragon-ball",
+    "status": "blocked",
+    "blocked_reason": "目标功能属于共鸣/守护/龙珠跨模块闭包；当前 Bag 入口未形成完整可达链，本轮禁止跨岛修改",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.red-states",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.smelt.close",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.smelt.background-close",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.smelt.list-scroll",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.smelt.item-select",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.smelt.stage-filter",
+    "status": "blocked",
+    "blocked_reason": "熔炼阶数/颜色下拉模板当前隐藏且无完整筛选交互；需在真实老端状态取证后补 Bag Prefab/Bind/Flow",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.smelt.color-filter",
+    "status": "blocked",
+    "blocked_reason": "熔炼阶数/颜色下拉模板当前隐藏且无完整筛选交互；需在真实老端状态取证后补 Bag Prefab/Bind/Flow",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.smelt.auto-toggle",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.smelt.one-star-toggle",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.smelt.fuse",
+    "status": "blocked",
+    "blocked_reason": "15025 会修改账号物品/容量/穿戴状态；本轮没有真实写事务授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.smelt.properties.content",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.smelt.properties.scroll",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.smelt.properties.close",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.expand.close",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.expand.background-close",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.expand.cancel",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.expand.decrease",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.expand.increase",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.expand.max",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.expand.calculator",
+    "status": "blocked",
+    "blocked_reason": "Unity 仅有生成 CalculatorViewBind，缺当前 Bag 扩容链的可达运行实现；本轮禁止扩展到共享模块",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.expand.cost-detail",
+    "status": "blocked",
+    "blocked_reason": "目标由 Common/Equipment 共享详情或比较窗承载；超出 Bag 独占写入范围，只登记跨岛依赖",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.expand.confirm",
+    "status": "blocked",
+    "blocked_reason": "15002 会修改账号物品/容量/穿戴状态；本轮没有真实写事务授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.one-key-use.close",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.one-key-use.background-close",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.one-key-use.list-scroll",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.one-key-use.item-select",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.one-key-use.confirm",
+    "status": "blocked",
+    "blocked_reason": "15050 会修改账号物品/容量/穿戴状态；本轮没有真实写事务授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.one-key-use.categories.gift",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.one-key-use.categories.experience",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.bag.one-key-use.categories.other",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.warehouse.bag-grid.scroll",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.warehouse.bag-grid.slots",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.warehouse.bag-grid.detail",
+    "status": "blocked",
+    "blocked_reason": "目标由 Common/Equipment 共享详情或比较窗承载；超出 Bag 独占写入范围，只登记跨岛依赖",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.warehouse.bag-grid.move",
+    "status": "blocked",
+    "blocked_reason": "15003 会修改账号物品/容量/穿戴状态；本轮没有真实写事务授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.warehouse.warehouse-grid.scroll",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.warehouse.warehouse-grid.slots",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.warehouse.warehouse-grid.detail",
+    "status": "blocked",
+    "blocked_reason": "目标由 Common/Equipment 共享详情或比较窗承载；超出 Bag 独占写入范围，只登记跨岛依赖",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.warehouse.warehouse-grid.move",
+    "status": "blocked",
+    "blocked_reason": "15003 会修改账号物品/容量/穿戴状态；本轮没有真实写事务授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.warehouse.expand-bag",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.warehouse.smelt",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.warehouse.one-key-use",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.warehouse.resonance",
+    "status": "blocked",
+    "blocked_reason": "目标功能属于共鸣/守护/龙珠跨模块闭包；当前 Bag 入口未形成完整可达链，本轮禁止跨岛修改",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.warehouse.expand-warehouse.close",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.warehouse.expand-warehouse.background-close",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.warehouse.expand-warehouse.cancel",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.warehouse.expand-warehouse.decrease",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.warehouse.expand-warehouse.increase",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.warehouse.expand-warehouse.max",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.warehouse.expand-warehouse.calculator",
+    "status": "blocked",
+    "blocked_reason": "Unity 仅有生成 CalculatorViewBind，缺当前 Bag 扩容链的可达运行实现；本轮禁止扩展到共享模块",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.warehouse.expand-warehouse.cost-detail",
+    "status": "blocked",
+    "blocked_reason": "目标由 Common/Equipment 共享详情或比较窗承载；超出 Bag 独占写入范围，只登记跨岛依赖",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.warehouse.expand-warehouse.confirm",
+    "status": "blocked",
+    "blocked_reason": "15002 会修改账号物品/容量/穿戴状态；本轮没有真实写事务授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.holy-seal.equipped-slots",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用圣印页签；完整圣印模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.holy-seal.bag-scroll",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用圣印页签；完整圣印模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.holy-seal.main",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用圣印页签；完整圣印模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.holy-seal.attribute",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用圣印页签；完整圣印模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.holy-seal.tips",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用圣印页签；完整圣印模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.holy-seal.strengthen",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用圣印页签；完整圣印模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.holy-seal.preview",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用圣印页签；完整圣印模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.holy-seal.decompose",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用圣印页签；完整圣印模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.holy-seal.composite",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用圣印页签；完整圣印模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.holy-seal.soul",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用圣印页签；完整圣印模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.revelation.equipped-slots",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用天启页签；完整天启模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.revelation.bag-scroll",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用天启页签；完整天启模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.revelation.suit",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用天启页签；完整天启模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.revelation.source",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用天启页签；完整天启模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.revelation.compose",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用天启页签；完整天启模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.revelation.devour",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用天启页签；完整天启模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.revelation.property",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用天启页签；完整天启模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.longlanguage.equipped-slots",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用龙语页签；完整龙语模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.longlanguage.bag-scroll",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用龙语页签；完整龙语模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.longlanguage.page-1",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用龙语页签；完整龙语模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.longlanguage.page-2",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用龙语页签；完整龙语模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.longlanguage.page-3",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用龙语页签；完整龙语模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.longlanguage.page-4",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用龙语页签；完整龙语模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.longlanguage.shop",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用龙语页签；完整龙语模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.longlanguage.property",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用龙语页签；完整龙语模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.bag.window.longlanguage.main-icon",
+    "status": "blocked",
+    "blocked_reason": "当前 BagFlow 禁用龙语页签；完整龙语模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+    ]
+  }
+]

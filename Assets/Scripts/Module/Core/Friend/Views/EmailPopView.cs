@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Shenxiao.Generated.UI.Friend;
 using Shenxiao.Framework.Event;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Mail;
@@ -83,13 +84,22 @@ namespace Shenxiao.Module.Core.Friend
             if (hasAttach && _detail.IsReceive == 0)
             {
                 if (_Label_get != null) _Label_get.text = "领取";
+                if (_Image_get != null)
+                    _ = ResManager.SetImageAsync(_Image_get, GameResPath.GetIcon("common", "uian_010b"), nativeSize: false);
             }
             else
             {
                 string label = hasNext ? "下一封" : "关闭";
                 if (_Label_get != null) _Label_get.text = label;
                 if (_Label_close != null) _Label_close.text = label;
+                if (_Image_get != null)
+                    _ = ResManager.SetImageAsync(_Image_get, GameResPath.GetIcon("common", "uian_0120b"), nativeSize: false);
             }
+
+            // 老端随附件区显隐同步收缩三层邮件底板，避免无附件邮件残留大块空白。
+            SetHeight(bg, hasAttach ? 384f : 245f);
+            SetHeight(bg1, hasAttach ? 675f : 555f);
+            SetHeight(bg2, hasAttach ? 603f : 483f);
 
             EnsurePool(_detail.Attachment.Count);
             for (int i = 0; i < _pool.Count; i++)
@@ -98,6 +108,12 @@ namespace Shenxiao.Module.Core.Friend
                 _pool[i].gameObject.SetActive(active);
                 if (active) _pool[i].SetData(_detail.Attachment[i]);
             }
+        }
+
+        private static void SetHeight(UnityEngine.UI.Image image, float height)
+        {
+            if (image != null)
+                image.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
         }
 
         private void EnsurePool(int count)

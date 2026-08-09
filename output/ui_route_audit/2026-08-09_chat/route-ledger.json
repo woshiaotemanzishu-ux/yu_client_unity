@@ -1,0 +1,1467 @@
+{
+  "schema": 6,
+  "route": "mainui.chat.fullscreen",
+  "baseline": {
+    "authority": "当前老客户端同账号同状态真实运行结果；本轮仅完成源码/Prefab/Bind/Flow 静态盘点，未采集运行证据",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/chat/ChatParentView.ts",
+      "E:/GitProject/yu_client/h5/src/chat/ChatParentTab.ts",
+      "E:/GitProject/yu_client/h5/src/chat/ChatItem.ts",
+      "E:/GitProject/yu_client/h5/src/chat/ChatToolPanel.ts",
+      "E:/GitProject/yu_client/h5/src/chat/ChatToolGridItem.ts",
+      "E:/GitProject/yu_client/h5/src/chat/ChatBagPanel.ts",
+      "E:/GitProject/yu_client/h5/src/chat/ChatToolBagItem.ts",
+      "E:/GitProject/yu_client/h5/src/chat/ChatTrumpetView.ts",
+      "E:/GitProject/yu_client/h5/src/chat/ChatTrumpetMenu.ts",
+      "E:/GitProject/yu_client/h5/src/chat/ChatMenuView.ts",
+      "E:/GitProject/yu_client/h5/src/chat/VoiceChatView.ts",
+      "E:/GitProject/yu_client/h5/src/commonModel/ChatModel.ts"
+    ],
+    "unity_sources": [
+      "Assets/Prefabs/UI/Chat/ChatModule.prefab",
+      "Assets/Prefabs/UI/Chat/ChatParentTab.prefab",
+      "Assets/Prefabs/UI/Chat/ChatToolGridItem.prefab",
+      "Assets/Scripts/Module/Core/Chat/ChatFlow.cs",
+      "Assets/Scripts/Module/Core/Chat/ChatController.cs",
+      "Assets/Scripts/Module/Core/Chat/ChatModel.cs",
+      "Assets/Scripts/Module/Core/Chat/Views/ChatParentView.cs",
+      "Assets/Scripts/Generated/UI/Chat"
+    ]
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_chat/route-manifest.json",
+    "sha256": "d92c670806fe1e0cfc70216f6138429afd27e1e3f165c3fac49d9978891b4d74"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "mainui.chat.fullscreen",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        {
+          "id": "mainui-chat-entry",
+          "kind": "button",
+          "child": "mainui.chat.fullscreen.open"
+        },
+        {
+          "id": "top-close",
+          "kind": "button",
+          "child": "mainui.chat.fullscreen.close-top"
+        },
+        {
+          "id": "bottom-close",
+          "kind": "button",
+          "child": "mainui.chat.fullscreen.close-bottom"
+        },
+        {
+          "id": "channel-tabs",
+          "kind": "conditional-tab-list",
+          "child": "mainui.chat.fullscreen.channels"
+        },
+        {
+          "id": "message-scroller",
+          "kind": "conditional-list",
+          "child": "mainui.chat.fullscreen.messages"
+        },
+        {
+          "id": "composer",
+          "kind": "conditional-control-group",
+          "child": "mainui.chat.fullscreen.composer"
+        },
+        {
+          "id": "emoji-popup",
+          "kind": "popup",
+          "child": "mainui.chat.fullscreen.emoji"
+        },
+        {
+          "id": "chat-bag-popup",
+          "kind": "popup",
+          "child": "mainui.chat.fullscreen.bag"
+        },
+        {
+          "id": "trumpet-popup",
+          "kind": "popup",
+          "child": "mainui.chat.fullscreen.trumpet"
+        },
+        {
+          "id": "player-menu-popup",
+          "kind": "conditional-popup",
+          "child": "mainui.chat.fullscreen.player-menu"
+        },
+        {
+          "id": "voice-record-overlay",
+          "kind": "conditional-popup",
+          "child": "mainui.chat.fullscreen.voice-record"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.close-top",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.close-bottom",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.channels",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen",
+      "control_inventory": [
+        {
+          "id": "world",
+          "kind": "tab",
+          "child": "mainui.chat.fullscreen.channels.world"
+        },
+        {
+          "id": "guild",
+          "kind": "conditional-tab",
+          "child": "mainui.chat.fullscreen.channels.guild"
+        },
+        {
+          "id": "team",
+          "kind": "conditional-tab",
+          "child": "mainui.chat.fullscreen.channels.team"
+        },
+        {
+          "id": "small-cross",
+          "kind": "conditional-tab",
+          "child": "mainui.chat.fullscreen.channels.small-cross"
+        },
+        {
+          "id": "world-cross",
+          "kind": "conditional-tab",
+          "child": "mainui.chat.fullscreen.channels.world-cross"
+        },
+        {
+          "id": "camp",
+          "kind": "conditional-tab",
+          "child": "mainui.chat.fullscreen.channels.camp"
+        },
+        {
+          "id": "sea",
+          "kind": "conditional-tab",
+          "child": "mainui.chat.fullscreen.channels.sea"
+        },
+        {
+          "id": "system",
+          "kind": "tab",
+          "child": "mainui.chat.fullscreen.channels.system"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.channels.world",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.channels",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.channels.guild",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.channels",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.channels.team",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.channels",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.channels.small-cross",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.channels",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.channels.world-cross",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.channels",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.channels.camp",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.channels",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.channels.sea",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.channels",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.channels.system",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.channels",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.messages",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen",
+      "control_inventory": [
+        {
+          "id": "scroll-history",
+          "kind": "scroll-drag",
+          "child": "mainui.chat.fullscreen.messages.scroll"
+        },
+        {
+          "id": "self-text-row",
+          "kind": "conditional-state",
+          "child": "mainui.chat.fullscreen.messages.self-text"
+        },
+        {
+          "id": "other-text-row",
+          "kind": "conditional-state",
+          "child": "mainui.chat.fullscreen.messages.other-text"
+        },
+        {
+          "id": "horn-row",
+          "kind": "conditional-state",
+          "child": "mainui.chat.fullscreen.messages.horn"
+        },
+        {
+          "id": "system-row",
+          "kind": "conditional-state",
+          "child": "mainui.chat.fullscreen.messages.system"
+        },
+        {
+          "id": "other-avatar",
+          "kind": "button",
+          "child": "mainui.chat.fullscreen.messages.avatar-menu"
+        },
+        {
+          "id": "voice-bubble",
+          "kind": "conditional-button",
+          "child": "mainui.chat.fullscreen.messages.voice-play"
+        },
+        {
+          "id": "voice-to-text",
+          "kind": "conditional-button",
+          "child": "mainui.chat.fullscreen.messages.voice-to-text"
+        },
+        {
+          "id": "rich-link",
+          "kind": "conditional-link",
+          "child": "mainui.chat.fullscreen.messages.rich-link"
+        },
+        {
+          "id": "first-unread",
+          "kind": "conditional-button",
+          "child": "mainui.chat.fullscreen.messages.first-unread"
+        },
+        {
+          "id": "to-bottom",
+          "kind": "conditional-button",
+          "child": "mainui.chat.fullscreen.messages.to-bottom"
+        },
+        {
+          "id": "keep-bottom",
+          "kind": "conditional-state",
+          "child": "mainui.chat.fullscreen.messages.keep-bottom"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.messages.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.messages",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.messages.self-text",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.messages",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.messages.other-text",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.messages",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.messages.horn",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.messages",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.messages.system",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.messages",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.messages.avatar-menu",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.messages",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.messages.voice-play",
+      "type": "transaction",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.messages",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.messages.voice-to-text",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.chat.fullscreen.messages",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.messages.rich-link",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.messages",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.messages.first-unread",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.messages",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.messages.to-bottom",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.messages",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.messages.keep-bottom",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.messages",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.composer",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen",
+      "control_inventory": [
+        {
+          "id": "text-input",
+          "kind": "input",
+          "child": "mainui.chat.fullscreen.composer.input"
+        },
+        {
+          "id": "send",
+          "kind": "button",
+          "child": "mainui.chat.fullscreen.composer.send"
+        },
+        {
+          "id": "emoji",
+          "kind": "button",
+          "child": "mainui.chat.fullscreen.composer.emoji"
+        },
+        {
+          "id": "bag",
+          "kind": "button",
+          "child": "mainui.chat.fullscreen.composer.bag"
+        },
+        {
+          "id": "bag-selected",
+          "kind": "conditional-state",
+          "child": "mainui.chat.fullscreen.composer.bag-selected"
+        },
+        {
+          "id": "position",
+          "kind": "button",
+          "child": "mainui.chat.fullscreen.composer.position"
+        },
+        {
+          "id": "voice-switch",
+          "kind": "button",
+          "child": "mainui.chat.fullscreen.composer.voice-switch"
+        },
+        {
+          "id": "voice-press",
+          "kind": "conditional-button",
+          "child": "mainui.chat.fullscreen.composer.voice-press"
+        },
+        {
+          "id": "trumpet",
+          "kind": "button",
+          "child": "mainui.chat.fullscreen.composer.trumpet"
+        },
+        {
+          "id": "dress-up",
+          "kind": "button",
+          "child": "mainui.chat.fullscreen.composer.dress-up"
+        },
+        {
+          "id": "scroll-lock",
+          "kind": "button-with-commented-old-action",
+          "child": "mainui.chat.fullscreen.composer.scroll-lock"
+        },
+        {
+          "id": "system-read-only",
+          "kind": "conditional-state",
+          "child": "mainui.chat.fullscreen.composer.system-read-only"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.composer.input",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.chat.fullscreen.composer",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.composer.send",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.chat.fullscreen.composer",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.composer.emoji",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.composer",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.composer.bag",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.composer",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.composer.bag-selected",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.composer",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.composer.position",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.chat.fullscreen.composer",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.composer.voice-switch",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.composer",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.composer.voice-press",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.composer",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.composer.trumpet",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.composer",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.composer.dress-up",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.composer",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.composer.scroll-lock",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.composer",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.composer.system-read-only",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.composer",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.emoji",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen",
+      "control_inventory": [
+        {
+          "id": "emoji-grid-scroll",
+          "kind": "scroll-list",
+          "child": "mainui.chat.fullscreen.emoji.scroll"
+        },
+        {
+          "id": "emoji-item",
+          "kind": "list-item-button",
+          "child": "mainui.chat.fullscreen.emoji.select"
+        },
+        {
+          "id": "toggle-close",
+          "kind": "return",
+          "child": "mainui.chat.fullscreen.emoji.close"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.emoji.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.emoji",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.emoji.select",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.chat.fullscreen.emoji",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.emoji.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.emoji",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.bag",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen",
+      "control_inventory": [
+        {
+          "id": "tab-bag",
+          "kind": "tab",
+          "child": "mainui.chat.fullscreen.bag.tab-bag"
+        },
+        {
+          "id": "tab-equipment",
+          "kind": "tab",
+          "child": "mainui.chat.fullscreen.bag.tab-equipment"
+        },
+        {
+          "id": "tab-seal",
+          "kind": "conditional-tab",
+          "child": "mainui.chat.fullscreen.bag.tab-seal"
+        },
+        {
+          "id": "tab-godfall",
+          "kind": "conditional-tab",
+          "child": "mainui.chat.fullscreen.bag.tab-godfall"
+        },
+        {
+          "id": "tab-revelation",
+          "kind": "conditional-tab",
+          "child": "mainui.chat.fullscreen.bag.tab-revelation"
+        },
+        {
+          "id": "tab-godcourt",
+          "kind": "conditional-tab",
+          "child": "mainui.chat.fullscreen.bag.tab-godcourt"
+        },
+        {
+          "id": "tab-longlanguage",
+          "kind": "conditional-tab",
+          "child": "mainui.chat.fullscreen.bag.tab-longlanguage"
+        },
+        {
+          "id": "primary-grid",
+          "kind": "scroll-list",
+          "child": "mainui.chat.fullscreen.bag.primary-grid"
+        },
+        {
+          "id": "secondary-grid",
+          "kind": "conditional-scroll-list",
+          "child": "mainui.chat.fullscreen.bag.secondary-grid"
+        },
+        {
+          "id": "secondary-title",
+          "kind": "conditional-state",
+          "child": "mainui.chat.fullscreen.bag.secondary-title"
+        },
+        {
+          "id": "item",
+          "kind": "list-item-button",
+          "child": "mainui.chat.fullscreen.bag.select-item"
+        },
+        {
+          "id": "toggle-close",
+          "kind": "return",
+          "child": "mainui.chat.fullscreen.bag.close"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.bag.tab-bag",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.bag.tab-equipment",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.bag.tab-seal",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.bag.tab-godfall",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.bag.tab-revelation",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.bag.tab-godcourt",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.bag.tab-longlanguage",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.bag.primary-grid",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.bag.secondary-grid",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.bag.secondary-title",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.bag.select-item",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.chat.fullscreen.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.bag.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.bag",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.trumpet",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen",
+      "control_inventory": [
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "mainui.chat.fullscreen.trumpet.close"
+        },
+        {
+          "id": "text-input",
+          "kind": "input",
+          "child": "mainui.chat.fullscreen.trumpet.input"
+        },
+        {
+          "id": "remaining-count",
+          "kind": "text-state",
+          "child": "mainui.chat.fullscreen.trumpet.remaining-count"
+        },
+        {
+          "id": "required-item",
+          "kind": "text-state",
+          "child": "mainui.chat.fullscreen.trumpet.required-item"
+        },
+        {
+          "id": "type-menu",
+          "kind": "button-and-popup",
+          "child": "mainui.chat.fullscreen.trumpet.type-menu"
+        },
+        {
+          "id": "emoji",
+          "kind": "button",
+          "child": "mainui.chat.fullscreen.trumpet.emoji"
+        },
+        {
+          "id": "bag",
+          "kind": "button",
+          "child": "mainui.chat.fullscreen.trumpet.bag"
+        },
+        {
+          "id": "bag-selected",
+          "kind": "conditional-state",
+          "child": "mainui.chat.fullscreen.trumpet.bag-selected"
+        },
+        {
+          "id": "send",
+          "kind": "button",
+          "child": "mainui.chat.fullscreen.trumpet.send"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.trumpet.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.trumpet",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.trumpet.input",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.chat.fullscreen.trumpet",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.trumpet.remaining-count",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.trumpet",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.trumpet.required-item",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.trumpet",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.trumpet.type-menu",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.trumpet",
+      "control_inventory": [
+        {
+          "id": "world",
+          "kind": "menu-item",
+          "child": "mainui.chat.fullscreen.trumpet.type-menu.world"
+        },
+        {
+          "id": "small-cross",
+          "kind": "conditional-menu-item",
+          "child": "mainui.chat.fullscreen.trumpet.type-menu.small-cross"
+        },
+        {
+          "id": "world-cross",
+          "kind": "conditional-menu-item",
+          "child": "mainui.chat.fullscreen.trumpet.type-menu.world-cross"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.trumpet.type-menu.world",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.chat.fullscreen.trumpet.type-menu",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.trumpet.type-menu.small-cross",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.chat.fullscreen.trumpet.type-menu",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.trumpet.type-menu.world-cross",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.chat.fullscreen.trumpet.type-menu",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.trumpet.emoji",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.trumpet",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.trumpet.bag",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.trumpet",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.trumpet.bag-selected",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.trumpet",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.trumpet.send",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.chat.fullscreen.trumpet",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.player-menu",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen",
+      "control_inventory": [
+        {
+          "id": "view-player",
+          "kind": "conditional-menu-item",
+          "child": "mainui.chat.fullscreen.player-menu.view-player"
+        },
+        {
+          "id": "add-friend",
+          "kind": "conditional-menu-item",
+          "child": "mainui.chat.fullscreen.player-menu.add-friend"
+        },
+        {
+          "id": "invite-team",
+          "kind": "conditional-menu-item",
+          "child": "mainui.chat.fullscreen.player-menu.invite-team"
+        },
+        {
+          "id": "start-private-chat",
+          "kind": "conditional-menu-item",
+          "child": "mainui.chat.fullscreen.player-menu.start-private"
+        },
+        {
+          "id": "delete-friend",
+          "kind": "conditional-menu-item",
+          "child": "mainui.chat.fullscreen.player-menu.delete-friend"
+        },
+        {
+          "id": "shield",
+          "kind": "conditional-menu-item",
+          "child": "mainui.chat.fullscreen.player-menu.shield"
+        },
+        {
+          "id": "unshield",
+          "kind": "conditional-menu-item",
+          "child": "mainui.chat.fullscreen.player-menu.unshield"
+        },
+        {
+          "id": "blacklist",
+          "kind": "conditional-menu-item",
+          "child": "mainui.chat.fullscreen.player-menu.blacklist"
+        },
+        {
+          "id": "unblacklist",
+          "kind": "conditional-menu-item",
+          "child": "mainui.chat.fullscreen.player-menu.unblacklist"
+        },
+        {
+          "id": "send-gift",
+          "kind": "conditional-menu-item",
+          "child": "mainui.chat.fullscreen.player-menu.send-gift"
+        },
+        {
+          "id": "report-avatar",
+          "kind": "conditional-menu-item",
+          "child": "mainui.chat.fullscreen.player-menu.report-avatar"
+        },
+        {
+          "id": "outside-close",
+          "kind": "background-return",
+          "child": "mainui.chat.fullscreen.player-menu.close"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.player-menu.view-player",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.player-menu",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.player-menu.add-friend",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.chat.fullscreen.player-menu",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.player-menu.invite-team",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.chat.fullscreen.player-menu",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.player-menu.start-private",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.player-menu",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.player-menu.delete-friend",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.chat.fullscreen.player-menu",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.player-menu.shield",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.chat.fullscreen.player-menu",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.player-menu.unshield",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.chat.fullscreen.player-menu",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.player-menu.blacklist",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.chat.fullscreen.player-menu",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.player-menu.unblacklist",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.chat.fullscreen.player-menu",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.player-menu.send-gift",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.player-menu",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.player-menu.report-avatar",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.chat.fullscreen.player-menu",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.player-menu.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.player-menu",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.voice-record",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen",
+      "control_inventory": [
+        {
+          "id": "hold-delay",
+          "kind": "timed-state",
+          "child": "mainui.chat.fullscreen.voice-record.hold-delay"
+        },
+        {
+          "id": "countdown",
+          "kind": "text-state",
+          "child": "mainui.chat.fullscreen.voice-record.countdown"
+        },
+        {
+          "id": "drag-cancel",
+          "kind": "gesture",
+          "child": "mainui.chat.fullscreen.voice-record.drag-cancel"
+        },
+        {
+          "id": "release-send",
+          "kind": "gesture",
+          "child": "mainui.chat.fullscreen.voice-record.release-send"
+        },
+        {
+          "id": "timeout-close",
+          "kind": "timed-return",
+          "child": "mainui.chat.fullscreen.voice-record.timeout-close"
+        }
+      ],
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.voice-record.hold-delay",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.voice-record",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.voice-record.countdown",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.voice-record",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.voice-record.drag-cancel",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.voice-record",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.voice-record.release-send",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.chat.fullscreen.voice-record",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.chat.fullscreen.voice-record.timeout-close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.chat.fullscreen.voice-record",
+      "status": "not-run",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    }
+  ],
+  "summary": {
+    "total": 88,
+    "status_counts": {
+      "not-run": 88
+    }
+  }
+}

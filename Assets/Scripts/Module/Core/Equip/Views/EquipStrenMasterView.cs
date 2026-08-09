@@ -1,3 +1,4 @@
+using Shenxiao.Common.Tips;
 using Shenxiao.Generated.UI.Equip;
 using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
@@ -13,9 +14,8 @@ namespace Shenxiao.Module.Core.Equip
     /// 激活点 15260;等级取 EquipModel.GetAllStrenLv/GetMasterNextLv,满阶时 cur_tip="已满阶"、按钮置灰。
     ///
     /// 全身奖励协议(15260/15261,经 EquipStrenController,自动循环 轮4 队列#4)已接线:OnShow → QueryWholeAward()
-    /// (对标老端 LoadSuccess 发 15261);btn_active → ActivateWhole(type=1)(老端会先本地比较 cur_lv/next_lv 拦截,
-    /// 该比较依赖 EquipModel.GetAllStrenLv/GetMasterNextLv 未移植 → 本轮不拦截,直接发,由服务端 err152_lv_limit
-    /// 兜底);btn_close → 真关闭(Hide())。
+    /// (对标老端 LoadSuccess 发 15261);btn_active 必须在当前/下一阶条件与属性列表形成可验证展示后才可发送，
+    /// 当前明确阻断而不依赖服务端兜底；btn_close → 真关闭(Hide())。
     /// 降级:EquipModel 两段属性列表(EquipMasterItem/EquipNextMasterItem)、WordManager 均未移植 →
     /// 激活红点(img_redAc)隐藏、属性模板(_tpl_EquipMasterItem)隐藏、列表空、等级进度文本默认降级。
     /// 事件驱动窗口,默认关闭、不进 FirstPass。
@@ -52,8 +52,8 @@ namespace Shenxiao.Module.Core.Equip
         {
             BindClick(btn_active, () =>
             {
-                GameLog.Info("Equip", "点击[激活] → ActivateWhole(type=1)");
-                EquipStrenController.Instance.ActivateWhole(1);
+                TipsManager.Toast("淬炉宗师条件配置未就绪");
+                GameLog.Warn("Equip", "点击[激活]被阻止：当前/下一阶条件与属性列表尚未形成可验证展示");
             });
             BindClick(btn_close, () =>
             {

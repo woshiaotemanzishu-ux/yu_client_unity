@@ -11,6 +11,20 @@
 
 启动命令要放在隐藏后台进程中。结束本轮时只停止本轮启动且已核实 PID 的老端工具进程，不扩大到其他 Node/Unity 进程。
 
+## 验收事实源
+
+- 当前老客户端在同账号、同状态、同 viewport 下的真实运行最终表现，是功能、状态、几何、资源、动画时序、合成和生命周期的验收目标。
+- 老端源码、配置与完整运行树用于解释该结果；Prefab 是 Unity 侧实现源；转换器、公共架构、静态断言和 Editor 预览都不能反向定义验收标准。
+- 任一实现手段与老端最终表现冲突时修改 Unity。老端存在版本或状态分支时，先记录实际入口、版本、账号状态与时间点，不得挑方便复刻的变体。
+- 用户运行证据可推翻历史绿灯；通过时也只关闭明确观察到的范围，不得顺带把另一状态、WebGL、清理生命周期或整页标绿。
+
+## GM 测试态准备
+
+- 缺等级、功能开放、任务、物品、货币或成就进度时，先按 [gm-test-state.md](gm-test-state.md) 保存并执行最小状态配方，不等待用户手工养号，也不把可由现有 GM 通道解决的问题登记成页面 blocker。
+- 默认同账号对照仍用 `111111`。需要不可恢复写入、互斥状态或反复重置时创建专用测试号；`123123` 只作为有记录的满解锁辅助号，不直接替代 `111111` 做 diff。
+- GM 只准备前置态。被测的领取、升级、穿戴、购买等事务必须继续从真实 UI 发出，并验证回包、即时刷新和重开；禁止直接用 GM 把目标结果改完后宣称功能通过。
+- 状态配方、执行日志和权威探针进入本轮不可变证据目录，并作为 `runtime_state/state_evidence[]` 绑定台账。
+
 ## 日常无头对比
 
 - 常规对比使用项目已有 `tools/headless/` 的 Puppeteer/系统 Edge 能力扩展路线脚本，不使用 Computer Use。老 H5 与 Unity WebGL 均在后台浏览器中按真实 Canvas 指针事件操作；Browser MCP 只用于首次探索或排障。
@@ -46,9 +60,20 @@ screenY = rect.y + designY * rect.height / 1280
 
 老端外层页面也可能缩放并居中竖屏画布，必须读取实际画布矩形，不固定假设 `1280×720` 截图中的偏移。页面自动滚动后重新读取矩形。
 
+### 弧形页签与自动尺寸标签的几何预检
+
+这类节点在截图里只表现为“位置不对”，但修复前先生成同一套页面根几何合同，避免逐点试坐标：
+
+- 老端运行态记录 `pageRect={x,y,w,h}`、`referenceCorner`、最终 `runtimeSize`、父级 scale/rotation/skew、`anchorX/Y`、`centerX/Y`、折叠/展开和选中/红点状态。设计 JSON 的 `width/height=0` 只作为线索，不能覆盖运行时 bounds。
+- Unity 用 `GetWorldCorners` 后换算到页面根左上角，记录同名字段以及 RectTransform pivot。多个同尺寸节点若统一偏移半宽/半高，先修参考角/pivot，不改单个槽位数字。
+- 弧形、放射形等离散位置在当前 Prefab 保存为 `__Slot0..N` 具名槽位；连续文本才进入只含文字的 LayoutGroup。背景、唯一点击面和状态图标不参与文字 preferred-width 布局。
+- 一次采集全部相关状态：折叠/展开、选中/未选中、红点有/无、短/长数值。输出 `old_rect/unity_rect/delta/state/source_fields` 表后再动 Prefab；通过后沿原页面只做一次整页复验。
+
+成就页已验证的判别样例：65×70 弧形子按钮统一偏移 32.5/35 是中心 pivot 把老端左上坐标误解释成中心坐标；一级/二级竖排文字应以运行时 22×91、22×46 为准，不能照抄 Laya `height=0`；属性行重叠来自空模板固定宽度，使用纯文字容器的 TMP preferred width 后消失。
+
 ## 证据命名
 
-建议目录：`output/ui_route_audit/YYYY-MM-DD_<route>/`。
+建议目录：`output/ui_route_audit/YYYY-MM-DD_<route>/<run-id>/`。同一路线每次复验创建新 run 子目录，不覆盖旧截图、日志或报告；台账中的正式文件引用同时记录 SHA-256。
 
 - `old_00_entry.jpg`、`old_01_target.jpg`
 - `unity_before_00_entry.jpg`、`unity_before_01_failure.jpg`
@@ -60,6 +85,30 @@ screenY = rect.y + designY * rect.height / 1280
 截图保持同一浏览器窗口尺寸；视觉比较时另外保存裁剪到游戏画布的图，不覆盖原始全窗口证据。
 
 2D UI 以画布裁剪图做半透明叠加和差异图；模型区先比较模型是否存在、资源/部件、朝向、镜像、翻转、角度、位置、比例和特效。Unity 与 Laya 的 Shader、抗锯齿和动画采样不要求逐像素值相同，但不得用这一点豁免模型缺失或明显构图错误。
+
+## 动态特效时间基线
+
+动态或重复特效禁止从一张最终截图直接开始调参数。先在老端同一运行会话保存“开始、早期发射、散开/展开、移动、抵达、清理”的不可变时间序列，再按症状分层：位置/越界查宿主与裁切；数量、相位和随机形态查 `use_cache/cache_key/source_simulation_count/display_copy_count/composition_order`；数量、大小、方向已经一致但出现灰片、变色或透明区域实心化时，查离屏 RT 与最终 UI 合成，不得继续把拓扑当根因。
+
+离屏合成证据固定保存以下同时间点数据：源纹理 RGBA 抽样（特别是 `alpha=0` 的 RGB）、粒子材质 RGB/Alpha blend、未经 RawImage 的 RT RGBA、最终 Canvas 像素、RT 格式/读写色彩空间、合成 shader/blend、Editor/WebGL 平台。再各选一个同 `UIEffectStage` 链路下正常显示的 UI 特效和一个场景内正常特效作控制。一个共享 RT 中混有覆盖型、标准 Alpha 与 Additive 子材质时，不允许靠单个全局“亮度当 Alpha”规则解释所有资源；若需不同最终合成，必须按合成模式拆通道或中间表面。
+
+成就奖励飞行的只读老端表现基线可用：
+
+```powershell
+node Tools/Conversion/mainui_login_capture.cjs <account> <password> <outdir> http://127.0.0.1:8091/index.html reward-fly-baseline
+```
+
+该 route 直接调用老端展示函数并采集 0/80/250/450/750/1150/1500ms，只证明视觉时间基线，不证明 40905 领取事务、账号状态或 Unity 修复通过。
+
+## schema 6 台账运行批次
+
+- 新路线先由 `route_ledger.py init` 从 manifest 生成 schema 6 正式账；已存在目标会被拒绝，不允许用 init 重置。历史 schema 2～5 文件继续保留，不原地抬版本。
+- manifest 是该版本台账的不可变拓扑合同；其哈希、路线名、节点集合及 `parent/type/risk/control_inventory` 都会复核。发现新条件控件或树结构变化时另建版本账，不在旧账上改树续绿。
+- 每次 static / Unity Editor / real Web / 用户运行观察都分配唯一 verification run。全部 run 记录 Git HEAD、dirty 指纹和带时区时间；真实 Web run 再记录 Player/catalog SHA-256、两档 viewport、老端断线、Unity 有效会话与 Headless 报告。
+- 路线脚本只写本批 `results.json`；正式账唯一写入口是 `route_ledger.py apply`。候选校验失败时正式文件不变；同一路径的第二个并发写者由进程锁明确拒绝，读取最新账后再重放本批 results。
+- 用户新图推翻旧证据时，在 results 中写 `invalidate_gates/invalidation_reason/observed_at`。旧绑定进入 `evidence_history`，不能继续靠历史 `true` 维持完成。
+- 根页回卷为非完成态时清除旧 `route_run_id`。重新收口的真实 Web run 必须不早于全部完成叶引用的 run，并与它们保持相同 Git HEAD/dirty 指纹；否则旧 Web 包不能替新 Editor 修复背书。
+- 完整字段与结构化 effect/scroll/component 合同见 [route-ledger-schema.md](route-ledger-schema.md)。
 
 ## 深度优先执行顺序
 

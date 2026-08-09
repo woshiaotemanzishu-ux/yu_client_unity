@@ -1,0 +1,5208 @@
+{
+  "route": "mainui.adventure",
+  "baseline": {
+    "authority": "\u540C\u8D26\u53F7\u3001\u540C\u72B6\u6001\u3001\u540C viewport \u7684\u5F53\u524D\u8001 H5 \u6700\u7EC8\u8868\u73B0\u662F\u552F\u4E00\u9A8C\u6536\u6807\u51C6\uFF1B\u672C\u6279\u7981\u6B62 Unity/Web/\u8D26\u53F7\u5199\uFF0C\u53EA\u58F0\u660E\u9759\u6001\u5B9E\u73B0\u4E0E\u7F3A\u53E3\u3002",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/adventure/AdventureWindowView.ts",
+      "E:/GitProject/yu_client/h5/src/adventure/AdventureMainView.ts",
+      "E:/GitProject/yu_client/h5/src/adventure/AdventureItem.ts",
+      "E:/GitProject/yu_client/h5/src/adventure/AdventureShopView.ts",
+      "E:/GitProject/yu_client/h5/src/adventure/AdventureShopItem.ts",
+      "E:/GitProject/yu_client/h5/src/commonController/AdventureController.ts",
+      "E:/GitProject/yu_client/h5/src/commonModel/AdventureModel.ts"
+    ],
+    "unity_sources": [
+      "Assets/Prefabs/UI/Adventure/AdventureModule.prefab",
+      "Assets/Scripts/Module/Core/Adventure/AdventureBootstrap.cs",
+      "Assets/Scripts/Module/Core/Adventure/AdventureFlow.cs",
+      "Assets/Scripts/Module/Core/Adventure/AdventureController.cs",
+      "Assets/Scripts/Module/Core/Adventure/AdventureModel.cs",
+      "Assets/Scripts/Module/Core/Adventure/AdventureMainView.cs",
+      "Assets/Scripts/Module/Core/Adventure/AdventureShopView.cs",
+      "Assets/Scripts/Module/Core/Adventure/AdventureItem.cs",
+      "Assets/Scripts/Module/Core/Adventure/AdventureShopItem.cs"
+    ],
+    "protocol_inventory": {
+      "reads": [
+        "42700",
+        "42701",
+        "42704"
+      ],
+      "writes": [
+        "42702",
+        "42703",
+        "42705",
+        "42706"
+      ],
+      "note": "\u672C\u6279\u4EC5\u4FDD\u7559\u73B0\u6709 42700/42701 \u53EA\u8BFB\u94FE\uFF1B\u672A\u6CE8\u518C\u3001\u672A\u53D1\u9001\u3001\u672A\u6267\u884C\u56DB\u4E2A\u5199\u4E8B\u52A1\u300242704 \u56E0\u914D\u7F6E/\u5546\u54C1\u6A21\u578B\u7F3A\u53E3\u4FDD\u6301 blocked\u3002"
+    },
+    "config_inventory": {
+      "config_adventure_kv": 14,
+      "config_adventure_rand": 2,
+      "config_adventure_reward": 32,
+      "config_adventure_loc": 600,
+      "unity_status": "\u56DB\u4EFD\u914D\u7F6E\u5747\u672A\u8FDB\u5165 Unity \u53EF\u8FBE\u95ED\u5305\uFF0C\u7981\u6B62\u4FEE\u6539 Addressables\uFF0C\u4FDD\u6301 blocker\u3002"
+    }
+  },
+  "nodes": [
+    {
+      "id": "mainui.adventure",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "entry",
+          "kind": "entry",
+          "child": "mainui.adventure.entry"
+        },
+        {
+          "id": "shell",
+          "kind": "page",
+          "child": "mainui.adventure.shell"
+        },
+        {
+          "id": "main",
+          "kind": "page",
+          "child": "mainui.adventure.main"
+        },
+        {
+          "id": "shared",
+          "kind": "dependency",
+          "child": "mainui.adventure.shared"
+        },
+        {
+          "id": "lifecycle",
+          "kind": "lifecycle",
+          "child": "mainui.adventure.lifecycle"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.entry",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure",
+      "control_inventory": [
+        {
+          "id": "icon-42701",
+          "kind": "navigation",
+          "child": "mainui.adventure.entry.icon-42701"
+        },
+        {
+          "id": "icon-42702",
+          "kind": "conditional-navigation",
+          "child": "mainui.adventure.entry.icon-42702"
+        },
+        {
+          "id": "activity-condition",
+          "kind": "conditional",
+          "child": "mainui.adventure.entry.activity-condition"
+        },
+        {
+          "id": "board-read",
+          "kind": "protocol-read",
+          "child": "mainui.adventure.entry.board-read"
+        },
+        {
+          "id": "mainui-visibility",
+          "kind": "conditional",
+          "child": "mainui.adventure.entry.mainui-visibility"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.entry.icon-42701",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.entry",
+      "note": "\u5F53\u524D config_adventure_kv[12] \u7684\u4E03\u5929\u5165\u53E3\u5747\u4E3A 42701\u3002"
+    },
+    {
+      "id": "mainui.adventure.entry.icon-42702",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.entry",
+      "note": "\u517C\u5BB9\u53E6\u4E00\u7248\u672C\u7684 42702 \u56FE\u6807\u8EAB\u4EFD\uFF0C\u5F53\u524D\u914D\u7F6E\u4E0D\u53EF\u8FBE\u3002"
+    },
+    {
+      "id": "mainui.adventure.entry.activity-condition",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.entry",
+      "note": "GodEquipBuildView \u5F00\u653E\u4E14 42700 stage/time \u7A97\u53E3\u6709\u6548\u3002"
+    },
+    {
+      "id": "mainui.adventure.entry.board-read",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.entry",
+      "note": "42701 \u516D\u4E2A\u53EA\u8BFB\u68CB\u76D8\u72B6\u6001\u5B57\u6BB5\u3002"
+    },
+    {
+      "id": "mainui.adventure.entry.mainui-visibility",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.entry",
+      "note": "\u4E3B\u754C\u9762\u6D3B\u52A8\u56FE\u6807\u5E03\u5C40\u3001\u6536\u7EB3\u76D2\u4E0E\u73A9\u5BB6\u5B9E\u9645\u547D\u4E2D\u3002"
+    },
+    {
+      "id": "mainui.adventure.shell",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure",
+      "control_inventory": [
+        {
+          "id": "title",
+          "kind": "visual",
+          "child": "mainui.adventure.shell.title"
+        },
+        {
+          "id": "help",
+          "kind": "navigation",
+          "child": "mainui.adventure.shell.help"
+        },
+        {
+          "id": "return",
+          "kind": "return",
+          "child": "mainui.adventure.shell.return"
+        },
+        {
+          "id": "money",
+          "kind": "state",
+          "child": "mainui.adventure.shell.money"
+        },
+        {
+          "id": "background",
+          "kind": "visual",
+          "child": "mainui.adventure.shell.background"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shell.title",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shell",
+      "note": "\u5929\u5929\u5192\u9669\u6807\u9898\u4E0E adventure.uittmx_019\u3002"
+    },
+    {
+      "id": "mainui.adventure.shell.help",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shell",
+      "note": "instruction_list=42700 \u7684\u8BF4\u660E\u5F39\u7A97\u3002"
+    },
+    {
+      "id": "mainui.adventure.shell.return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shell",
+      "note": "BaseWindow \u8FD4\u56DE\u6309\u94AE\u4F7F\u7528 uittmx_003\u3002"
+    },
+    {
+      "id": "mainui.adventure.shell.money",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shell",
+      "note": "money_list=[2,1,0] \u9876\u90E8\u8D27\u5E01\u680F\u3002"
+    },
+    {
+      "id": "mainui.adventure.shell.background",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shell",
+      "note": "\u5171\u4EAB\u5927\u7A97\u5916\u58F3\u3001\u906E\u7F69\u4E0E\u5C42\u7EA7\u3002"
+    },
+    {
+      "id": "mainui.adventure.main",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure",
+      "control_inventory": [
+        {
+          "id": "visual",
+          "kind": "visual",
+          "child": "mainui.adventure.main.visual"
+        },
+        {
+          "id": "board",
+          "kind": "page",
+          "child": "mainui.adventure.main.board"
+        },
+        {
+          "id": "reward-preview",
+          "kind": "page",
+          "child": "mainui.adventure.main.reward-preview"
+        },
+        {
+          "id": "action",
+          "kind": "page",
+          "child": "mainui.adventure.main.action"
+        },
+        {
+          "id": "ticket-toggle",
+          "kind": "toggle",
+          "child": "mainui.adventure.main.ticket-toggle"
+        },
+        {
+          "id": "ticket-state",
+          "kind": "state",
+          "child": "mainui.adventure.main.ticket-state"
+        },
+        {
+          "id": "cost-state",
+          "kind": "state",
+          "child": "mainui.adventure.main.cost-state"
+        },
+        {
+          "id": "reset-count",
+          "kind": "state",
+          "child": "mainui.adventure.main.reset-count"
+        },
+        {
+          "id": "reset-timer",
+          "kind": "timer",
+          "child": "mainui.adventure.main.reset-timer"
+        },
+        {
+          "id": "suit",
+          "kind": "navigation",
+          "child": "mainui.adventure.main.suit"
+        },
+        {
+          "id": "shop-open",
+          "kind": "navigation",
+          "child": "mainui.adventure.main.shop-open"
+        },
+        {
+          "id": "halo",
+          "kind": "conditional-navigation",
+          "child": "mainui.adventure.main.halo"
+        },
+        {
+          "id": "ad",
+          "kind": "conditional-transaction",
+          "child": "mainui.adventure.main.ad"
+        },
+        {
+          "id": "forward-red",
+          "kind": "state",
+          "child": "mainui.adventure.main.forward-red"
+        },
+        {
+          "id": "shop-red",
+          "kind": "state",
+          "child": "mainui.adventure.main.shop-red"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.visual",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main",
+      "note": "\u4E3B\u80CC\u666F\u3001\u68CB\u76D8\u3001\u6309\u94AE\u3001\u6587\u5B57\u548C\u9875\u9762\u6839\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.ticket-toggle",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main",
+      "control_inventory": [
+        {
+          "id": "off",
+          "kind": "toggle-state",
+          "child": "mainui.adventure.main.ticket-toggle.off"
+        },
+        {
+          "id": "on",
+          "kind": "toggle-state",
+          "child": "mainui.adventure.main.ticket-toggle.on"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.ticket-toggle.off",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.ticket-toggle",
+      "note": "\u5192\u9669\u5238\u62B5\u6263\u5173\u95ED\u6001\u3001\u70B9\u51FB\u547D\u4E2D\u4E0E\u6709\u6548\u6210\u672C\u6062\u590D\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.ticket-toggle.on",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.ticket-toggle",
+      "note": "\u5192\u9669\u5238\u62B5\u6263\u5F00\u542F\u6001\u3001\u4E92\u65A5\u76AE\u80A4\u4E0E\u6709\u6548\u6210\u672C\u6263\u51CF\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.ticket-state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main",
+      "note": "36255038 \u5192\u9669\u5238\u6570\u91CF\u4E0E\u6BCF\u5F20\u62B5\u6263 15 \u52FE\u7389\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.cost-state",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main",
+      "control_inventory": [
+        {
+          "id": "free",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.cost-state.free"
+        },
+        {
+          "id": "ticket",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.cost-state.ticket"
+        },
+        {
+          "id": "paid",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.cost-state.paid"
+        },
+        {
+          "id": "insufficient",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.cost-state.insufficient"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.cost-state.free",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.cost-state",
+      "note": "\u514D\u8D39\u524D\u8FDB/\u91CD\u7F6E\u65F6\u6309\u94AE\u3001\u6210\u672C\u56FE\u6807\u548C\u6587\u6848\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.cost-state.ticket",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.cost-state",
+      "note": "\u5192\u9669\u5238\u62B5\u6263\u540E\u7684\u5238\u6570\u3001\u62B5\u6263\u6587\u6848\u4E0E\u6709\u6548\u6210\u672C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.cost-state.paid",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.cost-state",
+      "note": "\u4ED8\u8D39\u524D\u8FDB/\u91CD\u7F6E\u7684\u8D27\u5E01\u56FE\u6807\u3001\u51C6\u786E\u4EF7\u683C\u548C\u989C\u8272\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.cost-state.insufficient",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.cost-state",
+      "note": "\u6210\u672C\u4E0D\u8DB3\u989C\u8272\u3001\u6309\u94AE\u72B6\u6001\u4E0E\u4E0D\u8BEF\u53D1\u9001\u4E8B\u52A1\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reset-count",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main",
+      "control_inventory": [
+        {
+          "id": "server-free",
+          "kind": "state",
+          "child": "mainui.adventure.main.reset-count.server-free"
+        },
+        {
+          "id": "default",
+          "kind": "state",
+          "child": "mainui.adventure.main.reset-count.default"
+        },
+        {
+          "id": "vip",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.reset-count.vip"
+        },
+        {
+          "id": "remaining",
+          "kind": "state",
+          "child": "mainui.adventure.main.reset-count.remaining"
+        },
+        {
+          "id": "next-vip",
+          "kind": "conditional-navigation",
+          "child": "mainui.adventure.main.reset-count.next-vip"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.reset-count.server-free",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reset-count",
+      "note": "42701 free_reset_times \u7684\u670D\u52A1\u7AEF\u989D\u5916\u91CD\u7F6E\u6B21\u6570\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reset-count.default",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reset-count",
+      "note": "VIP \u914D\u7F6E num_type=427/42701 \u7684\u9ED8\u8BA4\u91CD\u7F6E\u6B21\u6570\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reset-count.vip",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reset-count",
+      "note": "\u5F53\u524D VIP \u7279\u6743\u989D\u5916\u91CD\u7F6E\u6B21\u6570\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reset-count.remaining",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reset-count",
+      "note": "\u670D\u52A1\u7AEF\u989D\u5916\u002B\u9ED8\u8BA4\u002BVIP-left_times \u7684\u5269\u4F59\u91CD\u7F6E\u6B21\u6570\u53CA\u5C45\u4E2D\u5E03\u5C40\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reset-count.next-vip",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reset-count",
+      "note": "\u4E0B\u4E00 VIP \u6863\u989D\u5916\u6B21\u6570\u63D0\u793A\u4E0E\u524D\u5F80\u5145\u503C\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reset-timer",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main",
+      "control_inventory": [
+        {
+          "id": "countdown",
+          "kind": "timer",
+          "child": "mainui.adventure.main.reset-timer.countdown"
+        },
+        {
+          "id": "resetting",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.reset-timer.resetting"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.reset-timer.countdown",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reset-timer",
+      "note": "\u6BCF\u65E5\u96F6\u70B9\u5012\u8BA1\u65F6\u683C\u5F0F\u3001\u9010\u79D2\u66F4\u65B0\u4E0E\u5173\u9875\u505C\u6B62\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reset-timer.resetting",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reset-timer",
+      "note": "\u96F6\u70B9\u524D\u540E 15 \u79D2\u663E\u793A\u91CD\u7F6E\u4E2D\u5E76\u7981\u6B62\u63D0\u4EA4\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.suit",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main",
+      "note": "OpenFun 125 \u795E\u88C5\u6253\u9020\u8DF3\u8F6C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.shop-open",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main",
+      "control_inventory": [
+        {
+          "id": "button",
+          "kind": "navigation",
+          "child": "mainui.adventure.main.shop-open.button"
+        },
+        {
+          "id": "popup",
+          "kind": "popup",
+          "child": "mainui.adventure.shop"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.shop-open.button",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.shop-open",
+      "note": "\u70B9\u51FB\u5546\u5E97\u6309\u94AE\u6253\u5F00 AdventureShopView \u5E76\u4FDD\u6301\u4E3B\u68CB\u76D8\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.halo",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main",
+      "control_inventory": [
+        {
+          "id": "feature-hidden",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.halo.feature-hidden"
+        },
+        {
+          "id": "activated",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.halo.activated"
+        },
+        {
+          "id": "unactivated",
+          "kind": "conditional-navigation",
+          "child": "mainui.adventure.main.halo.unactivated"
+        },
+        {
+          "id": "merge-hidden",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.halo.merge-hidden"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.halo.feature-hidden",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.halo",
+      "note": "\u5149\u73AF\u529F\u80FD\u603B\u5F00\u5173\u5173\u95ED\u65F6 _box_halo \u6574\u4F53\u9690\u85CF\u4E14\u65E0\u70B9\u51FB\u9762\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.halo.activated",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.halo",
+      "note": "\u529F\u80FD\u5F00\u653E\u4E14\u5DF2\u6709\u5149\u73AF\u65F6 box \u663E\u793A\u3001tips \u9690\u85CF\u3001merge \u9690\u85CF\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.halo.unactivated",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.halo",
+      "note": "\u529F\u80FD\u5F00\u653E\u4F46\u672A\u6FC0\u6D3B\u5149\u73AF\u65F6 tips \u663E\u793A\uFF0C\u70B9\u51FB\u8DF3 HaloMainView\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.halo.merge-hidden",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.halo",
+      "note": "_img_merge_count \u4E24\u4E2A\u8001\u7AEF\u5206\u652F\u90FD\u9690\u85CF\u4E14\u4E0D\u6B8B\u7559\u6570\u5B57\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.ad",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main",
+      "control_inventory": [
+        {
+          "id": "hidden",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.ad.hidden"
+        },
+        {
+          "id": "visible",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.ad.visible"
+        },
+        {
+          "id": "confirm",
+          "kind": "popup",
+          "child": "mainui.adventure.main.ad.confirm"
+        },
+        {
+          "id": "watch",
+          "kind": "transaction",
+          "child": "mainui.adventure.main.ad.watch"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.ad.hidden",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.ad",
+      "note": "\u5E7F\u544A\u914D\u7F6E\u672A\u5F00\u6216\u5DF2\u89C2\u770B\u65F6\u6309\u94AE\u9690\u85CF\u4E14\u4E0D\u5360\u70B9\u51FB\u9762\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.ad.visible",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.ad",
+      "note": "\u5E7F\u544A\u914D\u7F6E\u5F00\u653E\u4E14\u672A\u89C2\u770B\u65F6\u6309\u94AE\u3001\u6587\u6848\u4E0E\u7EA2\u70B9\u53EF\u89C1\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.ad.confirm",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.ad",
+      "note": "\u89C2\u770B\u5E7F\u544A\u786E\u8BA4\u5F39\u7A97\u7684\u6587\u6848\u3001\u53D6\u6D88\u4E0E\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.ad.watch",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.adventure.main.ad",
+      "note": "\u89C2\u770B\u5E7F\u544A\u540E\u589E\u52A0\u514D\u8D39\u6B21\u6570\u5E76\u5373\u65F6\u5237\u65B0\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.forward-red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main",
+      "note": "\u514D\u8D39\u524D\u8FDB\u6B21\u6570\u7EA2\u70B9\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.shop-red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main",
+      "note": "\u5B58\u5728\u672A\u8D2D\u514D\u8D39\u5546\u54C1\u65F6\u7684\u5546\u5E97\u7EA2\u70B9\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main",
+      "control_inventory": [
+        {
+          "id": "slot-00",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-00"
+        },
+        {
+          "id": "slot-01",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-01"
+        },
+        {
+          "id": "slot-02",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-02"
+        },
+        {
+          "id": "slot-03",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-03"
+        },
+        {
+          "id": "slot-04",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-04"
+        },
+        {
+          "id": "slot-05",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-05"
+        },
+        {
+          "id": "slot-06",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-06"
+        },
+        {
+          "id": "slot-07",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-07"
+        },
+        {
+          "id": "slot-08",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-08"
+        },
+        {
+          "id": "slot-09",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-09"
+        },
+        {
+          "id": "slot-10",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-10"
+        },
+        {
+          "id": "slot-11",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-11"
+        },
+        {
+          "id": "slot-12",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-12"
+        },
+        {
+          "id": "slot-13",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-13"
+        },
+        {
+          "id": "slot-14",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-14"
+        },
+        {
+          "id": "slot-15",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-15"
+        },
+        {
+          "id": "slot-16",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-16"
+        },
+        {
+          "id": "slot-17",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-17"
+        },
+        {
+          "id": "slot-18",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-18"
+        },
+        {
+          "id": "slot-19",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-19"
+        },
+        {
+          "id": "slot-20",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-20"
+        },
+        {
+          "id": "slot-21",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-21"
+        },
+        {
+          "id": "slot-22",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-22"
+        },
+        {
+          "id": "slot-23",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-23"
+        },
+        {
+          "id": "slot-24",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-24"
+        },
+        {
+          "id": "slot-25",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-25"
+        },
+        {
+          "id": "slot-26",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-26"
+        },
+        {
+          "id": "slot-27",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-27"
+        },
+        {
+          "id": "slot-28",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-28"
+        },
+        {
+          "id": "slot-29",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-29"
+        },
+        {
+          "id": "slot-30",
+          "kind": "board-cell",
+          "child": "mainui.adventure.main.board.slot-30"
+        },
+        {
+          "id": "state-matrix",
+          "kind": "state-matrix",
+          "child": "mainui.adventure.main.board.state-matrix"
+        },
+        {
+          "id": "position",
+          "kind": "state",
+          "child": "mainui.adventure.main.board.position"
+        },
+        {
+          "id": "role-model",
+          "kind": "model",
+          "child": "mainui.adventure.main.board.role-model"
+        },
+        {
+          "id": "result-movement",
+          "kind": "animation",
+          "child": "mainui.adventure.main.board.result-movement"
+        },
+        {
+          "id": "result-dice",
+          "kind": "effect",
+          "child": "mainui.adventure.main.board.result-dice"
+        },
+        {
+          "id": "result-step",
+          "kind": "state",
+          "child": "mainui.adventure.main.board.result-step"
+        },
+        {
+          "id": "result-box",
+          "kind": "animation",
+          "child": "mainui.adventure.main.board.result-box"
+        },
+        {
+          "id": "result-crit",
+          "kind": "effect",
+          "child": "mainui.adventure.main.board.result-crit"
+        },
+        {
+          "id": "result-fly",
+          "kind": "animation",
+          "child": "mainui.adventure.main.board.result-fly"
+        },
+        {
+          "id": "result-reward",
+          "kind": "popup",
+          "child": "mainui.adventure.main.board.result-reward"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-00",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-00.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-00.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-00.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-00",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 0 \u7684\u8D77\u70B9\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-00.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-00",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 0 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-01",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-01.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-01.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-01.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-01",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 1 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-01.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-01",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 1 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-02",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-02.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-02.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-02.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-02",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 2 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-02.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-02",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 2 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-03",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-03.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-03.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-03.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-03",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 3 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-03.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-03",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 3 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-04",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-04.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-04.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-04.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-04",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 4 \u7684\u9AD8\u7EA7\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-04.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-04",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 4 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-05",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-05.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-05.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-05.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-05",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 5 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-05.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-05",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 5 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-06",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-06.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-06.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-06.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-06",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 6 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-06.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-06",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 6 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-07",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-07.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-07.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-07.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-07",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 7 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-07.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-07",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 7 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-08",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-08.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-08.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-08.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-08",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 8 \u7684\u9AD8\u7EA7\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-08.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-08",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 8 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-09",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-09.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-09.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-09.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-09",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 9 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-09.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-09",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 9 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-10",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-10.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-10.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-10.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-10",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 10 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-10.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-10",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 10 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-11",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-11.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-11.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-11.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-11",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 11 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-11.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-11",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 11 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-12",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-12.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-12.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-12.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-12",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 12 \u7684\u9AD8\u7EA7\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-12.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-12",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 12 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-13",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-13.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-13.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-13.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-13",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 13 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-13.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-13",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 13 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-14",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-14.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-14.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-14.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-14",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 14 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-14.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-14",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 14 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-15",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-15.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-15.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-15.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-15",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 15 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-15.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-15",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 15 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-16",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-16.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-16.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-16.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-16",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 16 \u7684\u9AD8\u7EA7\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-16.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-16",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 16 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-17",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-17.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-17.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-17.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-17",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 17 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-17.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-17",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 17 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-18",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-18.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-18.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-18.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-18",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 18 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-18.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-18",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 18 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-19",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-19.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-19.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-19.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-19",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 19 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-19.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-19",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 19 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-20",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-20.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-20.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-20.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-20",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 20 \u7684\u9AD8\u7EA7\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-20.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-20",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 20 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-21",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-21.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-21.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-21.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-21",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 21 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-21.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-21",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 21 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-22",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-22.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-22.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-22.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-22",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 22 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-22.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-22",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 22 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-23",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-23.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-23.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-23.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-23",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 23 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-23.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-23",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 23 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-24",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-24.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-24.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-24.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-24",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 24 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-24.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-24",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 24 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-25",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-25.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-25.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-25.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-25",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 25 \u7684\u9AD8\u7EA7\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-25.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-25",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 25 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-26",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-26.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-26.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-26.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-26",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 26 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-26.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-26",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 26 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-27",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-27.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-27.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-27.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-27",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 27 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-27.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-27",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 27 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-28",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-28.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-28.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-28.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-28",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 28 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-28.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-28",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 28 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-29",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-29.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-29.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-29.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-29",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 29 \u7684\u666E\u901A\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-29.detail",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-29",
+      "note": "\u5F53\u524D\u914D\u7F6E\u4F4D\u7F6E 29 \u65E0\u7EC8\u6781\u591A\u5956\u52B1/\u7279\u6B8A\u5355\u7269\u54C1\u8BE6\u60C5\uFF0C\u4E0D\u8BEF\u751F\u6210\u53EF\u70B9\u51FB\u683C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-30",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.slot-30.state"
+        },
+        {
+          "id": "detail",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.board.slot-30.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-30.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-30",
+      "note": "\u5F53\u524D\u914D\u7F6E\u68CB\u76D8\u4F4D\u7F6E 30 \u7684\u7EC8\u6781\u683C\u3001\u672A\u5230\u8FBE/\u5DF2\u5F00\u7BB1\u76AE\u80A4\u4E0E\u4F4D\u7F6E\u51E0\u4F55\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-30.detail",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-30",
+      "control_inventory": [
+        {
+          "id": "reward-01",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.board.slot-30.detail.reward-01"
+        },
+        {
+          "id": "reward-02",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.board.slot-30.detail.reward-02"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-30.detail.reward-01",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-30.detail",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.board.slot-30.detail.reward-01.identity"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.adventure.main.board.slot-30.detail.reward-01.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-30.detail.reward-01.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-30.detail.reward-01",
+      "note": "\u7EC8\u6781\u683C\u7B2C 1 \u4E2A\u5956\u52B1\u7684\u56FE\u6807\u3001\u6570\u91CF\u3001\u54C1\u8D28\u4E0E\u6A2A\u6392\u4F4D\u7F6E\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-30.detail.reward-01.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-30.detail.reward-01",
+      "note": "\u7EC8\u6781\u683C\u7B2C 1 \u4E2A\u5956\u52B1\u7684 ItemTips \u8EAB\u4EFD\u3001\u5185\u5BB9\u4E0E\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-30.detail.reward-02",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-30.detail",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.board.slot-30.detail.reward-02.identity"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.adventure.main.board.slot-30.detail.reward-02.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-30.detail.reward-02.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-30.detail.reward-02",
+      "note": "\u7EC8\u6781\u683C\u7B2C 2 \u4E2A\u5956\u52B1\u7684\u56FE\u6807\u3001\u6570\u91CF\u3001\u54C1\u8D28\u4E0E\u6A2A\u6392\u4F4D\u7F6E\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.slot-30.detail.reward-02.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.slot-30.detail.reward-02",
+      "note": "\u7EC8\u6781\u683C\u7B2C 2 \u4E2A\u5956\u52B1\u7684 ItemTips \u8EAB\u4EFD\u3001\u5185\u5BB9\u4E0E\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.state-matrix",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "control_inventory": [
+        {
+          "id": "common-unreached",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.state-matrix.common-unreached"
+        },
+        {
+          "id": "common-opened",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.state-matrix.common-opened"
+        },
+        {
+          "id": "high-unreached",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.state-matrix.high-unreached"
+        },
+        {
+          "id": "high-opened",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.state-matrix.high-opened"
+        },
+        {
+          "id": "ultimate-unreached",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.state-matrix.ultimate-unreached"
+        },
+        {
+          "id": "ultimate-opened",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.state-matrix.ultimate-opened"
+        },
+        {
+          "id": "special-unreachable",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.board.state-matrix.special-unreachable"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.board.state-matrix.common-unreached",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.state-matrix",
+      "note": "\u666E\u901A\u683C\u672A\u5230\u8FBE box_1 \u4E0E 0.6 \u7F29\u653E\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.state-matrix.common-opened",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.state-matrix",
+      "note": "\u666E\u901A\u683C\u5DF2\u5230\u8FBE box_1_1 \u4E0E\u5F00\u7BB1\u540E\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.state-matrix.high-unreached",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.state-matrix",
+      "note": "\u9AD8\u7EA7\u683C\u672A\u5230\u8FBE box_2\u3001uittmx_002b \u4E0E 0.7 \u7F29\u653E\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.state-matrix.high-opened",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.state-matrix",
+      "note": "\u9AD8\u7EA7\u683C\u5DF2\u5230\u8FBE box_2_1 \u4E0E\u5F00\u7BB1\u540E\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.state-matrix.ultimate-unreached",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.state-matrix",
+      "note": "\u7EC8\u6781\u683C box_3\u3001124x97 \u4E0E\u4E24\u5956\u52B1\u6A2A\u6392\u9884\u89C8\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.state-matrix.ultimate-opened",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.state-matrix",
+      "note": "\u7EC8\u6781\u683C\u5230\u8FBE\u540E\u7684\u5956\u52B1/\u5F00\u7BB1\u65F6\u5E8F\u4E0E\u7EC8\u70B9\u91CD\u7F6E\u5207\u6362\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.state-matrix.special-unreachable",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board.state-matrix",
+      "note": "\u5F53\u524D kv[10]=[]\uFF0C\u7279\u6B8A\u5355\u7269\u54C1\u683C\u4E3A hard-negative\uFF0C\u4E0D\u865A\u6784\u53EF\u8FBE\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.position",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "note": "42701 location \u5230 31 \u4E2A\u5177\u540D\u68CB\u76D8\u5750\u6807\u7684\u6620\u5C04\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.role-model",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "note": "\u4E3B\u89D2\u670D\u88C5\u3001\u6B66\u5668\u3001\u7FC5\u8180\u3001\u5934\u9970\u3001\u80CC\u9970\u53CA\u671D\u5411\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.result-movement",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "note": "42702 steps \u7684\u9AB0\u5B50\u6570\u5B57\u3001\u9010\u683C\u79FB\u52A8\u4E0E idle/run \u751F\u547D\u5468\u671F\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.result-dice",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "note": "\u9AB0\u5B50 UI_2001 \u7684\u5F52\u5C5E\u3001\u53CC\u65F6\u95F4\u70B9\u52A8\u6001\u4E0E\u5173\u95ED\u6E05\u7406\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.result-step",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "note": "42702 \u56DE\u5305\u6B65\u6570\u56FE\u4E0E\u5B9E\u9645\u9010\u683C\u79FB\u52A8\u6570\u4E00\u81F4\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.result-box",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "note": "\u6BCF\u4E00\u5230\u8FBE\u683C\u7684\u5F00\u7BB1\u65F6\u5E8F\u3001\u5DF2\u9886\u53D6\u76AE\u80A4\u4E0E\u4E0B\u4E00\u683C\u63A8\u8FDB\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.result-crit",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "note": "\u66B4\u51FB UI_yjtb_01 \u7684\u5F52\u5C5E\u3001\u53CC\u65F6\u95F4\u70B9\u52A8\u6001\u4E0E\u6E05\u7406\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.result-fly",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "note": "\u9010\u683C\u5956\u52B1\u98DE\u884C\u8F68\u8FF9\u3001\u76EE\u6807\u3001\u76F8\u4F4D\u548C\u4E2D\u9014\u5173\u9875\u96F6\u6B8B\u7559\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.board.result-reward",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.board",
+      "note": "\u6700\u7EC8\u5956\u52B1 CongratulationObtainView \u8EAB\u4EFD\u3001\u5185\u5BB9\u548C\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main",
+      "control_inventory": [
+        {
+          "id": "config",
+          "kind": "data",
+          "child": "mainui.adventure.main.reward-preview.config"
+        },
+        {
+          "id": "scroll",
+          "kind": "scroll-list",
+          "child": "mainui.adventure.main.reward-preview.scroll"
+        },
+        {
+          "id": "item-01",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-01"
+        },
+        {
+          "id": "item-02",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-02"
+        },
+        {
+          "id": "item-03",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-03"
+        },
+        {
+          "id": "item-04",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-04"
+        },
+        {
+          "id": "item-05",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-05"
+        },
+        {
+          "id": "item-06",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-06"
+        },
+        {
+          "id": "item-07",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-07"
+        },
+        {
+          "id": "item-08",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-08"
+        },
+        {
+          "id": "item-09",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-09"
+        },
+        {
+          "id": "item-10",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-10"
+        },
+        {
+          "id": "item-11",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-11"
+        },
+        {
+          "id": "item-12",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-12"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.config",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview",
+      "note": "config_adventure_kv[4] \u7684 12 \u4E2A\u56FA\u5B9A\u9884\u89C8\u7269\u54C1\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview",
+      "note": "254x67 \u6A2A\u5411 ScrollRect\u3001\u88C1\u526A\u3001\u62D6\u52A8\u4E0E\u672B\u9879\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-01",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-01.identity"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.adventure.main.reward-preview.item-01.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-01.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-01",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 1 \u683C\u7684 EquipmentItem \u8EAB\u4EFD\u3001\u56FE\u6807\u3001\u6570\u91CF\u548C\u54C1\u8D28\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-01.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-01",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 1 \u683C\u7684 ItemTips \u5177\u4F53\u7269\u54C1\u3001\u5C42\u7EA7\u4E0E\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-02",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-02.identity"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.adventure.main.reward-preview.item-02.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-02.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-02",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 2 \u683C\u7684 EquipmentItem \u8EAB\u4EFD\u3001\u56FE\u6807\u3001\u6570\u91CF\u548C\u54C1\u8D28\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-02.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-02",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 2 \u683C\u7684 ItemTips \u5177\u4F53\u7269\u54C1\u3001\u5C42\u7EA7\u4E0E\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-03",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-03.identity"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.adventure.main.reward-preview.item-03.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-03.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-03",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 3 \u683C\u7684 EquipmentItem \u8EAB\u4EFD\u3001\u56FE\u6807\u3001\u6570\u91CF\u548C\u54C1\u8D28\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-03.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-03",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 3 \u683C\u7684 ItemTips \u5177\u4F53\u7269\u54C1\u3001\u5C42\u7EA7\u4E0E\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-04",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-04.identity"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.adventure.main.reward-preview.item-04.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-04.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-04",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 4 \u683C\u7684 EquipmentItem \u8EAB\u4EFD\u3001\u56FE\u6807\u3001\u6570\u91CF\u548C\u54C1\u8D28\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-04.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-04",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 4 \u683C\u7684 ItemTips \u5177\u4F53\u7269\u54C1\u3001\u5C42\u7EA7\u4E0E\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-05",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-05.identity"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.adventure.main.reward-preview.item-05.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-05.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-05",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 5 \u683C\u7684 EquipmentItem \u8EAB\u4EFD\u3001\u56FE\u6807\u3001\u6570\u91CF\u548C\u54C1\u8D28\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-05.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-05",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 5 \u683C\u7684 ItemTips \u5177\u4F53\u7269\u54C1\u3001\u5C42\u7EA7\u4E0E\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-06",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-06.identity"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.adventure.main.reward-preview.item-06.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-06.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-06",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 6 \u683C\u7684 EquipmentItem \u8EAB\u4EFD\u3001\u56FE\u6807\u3001\u6570\u91CF\u548C\u54C1\u8D28\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-06.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-06",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 6 \u683C\u7684 ItemTips \u5177\u4F53\u7269\u54C1\u3001\u5C42\u7EA7\u4E0E\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-07",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-07.identity"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.adventure.main.reward-preview.item-07.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-07.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-07",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 7 \u683C\u7684 EquipmentItem \u8EAB\u4EFD\u3001\u56FE\u6807\u3001\u6570\u91CF\u548C\u54C1\u8D28\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-07.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-07",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 7 \u683C\u7684 ItemTips \u5177\u4F53\u7269\u54C1\u3001\u5C42\u7EA7\u4E0E\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-08",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-08.identity"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.adventure.main.reward-preview.item-08.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-08.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-08",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 8 \u683C\u7684 EquipmentItem \u8EAB\u4EFD\u3001\u56FE\u6807\u3001\u6570\u91CF\u548C\u54C1\u8D28\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-08.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-08",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 8 \u683C\u7684 ItemTips \u5177\u4F53\u7269\u54C1\u3001\u5C42\u7EA7\u4E0E\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-09",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-09.identity"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.adventure.main.reward-preview.item-09.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-09.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-09",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 9 \u683C\u7684 EquipmentItem \u8EAB\u4EFD\u3001\u56FE\u6807\u3001\u6570\u91CF\u548C\u54C1\u8D28\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-09.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-09",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 9 \u683C\u7684 ItemTips \u5177\u4F53\u7269\u54C1\u3001\u5C42\u7EA7\u4E0E\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-10",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-10.identity"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.adventure.main.reward-preview.item-10.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-10.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-10",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 10 \u683C\u7684 EquipmentItem \u8EAB\u4EFD\u3001\u56FE\u6807\u3001\u6570\u91CF\u548C\u54C1\u8D28\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-10.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-10",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 10 \u683C\u7684 ItemTips \u5177\u4F53\u7269\u54C1\u3001\u5C42\u7EA7\u4E0E\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-11",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-11.identity"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.adventure.main.reward-preview.item-11.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-11.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-11",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 11 \u683C\u7684 EquipmentItem \u8EAB\u4EFD\u3001\u56FE\u6807\u3001\u6570\u91CF\u548C\u54C1\u8D28\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-11.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-11",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 11 \u683C\u7684 ItemTips \u5177\u4F53\u7269\u54C1\u3001\u5C42\u7EA7\u4E0E\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-12",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "shared-item",
+          "child": "mainui.adventure.main.reward-preview.item-12.identity"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.adventure.main.reward-preview.item-12.detail"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-12.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-12",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 12 \u683C\u7684 EquipmentItem \u8EAB\u4EFD\u3001\u56FE\u6807\u3001\u6570\u91CF\u548C\u54C1\u8D28\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.reward-preview.item-12.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.reward-preview.item-12",
+      "note": "\u5956\u52B1\u9884\u89C8\u7B2C 12 \u683C\u7684 ItemTips \u5177\u4F53\u7269\u54C1\u3001\u5C42\u7EA7\u4E0E\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.action",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main",
+      "control_inventory": [
+        {
+          "id": "free-throw",
+          "kind": "conditional-transaction",
+          "child": "mainui.adventure.main.action.free-throw"
+        },
+        {
+          "id": "ticket-throw",
+          "kind": "conditional-transaction",
+          "child": "mainui.adventure.main.action.ticket-throw"
+        },
+        {
+          "id": "paid-throw",
+          "kind": "page",
+          "child": "mainui.adventure.main.action.paid-throw"
+        },
+        {
+          "id": "free-reset",
+          "kind": "conditional-transaction",
+          "child": "mainui.adventure.main.action.free-reset"
+        },
+        {
+          "id": "paid-reset",
+          "kind": "page",
+          "child": "mainui.adventure.main.action.paid-reset"
+        },
+        {
+          "id": "label-state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.action.label-state"
+        },
+        {
+          "id": "activity-ended",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.action.activity-ended"
+        },
+        {
+          "id": "requesting",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.action.requesting"
+        },
+        {
+          "id": "zero-protect",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.action.zero-protect"
+        },
+        {
+          "id": "insufficient",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.main.action.insufficient"
+        },
+        {
+          "id": "position-30",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.action.position-30"
+        },
+        {
+          "id": "no-reset",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.main.action.no-reset"
+        },
+        {
+          "id": "exhausted-vip",
+          "kind": "conditional-navigation",
+          "child": "mainui.adventure.main.action.exhausted-vip"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.action.free-throw",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.adventure.main.action",
+      "note": "42702 isCheap \u72B6\u6001\u4E0B\u514D\u8D39\u6295\u63B7\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.action.ticket-throw",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.adventure.main.action",
+      "note": "42702 \u4F7F\u7528\u5192\u9669\u5238\u62B5\u6263\u6295\u63B7\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.action.paid-throw",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.action",
+      "control_inventory": [
+        {
+          "id": "message",
+          "kind": "state",
+          "child": "mainui.adventure.main.action.paid-throw.message"
+        },
+        {
+          "id": "confirm",
+          "kind": "transaction",
+          "child": "mainui.adventure.main.action.paid-throw.confirm"
+        },
+        {
+          "id": "cancel",
+          "kind": "return",
+          "child": "mainui.adventure.main.action.paid-throw.cancel"
+        },
+        {
+          "id": "dont-remind",
+          "kind": "toggle",
+          "child": "mainui.adventure.main.action.paid-throw.dont-remind"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.action.paid-throw.message",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.action.paid-throw",
+      "note": "alert_go \u7684\u6295\u63B7\u6210\u672C\u3001\u7968\u5238\u62B5\u6263\u4E0E\u786E\u8BA4\u6587\u6848\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.action.paid-throw.confirm",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.adventure.main.action.paid-throw",
+      "note": "\u786E\u8BA4\u540E\u53D1\u9001 42702 \u52FE\u7389/\u7ED1\u7389\u4ED8\u8D39\u6295\u63B7\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.action.paid-throw.cancel",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.action.paid-throw",
+      "note": "\u53D6\u6D88/\u906E\u7F69\u5173\u95ED\u786E\u8BA4\u6846\u4E14\u4E0D\u53D1\u9001 42702\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.action.paid-throw.dont-remind",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.action.paid-throw",
+      "note": "alert_go \u672C\u767B\u5F55\u4E0D\u518D\u63D0\u793A\u7684\u52FE\u9009\u4E0E\u4F1A\u8BDD\u751F\u547D\u5468\u671F\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.action.free-reset",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.adventure.main.action",
+      "note": "42703 \u514D\u8D39\u91CD\u7F6E\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.action.paid-reset",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.action",
+      "control_inventory": [
+        {
+          "id": "message",
+          "kind": "state",
+          "child": "mainui.adventure.main.action.paid-reset.message"
+        },
+        {
+          "id": "confirm",
+          "kind": "transaction",
+          "child": "mainui.adventure.main.action.paid-reset.confirm"
+        },
+        {
+          "id": "cancel",
+          "kind": "return",
+          "child": "mainui.adventure.main.action.paid-reset.cancel"
+        },
+        {
+          "id": "dont-remind",
+          "kind": "toggle",
+          "child": "mainui.adventure.main.action.paid-reset.dont-remind"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.main.action.paid-reset.message",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.action.paid-reset",
+      "note": "alert_ref \u7684\u91CD\u7F6E\u6210\u672C\u4E0E\u786E\u8BA4\u6587\u6848\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.action.paid-reset.confirm",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.adventure.main.action.paid-reset",
+      "note": "\u786E\u8BA4\u540E\u53D1\u9001 42703 \u4ED8\u8D39\u91CD\u7F6E\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.action.paid-reset.cancel",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.action.paid-reset",
+      "note": "\u53D6\u6D88/\u906E\u7F69\u5173\u95ED\u786E\u8BA4\u6846\u4E14\u4E0D\u53D1\u9001 42703\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.action.paid-reset.dont-remind",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.action.paid-reset",
+      "note": "alert_ref \u672C\u767B\u5F55\u4E0D\u518D\u63D0\u793A\u7684\u52FE\u9009\u4E0E\u4F1A\u8BDD\u751F\u547D\u5468\u671F\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.action.label-state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.action",
+      "note": "location!=30 \u663E\u793A\u524D\u8FDB\uFF0Clocation=30 \u663E\u793A\u91CD\u7F6E\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.action.activity-ended",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.action",
+      "note": "\u6D3B\u52A8\u7ED3\u675F\u65F6\u63D0\u793A\u6D3B\u52A8\u5DF2\u7ECF\u7ED3\u675F\u5E76\u4E14\u4E0D\u53D1\u9001 42702/42703\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.action.requesting",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.action",
+      "note": "42702 \u6295\u63B7\u4E2D\u6309\u94AE\u9632\u91CD\u5165\u3001\u63D0\u793A\u4E0E\u56DE\u5305\u6062\u590D\uFF1B42703 \u4E0D\u865A\u6784\u540C\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.action.zero-protect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.action",
+      "note": "\u96F6\u70B9\u524D\u540E 15 \u79D2\u663E\u793A\u91CD\u7F6E\u4E2D\u5E76\u7981\u6B62\u63D0\u4EA4\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.action.insufficient",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.action",
+      "note": "\u5192\u9669\u5238/\u52FE\u7389\u4E0D\u8DB3\u65F6\u51C6\u786E\u63D0\u793A\u6216\u5145\u503C\u8DF3\u8F6C\uFF0C\u4E0D\u53D1\u9001\u4E8B\u52A1\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.action.position-30",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.action",
+      "note": "\u4F4D\u7F6E 30 \u65F6\u540C\u4E00\u6309\u94AE\u5207\u6362\u4E3A\u91CD\u7F6E\u8BED\u4E49\u4E0E\u5BF9\u5E94\u6210\u672C\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.action.no-reset",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.action",
+      "note": "\u65E0\u5269\u4F59\u91CD\u7F6E\u6B21\u6570\u65F6\u7981\u7528/\u63D0\u793A\u4E14\u4E0D\u53D1\u9001 42703\u3002"
+    },
+    {
+      "id": "mainui.adventure.main.action.exhausted-vip",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.action",
+      "note": "\u6B21\u6570\u8017\u5C3D\u65F6 VIP \u4E0B\u4E00\u6863\u4E0E\u524D\u5F80\u5145\u503C\u5F39\u7A97\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.main.shop-open",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "visual",
+          "child": "mainui.adventure.shop.identity"
+        },
+        {
+          "id": "close",
+          "kind": "page",
+          "child": "mainui.adventure.shop.close"
+        },
+        {
+          "id": "query",
+          "kind": "protocol-read",
+          "child": "mainui.adventure.shop.query"
+        },
+        {
+          "id": "refresh",
+          "kind": "page",
+          "child": "mainui.adventure.shop.refresh"
+        },
+        {
+          "id": "countdown",
+          "kind": "page",
+          "child": "mainui.adventure.shop.countdown"
+        },
+        {
+          "id": "list",
+          "kind": "page",
+          "child": "mainui.adventure.shop.list"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop",
+      "note": "Activity \u5C42\u5F39\u7A97\u80CC\u666F\u3001\u6807\u9898\u3001\u906E\u7F69\u548C\u6839\u5C3A\u5BF8\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.close",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop",
+      "control_inventory": [
+        {
+          "id": "button",
+          "kind": "return",
+          "child": "mainui.adventure.shop.close.button"
+        },
+        {
+          "id": "mask",
+          "kind": "return",
+          "child": "mainui.adventure.shop.close.mask"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.close.button",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.close",
+      "note": "X/\u8FD4\u56DE\u6309\u94AE\u5173\u95ED\u5546\u5E97\u4E14\u4E3B\u68CB\u76D8\u4FDD\u6301\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.close.mask",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.close",
+      "note": "\u80CC\u666F\u906E\u7F69\u70B9\u51FB\u5173\u95ED\u5546\u5E97\u4E14\u4E0D\u7A7F\u900F\u4E3B\u68CB\u76D8\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.query",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop",
+      "note": "42704 times/refresh_cost/goods_list \u516D\u683C\u67E5\u8BE2\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.refresh",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop",
+      "control_inventory": [
+        {
+          "id": "free-state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.refresh.free-state"
+        },
+        {
+          "id": "free-submit",
+          "kind": "conditional-transaction",
+          "child": "mainui.adventure.shop.refresh.free-submit"
+        },
+        {
+          "id": "paid-state",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.refresh.paid-state"
+        },
+        {
+          "id": "paid-confirm",
+          "kind": "popup",
+          "child": "mainui.adventure.shop.refresh.paid-confirm"
+        },
+        {
+          "id": "insufficient",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.shop.refresh.insufficient"
+        },
+        {
+          "id": "zero-protect",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.refresh.zero-protect"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.refresh.free-state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.refresh",
+      "note": "\u514D\u8D39\u5237\u65B0\u65F6 _lb_ref=\u514D\u8D39\uFF0Ccost icon/number \u9690\u85CF\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.refresh.free-submit",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.adventure.shop.refresh",
+      "note": "42706 \u514D\u8D39\u624B\u52A8\u5237\u65B0\u4E0E\u516D\u683C\u5373\u65F6\u66FF\u6362\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.refresh.paid-state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.refresh",
+      "note": "\u4ED8\u8D39\u5237\u65B0\u65F6 _lb_ref=\u5237\u65B0\uFF0C\u51C6\u786E cost icon/number \u663E\u793A\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.refresh.paid-confirm",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.refresh",
+      "control_inventory": [
+        {
+          "id": "message",
+          "kind": "state",
+          "child": "mainui.adventure.shop.refresh.paid-confirm.message"
+        },
+        {
+          "id": "confirm",
+          "kind": "transaction",
+          "child": "mainui.adventure.shop.refresh.paid-confirm.confirm"
+        },
+        {
+          "id": "cancel",
+          "kind": "return",
+          "child": "mainui.adventure.shop.refresh.paid-confirm.cancel"
+        },
+        {
+          "id": "dont-remind",
+          "kind": "toggle",
+          "child": "mainui.adventure.shop.refresh.paid-confirm.dont-remind"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.refresh.paid-confirm.message",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.refresh.paid-confirm",
+      "note": "\u4ED8\u8D39\u5237\u65B0\u51C6\u786E\u6210\u672C\u786E\u8BA4\u6587\u6848\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.refresh.paid-confirm.confirm",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.adventure.shop.refresh.paid-confirm",
+      "note": "\u786E\u8BA4\u540E\u53D1\u9001 42706 \u5E76\u5373\u65F6\u66FF\u6362\u516D\u683C\u53CA\u8D27\u5E01\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.refresh.paid-confirm.cancel",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.refresh.paid-confirm",
+      "note": "\u53D6\u6D88/\u906E\u7F69\u5173\u95ED\u4E14\u4E0D\u53D1\u9001 42706\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.refresh.paid-confirm.dont-remind",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.refresh.paid-confirm",
+      "note": "alert_shop_ref \u672C\u767B\u5F55\u4E0D\u518D\u63D0\u793A\u7684\u4F1A\u8BDD\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.refresh.insufficient",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.refresh",
+      "note": "\u5237\u65B0\u8D39\u7528\u4E0D\u8DB3\u63D0\u793A/\u5145\u503C\u8DF3\u8F6C\uFF0C\u4E0D\u53D1\u9001 42706\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.refresh.zero-protect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.refresh",
+      "note": "\u96F6\u70B9\u524D\u540E\u4FDD\u62A4\u663E\u793A\u5237\u65B0\u4E2D\u5E76\u7981\u6B62\u63D0\u4EA4\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.countdown",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop",
+      "control_inventory": [
+        {
+          "id": "normal",
+          "kind": "timer",
+          "child": "mainui.adventure.shop.countdown.normal"
+        },
+        {
+          "id": "resetting",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.countdown.resetting"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.countdown.normal",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.countdown",
+      "note": "\u6B63\u5E38\u6001\u8DDD\u5546\u5E97\u81EA\u52A8\u5237\u65B0\u5012\u8BA1\u65F6\u3001\u9010\u79D2\u66F4\u65B0\u4E0E\u5173\u9875\u505C\u6B62\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.countdown.resetting",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.countdown",
+      "note": "\u96F6\u70B9\u4FDD\u62A4\u663E\u793A\u5237\u65B0\u4E2D(Ns)\u5E76\u7981\u6B62\u5237\u65B0/\u8D2D\u4E70\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop",
+      "control_inventory": [
+        {
+          "id": "layout",
+          "kind": "scroll-list",
+          "child": "mainui.adventure.shop.list.layout"
+        },
+        {
+          "id": "item-01",
+          "kind": "list-item",
+          "child": "mainui.adventure.shop.list.item-01"
+        },
+        {
+          "id": "item-02",
+          "kind": "list-item",
+          "child": "mainui.adventure.shop.list.item-02"
+        },
+        {
+          "id": "item-03",
+          "kind": "list-item",
+          "child": "mainui.adventure.shop.list.item-03"
+        },
+        {
+          "id": "item-04",
+          "kind": "list-item",
+          "child": "mainui.adventure.shop.list.item-04"
+        },
+        {
+          "id": "item-05",
+          "kind": "list-item",
+          "child": "mainui.adventure.shop.list.item-05"
+        },
+        {
+          "id": "item-06",
+          "kind": "list-item",
+          "child": "mainui.adventure.shop.list.item-06"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.list.layout",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list",
+      "note": "3 \u5217 x 2 \u884C\u3001ScrollRect/Mask/Content \u9AD8\u5EA6\u4E0E\u62D6\u52A8\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list",
+      "control_inventory": [
+        {
+          "id": "name",
+          "kind": "text",
+          "child": "mainui.adventure.shop.list.item-01.name"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.adventure.shop.list.item-01.detail"
+        },
+        {
+          "id": "original-price",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-01.original-price"
+        },
+        {
+          "id": "current-price",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-01.current-price"
+        },
+        {
+          "id": "discount-integer",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-01.discount-integer"
+        },
+        {
+          "id": "discount-decimal",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-01.discount-decimal"
+        },
+        {
+          "id": "discount-hidden",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-01.discount-hidden"
+        },
+        {
+          "id": "unbought-paid",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-01.unbought-paid"
+        },
+        {
+          "id": "unbought-free",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-01.unbought-free"
+        },
+        {
+          "id": "purchased",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-01.purchased"
+        },
+        {
+          "id": "limit",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-01.limit"
+        },
+        {
+          "id": "over",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-01.over"
+        },
+        {
+          "id": "effect1-condition",
+          "kind": "conditional-effect",
+          "child": "mainui.adventure.shop.list.item-01.effect1-condition"
+        },
+        {
+          "id": "discount-effect",
+          "kind": "effect",
+          "child": "mainui.adventure.shop.list.item-01.discount-effect"
+        },
+        {
+          "id": "buy",
+          "kind": "page",
+          "child": "mainui.adventure.shop.list.item-01.buy"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.name",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01",
+      "note": "\u5546\u54C1\u540D\u3001EquipmentItem \u56FE\u6807\u3001\u6570\u91CF\u4E0E\u54C1\u8D28\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01",
+      "note": "\u5546\u54C1 EquipmentItem \u7684\u51C6\u786E\u8BE6\u60C5\u5F39\u7A97\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.original-price",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01",
+      "note": "\u539F\u4EF7\u3001\u8D27\u5E01\u56FE\u6807\u4E0E\u5220\u9664\u7EBF\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.current-price",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01",
+      "note": "\u73B0\u4EF7\u3001\u514D\u8D39\u6587\u6848\u3001\u8D27\u5E01\u56FE\u6807\u4E0E\u4E0D\u8DB3\u989C\u8272\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.discount-integer",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01",
+      "note": "\u6574\u6570\u6298\u6263\u56FE\u7684\u8D44\u6E90\u3001\u4F4D\u7F6E\u548C\u663E\u9690\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.discount-decimal",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01",
+      "note": "\u5C0F\u6570\u6298\u6263 point_gp\u002Bbig_num\u002Bsmall_num \u7684\u5E03\u5C40\u548C\u663E\u9690\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.discount-hidden",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01",
+      "note": "disc\u003C=0 \u6216 \u003E=10 \u65F6 _img_discount \u4E0E point_gp \u5747\u9690\u85CF\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.unbought-paid",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01",
+      "note": "\u672A\u8D2D\u4E70\u4ED8\u8D39\u5546\u54C1\u6309\u94AE\u3001\u4EF7\u683C\u4E0E\u65E0\u7EA2\u70B9\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.unbought-free",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01",
+      "note": "\u672A\u8D2D\u4E70\u514D\u8D39\u5546\u54C1\u3001\u7EA2\u70B9\u4E0E ui_anniu_5 \u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.purchased",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01",
+      "note": "\u5DF2\u8D2D\u4E70/\u5DF2\u9886\u53D6\u540E\u7684\u552E\u7F44\u906E\u7F69\u3001\u6309\u94AE\u53EF\u547D\u4E2D\u4E0E\u91CD\u5F00\u4E00\u81F4\u6027\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.limit",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01",
+      "note": "_lb_limit \u6761\u4EF6\u6587\u6848\u7684\u771F\u5B9E\u53EF\u8FBE\u6027\u4E0E\u5E03\u5C40\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.over",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01",
+      "note": "_img_over \u6761\u4EF6\u906E\u7F69\u7684\u771F\u5B9E\u53EF\u8FBE\u6027\u3001\u5C42\u7EA7\u4E0E\u70B9\u51FB\u62E6\u622A\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.effect1-condition",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01",
+      "note": "_gp_effect1 \u6761\u4EF6\u5BB9\u5668\u867D\u8001\u7AEF\u8D4B\u503C\u94FE\u5F31\uFF0C\u4ECD\u6838\u5B9E\u663E\u9690\u4E0E\u8DB3\u8FF9\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.discount-effect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01",
+      "note": "UI_yjtb_02 \u4E0E ui_anniu_5 \u52A8\u6001\u8DB3\u8FF9\u548C\u6E05\u7406\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.buy",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01",
+      "control_inventory": [
+        {
+          "id": "free-claim",
+          "kind": "conditional-transaction",
+          "child": "mainui.adventure.shop.list.item-01.buy.free-claim"
+        },
+        {
+          "id": "paid-confirm",
+          "kind": "popup",
+          "child": "mainui.adventure.shop.list.item-01.buy.paid-confirm"
+        },
+        {
+          "id": "zero-protect",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-01.buy.zero-protect"
+        },
+        {
+          "id": "insufficient",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.shop.list.item-01.buy.insufficient"
+        },
+        {
+          "id": "purchased-click",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-01.buy.purchased-click"
+        },
+        {
+          "id": "success-refresh",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-01.buy.success-refresh"
+        },
+        {
+          "id": "success-reward",
+          "kind": "popup",
+          "child": "mainui.adventure.shop.list.item-01.buy.success-reward"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.buy.free-claim",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.adventure.shop.list.item-01.buy",
+      "note": "42705 \u514D\u8D39\u9886\u53D6\u3001\u5F53\u524D\u683C\u5373\u65F6\u5237\u65B0\u548C\u91CD\u5F00\u4E00\u81F4\u6027\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.buy.paid-confirm",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01.buy",
+      "control_inventory": [
+        {
+          "id": "message",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-01.buy.paid-confirm.message"
+        },
+        {
+          "id": "confirm",
+          "kind": "transaction",
+          "child": "mainui.adventure.shop.list.item-01.buy.paid-confirm.confirm"
+        },
+        {
+          "id": "cancel",
+          "kind": "return",
+          "child": "mainui.adventure.shop.list.item-01.buy.paid-confirm.cancel"
+        },
+        {
+          "id": "dont-remind",
+          "kind": "toggle",
+          "child": "mainui.adventure.shop.list.item-01.buy.paid-confirm.dont-remind"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.buy.paid-confirm.message",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01.buy.paid-confirm",
+      "note": "\u672C\u683C\u5546\u54C1\u540D\u3001\u6570\u91CF\u4E0E\u51C6\u786E\u52FE\u7389\u6210\u672C\u786E\u8BA4\u6587\u6848\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.buy.paid-confirm.confirm",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.adventure.shop.list.item-01.buy.paid-confirm",
+      "note": "alert_shop_buy \u786E\u8BA4\u540E\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.buy.paid-confirm.cancel",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01.buy.paid-confirm",
+      "note": "\u53D6\u6D88/\u906E\u7F69\u5173\u95ED\u4E14\u4E0D\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.buy.paid-confirm.dont-remind",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01.buy.paid-confirm",
+      "note": "alert_shop_buy \u672C\u767B\u5F55\u4E0D\u518D\u63D0\u793A\u7684\u4F1A\u8BDD\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.buy.zero-protect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01.buy",
+      "note": "\u96F6\u70B9\u4FDD\u62A4\u63D0\u793A\u5237\u65B0\u4E2D\u5E76\u4E14\u4E0D\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.buy.insufficient",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01.buy",
+      "note": "\u4F59\u989D\u4E0D\u8DB3\u8D70 NotEnoughDiamond\uFF0C\u4E0D\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.buy.purchased-click",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01.buy",
+      "note": "\u5DF2\u8D2D\u4E70\u6309\u94AE\u518D\u6B21\u70B9\u51FB\u63D0\u793A\u5DF2\u8D2D\u4E70\uFF0C\u4E0D\u91CD\u590D\u53D1\u9001 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.buy.success-refresh",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01.buy",
+      "note": "42705 \u6210\u529F\u540E\u672C\u683C state/\u7EA2\u70B9/\u8D27\u5E01\u5373\u65F6\u5237\u65B0\u4E14\u5173\u95ED\u91CD\u5F00\u4E00\u81F4\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-01.buy.success-reward",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-01.buy",
+      "note": "42705 \u6210\u529F\u540E\u7684 CongratulationObtainView \u5185\u5BB9\u3001\u5C42\u7EA7\u4E0E\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list",
+      "control_inventory": [
+        {
+          "id": "name",
+          "kind": "text",
+          "child": "mainui.adventure.shop.list.item-02.name"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.adventure.shop.list.item-02.detail"
+        },
+        {
+          "id": "original-price",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-02.original-price"
+        },
+        {
+          "id": "current-price",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-02.current-price"
+        },
+        {
+          "id": "discount-integer",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-02.discount-integer"
+        },
+        {
+          "id": "discount-decimal",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-02.discount-decimal"
+        },
+        {
+          "id": "discount-hidden",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-02.discount-hidden"
+        },
+        {
+          "id": "unbought-paid",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-02.unbought-paid"
+        },
+        {
+          "id": "unbought-free",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-02.unbought-free"
+        },
+        {
+          "id": "purchased",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-02.purchased"
+        },
+        {
+          "id": "limit",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-02.limit"
+        },
+        {
+          "id": "over",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-02.over"
+        },
+        {
+          "id": "effect1-condition",
+          "kind": "conditional-effect",
+          "child": "mainui.adventure.shop.list.item-02.effect1-condition"
+        },
+        {
+          "id": "discount-effect",
+          "kind": "effect",
+          "child": "mainui.adventure.shop.list.item-02.discount-effect"
+        },
+        {
+          "id": "buy",
+          "kind": "page",
+          "child": "mainui.adventure.shop.list.item-02.buy"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.name",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02",
+      "note": "\u5546\u54C1\u540D\u3001EquipmentItem \u56FE\u6807\u3001\u6570\u91CF\u4E0E\u54C1\u8D28\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02",
+      "note": "\u5546\u54C1 EquipmentItem \u7684\u51C6\u786E\u8BE6\u60C5\u5F39\u7A97\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.original-price",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02",
+      "note": "\u539F\u4EF7\u3001\u8D27\u5E01\u56FE\u6807\u4E0E\u5220\u9664\u7EBF\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.current-price",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02",
+      "note": "\u73B0\u4EF7\u3001\u514D\u8D39\u6587\u6848\u3001\u8D27\u5E01\u56FE\u6807\u4E0E\u4E0D\u8DB3\u989C\u8272\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.discount-integer",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02",
+      "note": "\u6574\u6570\u6298\u6263\u56FE\u7684\u8D44\u6E90\u3001\u4F4D\u7F6E\u548C\u663E\u9690\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.discount-decimal",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02",
+      "note": "\u5C0F\u6570\u6298\u6263 point_gp\u002Bbig_num\u002Bsmall_num \u7684\u5E03\u5C40\u548C\u663E\u9690\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.discount-hidden",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02",
+      "note": "disc\u003C=0 \u6216 \u003E=10 \u65F6 _img_discount \u4E0E point_gp \u5747\u9690\u85CF\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.unbought-paid",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02",
+      "note": "\u672A\u8D2D\u4E70\u4ED8\u8D39\u5546\u54C1\u6309\u94AE\u3001\u4EF7\u683C\u4E0E\u65E0\u7EA2\u70B9\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.unbought-free",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02",
+      "note": "\u672A\u8D2D\u4E70\u514D\u8D39\u5546\u54C1\u3001\u7EA2\u70B9\u4E0E ui_anniu_5 \u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.purchased",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02",
+      "note": "\u5DF2\u8D2D\u4E70/\u5DF2\u9886\u53D6\u540E\u7684\u552E\u7F44\u906E\u7F69\u3001\u6309\u94AE\u53EF\u547D\u4E2D\u4E0E\u91CD\u5F00\u4E00\u81F4\u6027\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.limit",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02",
+      "note": "_lb_limit \u6761\u4EF6\u6587\u6848\u7684\u771F\u5B9E\u53EF\u8FBE\u6027\u4E0E\u5E03\u5C40\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.over",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02",
+      "note": "_img_over \u6761\u4EF6\u906E\u7F69\u7684\u771F\u5B9E\u53EF\u8FBE\u6027\u3001\u5C42\u7EA7\u4E0E\u70B9\u51FB\u62E6\u622A\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.effect1-condition",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02",
+      "note": "_gp_effect1 \u6761\u4EF6\u5BB9\u5668\u867D\u8001\u7AEF\u8D4B\u503C\u94FE\u5F31\uFF0C\u4ECD\u6838\u5B9E\u663E\u9690\u4E0E\u8DB3\u8FF9\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.discount-effect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02",
+      "note": "UI_yjtb_02 \u4E0E ui_anniu_5 \u52A8\u6001\u8DB3\u8FF9\u548C\u6E05\u7406\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.buy",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02",
+      "control_inventory": [
+        {
+          "id": "free-claim",
+          "kind": "conditional-transaction",
+          "child": "mainui.adventure.shop.list.item-02.buy.free-claim"
+        },
+        {
+          "id": "paid-confirm",
+          "kind": "popup",
+          "child": "mainui.adventure.shop.list.item-02.buy.paid-confirm"
+        },
+        {
+          "id": "zero-protect",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-02.buy.zero-protect"
+        },
+        {
+          "id": "insufficient",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.shop.list.item-02.buy.insufficient"
+        },
+        {
+          "id": "purchased-click",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-02.buy.purchased-click"
+        },
+        {
+          "id": "success-refresh",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-02.buy.success-refresh"
+        },
+        {
+          "id": "success-reward",
+          "kind": "popup",
+          "child": "mainui.adventure.shop.list.item-02.buy.success-reward"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.buy.free-claim",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.adventure.shop.list.item-02.buy",
+      "note": "42705 \u514D\u8D39\u9886\u53D6\u3001\u5F53\u524D\u683C\u5373\u65F6\u5237\u65B0\u548C\u91CD\u5F00\u4E00\u81F4\u6027\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.buy.paid-confirm",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02.buy",
+      "control_inventory": [
+        {
+          "id": "message",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-02.buy.paid-confirm.message"
+        },
+        {
+          "id": "confirm",
+          "kind": "transaction",
+          "child": "mainui.adventure.shop.list.item-02.buy.paid-confirm.confirm"
+        },
+        {
+          "id": "cancel",
+          "kind": "return",
+          "child": "mainui.adventure.shop.list.item-02.buy.paid-confirm.cancel"
+        },
+        {
+          "id": "dont-remind",
+          "kind": "toggle",
+          "child": "mainui.adventure.shop.list.item-02.buy.paid-confirm.dont-remind"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.buy.paid-confirm.message",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02.buy.paid-confirm",
+      "note": "\u672C\u683C\u5546\u54C1\u540D\u3001\u6570\u91CF\u4E0E\u51C6\u786E\u52FE\u7389\u6210\u672C\u786E\u8BA4\u6587\u6848\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.buy.paid-confirm.confirm",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.adventure.shop.list.item-02.buy.paid-confirm",
+      "note": "alert_shop_buy \u786E\u8BA4\u540E\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.buy.paid-confirm.cancel",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02.buy.paid-confirm",
+      "note": "\u53D6\u6D88/\u906E\u7F69\u5173\u95ED\u4E14\u4E0D\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.buy.paid-confirm.dont-remind",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02.buy.paid-confirm",
+      "note": "alert_shop_buy \u672C\u767B\u5F55\u4E0D\u518D\u63D0\u793A\u7684\u4F1A\u8BDD\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.buy.zero-protect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02.buy",
+      "note": "\u96F6\u70B9\u4FDD\u62A4\u63D0\u793A\u5237\u65B0\u4E2D\u5E76\u4E14\u4E0D\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.buy.insufficient",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02.buy",
+      "note": "\u4F59\u989D\u4E0D\u8DB3\u8D70 NotEnoughDiamond\uFF0C\u4E0D\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.buy.purchased-click",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02.buy",
+      "note": "\u5DF2\u8D2D\u4E70\u6309\u94AE\u518D\u6B21\u70B9\u51FB\u63D0\u793A\u5DF2\u8D2D\u4E70\uFF0C\u4E0D\u91CD\u590D\u53D1\u9001 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.buy.success-refresh",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02.buy",
+      "note": "42705 \u6210\u529F\u540E\u672C\u683C state/\u7EA2\u70B9/\u8D27\u5E01\u5373\u65F6\u5237\u65B0\u4E14\u5173\u95ED\u91CD\u5F00\u4E00\u81F4\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-02.buy.success-reward",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-02.buy",
+      "note": "42705 \u6210\u529F\u540E\u7684 CongratulationObtainView \u5185\u5BB9\u3001\u5C42\u7EA7\u4E0E\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list",
+      "control_inventory": [
+        {
+          "id": "name",
+          "kind": "text",
+          "child": "mainui.adventure.shop.list.item-03.name"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.adventure.shop.list.item-03.detail"
+        },
+        {
+          "id": "original-price",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-03.original-price"
+        },
+        {
+          "id": "current-price",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-03.current-price"
+        },
+        {
+          "id": "discount-integer",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-03.discount-integer"
+        },
+        {
+          "id": "discount-decimal",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-03.discount-decimal"
+        },
+        {
+          "id": "discount-hidden",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-03.discount-hidden"
+        },
+        {
+          "id": "unbought-paid",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-03.unbought-paid"
+        },
+        {
+          "id": "unbought-free",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-03.unbought-free"
+        },
+        {
+          "id": "purchased",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-03.purchased"
+        },
+        {
+          "id": "limit",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-03.limit"
+        },
+        {
+          "id": "over",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-03.over"
+        },
+        {
+          "id": "effect1-condition",
+          "kind": "conditional-effect",
+          "child": "mainui.adventure.shop.list.item-03.effect1-condition"
+        },
+        {
+          "id": "discount-effect",
+          "kind": "effect",
+          "child": "mainui.adventure.shop.list.item-03.discount-effect"
+        },
+        {
+          "id": "buy",
+          "kind": "page",
+          "child": "mainui.adventure.shop.list.item-03.buy"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.name",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03",
+      "note": "\u5546\u54C1\u540D\u3001EquipmentItem \u56FE\u6807\u3001\u6570\u91CF\u4E0E\u54C1\u8D28\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03",
+      "note": "\u5546\u54C1 EquipmentItem \u7684\u51C6\u786E\u8BE6\u60C5\u5F39\u7A97\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.original-price",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03",
+      "note": "\u539F\u4EF7\u3001\u8D27\u5E01\u56FE\u6807\u4E0E\u5220\u9664\u7EBF\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.current-price",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03",
+      "note": "\u73B0\u4EF7\u3001\u514D\u8D39\u6587\u6848\u3001\u8D27\u5E01\u56FE\u6807\u4E0E\u4E0D\u8DB3\u989C\u8272\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.discount-integer",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03",
+      "note": "\u6574\u6570\u6298\u6263\u56FE\u7684\u8D44\u6E90\u3001\u4F4D\u7F6E\u548C\u663E\u9690\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.discount-decimal",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03",
+      "note": "\u5C0F\u6570\u6298\u6263 point_gp\u002Bbig_num\u002Bsmall_num \u7684\u5E03\u5C40\u548C\u663E\u9690\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.discount-hidden",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03",
+      "note": "disc\u003C=0 \u6216 \u003E=10 \u65F6 _img_discount \u4E0E point_gp \u5747\u9690\u85CF\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.unbought-paid",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03",
+      "note": "\u672A\u8D2D\u4E70\u4ED8\u8D39\u5546\u54C1\u6309\u94AE\u3001\u4EF7\u683C\u4E0E\u65E0\u7EA2\u70B9\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.unbought-free",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03",
+      "note": "\u672A\u8D2D\u4E70\u514D\u8D39\u5546\u54C1\u3001\u7EA2\u70B9\u4E0E ui_anniu_5 \u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.purchased",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03",
+      "note": "\u5DF2\u8D2D\u4E70/\u5DF2\u9886\u53D6\u540E\u7684\u552E\u7F44\u906E\u7F69\u3001\u6309\u94AE\u53EF\u547D\u4E2D\u4E0E\u91CD\u5F00\u4E00\u81F4\u6027\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.limit",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03",
+      "note": "_lb_limit \u6761\u4EF6\u6587\u6848\u7684\u771F\u5B9E\u53EF\u8FBE\u6027\u4E0E\u5E03\u5C40\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.over",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03",
+      "note": "_img_over \u6761\u4EF6\u906E\u7F69\u7684\u771F\u5B9E\u53EF\u8FBE\u6027\u3001\u5C42\u7EA7\u4E0E\u70B9\u51FB\u62E6\u622A\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.effect1-condition",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03",
+      "note": "_gp_effect1 \u6761\u4EF6\u5BB9\u5668\u867D\u8001\u7AEF\u8D4B\u503C\u94FE\u5F31\uFF0C\u4ECD\u6838\u5B9E\u663E\u9690\u4E0E\u8DB3\u8FF9\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.discount-effect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03",
+      "note": "UI_yjtb_02 \u4E0E ui_anniu_5 \u52A8\u6001\u8DB3\u8FF9\u548C\u6E05\u7406\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.buy",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03",
+      "control_inventory": [
+        {
+          "id": "free-claim",
+          "kind": "conditional-transaction",
+          "child": "mainui.adventure.shop.list.item-03.buy.free-claim"
+        },
+        {
+          "id": "paid-confirm",
+          "kind": "popup",
+          "child": "mainui.adventure.shop.list.item-03.buy.paid-confirm"
+        },
+        {
+          "id": "zero-protect",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-03.buy.zero-protect"
+        },
+        {
+          "id": "insufficient",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.shop.list.item-03.buy.insufficient"
+        },
+        {
+          "id": "purchased-click",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-03.buy.purchased-click"
+        },
+        {
+          "id": "success-refresh",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-03.buy.success-refresh"
+        },
+        {
+          "id": "success-reward",
+          "kind": "popup",
+          "child": "mainui.adventure.shop.list.item-03.buy.success-reward"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.buy.free-claim",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.adventure.shop.list.item-03.buy",
+      "note": "42705 \u514D\u8D39\u9886\u53D6\u3001\u5F53\u524D\u683C\u5373\u65F6\u5237\u65B0\u548C\u91CD\u5F00\u4E00\u81F4\u6027\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.buy.paid-confirm",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03.buy",
+      "control_inventory": [
+        {
+          "id": "message",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-03.buy.paid-confirm.message"
+        },
+        {
+          "id": "confirm",
+          "kind": "transaction",
+          "child": "mainui.adventure.shop.list.item-03.buy.paid-confirm.confirm"
+        },
+        {
+          "id": "cancel",
+          "kind": "return",
+          "child": "mainui.adventure.shop.list.item-03.buy.paid-confirm.cancel"
+        },
+        {
+          "id": "dont-remind",
+          "kind": "toggle",
+          "child": "mainui.adventure.shop.list.item-03.buy.paid-confirm.dont-remind"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.buy.paid-confirm.message",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03.buy.paid-confirm",
+      "note": "\u672C\u683C\u5546\u54C1\u540D\u3001\u6570\u91CF\u4E0E\u51C6\u786E\u52FE\u7389\u6210\u672C\u786E\u8BA4\u6587\u6848\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.buy.paid-confirm.confirm",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.adventure.shop.list.item-03.buy.paid-confirm",
+      "note": "alert_shop_buy \u786E\u8BA4\u540E\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.buy.paid-confirm.cancel",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03.buy.paid-confirm",
+      "note": "\u53D6\u6D88/\u906E\u7F69\u5173\u95ED\u4E14\u4E0D\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.buy.paid-confirm.dont-remind",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03.buy.paid-confirm",
+      "note": "alert_shop_buy \u672C\u767B\u5F55\u4E0D\u518D\u63D0\u793A\u7684\u4F1A\u8BDD\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.buy.zero-protect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03.buy",
+      "note": "\u96F6\u70B9\u4FDD\u62A4\u63D0\u793A\u5237\u65B0\u4E2D\u5E76\u4E14\u4E0D\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.buy.insufficient",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03.buy",
+      "note": "\u4F59\u989D\u4E0D\u8DB3\u8D70 NotEnoughDiamond\uFF0C\u4E0D\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.buy.purchased-click",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03.buy",
+      "note": "\u5DF2\u8D2D\u4E70\u6309\u94AE\u518D\u6B21\u70B9\u51FB\u63D0\u793A\u5DF2\u8D2D\u4E70\uFF0C\u4E0D\u91CD\u590D\u53D1\u9001 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.buy.success-refresh",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03.buy",
+      "note": "42705 \u6210\u529F\u540E\u672C\u683C state/\u7EA2\u70B9/\u8D27\u5E01\u5373\u65F6\u5237\u65B0\u4E14\u5173\u95ED\u91CD\u5F00\u4E00\u81F4\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-03.buy.success-reward",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-03.buy",
+      "note": "42705 \u6210\u529F\u540E\u7684 CongratulationObtainView \u5185\u5BB9\u3001\u5C42\u7EA7\u4E0E\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list",
+      "control_inventory": [
+        {
+          "id": "name",
+          "kind": "text",
+          "child": "mainui.adventure.shop.list.item-04.name"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.adventure.shop.list.item-04.detail"
+        },
+        {
+          "id": "original-price",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-04.original-price"
+        },
+        {
+          "id": "current-price",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-04.current-price"
+        },
+        {
+          "id": "discount-integer",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-04.discount-integer"
+        },
+        {
+          "id": "discount-decimal",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-04.discount-decimal"
+        },
+        {
+          "id": "discount-hidden",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-04.discount-hidden"
+        },
+        {
+          "id": "unbought-paid",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-04.unbought-paid"
+        },
+        {
+          "id": "unbought-free",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-04.unbought-free"
+        },
+        {
+          "id": "purchased",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-04.purchased"
+        },
+        {
+          "id": "limit",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-04.limit"
+        },
+        {
+          "id": "over",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-04.over"
+        },
+        {
+          "id": "effect1-condition",
+          "kind": "conditional-effect",
+          "child": "mainui.adventure.shop.list.item-04.effect1-condition"
+        },
+        {
+          "id": "discount-effect",
+          "kind": "effect",
+          "child": "mainui.adventure.shop.list.item-04.discount-effect"
+        },
+        {
+          "id": "buy",
+          "kind": "page",
+          "child": "mainui.adventure.shop.list.item-04.buy"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.name",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04",
+      "note": "\u5546\u54C1\u540D\u3001EquipmentItem \u56FE\u6807\u3001\u6570\u91CF\u4E0E\u54C1\u8D28\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04",
+      "note": "\u5546\u54C1 EquipmentItem \u7684\u51C6\u786E\u8BE6\u60C5\u5F39\u7A97\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.original-price",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04",
+      "note": "\u539F\u4EF7\u3001\u8D27\u5E01\u56FE\u6807\u4E0E\u5220\u9664\u7EBF\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.current-price",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04",
+      "note": "\u73B0\u4EF7\u3001\u514D\u8D39\u6587\u6848\u3001\u8D27\u5E01\u56FE\u6807\u4E0E\u4E0D\u8DB3\u989C\u8272\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.discount-integer",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04",
+      "note": "\u6574\u6570\u6298\u6263\u56FE\u7684\u8D44\u6E90\u3001\u4F4D\u7F6E\u548C\u663E\u9690\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.discount-decimal",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04",
+      "note": "\u5C0F\u6570\u6298\u6263 point_gp\u002Bbig_num\u002Bsmall_num \u7684\u5E03\u5C40\u548C\u663E\u9690\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.discount-hidden",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04",
+      "note": "disc\u003C=0 \u6216 \u003E=10 \u65F6 _img_discount \u4E0E point_gp \u5747\u9690\u85CF\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.unbought-paid",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04",
+      "note": "\u672A\u8D2D\u4E70\u4ED8\u8D39\u5546\u54C1\u6309\u94AE\u3001\u4EF7\u683C\u4E0E\u65E0\u7EA2\u70B9\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.unbought-free",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04",
+      "note": "\u672A\u8D2D\u4E70\u514D\u8D39\u5546\u54C1\u3001\u7EA2\u70B9\u4E0E ui_anniu_5 \u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.purchased",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04",
+      "note": "\u5DF2\u8D2D\u4E70/\u5DF2\u9886\u53D6\u540E\u7684\u552E\u7F44\u906E\u7F69\u3001\u6309\u94AE\u53EF\u547D\u4E2D\u4E0E\u91CD\u5F00\u4E00\u81F4\u6027\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.limit",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04",
+      "note": "_lb_limit \u6761\u4EF6\u6587\u6848\u7684\u771F\u5B9E\u53EF\u8FBE\u6027\u4E0E\u5E03\u5C40\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.over",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04",
+      "note": "_img_over \u6761\u4EF6\u906E\u7F69\u7684\u771F\u5B9E\u53EF\u8FBE\u6027\u3001\u5C42\u7EA7\u4E0E\u70B9\u51FB\u62E6\u622A\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.effect1-condition",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04",
+      "note": "_gp_effect1 \u6761\u4EF6\u5BB9\u5668\u867D\u8001\u7AEF\u8D4B\u503C\u94FE\u5F31\uFF0C\u4ECD\u6838\u5B9E\u663E\u9690\u4E0E\u8DB3\u8FF9\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.discount-effect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04",
+      "note": "UI_yjtb_02 \u4E0E ui_anniu_5 \u52A8\u6001\u8DB3\u8FF9\u548C\u6E05\u7406\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.buy",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04",
+      "control_inventory": [
+        {
+          "id": "free-claim",
+          "kind": "conditional-transaction",
+          "child": "mainui.adventure.shop.list.item-04.buy.free-claim"
+        },
+        {
+          "id": "paid-confirm",
+          "kind": "popup",
+          "child": "mainui.adventure.shop.list.item-04.buy.paid-confirm"
+        },
+        {
+          "id": "zero-protect",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-04.buy.zero-protect"
+        },
+        {
+          "id": "insufficient",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.shop.list.item-04.buy.insufficient"
+        },
+        {
+          "id": "purchased-click",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-04.buy.purchased-click"
+        },
+        {
+          "id": "success-refresh",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-04.buy.success-refresh"
+        },
+        {
+          "id": "success-reward",
+          "kind": "popup",
+          "child": "mainui.adventure.shop.list.item-04.buy.success-reward"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.buy.free-claim",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.adventure.shop.list.item-04.buy",
+      "note": "42705 \u514D\u8D39\u9886\u53D6\u3001\u5F53\u524D\u683C\u5373\u65F6\u5237\u65B0\u548C\u91CD\u5F00\u4E00\u81F4\u6027\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.buy.paid-confirm",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04.buy",
+      "control_inventory": [
+        {
+          "id": "message",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-04.buy.paid-confirm.message"
+        },
+        {
+          "id": "confirm",
+          "kind": "transaction",
+          "child": "mainui.adventure.shop.list.item-04.buy.paid-confirm.confirm"
+        },
+        {
+          "id": "cancel",
+          "kind": "return",
+          "child": "mainui.adventure.shop.list.item-04.buy.paid-confirm.cancel"
+        },
+        {
+          "id": "dont-remind",
+          "kind": "toggle",
+          "child": "mainui.adventure.shop.list.item-04.buy.paid-confirm.dont-remind"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.buy.paid-confirm.message",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04.buy.paid-confirm",
+      "note": "\u672C\u683C\u5546\u54C1\u540D\u3001\u6570\u91CF\u4E0E\u51C6\u786E\u52FE\u7389\u6210\u672C\u786E\u8BA4\u6587\u6848\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.buy.paid-confirm.confirm",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.adventure.shop.list.item-04.buy.paid-confirm",
+      "note": "alert_shop_buy \u786E\u8BA4\u540E\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.buy.paid-confirm.cancel",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04.buy.paid-confirm",
+      "note": "\u53D6\u6D88/\u906E\u7F69\u5173\u95ED\u4E14\u4E0D\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.buy.paid-confirm.dont-remind",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04.buy.paid-confirm",
+      "note": "alert_shop_buy \u672C\u767B\u5F55\u4E0D\u518D\u63D0\u793A\u7684\u4F1A\u8BDD\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.buy.zero-protect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04.buy",
+      "note": "\u96F6\u70B9\u4FDD\u62A4\u63D0\u793A\u5237\u65B0\u4E2D\u5E76\u4E14\u4E0D\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.buy.insufficient",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04.buy",
+      "note": "\u4F59\u989D\u4E0D\u8DB3\u8D70 NotEnoughDiamond\uFF0C\u4E0D\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.buy.purchased-click",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04.buy",
+      "note": "\u5DF2\u8D2D\u4E70\u6309\u94AE\u518D\u6B21\u70B9\u51FB\u63D0\u793A\u5DF2\u8D2D\u4E70\uFF0C\u4E0D\u91CD\u590D\u53D1\u9001 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.buy.success-refresh",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04.buy",
+      "note": "42705 \u6210\u529F\u540E\u672C\u683C state/\u7EA2\u70B9/\u8D27\u5E01\u5373\u65F6\u5237\u65B0\u4E14\u5173\u95ED\u91CD\u5F00\u4E00\u81F4\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-04.buy.success-reward",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-04.buy",
+      "note": "42705 \u6210\u529F\u540E\u7684 CongratulationObtainView \u5185\u5BB9\u3001\u5C42\u7EA7\u4E0E\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list",
+      "control_inventory": [
+        {
+          "id": "name",
+          "kind": "text",
+          "child": "mainui.adventure.shop.list.item-05.name"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.adventure.shop.list.item-05.detail"
+        },
+        {
+          "id": "original-price",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-05.original-price"
+        },
+        {
+          "id": "current-price",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-05.current-price"
+        },
+        {
+          "id": "discount-integer",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-05.discount-integer"
+        },
+        {
+          "id": "discount-decimal",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-05.discount-decimal"
+        },
+        {
+          "id": "discount-hidden",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-05.discount-hidden"
+        },
+        {
+          "id": "unbought-paid",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-05.unbought-paid"
+        },
+        {
+          "id": "unbought-free",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-05.unbought-free"
+        },
+        {
+          "id": "purchased",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-05.purchased"
+        },
+        {
+          "id": "limit",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-05.limit"
+        },
+        {
+          "id": "over",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-05.over"
+        },
+        {
+          "id": "effect1-condition",
+          "kind": "conditional-effect",
+          "child": "mainui.adventure.shop.list.item-05.effect1-condition"
+        },
+        {
+          "id": "discount-effect",
+          "kind": "effect",
+          "child": "mainui.adventure.shop.list.item-05.discount-effect"
+        },
+        {
+          "id": "buy",
+          "kind": "page",
+          "child": "mainui.adventure.shop.list.item-05.buy"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.name",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05",
+      "note": "\u5546\u54C1\u540D\u3001EquipmentItem \u56FE\u6807\u3001\u6570\u91CF\u4E0E\u54C1\u8D28\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05",
+      "note": "\u5546\u54C1 EquipmentItem \u7684\u51C6\u786E\u8BE6\u60C5\u5F39\u7A97\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.original-price",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05",
+      "note": "\u539F\u4EF7\u3001\u8D27\u5E01\u56FE\u6807\u4E0E\u5220\u9664\u7EBF\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.current-price",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05",
+      "note": "\u73B0\u4EF7\u3001\u514D\u8D39\u6587\u6848\u3001\u8D27\u5E01\u56FE\u6807\u4E0E\u4E0D\u8DB3\u989C\u8272\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.discount-integer",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05",
+      "note": "\u6574\u6570\u6298\u6263\u56FE\u7684\u8D44\u6E90\u3001\u4F4D\u7F6E\u548C\u663E\u9690\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.discount-decimal",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05",
+      "note": "\u5C0F\u6570\u6298\u6263 point_gp\u002Bbig_num\u002Bsmall_num \u7684\u5E03\u5C40\u548C\u663E\u9690\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.discount-hidden",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05",
+      "note": "disc\u003C=0 \u6216 \u003E=10 \u65F6 _img_discount \u4E0E point_gp \u5747\u9690\u85CF\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.unbought-paid",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05",
+      "note": "\u672A\u8D2D\u4E70\u4ED8\u8D39\u5546\u54C1\u6309\u94AE\u3001\u4EF7\u683C\u4E0E\u65E0\u7EA2\u70B9\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.unbought-free",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05",
+      "note": "\u672A\u8D2D\u4E70\u514D\u8D39\u5546\u54C1\u3001\u7EA2\u70B9\u4E0E ui_anniu_5 \u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.purchased",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05",
+      "note": "\u5DF2\u8D2D\u4E70/\u5DF2\u9886\u53D6\u540E\u7684\u552E\u7F44\u906E\u7F69\u3001\u6309\u94AE\u53EF\u547D\u4E2D\u4E0E\u91CD\u5F00\u4E00\u81F4\u6027\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.limit",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05",
+      "note": "_lb_limit \u6761\u4EF6\u6587\u6848\u7684\u771F\u5B9E\u53EF\u8FBE\u6027\u4E0E\u5E03\u5C40\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.over",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05",
+      "note": "_img_over \u6761\u4EF6\u906E\u7F69\u7684\u771F\u5B9E\u53EF\u8FBE\u6027\u3001\u5C42\u7EA7\u4E0E\u70B9\u51FB\u62E6\u622A\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.effect1-condition",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05",
+      "note": "_gp_effect1 \u6761\u4EF6\u5BB9\u5668\u867D\u8001\u7AEF\u8D4B\u503C\u94FE\u5F31\uFF0C\u4ECD\u6838\u5B9E\u663E\u9690\u4E0E\u8DB3\u8FF9\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.discount-effect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05",
+      "note": "UI_yjtb_02 \u4E0E ui_anniu_5 \u52A8\u6001\u8DB3\u8FF9\u548C\u6E05\u7406\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.buy",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05",
+      "control_inventory": [
+        {
+          "id": "free-claim",
+          "kind": "conditional-transaction",
+          "child": "mainui.adventure.shop.list.item-05.buy.free-claim"
+        },
+        {
+          "id": "paid-confirm",
+          "kind": "popup",
+          "child": "mainui.adventure.shop.list.item-05.buy.paid-confirm"
+        },
+        {
+          "id": "zero-protect",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-05.buy.zero-protect"
+        },
+        {
+          "id": "insufficient",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.shop.list.item-05.buy.insufficient"
+        },
+        {
+          "id": "purchased-click",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-05.buy.purchased-click"
+        },
+        {
+          "id": "success-refresh",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-05.buy.success-refresh"
+        },
+        {
+          "id": "success-reward",
+          "kind": "popup",
+          "child": "mainui.adventure.shop.list.item-05.buy.success-reward"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.buy.free-claim",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.adventure.shop.list.item-05.buy",
+      "note": "42705 \u514D\u8D39\u9886\u53D6\u3001\u5F53\u524D\u683C\u5373\u65F6\u5237\u65B0\u548C\u91CD\u5F00\u4E00\u81F4\u6027\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.buy.paid-confirm",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05.buy",
+      "control_inventory": [
+        {
+          "id": "message",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-05.buy.paid-confirm.message"
+        },
+        {
+          "id": "confirm",
+          "kind": "transaction",
+          "child": "mainui.adventure.shop.list.item-05.buy.paid-confirm.confirm"
+        },
+        {
+          "id": "cancel",
+          "kind": "return",
+          "child": "mainui.adventure.shop.list.item-05.buy.paid-confirm.cancel"
+        },
+        {
+          "id": "dont-remind",
+          "kind": "toggle",
+          "child": "mainui.adventure.shop.list.item-05.buy.paid-confirm.dont-remind"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.buy.paid-confirm.message",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05.buy.paid-confirm",
+      "note": "\u672C\u683C\u5546\u54C1\u540D\u3001\u6570\u91CF\u4E0E\u51C6\u786E\u52FE\u7389\u6210\u672C\u786E\u8BA4\u6587\u6848\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.buy.paid-confirm.confirm",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.adventure.shop.list.item-05.buy.paid-confirm",
+      "note": "alert_shop_buy \u786E\u8BA4\u540E\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.buy.paid-confirm.cancel",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05.buy.paid-confirm",
+      "note": "\u53D6\u6D88/\u906E\u7F69\u5173\u95ED\u4E14\u4E0D\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.buy.paid-confirm.dont-remind",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05.buy.paid-confirm",
+      "note": "alert_shop_buy \u672C\u767B\u5F55\u4E0D\u518D\u63D0\u793A\u7684\u4F1A\u8BDD\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.buy.zero-protect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05.buy",
+      "note": "\u96F6\u70B9\u4FDD\u62A4\u63D0\u793A\u5237\u65B0\u4E2D\u5E76\u4E14\u4E0D\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.buy.insufficient",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05.buy",
+      "note": "\u4F59\u989D\u4E0D\u8DB3\u8D70 NotEnoughDiamond\uFF0C\u4E0D\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.buy.purchased-click",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05.buy",
+      "note": "\u5DF2\u8D2D\u4E70\u6309\u94AE\u518D\u6B21\u70B9\u51FB\u63D0\u793A\u5DF2\u8D2D\u4E70\uFF0C\u4E0D\u91CD\u590D\u53D1\u9001 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.buy.success-refresh",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05.buy",
+      "note": "42705 \u6210\u529F\u540E\u672C\u683C state/\u7EA2\u70B9/\u8D27\u5E01\u5373\u65F6\u5237\u65B0\u4E14\u5173\u95ED\u91CD\u5F00\u4E00\u81F4\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-05.buy.success-reward",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-05.buy",
+      "note": "42705 \u6210\u529F\u540E\u7684 CongratulationObtainView \u5185\u5BB9\u3001\u5C42\u7EA7\u4E0E\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list",
+      "control_inventory": [
+        {
+          "id": "name",
+          "kind": "text",
+          "child": "mainui.adventure.shop.list.item-06.name"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.adventure.shop.list.item-06.detail"
+        },
+        {
+          "id": "original-price",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-06.original-price"
+        },
+        {
+          "id": "current-price",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-06.current-price"
+        },
+        {
+          "id": "discount-integer",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-06.discount-integer"
+        },
+        {
+          "id": "discount-decimal",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-06.discount-decimal"
+        },
+        {
+          "id": "discount-hidden",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-06.discount-hidden"
+        },
+        {
+          "id": "unbought-paid",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-06.unbought-paid"
+        },
+        {
+          "id": "unbought-free",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-06.unbought-free"
+        },
+        {
+          "id": "purchased",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-06.purchased"
+        },
+        {
+          "id": "limit",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-06.limit"
+        },
+        {
+          "id": "over",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-06.over"
+        },
+        {
+          "id": "effect1-condition",
+          "kind": "conditional-effect",
+          "child": "mainui.adventure.shop.list.item-06.effect1-condition"
+        },
+        {
+          "id": "discount-effect",
+          "kind": "effect",
+          "child": "mainui.adventure.shop.list.item-06.discount-effect"
+        },
+        {
+          "id": "buy",
+          "kind": "page",
+          "child": "mainui.adventure.shop.list.item-06.buy"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.name",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06",
+      "note": "\u5546\u54C1\u540D\u3001EquipmentItem \u56FE\u6807\u3001\u6570\u91CF\u4E0E\u54C1\u8D28\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06",
+      "note": "\u5546\u54C1 EquipmentItem \u7684\u51C6\u786E\u8BE6\u60C5\u5F39\u7A97\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.original-price",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06",
+      "note": "\u539F\u4EF7\u3001\u8D27\u5E01\u56FE\u6807\u4E0E\u5220\u9664\u7EBF\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.current-price",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06",
+      "note": "\u73B0\u4EF7\u3001\u514D\u8D39\u6587\u6848\u3001\u8D27\u5E01\u56FE\u6807\u4E0E\u4E0D\u8DB3\u989C\u8272\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.discount-integer",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06",
+      "note": "\u6574\u6570\u6298\u6263\u56FE\u7684\u8D44\u6E90\u3001\u4F4D\u7F6E\u548C\u663E\u9690\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.discount-decimal",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06",
+      "note": "\u5C0F\u6570\u6298\u6263 point_gp\u002Bbig_num\u002Bsmall_num \u7684\u5E03\u5C40\u548C\u663E\u9690\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.discount-hidden",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06",
+      "note": "disc\u003C=0 \u6216 \u003E=10 \u65F6 _img_discount \u4E0E point_gp \u5747\u9690\u85CF\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.unbought-paid",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06",
+      "note": "\u672A\u8D2D\u4E70\u4ED8\u8D39\u5546\u54C1\u6309\u94AE\u3001\u4EF7\u683C\u4E0E\u65E0\u7EA2\u70B9\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.unbought-free",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06",
+      "note": "\u672A\u8D2D\u4E70\u514D\u8D39\u5546\u54C1\u3001\u7EA2\u70B9\u4E0E ui_anniu_5 \u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.purchased",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06",
+      "note": "\u5DF2\u8D2D\u4E70/\u5DF2\u9886\u53D6\u540E\u7684\u552E\u7F44\u906E\u7F69\u3001\u6309\u94AE\u53EF\u547D\u4E2D\u4E0E\u91CD\u5F00\u4E00\u81F4\u6027\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.limit",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06",
+      "note": "_lb_limit \u6761\u4EF6\u6587\u6848\u7684\u771F\u5B9E\u53EF\u8FBE\u6027\u4E0E\u5E03\u5C40\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.over",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06",
+      "note": "_img_over \u6761\u4EF6\u906E\u7F69\u7684\u771F\u5B9E\u53EF\u8FBE\u6027\u3001\u5C42\u7EA7\u4E0E\u70B9\u51FB\u62E6\u622A\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.effect1-condition",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06",
+      "note": "_gp_effect1 \u6761\u4EF6\u5BB9\u5668\u867D\u8001\u7AEF\u8D4B\u503C\u94FE\u5F31\uFF0C\u4ECD\u6838\u5B9E\u663E\u9690\u4E0E\u8DB3\u8FF9\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.discount-effect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06",
+      "note": "UI_yjtb_02 \u4E0E ui_anniu_5 \u52A8\u6001\u8DB3\u8FF9\u548C\u6E05\u7406\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.buy",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06",
+      "control_inventory": [
+        {
+          "id": "free-claim",
+          "kind": "conditional-transaction",
+          "child": "mainui.adventure.shop.list.item-06.buy.free-claim"
+        },
+        {
+          "id": "paid-confirm",
+          "kind": "popup",
+          "child": "mainui.adventure.shop.list.item-06.buy.paid-confirm"
+        },
+        {
+          "id": "zero-protect",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-06.buy.zero-protect"
+        },
+        {
+          "id": "insufficient",
+          "kind": "conditional-popup",
+          "child": "mainui.adventure.shop.list.item-06.buy.insufficient"
+        },
+        {
+          "id": "purchased-click",
+          "kind": "conditional-state",
+          "child": "mainui.adventure.shop.list.item-06.buy.purchased-click"
+        },
+        {
+          "id": "success-refresh",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-06.buy.success-refresh"
+        },
+        {
+          "id": "success-reward",
+          "kind": "popup",
+          "child": "mainui.adventure.shop.list.item-06.buy.success-reward"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.buy.free-claim",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.adventure.shop.list.item-06.buy",
+      "note": "42705 \u514D\u8D39\u9886\u53D6\u3001\u5F53\u524D\u683C\u5373\u65F6\u5237\u65B0\u548C\u91CD\u5F00\u4E00\u81F4\u6027\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.buy.paid-confirm",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06.buy",
+      "control_inventory": [
+        {
+          "id": "message",
+          "kind": "state",
+          "child": "mainui.adventure.shop.list.item-06.buy.paid-confirm.message"
+        },
+        {
+          "id": "confirm",
+          "kind": "transaction",
+          "child": "mainui.adventure.shop.list.item-06.buy.paid-confirm.confirm"
+        },
+        {
+          "id": "cancel",
+          "kind": "return",
+          "child": "mainui.adventure.shop.list.item-06.buy.paid-confirm.cancel"
+        },
+        {
+          "id": "dont-remind",
+          "kind": "toggle",
+          "child": "mainui.adventure.shop.list.item-06.buy.paid-confirm.dont-remind"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.buy.paid-confirm.message",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06.buy.paid-confirm",
+      "note": "\u672C\u683C\u5546\u54C1\u540D\u3001\u6570\u91CF\u4E0E\u51C6\u786E\u52FE\u7389\u6210\u672C\u786E\u8BA4\u6587\u6848\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.buy.paid-confirm.confirm",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.adventure.shop.list.item-06.buy.paid-confirm",
+      "note": "alert_shop_buy \u786E\u8BA4\u540E\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.buy.paid-confirm.cancel",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06.buy.paid-confirm",
+      "note": "\u53D6\u6D88/\u906E\u7F69\u5173\u95ED\u4E14\u4E0D\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.buy.paid-confirm.dont-remind",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06.buy.paid-confirm",
+      "note": "alert_shop_buy \u672C\u767B\u5F55\u4E0D\u518D\u63D0\u793A\u7684\u4F1A\u8BDD\u72B6\u6001\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.buy.zero-protect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06.buy",
+      "note": "\u96F6\u70B9\u4FDD\u62A4\u63D0\u793A\u5237\u65B0\u4E2D\u5E76\u4E14\u4E0D\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.buy.insufficient",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06.buy",
+      "note": "\u4F59\u989D\u4E0D\u8DB3\u8D70 NotEnoughDiamond\uFF0C\u4E0D\u53D1\u9001\u672C\u683C 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.buy.purchased-click",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06.buy",
+      "note": "\u5DF2\u8D2D\u4E70\u6309\u94AE\u518D\u6B21\u70B9\u51FB\u63D0\u793A\u5DF2\u8D2D\u4E70\uFF0C\u4E0D\u91CD\u590D\u53D1\u9001 42705\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.buy.success-refresh",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06.buy",
+      "note": "42705 \u6210\u529F\u540E\u672C\u683C state/\u7EA2\u70B9/\u8D27\u5E01\u5373\u65F6\u5237\u65B0\u4E14\u5173\u95ED\u91CD\u5F00\u4E00\u81F4\u3002"
+    },
+    {
+      "id": "mainui.adventure.shop.list.item-06.buy.success-reward",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shop.list.item-06.buy",
+      "note": "42705 \u6210\u529F\u540E\u7684 CongratulationObtainView \u5185\u5BB9\u3001\u5C42\u7EA7\u4E0E\u5173\u95ED\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.shared",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure",
+      "control_inventory": [
+        {
+          "id": "equipment-identity",
+          "kind": "shared-component",
+          "child": "mainui.adventure.shared.equipment-identity"
+        },
+        {
+          "id": "equipment-matrix",
+          "kind": "state-matrix",
+          "child": "mainui.adventure.shared.equipment-matrix"
+        },
+        {
+          "id": "effects",
+          "kind": "dynamic-render",
+          "child": "mainui.adventure.shared.effects"
+        },
+        {
+          "id": "reward-fly",
+          "kind": "shared-service",
+          "child": "mainui.adventure.shared.reward-fly"
+        },
+        {
+          "id": "popup",
+          "kind": "shared-popup",
+          "child": "mainui.adventure.shared.popup"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.shared.equipment-identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shared",
+      "note": "\u4E09\u7C7B EquipmentItem \u6D88\u8D39\u8005\u53CA Common Prefab/GUID \u8EAB\u4EFD\u3002"
+    },
+    {
+      "id": "mainui.adventure.shared.equipment-matrix",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shared",
+      "note": "\u666E\u901A/\u9AD8\u7EA7/\u7EC8\u6781/\u7279\u6B8A\u3001\u9884\u89C8/\u5546\u5E97\u3001\u7A7A/\u6709\u6570\u636E\u72B6\u6001\u77E9\u9635\u3002"
+    },
+    {
+      "id": "mainui.adventure.shared.effects",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shared",
+      "note": "UI_2001/UI_yjtb_01/UI_yjtb_02/ui_anniu_5 \u7684\u5F52\u5C5E\u3001RGBA\u3001\u53CC\u5E27\u4E0E\u6E05\u7406\u3002"
+    },
+    {
+      "id": "mainui.adventure.shared.reward-fly",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shared",
+      "note": "\u9010\u683C RewardFlyService \u76EE\u6807\u3001\u8F68\u8FF9\u3001\u76F8\u4F4D\u548C\u4E2D\u9014\u5173\u9875\u96F6\u6B8B\u7559\u3002"
+    },
+    {
+      "id": "mainui.adventure.shared.popup",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.shared",
+      "note": "\u7269\u54C1\u8BE6\u60C5\u3001\u786E\u8BA4\u6846\u3001VIP \u4E0E\u7EDF\u4E00\u5956\u52B1\u5F39\u7A97\u8EAB\u4EFD\u94FE\u3002"
+    },
+    {
+      "id": "mainui.adventure.lifecycle",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.adventure",
+      "control_inventory": [
+        {
+          "id": "cold",
+          "kind": "lifecycle",
+          "child": "mainui.adventure.lifecycle.cold"
+        },
+        {
+          "id": "warm",
+          "kind": "lifecycle",
+          "child": "mainui.adventure.lifecycle.warm"
+        },
+        {
+          "id": "viewports",
+          "kind": "visual",
+          "child": "mainui.adventure.lifecycle.viewports"
+        },
+        {
+          "id": "resource-stable",
+          "kind": "resource",
+          "child": "mainui.adventure.lifecycle.resource-stable"
+        },
+        {
+          "id": "performance",
+          "kind": "performance",
+          "child": "mainui.adventure.lifecycle.performance"
+        },
+        {
+          "id": "disconnect",
+          "kind": "lifecycle",
+          "child": "mainui.adventure.lifecycle.disconnect"
+        }
+      ]
+    },
+    {
+      "id": "mainui.adventure.lifecycle.cold",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.lifecycle",
+      "note": "\u51B7\u5F00\u9996\u5C4F 350ms/1000ms/ready \u4E0E\u914D\u7F6E/\u6A21\u578B/\u7279\u6548\u52A0\u8F7D\u3002"
+    },
+    {
+      "id": "mainui.adventure.lifecycle.warm",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.lifecycle",
+      "note": "\u4E3B\u9875\u9762/\u5546\u5E97\u9690\u85CF\u91CD\u5F00\u65E0\u91CD\u590D\u6A21\u677F\u3001\u4E8B\u4EF6\u548C\u6B8B\u5F71\u3002"
+    },
+    {
+      "id": "mainui.adventure.lifecycle.viewports",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.lifecycle",
+      "note": "720x1280 \u4E0E 1920x1080 \u8001 H5/Unity Web \u5BF9\u6BD4\u3002"
+    },
+    {
+      "id": "mainui.adventure.lifecycle.resource-stable",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.lifecycle",
+      "note": "\u56DB\u914D\u7F6E\u300131 \u683C\u300112 \u9884\u89C8\u30016 \u5546\u5E97\u683C\u548C\u6548\u679C\u8D44\u6E90\u70B9\u51FB\u524D\u95ED\u5305\u3002"
+    },
+    {
+      "id": "mainui.adventure.lifecycle.performance",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.lifecycle",
+      "note": "cold/warm \u8017\u65F6\u3001\u6A21\u578B/\u5217\u8868\u5206\u914D\u548C\u91CA\u653E\u3002"
+    },
+    {
+      "id": "mainui.adventure.lifecycle.disconnect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.adventure.lifecycle",
+      "note": "\u975E\u81EA\u52A8\u91CD\u8FDE\u65AD\u7EBF\u91CA\u653E Module\uFF0C\u81EA\u52A8\u91CD\u8FDE\u4E0D\u62A2\u6E05\u7406\u3002"
+    }
+  ]
+}

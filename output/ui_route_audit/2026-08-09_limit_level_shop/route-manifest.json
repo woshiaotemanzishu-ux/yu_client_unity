@@ -1,0 +1,72 @@
+{
+  "route": "mainui.limit-level-shop",
+  "baseline": {
+    "authority": "同账号、同状态、同 viewport 的当前老 H5 最终表现是唯一验收标准；本批只完成文件岛静态实现，不声明 Unity/Web 通过。",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/commonController/LimitLevelShopController.ts",
+      "E:/GitProject/yu_client/h5/src/commonModel/LimitLevelShopModel.ts",
+      "E:/GitProject/yu_client/h5/src/limitLevelShop/LimitLevelShopView.ts",
+      "E:/GitProject/yu_client/h5/src/limitLevelShop/LimitLevelShopTabItem.ts",
+      "E:/GitProject/yu_client/h5/src/limitLevelShop/LimitLevelShopReward.ts"
+    ],
+    "unity_sources": [
+      "Assets/Prefabs/UI/LimitLevelShop/LimitLevelShopModule.prefab",
+      "Assets/Scripts/Module/Core/LimitLevelShop/LimitLevelShopBootstrap.cs",
+      "Assets/Scripts/Module/Core/LimitLevelShop/LimitLevelShopFlow.cs",
+      "Assets/Scripts/Module/Core/LimitLevelShop/LimitLevelShopController.cs",
+      "Assets/Scripts/Module/Core/LimitLevelShop/LimitLevelShopModel.cs",
+      "Assets/Scripts/Module/Core/LimitLevelShop/LimitLevelShopView.cs",
+      "Assets/Scripts/Module/Core/LimitLevelShop/LimitLevelShopTabItem.cs",
+      "Assets/Scripts/Module/Core/LimitLevelShop/LimitLevelShopReward.cs"
+    ],
+    "protocol_inventory": {"reads":["61200","61203"],"writes":["61201","15804"],"note":"本批未注册、未发送、未执行任何购买或支付写事务。"},
+    "component_dependencies": [
+      {"component":"BaseAwardItem","consumers":["LimitLevelShopReward"],"scope":"共享奖励格只读使用；共享实现不在本文件岛。"},
+      {"component":"ActivityIcon/MainUIActivityView","consumers":["61201..61225 icon routes"],"scope":"图标实际可见性在 MainUI 文件岛之外。"},
+      {"component":"UIEffectStage/model presentation","consumers":["show_effect/show_model/goods_id"],"scope":"动态模型特效需运行态与共享能力。"}
+    ]
+  },
+  "nodes": [
+    {"id":"mainui.limit-level-shop","type":"page","risk":"read-only","parent":null,"control_inventory":[{"id":"entry","kind":"entry","child":"mainui.limit-level-shop.entry"},{"id":"main","kind":"page","child":"mainui.limit-level-shop.main"},{"id":"tabs","kind":"page","child":"mainui.limit-level-shop.tabs"},{"id":"rewards","kind":"page","child":"mainui.limit-level-shop.rewards"},{"id":"shared","kind":"dependency","child":"mainui.limit-level-shop.shared"},{"id":"lifecycle","kind":"lifecycle","child":"mainui.limit-level-shop.lifecycle"}]},
+
+    {"id":"mainui.limit-level-shop.entry","type":"page","risk":"read-only","parent":"mainui.limit-level-shop","control_inventory":[{"id":"list","kind":"protocol-read","child":"mainui.limit-level-shop.entry.list"},{"id":"config","kind":"protocol-read","child":"mainui.limit-level-shop.entry.config"},{"id":"mapping","kind":"navigation","child":"mainui.limit-level-shop.entry.mapping"},{"id":"visibility","kind":"conditional","child":"mainui.limit-level-shop.entry.visibility"},{"id":"assistance","kind":"conditional","child":"mainui.limit-level-shop.entry.assistance"}]},
+    {"id":"mainui.limit-level-shop.entry.list","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.entry","note":"61200 full grade/old-grade/condition/open-times state."},
+    {"id":"mainui.limit-level-shop.entry.config","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.entry","note":"61200 then 61203 read-only config per active gift."},
+    {"id":"mainui.limit-level-shop.entry.mapping","type":"navigation","risk":"read-only","parent":"mainui.limit-level-shop.entry","note":"act_condition.pic maps 61201..61225 to exact type/subtype."},
+    {"id":"mainui.limit-level-shop.entry.visibility","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.entry","note":"Actual MainUI icon presence, countdown and clickability."},
+    {"id":"mainui.limit-level-shop.entry.assistance","type":"navigation","risk":"read-only","parent":"mainui.limit-level-shop.entry","note":"type=66 must route AssistanceGiftView, not this page."},
+
+    {"id":"mainui.limit-level-shop.main","type":"page","risk":"read-only","parent":"mainui.limit-level-shop","control_inventory":[{"id":"visual","kind":"visual","child":"mainui.limit-level-shop.main.visual"},{"id":"countdown","kind":"timer","child":"mainui.limit-level-shop.main.countdown"},{"id":"close","kind":"return","child":"mainui.limit-level-shop.main.close"},{"id":"price","kind":"state","child":"mainui.limit-level-shop.main.price"},{"id":"presentation","kind":"conditional","child":"mainui.limit-level-shop.main.presentation"},{"id":"buy-state","kind":"state","child":"mainui.limit-level-shop.main.buy-state"},{"id":"buy","kind":"transaction","child":"mainui.limit-level-shop.main.buy"}]},
+    {"id":"mainui.limit-level-shop.main.visual","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.main","note":"Background/title/tips/tab-mark and exact page geometry."},
+    {"id":"mainui.limit-level-shop.main.countdown","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.main","note":"end_time server countdown and expiry close state."},
+    {"id":"mainui.limit-level-shop.main.close","type":"return","risk":"read-only","parent":"mainui.limit-level-shop.main","note":"Close button, activity popup layer and reopen."},
+    {"id":"mainui.limit-level-shop.main.price","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.main","note":"cost_type 1/2 currency versus real-money price presentation."},
+    {"id":"mainui.limit-level-shop.main.presentation","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.main","note":"show_icon/show_model/show_effect/goods_id mutually exclusive presentation."},
+    {"id":"mainui.limit-level-shop.main.buy-state","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.main","note":"grade state drives price visibility and purchased label."},
+    {"id":"mainui.limit-level-shop.main.buy","type":"transaction","risk":"destructive-write","parent":"mainui.limit-level-shop.main","note":"61201/15804/pay result, immediate refresh and reopen."},
+
+    {"id":"mainui.limit-level-shop.tabs","type":"page","risk":"read-only","parent":"mainui.limit-level-shop","control_inventory":[{"id":"positions","kind":"visual","child":"mainui.limit-level-shop.tabs.positions"},{"id":"images","kind":"visual","child":"mainui.limit-level-shop.tabs.images"},{"id":"selection","kind":"navigation","child":"mainui.limit-level-shop.tabs.selection"},{"id":"default","kind":"state","child":"mainui.limit-level-shop.tabs.default"},{"id":"reopen","kind":"conditional","child":"mainui.limit-level-shop.tabs.reopen"}]},
+    {"id":"mainui.limit-level-shop.tabs.positions","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.tabs","note":"Three named positions 90/550, 290/580, 500/550 in page coordinates."},
+    {"id":"mainui.limit-level-shop.tabs.images","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.tabs","note":"tab_show name and item images."},
+    {"id":"mainui.limit-level-shop.tabs.selection","type":"navigation","risk":"read-only","parent":"mainui.limit-level-shop.tabs","note":"Click switches selected marker and page state."},
+    {"id":"mainui.limit-level-shop.tabs.default","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.tabs","note":"First unpurchased grade, else first grade."},
+    {"id":"mainui.limit-level-shop.tabs.reopen","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.tabs","note":"open_times>=2 old purchased overlay and click rejection."},
+
+    {"id":"mainui.limit-level-shop.rewards","type":"page","risk":"read-only","parent":"mainui.limit-level-shop","control_inventory":[{"id":"parse","kind":"data","child":"mainui.limit-level-shop.rewards.parse"},{"id":"identity","kind":"shared-item","child":"mainui.limit-level-shop.rewards.identity"},{"id":"list","kind":"scroll-list","child":"mainui.limit-level-shop.rewards.list"},{"id":"detail","kind":"popup","child":"mainui.limit-level-shop.rewards.detail"}]},
+    {"id":"mainui.limit-level-shop.rewards.parse","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.rewards","note":"Erlang reward tuples and GoodsModel mapping."},
+    {"id":"mainui.limit-level-shop.rewards.identity","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.rewards","note":"LimitLevelShopReward uses shared BaseAwardItem."},
+    {"id":"mainui.limit-level-shop.rewards.list","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.rewards","note":"Vertical ScrollRect clipping, content height, drag and last item."},
+    {"id":"mainui.limit-level-shop.rewards.detail","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.rewards","note":"Each visible reward opens exact item details."},
+
+    {"id":"mainui.limit-level-shop.shared","type":"page","risk":"read-only","parent":"mainui.limit-level-shop","control_inventory":[{"id":"identity","kind":"shared-component","child":"mainui.limit-level-shop.shared.identity"},{"id":"matrix","kind":"state-matrix","child":"mainui.limit-level-shop.shared.matrix"},{"id":"dynamic","kind":"dynamic-render","child":"mainui.limit-level-shop.shared.dynamic"}]},
+    {"id":"mainui.limit-level-shop.shared.identity","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.shared","note":"BaseAwardItem GUID/component identity and representative consumer."},
+    {"id":"mainui.limit-level-shop.shared.matrix","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.shared","note":"1/2/3 rewards, quality/effect, short/long price and bought/unbought."},
+    {"id":"mainui.limit-level-shop.shared.dynamic","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.shared","note":"Model/effect/rune two-timepoint pixels and cleanup."},
+
+    {"id":"mainui.limit-level-shop.lifecycle","type":"page","risk":"read-only","parent":"mainui.limit-level-shop","control_inventory":[{"id":"cold","kind":"lifecycle","child":"mainui.limit-level-shop.lifecycle.cold"},{"id":"warm","kind":"lifecycle","child":"mainui.limit-level-shop.lifecycle.warm"},{"id":"viewports","kind":"visual","child":"mainui.limit-level-shop.lifecycle.viewports"},{"id":"performance","kind":"performance","child":"mainui.limit-level-shop.lifecycle.performance"}]},
+    {"id":"mainui.limit-level-shop.lifecycle.cold","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.lifecycle","note":"Cold prefab/config/resource ready path."},
+    {"id":"mainui.limit-level-shop.lifecycle.warm","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.lifecycle","note":"Hide/reopen with no duplicate tabs/rewards/events."},
+    {"id":"mainui.limit-level-shop.lifecycle.viewports","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.lifecycle","note":"720x1280 and 1920x1080 old-H5/Unity Web comparison."},
+    {"id":"mainui.limit-level-shop.lifecycle.performance","type":"read","risk":"read-only","parent":"mainui.limit-level-shop.lifecycle","note":"Cold/warm timing, allocations and cleanup."}
+  ]
+}

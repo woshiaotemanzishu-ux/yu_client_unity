@@ -1,0 +1,275 @@
+{
+  "updated_at": "2026-08-09T16:03:47+08:00",
+  "summary_details": {
+    "audit_level": "static-reconciliation-only",
+    "existing_prefab": false,
+    "fix_view_applicable": false,
+    "business_code_changed": false,
+    "primary_defect": "FirstRecharge has no Unity Prefab, Bind, View, or equivalent client configuration/reward configuration.",
+    "conversion_blocker": "A first conversion requires Generated/shared UI, MainUI, Activity, Common, recharge navigation, and resource/config integration outside this file island.",
+    "runtime_policy": "All real-Web, dual-viewport, pixel, scroll, model/effect, cold/warm, immediate-refresh, reopen, and real transaction claims remain non-done.",
+    "static_report": "output/ui_route_audit/2026-08-09_parallel_ui_refine/firstrecharge/run-static-001/static-reconciliation.md"
+  },
+  "nodes": [
+    {
+      "id": "mainui.first-recharge.entry",
+      "status": "blocked",
+      "blocked_reason": "The visible entry is owned by forbidden MainUI/Activity files, and there is no FirstRecharge Unity panel target to open."
+    },
+    {
+      "id": "mainui.first-recharge.panel.close",
+      "status": "defect",
+      "note": "No FirstRecharge panel Prefab/View exists, so the close button and return chain are absent."
+    },
+    {
+      "id": "mainui.first-recharge.panel.background-close",
+      "status": "defect",
+      "note": "No panel background click-catcher or non-penetrating close behavior exists."
+    },
+    {
+      "id": "mainui.first-recharge.panel.day-1",
+      "status": "defect",
+      "note": "Day-1 tab, selected state, click binding, and presentation refresh are absent."
+    },
+    {
+      "id": "mainui.first-recharge.panel.day-2",
+      "status": "defect",
+      "note": "Day-2 tab, selected state, click binding, and presentation refresh are absent."
+    },
+    {
+      "id": "mainui.first-recharge.panel.day-3",
+      "status": "defect",
+      "note": "Day-3 tab, selected state, click binding, and presentation refresh are absent."
+    },
+    {
+      "id": "mainui.first-recharge.panel.rewards.items",
+      "status": "defect",
+      "note": "No reward list exists and Unity lacks the ConfigFirstRecharge/config_recharge_first data closure needed for sex/day/career/product mapping."
+    },
+    {
+      "id": "mainui.first-recharge.panel.rewards.scroll",
+      "status": "defect",
+      "note": "No ScrollRect/Viewport/Content or reward-item hierarchy exists."
+    },
+    {
+      "id": "mainui.first-recharge.panel.rewards.item-detail",
+      "status": "blocked",
+      "blocked_reason": "The legacy reward item opens the shared Common item-detail flow; Common is a strict forbidden island and no FirstRecharge host list exists."
+    },
+    {
+      "id": "mainui.first-recharge.panel.action.go-recharge",
+      "status": "blocked",
+      "blocked_reason": "The target recharge/Vip navigation is outside this file island and real recharge is prohibited; the source button is also absent."
+    },
+    {
+      "id": "mainui.first-recharge.panel.action.claim",
+      "status": "blocked",
+      "blocked_reason": "15906 is a real irreversible reward transaction. No authorization/test recipe was provided, and the source button/View is absent."
+    },
+    {
+      "id": "mainui.first-recharge.panel.action.locked",
+      "status": "defect",
+      "note": "The state-2/state-5 locked or tomorrow text and disabled-click behavior have no Unity consumer."
+    },
+    {
+      "id": "mainui.first-recharge.panel.action.received",
+      "status": "defect",
+      "note": "The state-4 received presentation and no-send click semantics have no Unity consumer."
+    },
+    {
+      "id": "mainui.first-recharge.panel.action.reward-popup",
+      "status": "blocked",
+      "blocked_reason": "The successful legacy result uses a shared Common reward-obtain popup; Common is forbidden and Unity On15906 does not emit reward data/result presentation."
+    },
+    {
+      "id": "mainui.first-recharge.panel.action.immediate-refresh",
+      "status": "defect",
+      "note": "On15906 success requests 15905, but there is no panel binding to prove or present immediate button/tab/red-dot refresh."
+    },
+    {
+      "id": "mainui.first-recharge.panel.presentation.background-title",
+      "status": "defect",
+      "note": "No panel background, title, typography, layout, or target assets are bound in a Prefab."
+    },
+    {
+      "id": "mainui.first-recharge.panel.presentation.left-model",
+      "status": "defect",
+      "note": "The legacy career/sex-driven left model/image host has no Unity Prefab or configuration consumer."
+    },
+    {
+      "id": "mainui.first-recharge.panel.presentation.right-model",
+      "status": "defect",
+      "note": "The legacy career/day-driven right model/image host has no Unity Prefab or configuration consumer."
+    },
+    {
+      "id": "mainui.first-recharge.panel.presentation.effect",
+      "status": "defect",
+      "note": "ui_shouchong effect assets exist, but there is no FirstRecharge host, parameters, ownership, render-ready state, or two-frame evidence."
+    },
+    {
+      "id": "mainui.first-recharge.panel.presentation.day-1-overlay",
+      "status": "defect",
+      "note": "The no-recharge day-1 conditional overlay has no Unity node/config binding."
+    },
+    {
+      "id": "mainui.first-recharge.panel.presentation.day-2-overlay",
+      "status": "defect",
+      "note": "The no-recharge day-2 conditional overlay has no Unity node/config binding."
+    },
+    {
+      "id": "mainui.first-recharge.panel.presentation.day-3-overlay",
+      "status": "defect",
+      "note": "The no-recharge day-3 conditional overlay has no Unity node/config binding."
+    },
+    {
+      "id": "mainui.first-recharge.panel.presentation.status-text",
+      "status": "defect",
+      "note": "Legacy labels 前往充值/领取/已领取/明天可领/第N天可领 have no Unity binding."
+    },
+    {
+      "id": "mainui.first-recharge.panel.red-dots.day-1",
+      "status": "defect",
+      "note": "Day-1 red-dot node and Open==1 binding are absent."
+    },
+    {
+      "id": "mainui.first-recharge.panel.red-dots.day-2",
+      "status": "defect",
+      "note": "Day-2 red-dot node and Open==1 binding are absent."
+    },
+    {
+      "id": "mainui.first-recharge.panel.red-dots.day-3",
+      "status": "defect",
+      "note": "Day-3 red-dot node and Open==1 binding are absent."
+    },
+    {
+      "id": "mainui.first-recharge.panel.red-dots.action",
+      "status": "defect",
+      "note": "Primary-action red-dot node and selected-day Open==1 binding are absent."
+    },
+    {
+      "id": "mainui.first-recharge.panel.scene-change-close",
+      "status": "defect",
+      "note": "No FirstRecharge View lifecycle exists to close on scene change and return cleanly."
+    },
+    {
+      "id": "mainui.first-recharge.tips.open-panel",
+      "status": "defect",
+      "note": "FirstRechargeTipsView and its open-main/close interaction do not exist in Unity."
+    },
+    {
+      "id": "mainui.first-recharge.tips.presentation",
+      "status": "defect",
+      "note": "The legacy tips model/image/title/description surface has no Unity Prefab/config consumer."
+    },
+    {
+      "id": "mainui.first-recharge.tips.condition",
+      "status": "defect",
+      "note": "Level/task/scene/dungeon/first-recharge condition branches are not represented in a Unity View and ConfigFirstRecharge is absent."
+    },
+    {
+      "id": "mainui.first-recharge.new-tips.open-panel",
+      "status": "defect",
+      "note": "The composite-click new-tips entry and target panel do not exist in Unity."
+    },
+    {
+      "id": "mainui.first-recharge.new-tips.close",
+      "status": "defect",
+      "note": "The new-tips close control is absent."
+    },
+    {
+      "id": "mainui.first-recharge.new-tips.auto-close",
+      "status": "defect",
+      "note": "The legacy 20-second auto-close lifecycle is absent."
+    },
+    {
+      "id": "mainui.first-recharge.new-tips.presentation",
+      "status": "defect",
+      "note": "The new-tips model/image/activity positioning and scaling branches are absent."
+    },
+    {
+      "id": "mainui.first-recharge.new-tips.condition",
+      "status": "defect",
+      "note": "Task/level/activity condition evaluation has no Unity consumer and ConfigFirstRecharge is absent."
+    },
+    {
+      "id": "mainui.first-recharge.bubble.open-panel",
+      "status": "blocked",
+      "blocked_reason": "The bubble host/click binding belongs to forbidden MainUI/Activity integration, and the destination FirstRecharge panel is missing."
+    },
+    {
+      "id": "mainui.first-recharge.bubble.countdown",
+      "status": "blocked",
+      "blocked_reason": "Controller scheduling exists, but the visible bubble/time label host belongs to forbidden MainUI integration and has no Prefab."
+    },
+    {
+      "id": "mainui.first-recharge.bubble.motion",
+      "status": "blocked",
+      "blocked_reason": "The legacy bob animation is part of the missing MainUI bubble surface; implementing or verifying it requires cross-island host changes and runtime evidence."
+    },
+    {
+      "id": "mainui.first-recharge.bubble.timeout-notify",
+      "status": "blocked",
+      "blocked_reason": "15907 changes the account notification counter and is coupled to the missing MainUI bubble timeout; account writes are prohibited."
+    },
+    {
+      "id": "mainui.first-recharge.bubble.activity-position",
+      "status": "blocked",
+      "blocked_reason": "Positioning depends on forbidden Activity/MainUI icon consumers; only a legacy single-frame snapshot is available."
+    },
+    {
+      "id": "mainui.first-recharge.qipao.copy",
+      "status": "defect",
+      "note": "The dynamic qipao HTML/text surface and ConfigFirstRecharge qipao_info consumer are absent."
+    },
+    {
+      "id": "mainui.first-recharge.qipao.condition",
+      "status": "defect",
+      "note": "Open-day/no-recharge/received qipao condition mapping has no Unity consumer."
+    },
+    {
+      "id": "mainui.first-recharge.qipao.cleanup",
+      "status": "defect",
+      "note": "Duration-based qipao cleanup and host restoration are absent."
+    },
+    {
+      "id": "mainui.first-recharge.protocol.startup-info",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Static code registers and sends 15905 on startup, but no real account/network trace or page consumer was executed."
+    },
+    {
+      "id": "mainui.first-recharge.protocol.startup-isbuy",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Static code registers and sends 15908 on startup, but no real account/network trace or visible MainUI result was executed."
+    },
+    {
+      "id": "mainui.first-recharge.protocol.state-parse",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "15905 parsing and model aggregation are statically present; no real payload matrix or consumer refresh was observed."
+    },
+    {
+      "id": "mainui.first-recharge.protocol.notify",
+      "status": "blocked",
+      "blocked_reason": "15907 permanently increments a server-side notification counter; real account writes are prohibited and no reversible recipe was authorized."
+    },
+    {
+      "id": "mainui.first-recharge.protocol.day-change",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "The conditional day-change 15905 request is statically present, but cross-day execution and immediate state propagation were not run."
+    },
+    {
+      "id": "mainui.first-recharge.protocol.claim-result",
+      "status": "defect",
+      "note": "On15906 parses Errcode/Index and requests 15905 only on success, but does not surface errors, emit reward-result data, or reproduce the legacy reward popup flow."
+    },
+    {
+      "id": "mainui.first-recharge.protocol.all-claimed-cleanup",
+      "status": "blocked",
+      "blocked_reason": "All-claimed page close and entry removal depend on the missing View plus forbidden MainUI integration; no real claimed-state transaction is authorized."
+    },
+    {
+      "id": "mainui.first-recharge.protocol.reopen",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Model state can be re-queried statically, but no FirstRecharge View exists and no close/reopen real runtime path was executed."
+    }
+  ]
+}

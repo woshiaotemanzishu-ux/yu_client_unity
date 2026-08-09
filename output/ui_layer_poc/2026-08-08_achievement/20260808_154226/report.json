@@ -1,0 +1,295 @@
+{
+  "kind": "independent-laya-ui-layer-poc",
+  "route": "Unity host -> independent legacy Achievement UI",
+  "startedAt": "2026-08-08T15:42:26.389Z",
+  "viewport": {
+    "width": 720,
+    "height": 1280
+  },
+  "legacy": {
+    "url": "http://127.0.0.1:8091/index.html",
+    "account": "123123"
+  },
+  "unity": {
+    "url": "http://223.109.142.26:89/web/",
+    "loginPerformed": false
+  },
+  "timingsMs": {
+    "legacyCityReady": 53432,
+    "unityEngineReady": 53633,
+    "unityRuntimeReady": 89400,
+    "achievementColdOpen": 180,
+    "bridgeCloseToUnity": 115,
+    "achievementWarmOpen": 37
+  },
+  "assertions": {
+    "layaRuntimeLoaded": true,
+    "legacyCityReady": true,
+    "unityRuntimeLoaded": true,
+    "achievementOpened": true,
+    "realLayaTabInteraction": true,
+    "legacyAchievementClosed": true,
+    "layerPixelsAtomicallyRemoved": true,
+    "inputReturnedToUnity": true,
+    "warmReopen": true,
+    "secondCloseClean": true
+  },
+  "screenshots": {
+    "01_unity_runtime_underlay.png": {
+      "path": "E:\\GitProject\\yu_client_unity\\output\\ui_layer_poc\\2026-08-08_achievement\\20260808_154226\\01_unity_runtime_underlay.png",
+      "sha256": "70b868e15007a899f41761ad92901b48ce6a297984e3f7f75679f2daa7fc7d81"
+    },
+    "02_laya_achievement_open.png": {
+      "path": "E:\\GitProject\\yu_client_unity\\output\\ui_layer_poc\\2026-08-08_achievement\\20260808_154226\\02_laya_achievement_open.png",
+      "sha256": "1a37b07516930401359651b2f4e8cb2a5364606c2ed874aef80e774562eea9f6"
+    },
+    "03_laya_achievement_interacted.png": {
+      "path": "E:\\GitProject\\yu_client_unity\\output\\ui_layer_poc\\2026-08-08_achievement\\20260808_154226\\03_laya_achievement_interacted.png",
+      "sha256": "7caefde16b7ab5f02957d954aeb9ee4e835e4a9ce622669fb1d479f069f5994a"
+    },
+    "04_unity_after_laya_close.png": {
+      "path": "E:\\GitProject\\yu_client_unity\\output\\ui_layer_poc\\2026-08-08_achievement\\20260808_154226\\04_unity_after_laya_close.png",
+      "sha256": "46cccc85ee4d5ad53c6b171f0120d9fbb2be61d84dede10baf884932b54437a6"
+    },
+    "05_laya_achievement_warm_reopen.png": {
+      "path": "E:\\GitProject\\yu_client_unity\\output\\ui_layer_poc\\2026-08-08_achievement\\20260808_154226\\05_laya_achievement_warm_reopen.png",
+      "sha256": "e91880956169f467f290c8a3892c65286d4600e836fa1596c996f6cf561de73d"
+    },
+    "06_unity_after_second_close.png": {
+      "path": "E:\\GitProject\\yu_client_unity\\output\\ui_layer_poc\\2026-08-08_achievement\\20260808_154226\\06_unity_after_second_close.png",
+      "sha256": "783905a459ad6e51038db60a4648c6b6785f770ef9acad3478cbfe3562905090"
+    }
+  },
+  "limitations": [
+    "This proof reuses the full legacy runtime and its own test login; the production data bridge is not implemented.",
+    "Unity remains on its login/runtime page; this run validates browser-layer coexistence, input ownership, legacy visual reuse, and atomic cleanup.",
+    "No Achievement reward/upgrade write transaction is clicked."
+  ],
+  "entry": {
+    "mode": "host-to-laya-bridge",
+    "target": "achvModel.OP_V -> AchvEnterView",
+    "result": {
+      "ok": true
+    }
+  },
+  "achievementOwnerView": "BaseWindowSkin",
+  "interaction": {
+    "selected": "个人成长",
+    "visibleSubTabs": [
+      "人物",
+      "时装",
+      "灵魄",
+      "合成"
+    ]
+  },
+  "closeControls": {
+    "cold": [
+      {
+        "view": "BaseWindowSkin",
+        "name": "_img_return",
+        "text": "",
+        "skin": "",
+        "path": [
+          2,
+          1,
+          3,
+          0,
+          9
+        ],
+        "x": 638,
+        "y": 1077,
+        "width": 58,
+        "height": 75,
+        "cx": 667,
+        "cy": 1115
+      },
+      {
+        "view": "BaseWindowSkin",
+        "name": "_img_return0",
+        "text": "",
+        "skin": "resource/game/common/texture/uity_006.png",
+        "path": [
+          2,
+          1,
+          3,
+          0,
+          9,
+          0
+        ],
+        "x": 638,
+        "y": 1092,
+        "width": 58,
+        "height": 58,
+        "cx": 667,
+        "cy": 1121
+      }
+    ],
+    "warm": [
+      {
+        "view": "BaseWindowSkin#1",
+        "name": "_img_return",
+        "text": "",
+        "skin": "",
+        "path": [
+          2,
+          1,
+          5,
+          0,
+          9
+        ],
+        "x": 638,
+        "y": 1077,
+        "width": 58,
+        "height": 75,
+        "cx": 667,
+        "cy": 1115
+      },
+      {
+        "view": "BaseWindowSkin#1",
+        "name": "_img_return0",
+        "text": "",
+        "skin": "resource/game/common/texture/uity_006.png",
+        "path": [
+          2,
+          1,
+          5,
+          0,
+          9,
+          0
+        ],
+        "x": 638,
+        "y": 1092,
+        "width": 58,
+        "height": 58,
+        "cx": 667,
+        "cy": 1121
+      }
+    ]
+  },
+  "closedState": {
+    "mode": "unity",
+    "laya": {
+      "opacity": "0",
+      "visibility": "hidden",
+      "pointerEvents": "none"
+    },
+    "centerTarget": "unity-frame"
+  },
+  "finalState": {
+    "mode": "unity",
+    "laya": {
+      "opacity": "0",
+      "visibility": "hidden",
+      "pointerEvents": "none"
+    },
+    "centerTarget": "unity-frame"
+  },
+  "hostEvents": [
+    {
+      "type": "host-ready",
+      "detail": {},
+      "at": "2026-08-08T15:42:27.087Z"
+    },
+    {
+      "type": "legacy-bridge-installed",
+      "detail": {
+        "origin": "http://127.0.0.1:8091"
+      },
+      "at": "2026-08-08T15:42:27.104Z"
+    },
+    {
+      "type": "host-layer",
+      "detail": {
+        "mode": "laya-boot",
+        "reason": "prepare-legacy-session"
+      },
+      "at": "2026-08-08T15:42:27.304Z"
+    },
+    {
+      "type": "host-layer",
+      "detail": {
+        "mode": "unity",
+        "reason": "capture-runtime-underlay"
+      },
+      "at": "2026-08-08T15:43:57.362Z"
+    },
+    {
+      "type": "host-layer",
+      "detail": {
+        "mode": "laya-boot",
+        "reason": "open-achievement"
+      },
+      "at": "2026-08-08T15:43:57.805Z"
+    },
+    {
+      "type": "achievement-open",
+      "detail": {
+        "runtime": "legacy-laya"
+      },
+      "at": "2026-08-08T15:43:57.944Z"
+    },
+    {
+      "type": "host-layer",
+      "detail": {
+        "mode": "laya-open",
+        "reason": "legacy-open-event"
+      },
+      "at": "2026-08-08T15:43:57.944Z"
+    },
+    {
+      "type": "achievement-close",
+      "detail": {
+        "runtime": "legacy-laya"
+      },
+      "at": "2026-08-08T15:43:59.944Z"
+    },
+    {
+      "type": "host-layer",
+      "detail": {
+        "mode": "unity",
+        "reason": "legacy-close-event"
+      },
+      "at": "2026-08-08T15:43:59.944Z"
+    },
+    {
+      "type": "host-layer",
+      "detail": {
+        "mode": "laya-boot",
+        "reason": "warm-reopen"
+      },
+      "at": "2026-08-08T15:44:00.460Z"
+    },
+    {
+      "type": "achievement-open",
+      "detail": {
+        "runtime": "legacy-laya"
+      },
+      "at": "2026-08-08T15:44:00.494Z"
+    },
+    {
+      "type": "host-layer",
+      "detail": {
+        "mode": "laya-open",
+        "reason": "legacy-open-event"
+      },
+      "at": "2026-08-08T15:44:00.494Z"
+    },
+    {
+      "type": "achievement-close",
+      "detail": {
+        "runtime": "legacy-laya"
+      },
+      "at": "2026-08-08T15:44:01.188Z"
+    },
+    {
+      "type": "host-layer",
+      "detail": {
+        "mode": "unity",
+        "reason": "legacy-close-event"
+      },
+      "at": "2026-08-08T15:44:01.189Z"
+    }
+  ],
+  "pass": true,
+  "finishedAt": "2026-08-08T15:44:01.612Z"
+}

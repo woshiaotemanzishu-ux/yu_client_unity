@@ -4,6 +4,8 @@ using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
 using Shenxiao.Module.Core.Chat;
+using Shenxiao.Module.Core.Friend;
+using Shenxiao.Module.Core.Mail;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -36,7 +38,11 @@ namespace Shenxiao.Module.Core.MainUI
         {
             EventDispatcher.On<bool>(GlobalEvent.EVT_SHOP_RED_DOT, OnShopRedDot);
             EventDispatcher.On<int>(GlobalEvent.EVT_CHAT_MESSAGES_UPDATED, OnChatMessagesUpdated);
+            EventDispatcher.On(GlobalEvent.EVT_FRIEND_REDDOT_UPDATE, RefreshFriendAndMailRed);
+            EventDispatcher.On(GlobalEvent.EVT_MAIL_UNREAD_UPDATE, RefreshFriendAndMailRed);
+            EventDispatcher.On<long>(GlobalEvent.EVT_CHAT_PRIVATE_UPDATE, OnPrivateChatUpdate);
             ChatModel.Instance.EnsureWelcomeSystemMessage();
+            RefreshFriendAndMailRed();
             RenderAllMessages();
         }
 
@@ -44,12 +50,18 @@ namespace Shenxiao.Module.Core.MainUI
         {
             EventDispatcher.Off<bool>(GlobalEvent.EVT_SHOP_RED_DOT, OnShopRedDot);
             EventDispatcher.Off<int>(GlobalEvent.EVT_CHAT_MESSAGES_UPDATED, OnChatMessagesUpdated);
+            EventDispatcher.Off(GlobalEvent.EVT_FRIEND_REDDOT_UPDATE, RefreshFriendAndMailRed);
+            EventDispatcher.Off(GlobalEvent.EVT_MAIL_UNREAD_UPDATE, RefreshFriendAndMailRed);
+            EventDispatcher.Off<long>(GlobalEvent.EVT_CHAT_PRIVATE_UPDATE, OnPrivateChatUpdate);
         }
 
         protected override void OnDispose()
         {
             EventDispatcher.Off<bool>(GlobalEvent.EVT_SHOP_RED_DOT, OnShopRedDot);
             EventDispatcher.Off<int>(GlobalEvent.EVT_CHAT_MESSAGES_UPDATED, OnChatMessagesUpdated);
+            EventDispatcher.Off(GlobalEvent.EVT_FRIEND_REDDOT_UPDATE, RefreshFriendAndMailRed);
+            EventDispatcher.Off(GlobalEvent.EVT_MAIL_UNREAD_UPDATE, RefreshFriendAndMailRed);
+            EventDispatcher.Off<long>(GlobalEvent.EVT_CHAT_PRIVATE_UPDATE, OnPrivateChatUpdate);
             ClearRendered(_renderedChatItems);
             ClearRendered(_renderedSystemItems);
         }
@@ -60,6 +72,21 @@ namespace Shenxiao.Module.Core.MainUI
             {
                 _img_shop_red.gameObject.SetActive(show);
             }
+        }
+
+        private void OnPrivateChatUpdate(long roleId)
+        {
+            RefreshFriendAndMailRed();
+        }
+
+        /// <summary>
+        /// 对标老端 FriendModel.GetRed：好友申请、未读私聊或未读邮件任一存在时，HUD 好友入口显示红点。
+        /// </summary>
+        private void RefreshFriendAndMailRed()
+        {
+            if (_img_friend_red == null) return;
+            bool friendRed = FriendModel.Instance.HaveNewApply || ChatModel.Instance.TotalPrivateUnread > 0;
+            _img_friend_red.gameObject.SetActive(friendRed || MailModel.Instance.HasUnread);
         }
 
         /// <summary>
@@ -79,8 +106,18 @@ namespace Shenxiao.Module.Core.MainUI
             // 固定入口必须把 Button 挂在玩家实际看到并命中的 Graphic 上。只给外层 box 补透明
             // Image/Button 时，WebGL 的可见子图可能先吃掉射线，导致齿轮可见却没有点击回调。
             RouteClick(_img_setting, "setting");
-            RouteClick(_img_friend, "friend");
+            if (_img_friend != null) UIUtil.AddClick(_img_friend, OpenFriendOrMail);
             RouteClick(_img_shop, "shop");
+        }
+
+        /// <summary>
+        /// 对标老端 MainUIChatView：有好友侧红点或两侧都无红点时进好友；仅邮件有红点时直达邮件。
+        /// </summary>
+        private static void OpenFriendOrMail()
+        {
+            bool friendRed = FriendModel.Instance.HaveNewApply || ChatModel.Instance.TotalPrivateUnread > 0;
+            bool mailRed = MailModel.Instance.HasUnread;
+            MainUIRouter.Open(friendRed || !mailRed ? "friend" : "email");
         }
 
         private static void RouteClick(Component target, string viewKey)
@@ -116,8 +153,8 @@ namespace Shenxiao.Module.Core.MainUI
         }
 
         /// <summary>
-        /// 红点/特效未移植:好友红点、商城红点、限购商城特效盒先隐藏(老客户端由 MainUIModel.friend_red、
-        /// ShopModel.UpdateShopRedState、ActivityIcon 特效驱动)。不造假数据,沿用 gameObject.SetActive(false)。
+        /// 首帧先隐藏尚未收到权威状态的红点/特效；OnShow 随即从好友、私聊、邮件模型刷新好友入口，
+        /// 商城红点由 EVT_SHOP_RED_DOT 驱动，限购商城特效盒仍等待 ActivityIcon 归属链。
         /// </summary>
         private void HideUnbackedIndicators()
         {

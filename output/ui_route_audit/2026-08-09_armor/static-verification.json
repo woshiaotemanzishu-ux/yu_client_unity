@@ -1,0 +1,49 @@
+{
+  "verdict": "pass",
+  "errors": [],
+  "manifest": {
+    "node_count": 89,
+    "leaf_count": 75,
+    "blocked": 23,
+    "needs_runtime_verify": 52
+  },
+  "configs": {
+    "equipment_rows": 90,
+    "suit_rows": 18,
+    "kv_rows": 2,
+    "open_levels": [
+      450,
+      470,
+      490,
+      520,
+      550,
+      580,
+      610,
+      640,
+      670
+    ]
+  },
+  "prefab": {
+    "module": "Assets/Prefabs/UI/EquipArmor/EquipArmorModule.prefab",
+    "shared_attr_item": "Assets/Prefabs/UI/EquipArmor/ArmorAttrItem.prefab"
+  },
+  "known_cross_island_blockers": [
+    "EquipFlow tab label",
+    "stage locked copy/selected skin",
+    "type selected skin",
+    "position BaseAward click interception and gray",
+    "material insufficient gray",
+    "success ui_dazaochengong effect",
+    "ArmorAttrView mask close identity",
+    "MainUI root red dot"
+  ],
+  "source_hashes": {
+    "ArmorController.cs": "9daba7a6a6cf1f29234d10839fa4aeed6c542ea25b50ad1811b52843249dcc14",
+    "ArmorModel.cs": "3f3ed1caf6aac2800b54589285ac3d5b8041e41688e233f34ff5515265a0a8bb",
+    "ArmorConfigs.cs": "4979e2dbbb025ebc39c971e8618fd48968d6a4f94eacbe7e9fc8065eccd80478",
+    "EquipArmorModule.prefab": "094541e9368d3b2398cc57c859b1e0658171440b075943b6067f52fdaa06a4f1",
+    "legacy EquipArmorView.ts": "dc19846dbc4b50e225c5650dd7c77e621dc5d640da6165bf77adb3d6f88aaa3f",
+    "route-manifest.json": "4f277b93382b3631b862c4d575afd1dcffe3354fed022bc619f6d5f57938fb99",
+    "results-static.json": "5f5789c36259260b249ce7fcc20db9baeab54d7ebf9fc71e2a43fb27785aabd9"
+  }
+}

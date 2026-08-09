@@ -1,0 +1,14 @@
+{
+  "status": "superseded",
+  "superseded_at": "2026-08-09T00:00:00+08:00",
+  "reason": "QA found omitted controls and legacy reachability boundaries; schema 6 topology is immutable.",
+  "replacement": "../2026-08-09_marriage_v2/route-ledger.json",
+  "immutable_files": [
+    "route-manifest.json",
+    "route-ledger.json"
+  ],
+  "immutable_sha256": {
+    "route-manifest.json": "5d7cfbbc42a2196dde11913a68a2b361ecf2651f5c22cfcea7d7cd34d749187a",
+    "route-ledger.json": "015fcb6423cf8a83bcf3f3c2c9053dd953caf19f118b7b06a57e8a4ce4cbfc85"
+  }
+}

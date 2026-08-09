@@ -23,13 +23,18 @@ namespace Shenxiao.Common.Tips
         private static Action _onYes;
         private static Action _onNo;
         private static string _pendingText;
+        private static string _pendingYesLabel = "确认";
+        private static string _pendingNoLabel = "取消";
         private static bool _loading;
 
-        public static void Show(string text, Action onYes, Action onNo)
+        public static void Show(string text, Action onYes, Action onNo,
+            string yesLabel = "确认", string noLabel = "取消")
         {
             _pendingText = text ?? string.Empty;
             _onYes = onYes;
             _onNo = onNo;
+            _pendingYesLabel = string.IsNullOrEmpty(yesLabel) ? "确认" : yesLabel;
+            _pendingNoLabel = string.IsNullOrEmpty(noLabel) ? "取消" : noLabel;
 
             if (_view != null)
             {
@@ -111,8 +116,8 @@ namespace Shenxiao.Common.Tips
             _moduleRoot.transform.SetAsLastSibling();
             _view.Show();
             if (_view._content_html != null) _view._content_html.text = _pendingText;
-            if (_view.ok_label != null) _view.ok_label.text = "确认";
-            if (_view.cancel_label != null) _view.cancel_label.text = "取消";
+            if (_view.ok_label != null) _view.ok_label.text = _pendingYesLabel;
+            if (_view.cancel_label != null) _view.cancel_label.text = _pendingNoLabel;
             Canvas.ForceUpdateCanvases();
             if (_view.transform is RectTransform root) LayoutRebuilder.ForceRebuildLayoutImmediate(root);
             Canvas.ForceUpdateCanvases();
@@ -132,6 +137,8 @@ namespace Shenxiao.Common.Tips
             _onYes = null;
             _onNo = null;
             _pendingText = null;
+            _pendingYesLabel = "确认";
+            _pendingNoLabel = "取消";
         }
 
         /// <summary>编辑器预览或资源更新后释放缓存，下次从最新 Prefab 重载。</summary>

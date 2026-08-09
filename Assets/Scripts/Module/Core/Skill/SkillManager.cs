@@ -128,6 +128,19 @@ namespace Shenxiao.Module.Core.Skill
             if (_autoFightShortcutIndex >= ShortcutList.Count) _autoFightShortcutIndex = 0;
         }
 
+        /// <summary>
+        /// 21002/13007 为避免配置加载卡死会在 GAME_START 先发；若首包早于 ConfigSkillUI 返回，
+        /// <see cref="CreateSkillList"/> 只能先走真实协议数据回退。配置完成后必须重算一次并通知既有
+        /// HUD/角色技能页，否则本次登录会一直保留回退顺序，直到服务端再次主动推送 21002。
+        /// 这里只重建派生列表，不改写 21002 权威技能等级，也不触发“新技能获得”队列。
+        /// </summary>
+        public void RefreshShortcutListAfterConfigLoad()
+        {
+            if (_mySkillList.Count == 0) return;
+            UpdateShortcutList();
+            EventDispatcher.Emit(GlobalEvent.EVT_SKILL_LIST_UPDATED);
+        }
+
         public SkillVo GetSkill(int skillId)
             => _mySkillList.TryGetValue(skillId, out SkillVo v) ? v : null;
 

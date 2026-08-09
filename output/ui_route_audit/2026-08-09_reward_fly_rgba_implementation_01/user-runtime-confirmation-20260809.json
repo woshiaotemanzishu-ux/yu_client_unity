@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "observed_at": "2026-08-09T13:15:12+08:00",
+  "source": "user-runtime",
+  "environment": "current Unity runtime operated by the user",
+  "account": "111111",
+  "route": "角色 -> 人物 -> 成就 -> 可领取条目 -> 领取",
+  "assertion": "用户在真实领取后明确确认本次奖励飞行效果‘好了’。",
+  "accepted_scope": [
+    "当前代表性领取触发的奖励飞行最终 Canvas 可见表现",
+    "此前透明区域显示为灰色实心圆片的合成缺陷已消失",
+    "老端最终 RGBA 序列由 Unity 普通 Alpha presenter 重放的方案已实际落地"
+  ],
+  "not_claimed": [
+    "未单独观察的另一货币特效变体",
+    "飞行过程中关闭页面后的零残留",
+    "与当前源码和 catalog 同批的 WebGL 表现",
+    "成就整页及其余功能线完成"
+  ],
+  "acceptance_authority": "老客户端同账号、同状态、同 viewport 的真实运行最终表现是验收目标；源码、运行树、转换器、Prefab 与 Unity 架构只用于解释或实现，冲突时修改 Unity，不改写老端标准。",
+  "source_revision": "92b3f5578a90befb85a6255157f08e482214aa1a",
+  "implementation_evidence": "output/ui_route_audit/2026-08-09_reward_fly_rgba_implementation_01/static-validation.json"
+}

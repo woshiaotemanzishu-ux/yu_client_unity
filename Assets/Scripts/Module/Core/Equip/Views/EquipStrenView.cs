@@ -1,3 +1,4 @@
+using Shenxiao.Common.Tips;
 using Shenxiao.Generated.UI.Equip;
 using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
@@ -12,8 +13,8 @@ namespace Shenxiao.Module.Core.Equip
     /// 单强化(btnStrOne「强化」)/一键强化(btnStrAll「一键强化」)/停止(btnStopAll)/淬炉宗师(btnMaster→EquipStrenMasterView)+
     /// 阶数(grade)+ 满级提示(group_max_tip)+ 强化特效(gp_effect)+ 大师红点(red_master)/强化红点(_reddot)。
     ///
-    /// 强化协议(15204/15205,经 EquipStrenController)已接线:btnStrOne→StrenOne(固定武器槽,无选中态)、
-    /// btnStrAll→StrenAll();btnStopAll(连续强化)仍打日志占位。
+    /// 强化协议(15204/15205,经 EquipStrenController)已接线；单件/一键强化都必须先由真实装备格建立选中态，
+    /// 当前列表未落地时明确阻断，禁止固定操作武器槽；btnStopAll(连续强化)仍打日志占位。
     /// 降级:EquipModel/GoodsModel/RoleManager/TaskModel、config_equip_attr/stren_lv/strengthen_max 等配置、
     /// 淬炉宗师子窗、装备/属性/战力小项(_tpl_EquipmentItem/_tpl_FightingShowSmallItem/_tpl_EquipAttrItem)
     /// 与飞入特效均未移植 → 红点/模板先隐藏;列表空、属性/消耗/阶数走默认。
@@ -21,6 +22,8 @@ namespace Shenxiao.Module.Core.Equip
     /// </summary>
     public sealed class EquipStrenView : EquipStrenViewBind
     {
+        private int _selectedEquipType;
+
         protected override void OnInit()
         {
             HideReds();
@@ -30,8 +33,15 @@ namespace Shenxiao.Module.Core.Equip
 
         protected override void OnShow(object args)
         {
+            _selectedEquipType = 0;
             // 老端 LoadSuccess/InitView:铺装备格 + 选默认装备 + 刷属性/消耗/战力(EquipModel.GetWearEquipDynamics…)。数据未移植 → 空/默认。
             GameLog.Info("Equip", "EquipStrenView 打开 → 待对接 EquipModel/协议(列表空/属性默认降级)");
+        }
+
+        /// <summary>仅接受真实装备列表点击产生的部位；列表未落地时保持 0，禁止默认操作武器槽。</summary>
+        public void SelectEquipType(int equipType)
+        {
+            _selectedEquipType = equipType > 0 ? equipType : 0;
         }
 
         /// <summary>红点(大师红点 red_master、强化红点 _reddot)依赖 EquipModel.CheckMasterRed/CheckStrenRedDotOne,未移植先隐藏。</summary>
@@ -58,8 +68,7 @@ namespace Shenxiao.Module.Core.Equip
             BindOpen(btnMaster, "EquipStrenMasterView", "淬炉宗师");
         }
 
-        /// <summary>btnStrOne → EquipStrenController.StrenOne(当前槽位)。本 View 未移植装备格选中态(EquipModel 未接),
-        /// 无「当前槽位」概念可读 → 固定传 1(武器槽,老端 equip_type 编号从武器起),真实选格逻辑留后。</summary>
+        /// <summary>btnStrOne → EquipStrenController.StrenOne(当前槽位)。未从真实装备格建立选中态时拒绝发送。</summary>
         private void BindStren(Component target, string label)
         {
             if (target == null) return;
@@ -69,9 +78,14 @@ namespace Shenxiao.Module.Core.Equip
             img.raycastTarget = true;
             UIUtil.AddClick(img, () =>
             {
-                const int CurrentEquipType = 1;   // TODO: 无当前槽位数据源,暂固定武器槽(equip_type=1)
-                GameLog.Info("Equip", "点击[{0}] → StrenOne(equip_type={1})", label, CurrentEquipType);
-                EquipStrenController.Instance.StrenOne(CurrentEquipType);
+                if (_selectedEquipType <= 0)
+                {
+                    TipsManager.Toast("请先选择已穿戴装备");
+                    GameLog.Warn("Equip", "点击[{0}] 被阻止：装备列表尚未建立真实选中态", label);
+                    return;
+                }
+                GameLog.Info("Equip", "点击[{0}] → StrenOne(equip_type={1})", label, _selectedEquipType);
+                EquipStrenController.Instance.StrenOne(_selectedEquipType);
             });
         }
 
@@ -85,6 +99,12 @@ namespace Shenxiao.Module.Core.Equip
             img.raycastTarget = true;
             UIUtil.AddClick(img, () =>
             {
+                if (_selectedEquipType <= 0)
+                {
+                    TipsManager.Toast("请先选择已穿戴装备");
+                    GameLog.Warn("Equip", "点击[{0}]被阻止：装备列表尚未建立真实选中态", label);
+                    return;
+                }
                 GameLog.Info("Equip", "点击[{0}] → StrenAll()", label);
                 EquipStrenController.Instance.StrenAll();
             });

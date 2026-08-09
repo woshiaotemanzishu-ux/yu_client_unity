@@ -6,7 +6,7 @@
 > - [编码规范](Shenxiao编码规范.md)
 > - [Copilot 红线](../.github/copilot-instructions.md)
 
-**最近更新**：2026-08-06
+**最近更新**：2026-08-09
 
 **状态图例**：
 - ✅ 已完成
@@ -1677,7 +1677,7 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 ## 2026-07-30：公共顶栏与登录背景改为 Prefab 唯一视觉源
 
 - **公共顶栏**：共享 `BaseWindowSkin.prefab/TopBackground` 直接保存临时底图、深紫 Tint、720×90 Rect 和不拦截点击等显示参数；当前 Source Image 使用既有通用 `subbg.png`，以后只需在 Prefab Inspector 替换。`BaseWindowSkinRefiner` 已撤销背景节点创建、图片和颜色校验，只继续处理跨面板的标题原图比例问题。
-- **登录背景**：`LoginStage.prefab/WebBackground` 继续直接保存 `full_screen_bg.jpg`、`Image.Type=Simple` 与 `AspectRatioFitter.EnvelopeParent/16:9`。恢复并保留原有 `Awake/OnValidate` 比例同步，它只根据 Prefab 当前图片的原始尺寸更新 Fitter，不加载或替换背景资源；页面专用 `LoginStageCreator` 与重建注册入口仍保持删除。
+- **登录背景**：`LoginStage.prefab/WebBackground` 继续直接保存统一的 `full_screen_bg.png`、`Image.Type=Simple` 与 `AspectRatioFitter.EnvelopeParent/16:9`。恢复并保留原有 `Awake/OnValidate` 比例同步，它只根据 Prefab 当前图片的原始尺寸更新 Fitter，不加载或替换背景资源；页面专用 `LoginStageCreator` 与重建注册入口仍保持删除。
 - **流程边界**：两张背景图片都以可视化 Prefab 的 `Image/Source Image` 为唯一事实源；后续换图只改 Prefab Inspector，不改 C# 资源路径、不跑批量转换。除 `LoginStageCreator` 外，本轮误删的其他登录页 Creator 已全部恢复，不再扩大本次背景修正范围。
 - **验证状态**：`PrefabBackgroundOwnershipCase` 校验两份 Prefab 均无 Missing Script、两张 Source Image 非空、公共底图位于标题装饰后方且不拦点击、登录仍为 `Simple + EnvelopeParent`，并确认 `LoginStage` 的 Image/Fitter/Viewport 序列化引用与当前图片比例一致。
 
@@ -2006,7 +2006,60 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 
 ## 2026-08-08：BaseWindowSkin 自适应背景与单主窗口统一管理
 
-- **老端事实**：`BaseView1` 为大窗创建独立 `full_screen_bg1.jpg`，按 16:9 覆盖舞台；`PopManager.popViewOpen` 打开新大窗前关闭当前大窗，不维护可逐层返回的窗口栈。因此“背包→角色”应只保留角色，关闭角色一次即回到主场景。
+- **老端事实**：`BaseView1` 为大窗创建独立的 16:9 全屏背景，覆盖舞台；`PopManager.popViewOpen` 打开新大窗前关闭当前大窗，不维护可逐层返回的窗口栈。因此“背包→角色”应只保留角色，关闭角色一次即回到主场景。
 - **共享 Prefab**：`BaseWindowSkin.prefab` 外层根改为全父级拉伸，新增首层 `AdaptiveBackground`，直接保存老端同源背景并用 `AspectRatioFitter.EnvelopeParent` 自适应裁切；既有 `_root_gp` 继续保持 870×1280 居中，页面内容、页签和各业务背景坐标未改。
+- **背景资源收口**：登录舞台、选服/选角/创角 Creator、`BaseWindowSkin.prefab/AdaptiveBackground`、预加载清单和 Addressables 统一改用 `resource/game/login/other/full_screen_bg.png`（GUID `83042b6655ce00342b1af9e51a683d9e`）；两个数字后缀变体与旧 JPG 不再保留。新 PNG 尺寸为 1280×720，保持 16:9 适配前提。老 H5 仓同步替换 `cdn`、`h5/laya/assets` 的图片、TS/首页直接引用、预加载表与打包闭包；因此 Unity 从老端同步预加载表时也会自然保持新路径。
 - **统一生命周期**：`BaseWindowSkinView` 新增 `BaseWindowManager`，在 `OnShow` 原子替换当前窗口并隐藏旧窗口，在 `OnHide/OnDestroy` 清理当前引用。14 个直接实例化该共享窗框的业务 Flow 自动获得一致行为，不新增页面互相依赖。
 - **门禁与状态**：`PrefabBackgroundOwnershipCase` 增加根/背景锚点、图片、16:9 Envelope、内部窗体尺寸及“双窗打开后仅新窗显示、关闭一次不恢复旧窗”的回归断言。当前只执行不占用前台 Unity 的离线编译与静态校验；720×1280、宽屏真实像素，以及背包↔角色真实点击链仍标记 `needs-runtime-verify`。
+
+## 2026-08-08：UI 精修流程 schema 6 稳定性收口
+
+- **审计结论**：既有 UI 精修规则已覆盖页面身份、滚动、动态特效、共享消费者和真实 Web，但旧台账执行器仍允许空 `applicable_gates`、任意字符串证据、旧绿灯残留与“先写正式账再校验”；共鸣专用更新器还硬编码 schema 4 并先重置全部节点为 `done`。12 份已跟踪台账中，挂机“提升”扫光台账只有树、无 status，修改前通用 validator 实际失败。
+- **工具修复**：`route_ledger.py` 新建账升级为 schema 6，`init/apply` 改为内存候选全校验后原子替换；`init` 拒绝覆盖现有账，同一路径使用非阻塞跨进程写锁防止并发丢更新。`manifest_source` 同时绑定文件哈希、路线名、节点集合和 `parent/type/risk/control_inventory`，拓扑变化必须新建版本账。完成闸绑定 verification run、带 SHA-256 文件或有来源/时间/范围的人工断言，完成结果必须在本批显式刷新全部适用闸，三张 gate 表不得夹带非适用旧绑定。新证据通过 `invalidate_gates` 精确作废并归档旧绑定；动态特效、真实拖动、页面根矩形、模型/RT、资源幂等、共享消费者/状态矩阵均有结构化合同。
+- **真实 Web 边界**：根页面 `done` 必须由 `route_run_id` 指向同批 real-Web run，记录 Git/dirty、Player/catalog、720×1280 与 1920×1080、单会话顺序和 Headless 报告。根页被回卷时旧 ID 清除；重新完成的 Web run 不得早于完成叶引用的 run，且 Git/dirty 指纹必须一致，Editor/CLI、新 Editor 修复配旧 Web 包或局部人工确认均不能升级整页。
+- **历史兼容**：schema 2～5 保持只读兼容，不机械抬版本。共鸣 458 节点 schema 4 账保留历史状态，专用更新器默认拒绝运行，只允许显式输出独立历史候选；下一次真实复验从现有 manifest 新建 schema 6。挂机扫光历史账已补成 5 节点可校验结构，Editor 双帧/生命周期叶保留 `done`，same-build Web/资源幂等叶明确 `needs-runtime-verify`。
+- **验证与未执行**：Python 编译、自测和 schema 6 故障注入通过；共鸣 458 节点 manifest 已离线试建为全 `not-run` schema 6 候选并通过结构校验。本轮没有启动/控制 Unity、没有切 WebGL、没有账号写事务；共鸣 114 个待验节点、共享物品呈现 5/5 待验及挂机扫光 Web 叶不会因工具修复自动关闭。完整复盘见 [UI 精修流程稳定性复盘](RuntimeCompare/UI精修流程稳定性复盘-20260808.md)。
+
+## 2026-08-08：人物 → 成就完整功能实现与路线纠偏
+
+- **功能树**：后台 Headless 老 H5 同账号顺序遍历 7 个一级页签、15 个二级页签、详情滚动、返回和 warm 重开；15 个 40902/40905 写控件只枚举未点击。Unity 复用现有 `AchvModule.prefab`，接入人物入口、总览/详情、页签、红点、排序、滚动和共享 `BaseAwardItem`；不重转、不运行 Creator，滚动/布局组件与四档子页签槽位直接增量落在 Prefab，运行时不再造布局。
+- **配置/协议**：同步 6 张配置，覆盖 237 条成就、129 个 category、30 个 subtype、200 个阶段；完整注册 40901～40909。40902/40905 等待权威刷新、拒绝旧快照提前解锁，并加 12 秒防永久死锁；没有乐观改进度或本地发奖。
+- **资源与演出**：31 个奖励显示物品全部可解析，补齐其中缺失的 18 张同源图标并保留独立 GUID；领取前少于 5 个主背包空格会拦截并提供背包整理入口。阶段成功按老端 `(0,2)/scale=1/15s` 播放 `ui_shengjitexiao`，条目成功复用 `BaseAwardItem` 以 120ms 错峰、750ms 飞向真实背包图标。
+- **验证状态**：配置/资源/代码静态审计 27/27 通过，并把 6 份配置、1 张背景、31 张奖励图标逐项锁到 Addressables GUID/地址/标签；`Shenxiao.Editor.csproj --target:Rebuild` 离线编译 0 error（101 个工程既有/测试 seam warning）。发现 v1 控件树漏掉背包条件分支和成功视觉后，没有原地篡改旧拓扑，而是新建 schema 6 v2：63 节点，当前 `blocked=11 / needs-runtime-verify=52`。本轮未占用 Unity、未生成同批 Web、未发送 40902/40905，不能标整页完成。证据与边界见 [人物 → 成就功能线](RuntimeCompare/人物-成就功能线-20260808.md)。
+- **流程纠偏**：用户指出属性说明早已完成。后续选叶前必须合并“用户最新确认 → 当前代码/运行证据 → 当前 schema 6 账 → 专项文档 → 历史计划”；旧 `not-run` 不得覆盖后续实现。角色第 1 轮清单已追加当前状态表，明确属性说明不再作为待开发候选，勋章/幻化仍可作为下一候选。
+
+## 2026-08-08：GM 测试态流程与独立 Laya 成就层样板
+
+- **GM 流程落地**：`audit-game-ui-route` 已正式加入测试态配方。账号缺等级、任务、物品、货币、功能开放或成就进度时，优先复用 `111111`，或通过现有注册链建立专用测试号；使用当前 `11100/11101` 清单按最小命令集准备前置态，并记录 `account/commands/order/expected/reset/probes`。GM 不得代替被测领取、升级、穿戴或购买事务。
+- **WebGL 样板通过**：后台 Headless 同页运行 Unity WebGL 下层和旧 Laya 上层；宿主桥直接打开真实 `AchvEnterView`，不经旧主界面坐标。真实页签点击、第一次关闭、热重开和第二次关闭全部通过；关闭后 Laya 为 `opacity=0 / visibility=hidden / pointer-events=none`，输入命中恢复到 `unity-frame`，最终显示 Unity 登录页且无成就残留。
+- **时间与证据**：双运行时首次准备分别约 53.4 秒，Unity 真实运行画面约 89.4 秒可见；成就冷开 180 ms、热开 37 ms、关闭到 Unity 115 ms。正式报告为 `output/ui_layer_poc/2026-08-08_achievement/20260808_154226/report.json`，10 项断言全部通过。
+- **状态边界**：这证明 WebGL 独立层直接复用旧端 UI 可行，不代表 UGUI 成就路线完成。当前仍是完整旧 Laya 运行时和独立测试登录；生产采用前必须完成“Unity 唯一账号/网络权威”的 409xx 数据与点击桥、成就模块资源裁剪、内存/包体及 Android/iOS 样板。详见 [独立 Laya UI 层：成就样板](RuntimeCompare/独立LayaUI层-成就样板-20260808.md)。
+
+## 2026-08-09：人物 → 成就首轮 UGUI 运行态缺陷修复
+
+- **方案纠偏**：独立 Laya 层此前只在浏览器宿主页完成 WebGL 架构样板；当前工程没有供 Unity Editor/Android 原生运行的 WebView/Chromium 宿主，因此用户直接在 Unity 中运行时不会加载该层，不能把样板测试当作实际落地。当前改回既有 `AchvModule.prefab` 与 `AchievementFlow` 增量修复，不重转模块。
+- **本轮落地**：按老端 `bottom:0` 修正 `AchvTabBar` 在 680×150 宿主中的底部对齐，消除整组页签下移 70 逻辑像素；外层单页签恢复默认文字按钮“成就”，不再误用奖杯图片；总览和详情两个真实 `ScrollRect/Viewport` 增加透明可射线面，允许从列表空白和非交互区域拖动；领取飞行动画改从奖励组起飞，并在完成、异常或关页时统一销毁飞行物和阶段特效，防止关闭后残留。
+- **门禁与状态**：`AchievementCase` 新增底部几何、纵向滚动结构、裁剪、布局和透明拖动面的 Prefab 回归断言。`Shenxiao.Module.Core.csproj` 与 `Shenxiao.Editor.csproj` 均为 0 error；Prefab 共 511 个 YAML 文档，组件/子节点引用完整。当前已打开的 Unity 尚未重新导入本轮源文件，真实拖动、动画与关页清理仍为 `needs-runtime-verify`，不得宣称页面完成。
+- **第二轮视觉与奖励流修复**：老端运行时证据确认弧形槽位坐标无误，问题来自转换后竖排文字仍保留 `height=0/左上 pivot`；现将一级/二级文字分别固化为 `22×91`、`22×46` 并中心对齐。属性 `_Group1` 改由 `HorizontalLayoutGroup` 读取 TMP preferred width、垂直居中，消除固定空模板宽度造成的重叠。成就私有静态奖励格飞图改为公共 `RewardFlyService`：普通物品飞背包，元宝/绑元使用 `ui_bangyu_2/ui_bangyu_1` 散射特效飞顶部，金币使用 `com_gold`，全部支持完成/异常/关页清理。Core 0 error（84 个既有 warning），Editor 0 error（2 个既有 warning）；真实动态效果仍待用户当前 Unity 重载后确认。
+- **第三轮人工截图回卷**：新截图证明弧形页签和货币特效仍不合格。页签的四组 `(x,y)` 数值虽与老端一致，但 Unity 槽位错误使用中心 pivot，使每个 65×70 子按钮统一向左 32.5、向上 35 像素；四槽已改为左上 pivot，使坐标重新表示老端的子按钮左上角。货币特效的老端倍率 14 同时依赖每实例 100×100 私有 RT 裁切；共享通道现为 `ui_bangyu_1/2` 增加唯一 Top profile 并开启 `clipToRenderRect`，不靠缩倍率或减粒子掩盖越界。静态门禁新增四槽完整几何和两个裁切 profile 断言；修后真实动态、并发足迹与页面整体仍为 `needs-runtime-verify`。
+- **第四轮复验与根因纠偏**：用户运行确认弧形页签已基本一模一样，证明本轮按老端左上坐标语义修 pivot 的方向正确。货币粒子仍失败，推翻“100×100 裁切就是完整修复”的旧判断；进一步追到老端默认缓存后，真实拓扑是 `1 个粒子/Scene/100×100 RT 动态源 → N 个二维 Image 副本`，Unity 当前却是 N 个独立随机粒子源先进入共享全屏 additive RT，并合并了老端内外两层变换。已补 0～1500ms 老端时间序列采集、源/副本/合成顺序门禁和正式 defect 证据；当前未改粒子实现，不再把 profile 静态通过写成动态修复。
+- **第五轮定位流程沉淀与粒子合成纠偏**：弧形页签、两级竖排标签和属性行的成功经验已固化为页面根几何合同：先采运行态 `reference_corner/pivot/runtime_size/text_bounds`，统一半宽/半高偏移先修 pivot；离散弧形位置保存 Prefab 具名槽位，纯文字连续排版使用 TMP preferred width。新用户图同时证明奖励粒子的数量、大小、方向已基本正确，上一轮把缓存源/副本拓扑写成当前表现根因过早；实际灰片来自 `lyz_glow_134.png` 透明区保留灰 RGB，而全局 `UIEffectAdditive` 丢弃 RT alpha、用亮度重建 alpha。顶部 `ui_zhujiemianzhuanquan` 共享同一 UI 合成风险，底部“变强”和场景特效仅作为正常控制样本。当前只完成流程/证据/诊断纠正，运行时与 WebGL 尚未修复，奖励粒子继续为 `defect`。
+- **第六轮老端最终 RGBA 序列落地**：确认 `ui_bangyu_1/2` 在 100×100 私有 RT 中混合覆盖、Alpha 与 Additive 子材质后，不再全局试改共享合成 shader。新增 Headless 老 H5 `reward-fly-rgba` 采集路由，直接读取真实 `UIEffect.render_texture`，每套保存 120 帧、100×100、60fps/2 秒最终 RGBA，并生成带复制边的无损图集；抽样帧逐像素等于旧 RT。`RewardFlyService` 改为每批只推进一份序列、N 个普通 Alpha `RawImage` 共享同帧，并恢复外层轨迹/缩放与内层随机缩放/旋转；不影响其他原生特效。图集已加入 `Remote_effect`，Core 离线编译 0 error。GM 已在 `111111` 用 `completeachv_1` 把 category 1 / id 3 从未完成置为可领取，未重置、未发 40905；Unity 可直接点击领取复验。当前最终 Canvas、关闭清理和 WebGL 仍为 `needs-runtime-verify`，证据见 [人物 → 成就功能线](RuntimeCompare/人物-成就功能线-20260808.md)。
+- **第七轮用户运行确认与标准收口**：用户已在当前 Unity 真实领取流程中确认奖励飞行效果“好了”，此前透明区灰色实心化的可见缺陷关闭；这证明老端最终 RGBA 序列兼容层已实际落地，不再只停留于静态字节校验。项目流程同步固化“老客户端同状态真实运行最终表现是唯一验收目标”：源码、运行树、转换器、Prefab 和 Unity 架构只能解释或实现，冲突时必须改 Unity，不能改写老端标准。该确认只覆盖当前代表性 Unity 可见效果；另一货币变体、飞行中关页清理和同批 WebGL 仍为 `needs-runtime-verify`，成就整页未升级为 `done`。
+
+## 2026-08-09：UI 精修项目级总控与角色剩余硬洞合并
+
+- **总控工具**：新增 `ui_route_master.py` 及自测，递归汇总 `output/ui_route_audit` 下的正式路线账并确定性输出 JSON/Markdown；工具只读，不校验或回写正式台账，并强制把当前 schema 6 与历史 schema 2～5 分栏。初次扫描为 15 份台账、837 个节点；Chat 新账接入后为 16 份、925 个节点，其中 3 份 schema 6、13 份历史只读，证明旧角色总账不能直接作为当前排程事实。
+- **全局盘点**：`Assets/Prefabs/UI` 当前有 316 个 Prefab、134 个 `*Module.prefab`，后续主体应在现有 Prefab 上走 `fix-view`，少量确实没有可编辑 Prefab 的页面才走 `convert-module`。页面按主窗壳、物品详情、角色外观/3D、HUD 动态入口、社交、场景任务、活动商业化七个依赖岛安排唯一共享写者，页面专属文件可多智能体并行。
+- **角色事实合并**：旧 `mainui.role` schema 4 的 `72 done / 30 not-run / 11 baseline-only / 4 blocked` 已被后续时装、技能、属性说明、属性药剂、称号、共鸣、成就等专项大量推翻。真正的实现硬洞是勋章、九霄冥饰和四种一级外观页共享 `OutWardBaseView`；其余分支主要是 Editor/真实 Web 同批收口或受控写事务，不再按旧 `not-run` 重复开发。
+- **九霄冥饰边界纠正**：代码仍保留角色 `_Group6 → OpenFun 113 → SecretTreasureMainView(Unreal tab) → UnrealBagView` 和冥饰物品 `OpenFun 195` 两条目标链，但当前老端 `EquipmentView.json` 把 `_Group6` 序列化为 `visible=false`；账号 `111111` 的真实只读复走也确认该控件隐藏（当前 Lv.260，`UnrealBagView` 配置要求 360 级），因此不得把 OpenFun 113 写成已证实的当前入口。已新增 `Tools/ModuleManifest/unreal.manifest.json`，登记背包/强化/批量分解/单件拆解四个受管视图、共享外窗/详情/合成身份、10 份配置和 149xx/15010 读写边界；`ClientConfigSync` 同步清单补入九份当前缺失服务端表，权威源由 `cdn/resource/resource_version.json` 指向 `cdn/resource/config/server`，不使用内容不同的 `cdn/assets` 陈旧副本。`old_readonly_v4/blocked.json` 已把入口不可达固化为证据，全程未执行账号写事务。
+- **首条并行页面**：Chat 全屏页建立 `mainui.chat.fullscreen` schema 6 台账，共 88 个节点，保持全 `not-run`；在 Chat 专属文件内修正页签选中背景/字色，并把“滚到底”从日志占位改为停止惯性后滚至内容底部。离线编译 0 error，频道条件、表情/背包/喇叭/语音/头像菜单和真实 Web 状态矩阵仍未完成。
+- **当前验证边界**：总控工具自测、Python 编译、总控实仓扫描、Unreal manifest JSON 解析及 `git diff --check` 已通过。本轮没有启动、关闭或控制用户当前 Unity，没有生成新的 Player/catalog，没有执行 13402、14901/14902/14903/14905 或其它账号写事务；勋章、九霄冥饰和四种外观页仍处于实现中，不能标记为页面完成。
+
+## 2026-08-09：批量 UI 路线静态准备收口与 Unity Safe Mode 恢复
+
+- **状态纠偏**：本批曾为提高并行度把大量页面限制为静态审计、离线编译和确定性代码修复，这不是用户对 UI 精修的限制，也不等于端到端 UI 精修完成。后续恢复路线时必须回到同账号老 H5 → 当前 Unity → 同批 WebGL 的真实点击、即时刷新、关闭重开、视觉/3D/特效和性能四层验收。
+- **批量台账**：最终总控扫描发现 106 份账、14,665 个节点，其中 schema 6 为 93 份账、13,946 个节点，状态为 `done=0 / blocked=7301 / needs-runtime-verify=5301 / defect=334 / baseline-only=10 / not-run=1000`；schema 6 根节点为 `blocked=85 / not-run=8`。数字包含修订版与同名路线，不代表 93 个独立功能；11 个同名路线需要下轮按最新拓扑择一续跑，不能累计成完成量。逐账验证为 92 份通过、1 份预期失败：`2026-08-09_redpacket_static_v1` 的 manifest 曾被并发覆盖，已由 `redpacket_static_v2` 明确 supersede，v1 只保留为失效证据，禁止续写。总控快照见 `output/ui_route_audit/2026-08-09_master/final-ui-route-master.{json,md}`。
+- **实际代码落地范围**：本批在主界面底栏与固定 HUD、聊天/好友/邮件、角色外观与勋章、背包/装备、宠物、技能、地图、帮派、日常、商城、活动、福利、挂机/斩妖、市场/兑换/合成/限时商城等独立文件岛中补入了入口、Flow/Model/Controller、动态列表生命周期、红点/空态/排序、只读协议刷新、弹窗与若干写事务安全门禁；同时为仍缺 Prefab、共享组件、协议或运行证据的叶子保留明确 blocker。该段只表示代码和台账已落盘，不表示玩家界面已经逐页验收。
+- **Unity 恢复**：Safe Mode 的直接编译阻塞来自 `LimitLevelShopGiftConfigCase` 仍按旧三参数构造 `LimitLevelShopModel.GiftEntry`；测试已同步为当前八参数构造。`Shenxiao.Editor.csproj` restore/build 完成，结果为 0 error（102 个既有 warning）；随后在用户已打开的 Unity 中退出 Safe Mode，Tundra 两轮构建成功并完成 Domain Reload。当前窗口标题为 `yu_client_unity - Launch - Android - Unity 6.3 LTS (6000.3.17f1) <DX12>`，Safe Mode 退出标记之后未出现新的 `error CS`。Unity Connect 的 Token Exchange 证书/网络错误不是本次脚本编译阻塞。
+- **完成边界**：本批尚未为新增 schema 6 路线生成与当前提交精确匹配的 Player/catalog，也没有完成同账号真实 Web 双 viewport、逐控件点击、事务成功/失败、即时刷新、重开、滚动、动态特效或 3D 出帧证据，因此当前新增路线的真实 UI 完成数为 0。下一轮必须以本次提交为源码基线，按底部菜单 → 固定 HUD → 活动 → 其他页面逐页运行验收，而不是继续扩大静态清单。

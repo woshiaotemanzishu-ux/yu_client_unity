@@ -119,6 +119,7 @@ namespace Shenxiao.Module.Core.FriendInvite
 
             FriendInviteModel m = FriendInviteModel.Instance;
             m.SetInfo(getStatus, recoverTime, dailyCount, totalCount);
+            EventDispatcher.Emit(FriendInviteModel.EVENT_UPDATED);
 
             // 图标显隐取分享开关(CheckIconOpenState),等级/开服天/审核门由 AddIconAsync 配置门叠加把控。
             if (m.CheckIconOpenState()) _ = ActivityIconManager.Instance.AddIconAsync(ICON_TYPE);
@@ -132,6 +133,7 @@ namespace Shenxiao.Module.Core.FriendInvite
         {
             List<FriendInviteModel.LevelInviteEntry> entries = r.ReadArray(ReadLevelEntry);
             FriendInviteModel.Instance.ReplaceLevelInfo(entries);
+            EventDispatcher.Emit(FriendInviteModel.EVENT_UPDATED);
         }
 
         private void On34005(NetReader r)
@@ -139,6 +141,7 @@ namespace Shenxiao.Module.Core.FriendInvite
             ushort count = r.ReadU16();
             List<FriendInviteModel.RewardState> rewards = r.ReadArray(rr => new FriendInviteModel.RewardState { RewardId = rr.ReadU8(), Status = rr.ReadU8() });
             FriendInviteModel.Instance.ReplaceHelpInfo(count, rewards, r.ReadArray(ReadLevelEntry));
+            EventDispatcher.Emit(FriendInviteModel.EVENT_UPDATED);
         }
 
         // 34012: type:u8, reward_list:u16×{reward_id:u8,status:u8}; each ordinary snapshot is isolated.
@@ -147,6 +150,7 @@ namespace Shenxiao.Module.Core.FriendInvite
             byte type = r.ReadU8();
             FriendInviteModel.Instance.ReplaceWelfareInfo(type,
                 r.ReadArray(rr => new FriendInviteModel.RewardState { RewardId = rr.ReadU8(), Status = rr.ReadU8() }));
+            EventDispatcher.Emit(FriendInviteModel.EVENT_UPDATED);
         }
 
         // 34008: lv:u16,total_count:u16,reward:u16×{type:u8,type_id:u32,num:u32}.
@@ -155,6 +159,7 @@ namespace Shenxiao.Module.Core.FriendInvite
             ushort level = r.ReadU16(), totalCount = r.ReadU16();
             FriendInviteModel.Instance.ReplaceBoostInfo(level, totalCount,
                 r.ReadArray(rr => new FriendInviteModel.BoostReward { Type = rr.ReadU8(), TypeId = rr.ReadU32(), Num = rr.ReadU32() }));
+            EventDispatcher.Emit(FriendInviteModel.EVENT_UPDATED);
         }
 
         private static FriendInviteModel.LevelInviteEntry ReadLevelEntry(NetReader r) => new FriendInviteModel.LevelInviteEntry

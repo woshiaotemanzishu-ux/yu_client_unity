@@ -1,0 +1,1713 @@
+{
+  "schema": 6,
+  "route": "mainui.red-packet",
+  "baseline": {
+    "authority": "当前老 H5 同账号、同状态、同 viewport 的最终运行表现是唯一验收目标；本清单只冻结静态拓扑，不声明任何 Unity/Web 运行闸通过。",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/commonController/RedPacketController.ts",
+      "E:/GitProject/yu_client/h5/src/commonModel/RedPacketModel.ts",
+      "E:/GitProject/yu_client/h5/src/redPacket/RedPacketBaseView.ts",
+      "E:/GitProject/yu_client/h5/src/redPacket/RedPacketMainView.ts",
+      "E:/GitProject/yu_client/h5/src/redPacket/RedPacketMainItem.ts",
+      "E:/GitProject/yu_client/h5/src/redPacket/RedPacketRecordItem.ts",
+      "E:/GitProject/yu_client/h5/src/redPacket/RedPacketFuncItem.ts",
+      "E:/GitProject/yu_client/h5/src/redPacket/RedPacketCtrlView.ts",
+      "E:/GitProject/yu_client/h5/src/redPacket/RedPacketDetailView.ts",
+      "E:/GitProject/yu_client/h5/src/redPacket/RedPacketDetailItem.ts"
+    ],
+    "unity_sources": [
+      "Assets/Prefabs/UI/RedPacket/RedPacketModule.prefab",
+      "Assets/Scripts/Module/Core/RedPacket/RedPacketBootstrap.cs",
+      "Assets/Scripts/Module/Core/RedPacket/RedPacketFlow.cs",
+      "Assets/Scripts/Module/Core/RedPacket/RedPacketController.cs",
+      "Assets/Scripts/Module/Core/RedPacket/RedPacketModel.cs",
+      "Assets/Scripts/Module/Core/RedPacket/Views/RedPacketMainView.cs"
+    ],
+    "protocol_inventory": {
+      "read_or_push": [
+        "33900",
+        "33901",
+        "33907",
+        "33908"
+      ],
+      "blocked_transactions": [
+        "33902",
+        "33904",
+        "33906"
+      ],
+      "kill_absent": [
+        "33903",
+        "33905"
+      ],
+      "note": "本轮只允许 33901 首屏只读请求；33902 打开/领取、33904/33906 发送均只枚举不发包；33903/33905 按 R482 保持 absent。"
+    },
+    "component_dependencies": [
+      {
+        "component": "RedPacketMainItem",
+        "consumers": [
+          "RedPacketMainView.packet-list"
+        ],
+        "scope": "红包卡片四态 Look/Open/Send/Other"
+      },
+      {
+        "component": "RedPacketRecordItem",
+        "consumers": [
+          "RedPacketMainView.record-list"
+        ],
+        "scope": "领取记录时间与配置文案"
+      },
+      {
+        "component": "RedPacketFuncItem",
+        "consumers": [
+          "RedPacketMainView.function-list"
+        ],
+        "scope": "七个功能去向"
+      },
+      {
+        "component": "RedPacketDetailItem",
+        "consumers": [
+          "RedPacketDetailView.recipient-list"
+        ],
+        "scope": "领取者头像、金额与最佳标记"
+      },
+      {
+        "component": "CustomHeadItem/InstructionView/CalculatorView",
+        "consumers": [
+          "RedPacketMainItem",
+          "RedPacketDetailView",
+          "RedPacketCtrlView",
+          "RedPacketMainView"
+        ],
+        "scope": "Common 只读依赖，不在本岛修改"
+      }
+    ],
+    "superseded_by_v4": [
+      "output/ui_route_audit/2026-08-09_redpacket_static_v3"
+    ],
+    "v4_reason": "Lifecycle QA added disconnect reset, stale await release, and subscription unbind as three independent leaves; schema6 topology is immutable."
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_redpacket_static_v4/route-manifest.json",
+    "sha256": "107c8700f0bde2786f734bdce30a3349c9cd402d11610f1e3d824484215b2e4b"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "mainui.red-packet",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        {
+          "id": "shell",
+          "kind": "window-shell",
+          "child": "mainui.red-packet.shell"
+        },
+        {
+          "id": "tabs",
+          "kind": "tabs",
+          "child": "mainui.red-packet.tabs"
+        },
+        {
+          "id": "packet-list",
+          "kind": "scroll-list",
+          "child": "mainui.red-packet.packet-list"
+        },
+        {
+          "id": "record-list",
+          "kind": "scroll-list",
+          "child": "mainui.red-packet.record-list"
+        },
+        {
+          "id": "function-list",
+          "kind": "scroll-list",
+          "child": "mainui.red-packet.function-list"
+        },
+        {
+          "id": "control-popup",
+          "kind": "popup",
+          "child": "mainui.red-packet.control-popup"
+        },
+        {
+          "id": "detail-popup",
+          "kind": "popup",
+          "child": "mainui.red-packet.detail-popup"
+        },
+        {
+          "id": "route-state",
+          "kind": "lifecycle",
+          "child": "mainui.red-packet.route-state"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.red-packet.shell, mainui.red-packet.tabs, mainui.red-packet.packet-list, mainui.red-packet.record-list, mainui.red-packet.function-list, mainui.red-packet.control-popup, mainui.red-packet.detail-popup, mainui.red-packet.route-state"
+    },
+    {
+      "id": "mainui.red-packet.shell",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.red-packet",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "visual",
+          "child": "mainui.red-packet.shell.identity"
+        },
+        {
+          "id": "entry-red",
+          "kind": "state",
+          "child": "mainui.red-packet.shell.entry-red"
+        },
+        {
+          "id": "instruction",
+          "kind": "popup",
+          "child": "mainui.red-packet.shell.instruction"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.red-packet.shell.close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.red-packet.shell.entry-red, mainui.red-packet.shell.close"
+    },
+    {
+      "id": "mainui.red-packet.shell.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.shell",
+      "note": "Static evidence only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": "Static implementation exists, but Unity and real Web lifecycle behavior were not run; player-visible state and cleanup remain unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.shell.entry-red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.shell",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.shell.instruction",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.shell",
+      "note": "Static evidence only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": "Static implementation exists, but Unity and real Web lifecycle behavior were not run; player-visible state and cleanup remain unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.shell.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.shell",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.tabs",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.red-packet",
+      "control_inventory": [
+        {
+          "id": "record",
+          "kind": "tab",
+          "child": "mainui.red-packet.tabs.record"
+        },
+        {
+          "id": "function",
+          "kind": "tab",
+          "child": "mainui.red-packet.tabs.function"
+        },
+        {
+          "id": "default-rule",
+          "kind": "condition",
+          "child": "mainui.red-packet.tabs.default-rule"
+        },
+        {
+          "id": "selected-style",
+          "kind": "state",
+          "child": "mainui.red-packet.tabs.selected-style"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.red-packet.tabs.selected-style"
+    },
+    {
+      "id": "mainui.red-packet.tabs.record",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.tabs",
+      "note": "Static evidence only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": "Static implementation exists, but Unity and real Web lifecycle behavior were not run; player-visible state and cleanup remain unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.tabs.function",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.tabs",
+      "note": "Static evidence only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": "Static implementation exists, but Unity and real Web lifecycle behavior were not run; player-visible state and cleanup remain unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.tabs.default-rule",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.tabs",
+      "note": "Static evidence only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": "Static implementation exists, but Unity and real Web lifecycle behavior were not run; player-visible state and cleanup remain unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.tabs.selected-style",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.tabs",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.packet-list",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.red-packet",
+      "control_inventory": [
+        {
+          "id": "structure",
+          "kind": "scroll-list",
+          "child": "mainui.red-packet.packet-list.structure"
+        },
+        {
+          "id": "item-identity",
+          "kind": "list-item",
+          "child": "mainui.red-packet.packet-list.item-identity"
+        },
+        {
+          "id": "content",
+          "kind": "state",
+          "child": "mainui.red-packet.packet-list.content"
+        },
+        {
+          "id": "state-matrix",
+          "kind": "condition",
+          "child": "mainui.red-packet.packet-list.state-matrix"
+        },
+        {
+          "id": "open-claim",
+          "kind": "transaction",
+          "child": "mainui.red-packet.packet-list.open-claim"
+        },
+        {
+          "id": "look-cached",
+          "kind": "popup",
+          "child": "mainui.red-packet.packet-list.look-cached"
+        },
+        {
+          "id": "look-fetch",
+          "kind": "transaction",
+          "child": "mainui.red-packet.packet-list.look-fetch"
+        },
+        {
+          "id": "send-popup",
+          "kind": "popup",
+          "child": "mainui.red-packet.packet-list.send-popup"
+        },
+        {
+          "id": "push-refresh",
+          "kind": "state",
+          "child": "mainui.red-packet.packet-list.push-refresh"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.red-packet.packet-list.structure, mainui.red-packet.packet-list.item-identity, mainui.red-packet.packet-list.content, mainui.red-packet.packet-list.state-matrix, mainui.red-packet.packet-list.open-claim, mainui.red-packet.packet-list.look-cached, mainui.red-packet.packet-list.look-fetch, mainui.red-packet.packet-list.send-popup, mainui.red-packet.packet-list.push-refresh"
+    },
+    {
+      "id": "mainui.red-packet.packet-list.structure",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.packet-list",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.packet-list.item-identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.packet-list",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.packet-list.content",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.packet-list",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.packet-list.state-matrix",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.packet-list",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.packet-list.open-claim",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.red-packet.packet-list",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "authorization": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "No authorization for receiving or sending real red packets; enumerated only and no transaction packet was sent.",
+      "applicable_gates": [
+        "authorization"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.packet-list.look-cached",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.packet-list",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.packet-list.look-fetch",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.red-packet.packet-list",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "authorization": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "No authorization for receiving or sending real red packets; enumerated only and no transaction packet was sent.",
+      "applicable_gates": [
+        "authorization"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.packet-list.send-popup",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.packet-list",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.packet-list.push-refresh",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.packet-list",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.record-list",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.red-packet",
+      "control_inventory": [
+        {
+          "id": "empty-nonempty",
+          "kind": "condition",
+          "child": "mainui.red-packet.record-list.empty-nonempty"
+        },
+        {
+          "id": "row-content",
+          "kind": "list-item",
+          "child": "mainui.red-packet.record-list.row-content"
+        },
+        {
+          "id": "format",
+          "kind": "state",
+          "child": "mainui.red-packet.record-list.format"
+        },
+        {
+          "id": "scroll",
+          "kind": "scroll-list",
+          "child": "mainui.red-packet.record-list.scroll"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.red-packet.record-list.empty-nonempty, mainui.red-packet.record-list.row-content, mainui.red-packet.record-list.format, mainui.red-packet.record-list.scroll"
+    },
+    {
+      "id": "mainui.red-packet.record-list.empty-nonempty",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.record-list",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.record-list.row-content",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.record-list",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.record-list.format",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.record-list",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.record-list.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.record-list",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.function-list",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.red-packet",
+      "control_inventory": [
+        {
+          "id": "seven-routes",
+          "kind": "list",
+          "child": "mainui.red-packet.function-list.seven-routes"
+        },
+        {
+          "id": "vip-gate",
+          "kind": "condition",
+          "child": "mainui.red-packet.function-list.vip-gate"
+        },
+        {
+          "id": "feast-message",
+          "kind": "condition",
+          "child": "mainui.red-packet.function-list.feast-message"
+        },
+        {
+          "id": "navigation",
+          "kind": "navigation",
+          "child": "mainui.red-packet.function-list.navigation"
+        },
+        {
+          "id": "scroll",
+          "kind": "scroll-list",
+          "child": "mainui.red-packet.function-list.scroll"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.red-packet.function-list.seven-routes, mainui.red-packet.function-list.vip-gate, mainui.red-packet.function-list.feast-message, mainui.red-packet.function-list.navigation, mainui.red-packet.function-list.scroll"
+    },
+    {
+      "id": "mainui.red-packet.function-list.seven-routes",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.function-list",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.function-list.vip-gate",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.function-list",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.function-list.feast-message",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.function-list",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.function-list.navigation",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.function-list",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.function-list.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.function-list",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.control-popup",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.red-packet",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "popup",
+          "child": "mainui.red-packet.control-popup.identity"
+        },
+        {
+          "id": "count-buttons",
+          "kind": "reversible-write",
+          "child": "mainui.red-packet.control-popup.count-buttons"
+        },
+        {
+          "id": "count-calculator",
+          "kind": "reversible-write",
+          "child": "mainui.red-packet.control-popup.count-calculator"
+        },
+        {
+          "id": "money-calculator",
+          "kind": "reversible-write",
+          "child": "mainui.red-packet.control-popup.money-calculator"
+        },
+        {
+          "id": "blessing",
+          "kind": "reversible-write",
+          "child": "mainui.red-packet.control-popup.blessing"
+        },
+        {
+          "id": "system-state",
+          "kind": "condition",
+          "child": "mainui.red-packet.control-popup.system-state"
+        },
+        {
+          "id": "vip-state",
+          "kind": "condition",
+          "child": "mainui.red-packet.control-popup.vip-state"
+        },
+        {
+          "id": "validation",
+          "kind": "condition",
+          "child": "mainui.red-packet.control-popup.validation"
+        },
+        {
+          "id": "send-system",
+          "kind": "transaction",
+          "child": "mainui.red-packet.control-popup.send-system"
+        },
+        {
+          "id": "send-vip",
+          "kind": "transaction",
+          "child": "mainui.red-packet.control-popup.send-vip"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.red-packet.control-popup.close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.red-packet.control-popup.identity, mainui.red-packet.control-popup.count-buttons, mainui.red-packet.control-popup.count-calculator, mainui.red-packet.control-popup.money-calculator, mainui.red-packet.control-popup.blessing, mainui.red-packet.control-popup.system-state, mainui.red-packet.control-popup.vip-state, mainui.red-packet.control-popup.validation, mainui.red-packet.control-popup.send-system, mainui.red-packet.control-popup.send-vip, mainui.red-packet.control-popup.close"
+    },
+    {
+      "id": "mainui.red-packet.control-popup.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.control-popup",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.control-popup.count-buttons",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.red-packet.control-popup",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.control-popup.count-calculator",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.red-packet.control-popup",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.control-popup.money-calculator",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.red-packet.control-popup",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.control-popup.blessing",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.red-packet.control-popup",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.control-popup.system-state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.control-popup",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.control-popup.vip-state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.control-popup",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.control-popup.validation",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.control-popup",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.control-popup.send-system",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.red-packet.control-popup",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "authorization": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "No authorization for receiving or sending real red packets; enumerated only and no transaction packet was sent.",
+      "applicable_gates": [
+        "authorization"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.control-popup.send-vip",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.red-packet.control-popup",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "authorization": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "No authorization for receiving or sending real red packets; enumerated only and no transaction packet was sent.",
+      "applicable_gates": [
+        "authorization"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.control-popup.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.control-popup",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.detail-popup",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.red-packet",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "popup",
+          "child": "mainui.red-packet.detail-popup.identity"
+        },
+        {
+          "id": "header",
+          "kind": "state",
+          "child": "mainui.red-packet.detail-popup.header"
+        },
+        {
+          "id": "receive-state",
+          "kind": "condition",
+          "child": "mainui.red-packet.detail-popup.receive-state"
+        },
+        {
+          "id": "recipient-list",
+          "kind": "scroll-list",
+          "child": "mainui.red-packet.detail-popup.recipient-list"
+        },
+        {
+          "id": "best-marker",
+          "kind": "condition",
+          "child": "mainui.red-packet.detail-popup.best-marker"
+        },
+        {
+          "id": "currency",
+          "kind": "condition",
+          "child": "mainui.red-packet.detail-popup.currency"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.red-packet.detail-popup.close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.red-packet.detail-popup.identity, mainui.red-packet.detail-popup.header, mainui.red-packet.detail-popup.receive-state, mainui.red-packet.detail-popup.recipient-list, mainui.red-packet.detail-popup.best-marker, mainui.red-packet.detail-popup.currency, mainui.red-packet.detail-popup.close"
+    },
+    {
+      "id": "mainui.red-packet.detail-popup.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.detail-popup",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.detail-popup.header",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.detail-popup",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.detail-popup.receive-state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.detail-popup",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.detail-popup.recipient-list",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.detail-popup",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.detail-popup.best-marker",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.detail-popup",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.detail-popup.currency",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.detail-popup",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.detail-popup.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.detail-popup",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.route-state",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.red-packet",
+      "control_inventory": [
+        {
+          "id": "startup-read",
+          "kind": "protocol-order",
+          "child": "mainui.red-packet.route-state.startup-read"
+        },
+        {
+          "id": "error",
+          "kind": "protocol",
+          "child": "mainui.red-packet.route-state.error"
+        },
+        {
+          "id": "pushes",
+          "kind": "protocol",
+          "child": "mainui.red-packet.route-state.pushes"
+        },
+        {
+          "id": "kill-absent",
+          "kind": "protocol-boundary",
+          "child": "mainui.red-packet.route-state.kill-absent"
+        },
+        {
+          "id": "sort-red",
+          "kind": "state",
+          "child": "mainui.red-packet.route-state.sort-red"
+        },
+        {
+          "id": "resources",
+          "kind": "resource",
+          "child": "mainui.red-packet.route-state.resources"
+        },
+        {
+          "id": "sounds",
+          "kind": "sound",
+          "child": "mainui.red-packet.route-state.sounds"
+        },
+        {
+          "id": "cold-warm",
+          "kind": "performance",
+          "child": "mainui.red-packet.route-state.cold-warm"
+        },
+        {
+          "id": "viewports",
+          "kind": "visual",
+          "child": "mainui.red-packet.route-state.viewports"
+        },
+        {
+          "id": "disconnect-reset",
+          "kind": "lifecycle",
+          "child": "mainui.red-packet.route-state.disconnect-reset"
+        },
+        {
+          "id": "late-arrival",
+          "kind": "lifecycle",
+          "child": "mainui.red-packet.route-state.late-arrival"
+        },
+        {
+          "id": "subscription-unbind",
+          "kind": "lifecycle",
+          "child": "mainui.red-packet.route-state.subscription-unbind"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.red-packet.route-state.pushes, mainui.red-packet.route-state.kill-absent, mainui.red-packet.route-state.sort-red, mainui.red-packet.route-state.resources, mainui.red-packet.route-state.sounds"
+    },
+    {
+      "id": "mainui.red-packet.route-state.startup-read",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.route-state",
+      "note": "Static evidence only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": "Static implementation exists, but Unity and real Web lifecycle behavior were not run; player-visible state and cleanup remain unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.route-state.error",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.route-state",
+      "note": "Static evidence only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": "Static implementation exists, but Unity and real Web lifecycle behavior were not run; player-visible state and cleanup remain unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.route-state.pushes",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.route-state",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.route-state.kill-absent",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.route-state",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "33903/33905 are static negative boundaries that must remain absent; they are not runtime verification candidates.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.route-state.sort-red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.route-state",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.route-state.resources",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.route-state",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.route-state.sounds",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.route-state",
+      "note": "Inherited v3 blocked boundary; no runtime completion claim.",
+      "status": "blocked",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": null,
+      "blocked_reason": "The runtime view/list/item/popup/state branch is not implemented; static bindings or model fields cannot substitute for a reachable player-visible route.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.route-state.cold-warm",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.route-state",
+      "note": "Static evidence only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": "Static implementation exists, but Unity and real Web lifecycle behavior were not run; player-visible state and cleanup remain unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.route-state.viewports",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.route-state",
+      "note": "Static evidence only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": "Static implementation exists, but Unity and real Web lifecycle behavior were not run; player-visible state and cleanup remain unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.route-state.disconnect-reset",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.route-state",
+      "note": "Static evidence only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": "Static implementation exists, but Unity and real Web lifecycle behavior were not run; player-visible state and cleanup remain unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.route-state.late-arrival",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.route-state",
+      "note": "Static evidence only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": "Static implementation exists, but Unity and real Web lifecycle behavior were not run; player-visible state and cleanup remain unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.red-packet.route-state.subscription-unbind",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.red-packet.route-state",
+      "note": "Static evidence only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_redpacket_static_v4/static-audit.md"
+      ],
+      "runtime_gap": "Static implementation exists, but Unity and real Web lifecycle behavior were not run; player-visible state and cleanup remain unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    }
+  ],
+  "summary": {
+    "total": 65,
+    "status_counts": {
+      "blocked": 53,
+      "needs-runtime-verify": 12
+    }
+  }
+}

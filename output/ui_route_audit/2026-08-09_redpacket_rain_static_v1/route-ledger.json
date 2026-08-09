@@ -1,0 +1,739 @@
+{
+  "schema": 6,
+  "route": "customactivity.redpacket-rain",
+  "baseline": {
+    "scope": "RedPacketRain static three-way reconciliation: legacy embedded activity panel, MainUI falling overlay and Top grab popup",
+    "ownership": "Unity has shared CustomActivity protocol/model slices and a MainUI placeholder, but no editable RedPacketRain prefab, bind or independently owned module",
+    "runtime_policy": "static only; no Unity, browser, build, GM or account writes",
+    "conversion_policy": "blocked because the editable resource closure and module ownership cannot be proved; no conversion or shared-file edit"
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_redpacket_rain_static_v1/route-manifest.json",
+    "sha256": "ba7faa9499293c840684ab4597364af24d41e6e628ec0fc634f531471ed15f8e"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "customactivity.redpacket-rain",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "activity-entry",
+          "kind": "navigation",
+          "child": "customactivity.redpacket-rain.entry"
+        },
+        {
+          "id": "panel-query",
+          "kind": "lifecycle",
+          "child": "customactivity.redpacket-rain.initial-query"
+        },
+        {
+          "id": "activation-state",
+          "kind": "conditional-block",
+          "child": "customactivity.redpacket-rain.activation"
+        },
+        {
+          "id": "wave-grid",
+          "kind": "dynamic-list",
+          "child": "customactivity.redpacket-rain.waves"
+        },
+        {
+          "id": "go-button",
+          "kind": "conditional-button",
+          "child": "customactivity.redpacket-rain.go"
+        },
+        {
+          "id": "falling-overlay",
+          "kind": "conditional-block",
+          "child": "customactivity.redpacket-rain.overlay"
+        },
+        {
+          "id": "grab-popup",
+          "kind": "popup",
+          "child": "customactivity.redpacket-rain.grab-popup"
+        },
+        {
+          "id": "refresh-lifecycle",
+          "kind": "state-block",
+          "child": "customactivity.redpacket-rain.refresh"
+        },
+        {
+          "id": "host-return-chain",
+          "kind": "return",
+          "child": "customactivity.redpacket-rain.return"
+        }
+      ],
+      "parent": null,
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: customactivity.redpacket-rain.entry, customactivity.redpacket-rain.initial-query, customactivity.redpacket-rain.activation, customactivity.redpacket-rain.waves, customactivity.redpacket-rain.go, customactivity.redpacket-rain.overlay, customactivity.redpacket-rain.grab-popup, customactivity.redpacket-rain.refresh, customactivity.redpacket-rain.return"
+    },
+    {
+      "id": "customactivity.redpacket-rain.entry",
+      "parent": "customactivity.redpacket-rain",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Unity 仓内无 RedPacketRain 可编辑 Prefab/Bind/独立模块，活动宿主入口归属共享 CustomActivity；本轮禁止修改共享模块或运行 Unity/Web。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.initial-query",
+      "parent": "customactivity.redpacket-rain",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "33155 请求与解析仅存在于共享 CustomActivity 代码，未发现可编辑 RedPacketRain View 消费者；归属不可证明且禁止改共享文件。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.activation",
+      "parent": "customactivity.redpacket-rain",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "progress-value",
+          "kind": "state-block",
+          "child": "customactivity.redpacket-rain.activation.progress"
+        },
+        {
+          "id": "condition-copy",
+          "kind": "conditional-label",
+          "child": "customactivity.redpacket-rain.activation.condition-copy"
+        },
+        {
+          "id": "not-started",
+          "kind": "conditional-block",
+          "child": "customactivity.redpacket-rain.activation.not-started"
+        },
+        {
+          "id": "open-countdown",
+          "kind": "conditional-block",
+          "child": "customactivity.redpacket-rain.activation.open-countdown"
+        },
+        {
+          "id": "end-countdown",
+          "kind": "conditional-block",
+          "child": "customactivity.redpacket-rain.activation.end-countdown"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: customactivity.redpacket-rain.activation.progress, customactivity.redpacket-rain.activation.condition-copy, customactivity.redpacket-rain.activation.not-started, customactivity.redpacket-rain.activation.open-countdown, customactivity.redpacket-rain.activation.end-countdown"
+    },
+    {
+      "id": "customactivity.redpacket-rain.activation.progress",
+      "parent": "customactivity.redpacket-rain.activation",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端 act_value/rain_value 进度条没有 Unity RedPacketRain Prefab/控件承载，资源闭包不可证明。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.activation.condition-copy",
+      "parent": "customactivity.redpacket-rain.activation",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端 recharge/activity 条件文案与 uihby_002 外置图没有 Unity RedPacketRain 可编辑绑定，禁止在归属不清时转换。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.activation.not-started",
+      "parent": "customactivity.redpacket-rain.activation",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端未激活/未开始条件显隐没有 Unity View/Prefab 消费者，无法在文件岛内实施或运行复验。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.activation.open-countdown",
+      "parent": "customactivity.redpacket-rain.activation",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端每秒开始倒计时和 0 秒重拉没有 Unity RedPacketRain View/定时器承载。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.activation.end-countdown",
+      "parent": "customactivity.redpacket-rain.activation",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端结束倒计时、clear_type=2 的 4 点清算与已结束态没有 Unity 可编辑页面承载。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.waves",
+      "parent": "customactivity.redpacket-rain",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "five-slot-layout",
+          "kind": "dynamic-list",
+          "child": "customactivity.redpacket-rain.waves.layout"
+        },
+        {
+          "id": "not-started-state",
+          "kind": "conditional-block",
+          "child": "customactivity.redpacket-rain.waves.not-started"
+        },
+        {
+          "id": "waiting-state",
+          "kind": "conditional-block",
+          "child": "customactivity.redpacket-rain.waves.waiting"
+        },
+        {
+          "id": "running-state",
+          "kind": "conditional-block",
+          "child": "customactivity.redpacket-rain.waves.running"
+        },
+        {
+          "id": "ended-state",
+          "kind": "conditional-block",
+          "child": "customactivity.redpacket-rain.waves.ended"
+        },
+        {
+          "id": "reward-preview",
+          "kind": "list-button",
+          "child": "customactivity.redpacket-rain.waves.preview"
+        },
+        {
+          "id": "received-reward",
+          "kind": "state-block",
+          "child": "customactivity.redpacket-rain.waves.received"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: customactivity.redpacket-rain.waves.layout, customactivity.redpacket-rain.waves.not-started, customactivity.redpacket-rain.waves.waiting, customactivity.redpacket-rain.waves.running, customactivity.redpacket-rain.waves.ended, customactivity.redpacket-rain.waves.preview, customactivity.redpacket-rain.waves.received"
+    },
+    {
+      "id": "customactivity.redpacket-rain.waves.layout",
+      "parent": "customactivity.redpacket-rain.waves",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端五槽固定坐标波次列表没有 Unity RedPacketRain Prefab/列表项，禁止大转换。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.waves.not-started",
+      "parent": "customactivity.redpacket-rain.waves",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "第 N 波未开始态及 rpr_0N 图片没有 Unity 控件绑定。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.waves.waiting",
+      "parent": "customactivity.redpacket-rain.waves",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "波次等待倒计时及逐项定时清理没有 Unity RedPacketRain Item。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.waves.running",
+      "parent": "customactivity.redpacket-rain.waves",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "正在开抢态没有 Unity RedPacketRain Item/Prefab 消费者。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.waves.ended",
+      "parent": "customactivity.redpacket-rain.waves",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "已结束未领取/已领取条件显隐没有 Unity RedPacketRain Item/Prefab 消费者。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.waves.preview",
+      "parent": "customactivity.redpacket-rain.waves",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端未领取波次点击 RewardPreView 的跳转链没有 Unity RedPacketRain View，且目标属于共享弹窗依赖。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.waves.received",
+      "parent": "customactivity.redpacket-rain.waves",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端用共享 EquipmentItem 展示已领奖励；Unity 缺宿主 Prefab，不能在资源闭包不清时接共享组件。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.go",
+      "parent": "customactivity.redpacket-rain",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "recharge-condition",
+          "kind": "conditional-button",
+          "child": "customactivity.redpacket-rain.go.recharge"
+        },
+        {
+          "id": "activity-condition",
+          "kind": "conditional-button",
+          "child": "customactivity.redpacket-rain.go.activity"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: customactivity.redpacket-rain.go.recharge, customactivity.redpacket-rain.go.activity"
+    },
+    {
+      "id": "customactivity.redpacket-rain.go.recharge",
+      "parent": "customactivity.redpacket-rain.go",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "condition=recharge 时 OpenFun(21) 的按钮与活动宿主都不在 RedPacket 文件岛，且无可编辑 RedPacketRain Prefab。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.go.activity",
+      "parent": "customactivity.redpacket-rain.go",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "condition=activity 时 OpenFun(82) 的按钮与活动宿主都不在 RedPacket 文件岛，且无可编辑 RedPacketRain Prefab。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.overlay",
+      "parent": "customactivity.redpacket-rain",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "wave-visibility",
+          "kind": "conditional-block",
+          "child": "customactivity.redpacket-rain.overlay.visibility"
+        },
+        {
+          "id": "fourteen-anchors",
+          "kind": "dynamic-list",
+          "child": "customactivity.redpacket-rain.overlay.anchors"
+        },
+        {
+          "id": "fall-motion",
+          "kind": "state-block",
+          "child": "customactivity.redpacket-rain.overlay.motion"
+        },
+        {
+          "id": "packet-click",
+          "kind": "list-button",
+          "child": "customactivity.redpacket-rain.overlay.packet-click"
+        },
+        {
+          "id": "stop-and-clear",
+          "kind": "lifecycle",
+          "child": "customactivity.redpacket-rain.overlay.clear"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: customactivity.redpacket-rain.overlay.visibility, customactivity.redpacket-rain.overlay.anchors, customactivity.redpacket-rain.overlay.motion, customactivity.redpacket-rain.overlay.packet-click, customactivity.redpacket-rain.overlay.clear"
+    },
+    {
+      "id": "customactivity.redpacket-rain.overlay.visibility",
+      "parent": "customactivity.redpacket-rain.overlay",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端 WAVE_RED_PACKET 控制主界面掉落层；Unity 对应 MainUI 文件受禁止且当前仅日志占位。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.overlay.anchors",
+      "parent": "customactivity.redpacket-rain.overlay",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端 _gp_rpr 的 14 个分组挂点属于 MainUI 资源闭包；本轮禁止触碰 MainUI，且未发现 RedPacketRain 独立 Prefab。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.overlay.motion",
+      "parent": "customactivity.redpacket-rain.overlay",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端 0.7-1 随机缩放、10-12 秒线性下落需要真实双帧/两 viewport；Unity MainUI 实现缺失且运行被禁止。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.overlay.packet-click",
+      "parent": "customactivity.redpacket-rain.overlay",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端点击任一下落红包关闭雨层并打开 RPRShowView；Unity MainUI 仅日志占位且无该弹窗 Prefab。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.overlay.clear",
+      "parent": "customactivity.redpacket-rain.overlay",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端逐项停止 tween、隐藏节点和零残留清理链在 Unity 未实现；MainUI 禁止修改。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.grab-popup",
+      "parent": "customactivity.redpacket-rain",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {
+          "id": "initial-wave-state",
+          "kind": "conditional-block",
+          "child": "customactivity.redpacket-rain.grab-popup.initial"
+        },
+        {
+          "id": "grab-button",
+          "kind": "button",
+          "child": "customactivity.redpacket-rain.grab-popup.grab"
+        },
+        {
+          "id": "success-state",
+          "kind": "conditional-block",
+          "child": "customactivity.redpacket-rain.grab-popup.success"
+        },
+        {
+          "id": "sold-out-state",
+          "kind": "conditional-block",
+          "child": "customactivity.redpacket-rain.grab-popup.sold-out"
+        },
+        {
+          "id": "error-state",
+          "kind": "conditional-block",
+          "child": "customactivity.redpacket-rain.grab-popup.error"
+        },
+        {
+          "id": "background-close",
+          "kind": "return",
+          "child": "customactivity.redpacket-rain.grab-popup.close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: customactivity.redpacket-rain.grab-popup.initial, customactivity.redpacket-rain.grab-popup.grab, customactivity.redpacket-rain.grab-popup.success, customactivity.redpacket-rain.grab-popup.sold-out, customactivity.redpacket-rain.grab-popup.error, customactivity.redpacket-rain.grab-popup.close"
+    },
+    {
+      "id": "customactivity.redpacket-rain.grab-popup.initial",
+      "parent": "customactivity.redpacket-rain.grab-popup",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端 Top 层 RPRShowView 初始波次图、标题与背景没有 Unity 可编辑 Prefab/Bind。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.grab-popup.grab",
+      "parent": "customactivity.redpacket-rain.grab-popup",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "33157 抢红包是真实写事务；用户禁止账号写事务，且 Unity 无可点击 RPRShowView。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.grab-popup.success",
+      "parent": "customactivity.redpacket-rain.grab-popup",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "reward-item",
+          "kind": "state-block",
+          "child": "customactivity.redpacket-rain.grab-popup.success.reward"
+        },
+        {
+          "id": "result-close-button",
+          "kind": "button",
+          "child": "customactivity.redpacket-rain.grab-popup.success.close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: customactivity.redpacket-rain.grab-popup.success.reward, customactivity.redpacket-rain.grab-popup.success.close"
+    },
+    {
+      "id": "customactivity.redpacket-rain.grab-popup.success.reward",
+      "parent": "customactivity.redpacket-rain.grab-popup.success",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "33157 成功奖励 EquipmentItem 展示没有 Unity 弹窗宿主，不能越界接共享组件。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.grab-popup.success.close",
+      "parent": "customactivity.redpacket-rain.grab-popup.success",
+      "type": "return",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "成功态结果按钮关闭链没有 Unity RPRShowView，且真实运行复验被禁止。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.grab-popup.sold-out",
+      "parent": "customactivity.redpacket-rain.grab-popup",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端错误码 3310071 抢完态没有 Unity RPRShowView/对应图片状态。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.grab-popup.error",
+      "parent": "customactivity.redpacket-rain.grab-popup",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "其他 33157 失败关闭和错误提示链依赖共享 CustomActivity/Common，归属越界且无页面宿主。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.grab-popup.close",
+      "parent": "customactivity.redpacket-rain.grab-popup",
+      "type": "return",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Top 背景遮罩及关闭返回链没有 Unity RPRShowView Prefab，无法核对拦截和零残留。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.refresh",
+      "parent": "customactivity.redpacket-rain",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "wave-push-33158",
+          "kind": "state-block",
+          "child": "customactivity.redpacket-rain.refresh.wave-push"
+        },
+        {
+          "id": "grab-result-33157",
+          "kind": "state-block",
+          "child": "customactivity.redpacket-rain.refresh.grab-result"
+        },
+        {
+          "id": "recharge-success",
+          "kind": "state-block",
+          "child": "customactivity.redpacket-rain.refresh.recharge"
+        },
+        {
+          "id": "countdown-zero",
+          "kind": "lifecycle",
+          "child": "customactivity.redpacket-rain.refresh.countdown-zero"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: customactivity.redpacket-rain.refresh.wave-push, customactivity.redpacket-rain.refresh.grab-result, customactivity.redpacket-rain.refresh.recharge, customactivity.redpacket-rain.refresh.countdown-zero"
+    },
+    {
+      "id": "customactivity.redpacket-rain.refresh.wave-push",
+      "parent": "customactivity.redpacket-rain.refresh",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Unity 共享 CustomActivity 已解析 33158 并在 wave=1 追发 33155，但没有 RedPacketRain View/MainUI 消费闭环。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.refresh.grab-result",
+      "parent": "customactivity.redpacket-rain.refresh",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Unity 共享 Model 会回写 33157 结果，但没有 RedPacketRain 页面即时刷新、关闭重开和弹窗消费闭环。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.refresh.recharge",
+      "parent": "customactivity.redpacket-rain.refresh",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端充值成功时按 condition=recharge 重拉 33155；Unity 未发现 RedPacketRain View 订阅者。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.refresh.countdown-zero",
+      "parent": "customactivity.redpacket-rain.refresh",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端各倒计时归零会重拉 33155；Unity 未发现 RedPacketRain View 定时器和生命周期清理。"
+    },
+    {
+      "id": "customactivity.redpacket-rain.return",
+      "parent": "customactivity.redpacket-rain",
+      "type": "return",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "该页是 CustomActivity 内嵌 BaseItem，返回链归属共享活动宿主；本轮禁止修改/运行共享宿主。"
+    }
+  ],
+  "summary": {
+    "total": 41,
+    "status_counts": {
+      "blocked": 41
+    },
+    "details": {
+      "mode": "static-only",
+      "legacy_surface": "RedPacketRainView embedded activity panel + FlowerEffectView falling overlay + RPRShowView Top popup",
+      "unity_surface": "shared CustomActivity 33155/33157/33158 protocol/model slices plus MainUI FlowerEffectView logging placeholder; no editable RedPacketRain prefab/bind/module",
+      "decision": "all leaves blocked; resource closure and module ownership are unproved, so no conversion or shared-file edit",
+      "runtime": "not executed by explicit user boundary"
+    }
+  },
+  "updated_at": "2026-08-09T16:20:00+08:00"
+}

@@ -1,7 +1,12 @@
+using System;
 using System.Collections.Generic;
 
 namespace Shenxiao.Module.Core.Achievement
 {
+    /// <summary>
+    /// 成就权威运行态。40903 保存每个 category 当前应展示的条目；40909 保存指定 category 的完整链，
+    /// 两者不能互相冒充。所有写事务只在服务端回包/推送后落状态，View 不做乐观修改。
+    /// </summary>
     public sealed class AchievementModel
     {
         public sealed class Reward
@@ -74,11 +79,35 @@ namespace Shenxiao.Module.Core.Achievement
             }
         }
 
+        public enum OperationKind
+        {
+            StageClaim,
+            EntryClaim,
+        }
+
+        public sealed class OperationResult
+        {
+            public OperationKind Kind { get; }
+            public uint TargetId { get; }
+            public bool Success { get; }
+            public uint ErrorCode { get; }
+
+            public OperationResult(OperationKind kind, uint targetId, bool success, uint errorCode)
+            {
+                Kind = kind;
+                TargetId = targetId;
+                Success = success;
+                ErrorCode = errorCode;
+            }
+        }
+
         public static readonly AchievementModel Instance = new AchievementModel();
 
         private readonly List<Reward> _rewards = new List<Reward>();
         private readonly List<Entry> _entries = new List<Entry>();
         private readonly List<TypeStar> _types = new List<TypeStar>();
+        private readonly Dictionary<byte, IReadOnlyList<Entry>> _categoryEntries =
+            new Dictionary<byte, IReadOnlyList<Entry>>();
         private readonly IReadOnlyList<Reward> _roRewards;
         private readonly IReadOnlyList<Entry> _roEntries;
         private readonly IReadOnlyList<TypeStar> _roTypes;
@@ -90,6 +119,9 @@ namespace Shenxiao.Module.Core.Achievement
             _roEntries = _entries.AsReadOnly();
             _roTypes = _types.AsReadOnly();
         }
+
+        public event Action Changed;
+        public event Action<OperationResult> OperationCompleted;
 
         public bool HasStageData { get; private set; }
         public bool HasEntriesData { get; private set; }
@@ -106,6 +138,10 @@ namespace Shenxiao.Module.Core.Achievement
         public IReadOnlyList<EntryUpdate> EntryUpdates => _entryUpdates;
         public StageRewardUpdateSnapshot LastStageRewardUpdate { get; private set; }
         public IReadOnlyList<TypeStar> Types => _roTypes;
+        public IReadOnlyDictionary<byte, IReadOnlyList<Entry>> CategoryEntries => _categoryEntries;
+
+        public bool TryGetCategory(byte category, out IReadOnlyList<Entry> entries)
+            => _categoryEntries.TryGetValue(category, out entries);
 
         public void ReplaceStage(byte stage, List<Reward> rewards, ushort next)
         {
@@ -114,6 +150,7 @@ namespace Shenxiao.Module.Core.Achievement
             _rewards.Clear();
             if (rewards != null) _rewards.AddRange(rewards);
             HasStageData = true;
+            RaiseChanged();
         }
 
         public void ReplaceEntries(List<Entry> entries)
@@ -121,56 +158,58 @@ namespace Shenxiao.Module.Core.Achievement
             _entries.Clear();
             if (entries != null) _entries.AddRange(entries);
             HasEntriesData = true;
+            RaiseChanged();
+        }
+
+        public void ReplaceCategory(byte category, List<Entry> entries)
+        {
+            _categoryEntries[category] = new List<Entry>(entries ?? new List<Entry>()).AsReadOnly();
+            RaiseChanged();
         }
 
         public void ApplyEntryUpdates(List<EntryUpdate> updates)
         {
             _entryUpdates = new List<EntryUpdate>(updates ?? new List<EntryUpdate>()).AsReadOnly();
             HasEntryUpdateData = true;
-            if (!HasEntriesData || updates == null) return;
-
-            foreach (EntryUpdate update in updates)
+            if (updates != null)
             {
-                for (int i = 0; i < _entries.Count; i++)
+                MergeUpdates(_entries, updates);
+                var keys = new List<byte>(_categoryEntries.Keys);
+                foreach (byte key in keys)
                 {
-                    Entry entry = _entries[i];
-                    if (entry.Id != update.Id) continue;
-                    _entries[i] = new Entry(entry.Category, entry.Id, update.Progress, update.Status);
-                    break;
+                    var list = new List<Entry>(_categoryEntries[key]);
+                    if (MergeUpdates(list, updates)) _categoryEntries[key] = list.AsReadOnly();
                 }
             }
+            RaiseChanged();
         }
 
         public void ReplaceStar(uint star)
         {
             Star = star;
             HasStarData = true;
+            RaiseChanged();
         }
 
         public void ApplyStageRewardUpdate(List<Reward> updates, byte stage, ushort next)
         {
             LastStageRewardUpdate = new StageRewardUpdateSnapshot(updates, stage, next);
             HasStageRewardUpdateData = true;
-            if (!HasStageData) return;
-
-            CurrentStage = stage;
-            NewCurrentStage = next;
-            if (updates == null) return;
-            foreach (Reward update in updates)
+            if (HasStageData)
             {
-                int index = -1;
-                for (int i = 0; i < _rewards.Count; i++)
+                CurrentStage = stage;
+                NewCurrentStage = next;
+                if (updates != null)
                 {
-                    if (_rewards[i].NeedStar == update.NeedStar)
+                    foreach (Reward update in updates)
                     {
-                        index = i;
-                        break;
+                        int index = _rewards.FindIndex(v => v.NeedStar == update.NeedStar);
+                        if (index >= 0) _rewards[index] = update;
+                        else _rewards.Add(update);
                     }
                 }
-
-                if (index >= 0) _rewards[index] = update;
-                else _rewards.Add(update);
             }
+            RaiseChanged();
         }
 
         public void ReplaceTypes(List<TypeStar> types)
@@ -178,7 +217,13 @@ namespace Shenxiao.Module.Core.Achievement
             _types.Clear();
             if (types != null) _types.AddRange(types);
             HasTypesData = true;
+            RaiseChanged();
         }
+
+        public void NotifyOperation(OperationKind kind, uint targetId, bool success, uint errorCode)
+            => OperationCompleted?.Invoke(new OperationResult(kind, targetId, success, errorCode));
+
+        internal void NotifyTransactionGateChanged() => RaiseChanged();
 
         public void Reset()
         {
@@ -189,6 +234,7 @@ namespace Shenxiao.Module.Core.Achievement
             _entries.Clear();
             _entryUpdates = new List<EntryUpdate>().AsReadOnly();
             _types.Clear();
+            _categoryEntries.Clear();
             LastStageRewardUpdate = null;
             HasStageData = false;
             HasEntriesData = false;
@@ -196,6 +242,27 @@ namespace Shenxiao.Module.Core.Achievement
             HasStarData = false;
             HasStageRewardUpdateData = false;
             HasTypesData = false;
+            RaiseChanged();
         }
+
+        private static bool MergeUpdates(List<Entry> entries, IReadOnlyList<EntryUpdate> updates)
+        {
+            bool changed = false;
+            for (int u = 0; u < updates.Count; u++)
+            {
+                EntryUpdate update = updates[u];
+                for (int i = 0; i < entries.Count; i++)
+                {
+                    Entry entry = entries[i];
+                    if (entry.Id != update.Id) continue;
+                    entries[i] = new Entry(entry.Category, entry.Id, update.Progress, update.Status);
+                    changed = true;
+                    break;
+                }
+            }
+            return changed;
+        }
+
+        private void RaiseChanged() => Changed?.Invoke();
     }
 }

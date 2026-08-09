@@ -1,0 +1,113 @@
+{
+  "route": "mainui.guild.route",
+  "generated_at": "2026-08-09",
+  "method": "老端 TypeScript + Unity Prefab YAML + Generated Bind + Flow/View/Model/Controller/协议五方静态调和",
+  "prefab_editability": {
+    "Assets/Prefabs/UI/GuildList/GuildListModule.prefab": {
+      "editable": true,
+      "role": "未入会态仙宗榜、前3、全量列表、创建与批量申请",
+      "views": ["GuildListView", "GuildListItem", "GuildListTopItem"]
+    },
+    "Assets/Prefabs/UI/Guild/GuildModule.prefab": {
+      "editable": true,
+      "role": "已入会主窗分页、成员/申请、宝箱、开服日后其他、仓库/捐献、GuildHelp 与确认弹层",
+      "views": ["GuildMainView", "GuildMemberView", "GuildApplyLookView", "GuildRewardBoxView", "GuildJoinView", "GuildDepotView", "GuildDepotSelectView", "GuildHelpView", "GuildHelpTipsView"]
+    },
+    "Assets/Prefabs/UI/Guild/GuildDepotItem.prefab": {
+      "editable": true,
+      "role": "仓库/捐献装备格共享模板"
+    },
+    "Assets/Prefabs/UI/Guild/GuildMergeItem.prefab": {
+      "editable": true,
+      "role": "合并候选条目；本轮只盘点，不进入未实现的合并弹层"
+    }
+  },
+  "components": [
+    {
+      "id": "guild-list-flow",
+      "old_sources": ["guildList/GuildListView.ts", "guildList/GuildListItem.ts", "guildList/GuildListTopItem.ts"],
+      "unity_sources": ["GuildList/GuildListFlow.cs", "GuildList/Views/GuildListView.cs", "GuildList/Views/GuildListItem.cs", "GuildList/Views/GuildListTopItem.cs"],
+      "binds": ["GuildListViewBind", "GuildListItemBind", "GuildListTopItemBind"],
+      "dependencies": ["GuildJoinController 40001/40002/40003/40004", "TaskController 30008", "RoleModel.GuildId"],
+      "status": "列表/申请协议已接；GuildBuildView 名称输入弹层缺失，现有默认名直接建社不符合老端可见链"
+    },
+    {
+      "id": "guild-main-shell",
+      "old_sources": ["guild/GuildMainBaseView.ts"],
+      "unity_sources": ["GuildMainFlow.cs", "Common/BaseWindowSkinView.cs"],
+      "binds": ["GuildMainViewBind", "GuildMemberViewBind", "GuildRewardBoxViewBind", "GuildJoinViewBind"],
+      "dependencies": ["ServerTimeModel.GetOpenServerDay", "Common.BaseWindowSkin", "HolyTerritory.HolyTerritoryGuildView"],
+      "status": "开服日分支是权威拓扑；排行属于 HolyTerritory 跨岛，其他属于 GuildJoin 本岛"
+    },
+    {
+      "id": "guild-info",
+      "old_sources": ["guild/GuildMainView.ts", "guild/GuildMainItem.ts"],
+      "unity_sources": ["Guild/Views/GuildMainView.cs", "Guild/Views/GuildMainItem.cs"],
+      "binds": ["GuildMainViewBind", "GuildMainItemBind"],
+      "dependencies": ["GuildConfigs.ConfigGuild.main_func", "GuildController 40005/40021", "RoleModel.GuildPosition", "ServerTimeModel"],
+      "status": "基础字段和仓库入口已接；公告/改名/其余功能格目标页未接；条件功能格需按会长/开服天/武魂门槛过滤"
+    },
+    {
+      "id": "guild-member-and-apply",
+      "old_sources": ["guild/GuildMemberView.ts", "guild/GuildMemberItem.ts", "guild/GuildApplyLookView.ts", "guild/GuildApplyLookItem.ts"],
+      "unity_sources": ["Guild/Views/GuildMemberView.cs", "Guild/Views/GuildMemberItem.cs", "Guild/Views/GuildApplyLookView.cs", "Guild/Views/GuildApplyLookItem.cs"],
+      "binds": ["GuildMemberViewBind", "GuildMemberItemBind", "GuildApplyLookViewBind", "GuildApplyLookItemBind"],
+      "dependencies": ["GuildController 40006/40008/40009/40013/40014/40019", "GuildModel permission list", "Common player head/profile"],
+      "status": "成员与申请列表/审批已接；审批设置弹层、资料点击和任命/踢人完整确认链仍缺"
+    },
+    {
+      "id": "guild-reward-box",
+      "old_sources": ["guild/GuildRewardBoxView.ts", "guild/GuildRBItem.ts", "guild/GuildRBRecordItem.ts", "guild/GuildRBSendView.ts"],
+      "unity_sources": ["Guild/Views/GuildRewardBoxView.cs", "Guild/Views/GuildRBItem.cs", "Guild/Views/GuildRBRecordItem.cs"],
+      "binds": ["GuildRewardBoxViewBind", "GuildRBItemBind", "GuildRBRecordItemBind"],
+      "dependencies": ["GuildController 40301/40302/40303/40304/40305", "Common.BaseAwardItem", "Common.InstructionFlow"],
+      "status": "列表/记录/领取已接；奖励格、发送规则和说明未接"
+    },
+    {
+      "id": "guild-depot",
+      "old_sources": ["guild/GuildDepotView.ts", "guild/GuildDepotItem.ts", "guild/GuildDepotSelectView.ts", "guild/GuildCleanView.ts"],
+      "unity_sources": ["Guild/Views/GuildDepotView.cs", "Guild/Views/GuildDepotItem.cs", "Guild/Views/GuildDepotSelectView.cs"],
+      "binds": ["GuildDepotViewBind", "GuildDepotItemBind", "GuildDepotRecordItemBind", "GuildDepotSelectViewBind"],
+      "dependencies": ["GuildController 40101/40102/40103/40109/40110", "BagModel", "Common.EquipmentItem", "Common.CompositeEquipResolveView"],
+      "status": "仓库、兑换、捐献选择已接；筛选、自动清理、确认/详情链和部分共享装备覆盖层仍缺"
+    },
+    {
+      "id": "guild-other",
+      "old_sources": ["guild/GuildJoinView.ts", "guild/GuildJoinItem.ts"],
+      "unity_sources": ["GuildMainFlow.cs", "GuildJoinController.cs", "GuildJoinModel.cs"],
+      "binds": ["GuildJoinViewBind", "GuildJoinItemBind"],
+      "dependencies": ["GuildJoinController 40001/40002/40003", "RoleModel.GuildId", "Friend player profile"],
+      "status": "Prefab/协议/模型齐全，消费层静态可在 Guild 岛接入；会长资料跳转属于 Friend 跨岛"
+    },
+    {
+      "id": "guild-help",
+      "old_sources": ["guild/GuildHelpView.ts", "guild/GuildHelpItem.ts", "guild/GuildHelpTipsView.ts"],
+      "unity_sources": ["GuildHelpFlow.cs", "GuildController.cs", "GuildModel.cs", "GuildConfigs.cs"],
+      "binds": ["GuildHelpViewBind", "GuildHelpItemBind", "GuildHelpTipsViewBind"],
+      "dependencies": ["GuildController 40402/40403/40405 and 40031", "BrightSea 18916 and type=3 reclaim", "Boss/Scene pathfinding", "Common.InstructionFlow 1001", "Common.EquipmentItem", "Common player head"],
+      "status": "当前仅 Bind+关闭；列表、计数、开放条件、确认与 40402/40403 可在 Guild 岛接，type=3 夺回/已协助寻路和 BrightSea 计数事件是跨岛"
+    },
+    {
+      "id": "shared-equipment-item",
+      "old_sources": ["common/EquipmentItem.ts", "common/BaseAwardItem.ts"],
+      "unity_sources": ["Common/Views/EquipmentItem.cs", "Common/Views/BaseAwardItem.cs"],
+      "binds": ["EquipmentItemBind", "BaseAwardItemBind"],
+      "dependencies": ["GoodsModel", "UIEffectStage", "ItemTipsView"],
+      "consumers": ["GuildDepotItem", "GuildDepotSelectView", "GuildRBItem reward", "GuildHelpTipsView reward"],
+      "state_matrix": ["empty/data", "selected/unselected", "quality effect off/on", "short/long count", "scroll fully visible/partial/hidden"],
+      "status": "本轮禁止改共享组件；只记录身份与代表宿主，需真实运行抽查"
+    }
+  ],
+  "cross_island_dependencies": [
+    { "dependency": "HolyTerritoryModule/HolyTerritoryGuildView", "route": "开服第1-4天排行 tab", "status": "Prefab/协议模型存在但无业务 View；本轮禁止改 HolyTerritory" },
+    { "dependency": "Common.BaseWindowSkin/BaseWindowManager", "route": "GuildMain 窗框/互斥/返回", "status": "共享根只读，需 Guild 目标页与高频既有页代表抽样" },
+    { "dependency": "Common.EquipmentItem/BaseAwardItem/UIEffectStage", "route": "仓库/宝箱/GuildHelp 奖励格", "status": "共享组件只读，需身份链与状态矩阵真实运行" },
+    { "dependency": "Shop prestige shop/config title", "route": "主页面善缘商店/成员头衔", "status": "本轮禁止改 Shop" },
+    { "dependency": "BagModel", "route": "仓库捐献候选", "status": "只读包数据；不改 Bag" },
+    { "dependency": "BrightSeaController/Model", "route": "GuildHelp 18916 计数、type=3 立即夺回", "status": "协议快照有模型但无 Guild 可订阅事件；夺回需要 BrightSea 战斗链" },
+    { "dependency": "Boss/Scene/AutoFight", "route": "GuildHelp 已协助目标前往、世界大妖不同层退出", "status": "跨场景导航未在 Guild 岛猜接" },
+    { "dependency": "Friend player profile", "route": "成员/其他页会长点击", "status": "本轮禁止改 Friend" },
+    { "dependency": "MainUI guild/guildhelp fixed entries", "route": "入口、开放条件、红点", "status": "本轮禁止改 MainUI；现有路由只读核对" },
+    { "dependency": "Addressables catalog", "route": "Guild/GuildList/Common/HolyTerritory prefab and sprites", "status": "本轮禁止改 Addressables；真实 Web 必须绑定同批 Player/catalog 哈希" }
+  ]
+}

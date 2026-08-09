@@ -58,9 +58,9 @@ namespace Shenxiao.Module.Core.SevenDay
             _taskGatePending = false;
             _taskGatePendingFrom = 0;
             _taskGatePendingTo = 0;
-            ActivityIconManager.Instance.DeleteIcon(SevenDayModel.ICON_OPEN);
-            ActivityIconManager.Instance.DeleteIcon(SevenDayModel.ICON_EIGHT);
-            ActivityIconManager.Instance.DeleteIcon(SevenDayModel.ICON_MERGE);
+            ClearIcon(SevenDayModel.ICON_OPEN);
+            ClearIcon(SevenDayModel.ICON_EIGHT);
+            ClearIcon(SevenDayModel.ICON_MERGE);
             SevenDayModel.Instance.Reset();
             _lastLevel = -1;
             _lastObservedFinishTaskId = -1;
@@ -127,8 +127,20 @@ namespace Shenxiao.Module.Core.SevenDay
         {
             SevenDayModel m = SevenDayModel.Instance;
             // 老端用普通 addIcon(经 FunIsOpenByIconType 配置闸)→ 这里用 AddIconAsync(同样过闸)。
-            if (m.IsIconOpen(iconType)) _ = ActivityIconManager.Instance.AddIconAsync(iconType, 0, m.GetIconText(iconType));
-            else ActivityIconManager.Instance.DeleteIcon(iconType);
+            if (m.IsIconOpen(iconType))
+            {
+                // SetIconRedDot 会先缓存红点，即使 AddIconAsync 尚在等待配置，图标创建时也能带上正确状态。
+                ActivityIconManager.Instance.SetIconRedDot(iconType, m.IsIconRed(iconType));
+                _ = ActivityIconManager.Instance.AddIconAsync(iconType, 0, m.GetIconText(iconType));
+            }
+            else ClearIcon(iconType);
+        }
+
+        private static void ClearIcon(string iconType)
+        {
+            // DeleteIcon 不会清 ActivityIconManager 的红点缓存，必须先归零，避免下次重建沿用旧状态。
+            ActivityIconManager.Instance.SetIconRedDot(iconType, false);
+            ActivityIconManager.Instance.DeleteIcon(iconType);
         }
 
         // 对标老端:主角等级变化复请求 17500/17502(只在等级真变时发)。

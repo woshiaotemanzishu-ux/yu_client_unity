@@ -1,0 +1,1540 @@
+{
+  "schema": 6,
+  "route": "mainui.shop",
+  "baseline": {
+    "authority": "Current old H5 under the same account, state and viewport is final authority. This manifest freezes static topology only and claims no runtime gate.",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/shop/ShopView.ts",
+      "E:/GitProject/yu_client/h5/src/shop/ShopCommonView.ts",
+      "E:/GitProject/yu_client/h5/src/shop/ShopItem.ts",
+      "E:/GitProject/yu_client/h5/src/shop/ShopLimitItem.ts",
+      "E:/GitProject/yu_client/h5/src/shop/ShopBulkPurchaseView.ts",
+      "E:/GitProject/yu_client/h5/src/shop/ShopMysteriousView.ts",
+      "E:/GitProject/yu_client/h5/src/shop/ShopMysteriouItem.ts",
+      "E:/GitProject/yu_client/h5/src/shop/ShopVieView.ts",
+      "E:/GitProject/yu_client/h5/src/shop/ShopVieItem.ts",
+      "E:/GitProject/yu_client/h5/src/shop/ShopSeriesTab.ts"
+    ],
+    "unity_sources": [
+      "Assets/Prefabs/UI/Shop/ShopModule.prefab",
+      "Assets/Prefabs/UI/Shop/ShopItem.prefab",
+      "Assets/Scripts/Module/Core/Shop/ShopFlow.cs",
+      "Assets/Scripts/Module/Core/Shop/ShopController.cs",
+      "Assets/Scripts/Module/Core/Shop/ShopModel.cs",
+      "Assets/Scripts/Module/Core/Shop/ShopConfigs.cs",
+      "Assets/Scripts/Module/Core/Shop/Views/ShopCommonView.cs",
+      "Assets/Scripts/Module/Core/Shop/Views/ShopItem.cs",
+      "Assets/Scripts/Module/Core/Shop/Views/ShopLimitItem.cs",
+      "Assets/Scripts/Module/Core/Shop/Views/ShopBulkPurchaseView.cs",
+      "Assets/Scripts/Module/Core/Shop/Views/ShopVieView.cs"
+    ],
+    "protocol_inventory": {
+      "reads": [
+        "15301",
+        "15303",
+        "15305",
+        "64000"
+      ],
+      "writes": [
+        "15302",
+        "15304",
+        "15307",
+        "64001"
+      ],
+      "note": "This pass performed no purchase, mystery refresh, mystery purchase or rush purchase transaction."
+    },
+    "component_dependencies": [
+      {
+        "component": "BaseWindowSkinView",
+        "consumers": [
+          "ShopFlow"
+        ],
+        "scope": "Common; report only"
+      },
+      {
+        "component": "BaseAwardItem",
+        "consumers": [
+          "ShopItem",
+          "ShopLimitItem",
+          "ShopBulkPurchaseView",
+          "ShopMysteriousView",
+          "ShopMysteriouItem",
+          "ShopVieItem"
+        ],
+        "scope": "Common shared item identity; report only"
+      },
+      {
+        "component": "ShopItem",
+        "consumers": [
+          "ShopCommonView non-limit shop types"
+        ],
+        "scope": "Shop shared template"
+      },
+      {
+        "component": "ShopLimitItem",
+        "consumers": [
+          "Limit/Honor/Medal/GhostWalk/Exploit/SingleRank/Lucky/GodCourt/Guild"
+        ],
+        "scope": "Shop shared template"
+      },
+      {
+        "component": "ShopSeriesTab",
+        "consumers": [
+          "Diamond series",
+          "Guild series"
+        ],
+        "scope": "Shop shared template"
+      }
+    ]
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_shop/route-manifest.json",
+    "sha256": "376808327192a958d5be240ec36e786fa7426cb04cc92f0eee06cfae9271261b"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "mainui.shop",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        {
+          "id": "shell",
+          "kind": "window-shell",
+          "child": "mainui.shop.shell"
+        },
+        {
+          "id": "top-tabs",
+          "kind": "navigation",
+          "child": "mainui.shop.top-tabs"
+        },
+        {
+          "id": "secondary",
+          "kind": "navigation",
+          "child": "mainui.shop.secondary"
+        },
+        {
+          "id": "list",
+          "kind": "item-list",
+          "child": "mainui.shop.list"
+        },
+        {
+          "id": "item",
+          "kind": "shared-item",
+          "child": "mainui.shop.item"
+        },
+        {
+          "id": "bulk",
+          "kind": "popup",
+          "child": "mainui.shop.bulk"
+        },
+        {
+          "id": "vie",
+          "kind": "conditional-page",
+          "child": "mainui.shop.vie"
+        },
+        {
+          "id": "mystery",
+          "kind": "conditional-page",
+          "child": "mainui.shop.mystery"
+        },
+        {
+          "id": "quick-buy",
+          "kind": "popup",
+          "child": "mainui.shop.quick-buy"
+        },
+        {
+          "id": "route-state",
+          "kind": "route-lifecycle",
+          "child": "mainui.shop.route-state"
+        }
+      ],
+      "note": "MainUI商城完整路线。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.shop.top-tabs, mainui.shop.item, mainui.shop.bulk, mainui.shop.vie, mainui.shop.mystery, mainui.shop.quick-buy"
+    },
+    {
+      "id": "mainui.shop.shell",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.shop",
+      "control_inventory": [
+        {
+          "id": "title",
+          "kind": "visual",
+          "child": "mainui.shop.shell.title"
+        },
+        {
+          "id": "background",
+          "kind": "visual",
+          "child": "mainui.shop.shell.background"
+        },
+        {
+          "id": "currency",
+          "kind": "state",
+          "child": "mainui.shop.shell.currency"
+        },
+        {
+          "id": "tabs",
+          "kind": "navigation",
+          "child": "mainui.shop.shell.tabs"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.shop.shell.close"
+        }
+      ],
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.shop.shell.title, mainui.shop.shell.background, mainui.shop.shell.currency, mainui.shop.shell.tabs, mainui.shop.shell.close"
+    },
+    {
+      "id": "mainui.shop.shell.title",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.shell",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.shell.background",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.shell",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.shell.currency",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.shell",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.shell.tabs",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.shop.shell",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.shell.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.shop.shell",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.top-tabs",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.shop",
+      "control_inventory": [
+        {
+          "id": "limit",
+          "kind": "tab",
+          "child": "mainui.shop.top-tabs.limit"
+        },
+        {
+          "id": "diamond",
+          "kind": "tab",
+          "child": "mainui.shop.top-tabs.diamond"
+        },
+        {
+          "id": "bind",
+          "kind": "tab",
+          "child": "mainui.shop.top-tabs.bind"
+        },
+        {
+          "id": "vie",
+          "kind": "conditional-tab",
+          "child": "mainui.shop.top-tabs.vie"
+        },
+        {
+          "id": "guild",
+          "kind": "conditional-tab",
+          "child": "mainui.shop.top-tabs.guild"
+        },
+        {
+          "id": "honor",
+          "kind": "conditional-tab",
+          "child": "mainui.shop.top-tabs.honor"
+        },
+        {
+          "id": "ghost",
+          "kind": "tab",
+          "child": "mainui.shop.top-tabs.ghost"
+        },
+        {
+          "id": "medal",
+          "kind": "conditional-tab",
+          "child": "mainui.shop.top-tabs.medal"
+        },
+        {
+          "id": "single",
+          "kind": "conditional-tab",
+          "child": "mainui.shop.top-tabs.single"
+        },
+        {
+          "id": "longlang",
+          "kind": "tab",
+          "child": "mainui.shop.top-tabs.longlang"
+        },
+        {
+          "id": "godcourt",
+          "kind": "conditional-tab",
+          "child": "mainui.shop.top-tabs.godcourt"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.shop.top-tabs.limit, mainui.shop.top-tabs.diamond, mainui.shop.top-tabs.guild, mainui.shop.top-tabs.honor, mainui.shop.top-tabs.medal, mainui.shop.top-tabs.single, mainui.shop.top-tabs.longlang, mainui.shop.top-tabs.godcourt"
+    },
+    {
+      "id": "mainui.shop.top-tabs.limit",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.shop.top-tabs",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "Old client gates Limit with NotAlphaState; Shop scope has no authoritative Alpha-state owner."
+    },
+    {
+      "id": "mainui.shop.top-tabs.diamond",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.shop.top-tabs",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "Old client gates Diamond with NotAlphaState; Shop scope has no authoritative Alpha-state owner."
+    },
+    {
+      "id": "mainui.shop.top-tabs.bind",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.shop.top-tabs",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.top-tabs.vie",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.shop.top-tabs",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.top-tabs.guild",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.shop.top-tabs",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "Guild idol open state belongs to Guild and is not wired into ShopFlow."
+    },
+    {
+      "id": "mainui.shop.top-tabs.honor",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.shop.top-tabs",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "Battlefield function-open state is outside Shop and is not wired into ShopFlow."
+    },
+    {
+      "id": "mainui.shop.top-tabs.ghost",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.shop.top-tabs",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.top-tabs.medal",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.shop.top-tabs",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "KfHolyArea open state is outside Shop and is not wired into ShopFlow."
+    },
+    {
+      "id": "mainui.shop.top-tabs.single",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.shop.top-tabs",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "KfSingleRank open state is outside Shop and is not wired into ShopFlow."
+    },
+    {
+      "id": "mainui.shop.top-tabs.longlang",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.shop.top-tabs",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "Old client uses LonglangExchangeView; Unity still reuses ShopCommonView. Longlang is outside this edit island."
+    },
+    {
+      "id": "mainui.shop.top-tabs.godcourt",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.shop.top-tabs",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "GodCourt open state is outside Shop and is not wired into ShopFlow."
+    },
+    {
+      "id": "mainui.shop.secondary",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.shop",
+      "control_inventory": [
+        {
+          "id": "diamond",
+          "kind": "tab-list",
+          "child": "mainui.shop.secondary.diamond"
+        },
+        {
+          "id": "guild",
+          "kind": "tab-list",
+          "child": "mainui.shop.secondary.guild"
+        },
+        {
+          "id": "scroll",
+          "kind": "scroll",
+          "child": "mainui.shop.secondary.scroll"
+        }
+      ],
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.shop.secondary.diamond, mainui.shop.secondary.guild, mainui.shop.secondary.scroll"
+    },
+    {
+      "id": "mainui.shop.secondary.diamond",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.shop.secondary",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.secondary.guild",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.shop.secondary",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.secondary.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.secondary",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.list",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.shop",
+      "control_inventory": [
+        {
+          "id": "structure",
+          "kind": "scroll",
+          "child": "mainui.shop.list.structure"
+        },
+        {
+          "id": "layout",
+          "kind": "layout",
+          "child": "mainui.shop.list.layout"
+        },
+        {
+          "id": "empty",
+          "kind": "state",
+          "child": "mainui.shop.list.empty"
+        },
+        {
+          "id": "sort",
+          "kind": "state",
+          "child": "mainui.shop.list.sort"
+        },
+        {
+          "id": "scroll",
+          "kind": "interaction",
+          "child": "mainui.shop.list.scroll"
+        }
+      ],
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.shop.list.structure, mainui.shop.list.layout, mainui.shop.list.empty, mainui.shop.list.sort, mainui.shop.list.scroll"
+    },
+    {
+      "id": "mainui.shop.list.structure",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.list",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.list.layout",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.list",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.list.empty",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.list",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.list.sort",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.list",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.list.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.list",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.item",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.shop",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "shared-component",
+          "child": "mainui.shop.item.identity"
+        },
+        {
+          "id": "name",
+          "kind": "text",
+          "child": "mainui.shop.item.name"
+        },
+        {
+          "id": "price",
+          "kind": "price",
+          "child": "mainui.shop.item.price"
+        },
+        {
+          "id": "currency",
+          "kind": "icon",
+          "child": "mainui.shop.item.currency"
+        },
+        {
+          "id": "quota",
+          "kind": "state",
+          "child": "mainui.shop.item.quota"
+        },
+        {
+          "id": "soldout",
+          "kind": "state",
+          "child": "mainui.shop.item.soldout"
+        },
+        {
+          "id": "condition",
+          "kind": "state",
+          "child": "mainui.shop.item.condition"
+        },
+        {
+          "id": "click",
+          "kind": "popup",
+          "child": "mainui.shop.item.click"
+        },
+        {
+          "id": "detail",
+          "kind": "popup",
+          "child": "mainui.shop.item.detail"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.shop.item.name, mainui.shop.item.price, mainui.shop.item.currency, mainui.shop.item.condition, mainui.shop.item.detail"
+    },
+    {
+      "id": "mainui.shop.item.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.item",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.item.name",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.item",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "Goods name is wired, but quality color and final shared item pixels are incomplete."
+    },
+    {
+      "id": "mainui.shop.item.price",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.item",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "Rounded price is fixed, but dynamic strike-through width, discount pixels and resource-ready proof remain incomplete."
+    },
+    {
+      "id": "mainui.shop.item.currency",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.item",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "Currency icon/amount state depends on the shared BaseAwardItem/resource identity chain, which this Shop pass may not modify."
+    },
+    {
+      "id": "mainui.shop.item.quota",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.item",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.item.soldout",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.item",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.item.condition",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.item",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "Only lv/vip are authoritative here; rank_dun, constellation, god_pool, guild level/title states are cross-module dependencies."
+    },
+    {
+      "id": "mainui.shop.item.click",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.shop.item",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.item.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.shop.item",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "Item detail must come from shared BaseAwardItem/Common; copying a Shop-private detail path is forbidden."
+    },
+    {
+      "id": "mainui.shop.bulk",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.shop",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "popup",
+          "child": "mainui.shop.bulk.identity"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.shop.bulk.close"
+        },
+        {
+          "id": "quantity",
+          "kind": "stepper",
+          "child": "mainui.shop.bulk.quantity"
+        },
+        {
+          "id": "limit",
+          "kind": "state",
+          "child": "mainui.shop.bulk.limit"
+        },
+        {
+          "id": "total",
+          "kind": "price",
+          "child": "mainui.shop.bulk.total"
+        },
+        {
+          "id": "confirm",
+          "kind": "transaction",
+          "child": "mainui.shop.bulk.confirm"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.shop.bulk.confirm"
+    },
+    {
+      "id": "mainui.shop.bulk.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.bulk",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.bulk.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.shop.bulk",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.bulk.quantity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.bulk",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.bulk.limit",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.bulk",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.bulk.total",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.bulk",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.bulk.confirm",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.shop.bulk",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "15302 purchase is a write transaction. No purchase was authorized or executed; bind-diamond fallback confirmation also depends on Common Alert."
+    },
+    {
+      "id": "mainui.shop.vie",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.shop",
+      "control_inventory": [
+        {
+          "id": "gate",
+          "kind": "condition",
+          "child": "mainui.shop.vie.gate"
+        },
+        {
+          "id": "list",
+          "kind": "item-list",
+          "child": "mainui.shop.vie.list"
+        },
+        {
+          "id": "countdown",
+          "kind": "timer",
+          "child": "mainui.shop.vie.countdown"
+        },
+        {
+          "id": "item",
+          "kind": "shared-item",
+          "child": "mainui.shop.vie.item"
+        },
+        {
+          "id": "buy",
+          "kind": "transaction",
+          "child": "mainui.shop.vie.buy"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.shop.vie.list, mainui.shop.vie.countdown, mainui.shop.vie.item, mainui.shop.vie.buy"
+    },
+    {
+      "id": "mainui.shop.vie.gate",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.vie",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.vie.list",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.vie",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "Current authoritative old-client gate hides the Rush tab, so its runtime list is unreachable in the selected route."
+    },
+    {
+      "id": "mainui.shop.vie.countdown",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.vie",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "Rush page is hidden by the current old-client gate; no reachable timer evidence exists."
+    },
+    {
+      "id": "mainui.shop.vie.item",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.vie",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "Rush page is hidden and its shared item icon/detail closure is incomplete."
+    },
+    {
+      "id": "mainui.shop.vie.buy",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.shop.vie",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "64001 is a purchase write; the current route hides the page and no transaction authorization was granted."
+    },
+    {
+      "id": "mainui.shop.mystery",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.shop",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "page",
+          "child": "mainui.shop.mystery.identity"
+        },
+        {
+          "id": "list",
+          "kind": "item-list",
+          "child": "mainui.shop.mystery.list"
+        },
+        {
+          "id": "countdown",
+          "kind": "timer",
+          "child": "mainui.shop.mystery.countdown"
+        },
+        {
+          "id": "currency",
+          "kind": "state",
+          "child": "mainui.shop.mystery.currency"
+        },
+        {
+          "id": "refresh",
+          "kind": "transaction",
+          "child": "mainui.shop.mystery.refresh"
+        },
+        {
+          "id": "buy",
+          "kind": "transaction",
+          "child": "mainui.shop.mystery.buy"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.shop.mystery.identity, mainui.shop.mystery.list, mainui.shop.mystery.countdown, mainui.shop.mystery.currency, mainui.shop.mystery.refresh, mainui.shop.mystery.buy"
+    },
+    {
+      "id": "mainui.shop.mystery.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.mystery",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "Prefab and generated Bind exist, but no ShopMysteriousView runtime class owns the page."
+    },
+    {
+      "id": "mainui.shop.mystery.list",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.mystery",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "ShopMysteriouItem has no runtime View and shared BaseAwardItem identity is unresolved."
+    },
+    {
+      "id": "mainui.shop.mystery.countdown",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.mystery",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "No runtime ShopMysteriousView owns refresh-time countdown/lifecycle."
+    },
+    {
+      "id": "mainui.shop.mystery.currency",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.mystery",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "No runtime ShopMysteriousView owns refresh cost state; shared currency item identity is unresolved."
+    },
+    {
+      "id": "mainui.shop.mystery.refresh",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.shop.mystery",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "15304 refresh is a write transaction and the runtime page is missing."
+    },
+    {
+      "id": "mainui.shop.mystery.buy",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.shop.mystery",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "15307 purchase is a write transaction and the runtime item/page is missing."
+    },
+    {
+      "id": "mainui.shop.quick-buy",
+      "type": "navigation",
+      "risk": "destructive-write",
+      "parent": "mainui.shop",
+      "note": "Blocked without guessing cross-module state or executing an unauthorized write.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "blocked_reason": "QuickBuy belongs to the shared purchase/Common chain outside the Shop-only edit closure."
+    },
+    {
+      "id": "mainui.shop.route-state",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.shop",
+      "control_inventory": [
+        {
+          "id": "open-close",
+          "kind": "route-lifecycle",
+          "child": "mainui.shop.route-state.open-close"
+        },
+        {
+          "id": "warm",
+          "kind": "route-lifecycle",
+          "child": "mainui.shop.route-state.warm"
+        },
+        {
+          "id": "viewports",
+          "kind": "visual",
+          "child": "mainui.shop.route-state.viewports"
+        },
+        {
+          "id": "performance",
+          "kind": "performance",
+          "child": "mainui.shop.route-state.performance"
+        }
+      ],
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.shop.route-state.open-close, mainui.shop.route-state.warm, mainui.shop.route-state.viewports, mainui.shop.route-state.performance"
+    },
+    {
+      "id": "mainui.shop.route-state.open-close",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.route-state",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.route-state.warm",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.route-state",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.route-state.viewports",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.route-state",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    },
+    {
+      "id": "mainui.shop.route-state.performance",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.shop.route-state",
+      "note": "Static implementation only; no runtime completion claim.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_shop/static-audit.md"
+      ],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "runtime_gap": "The Shop-specific static implementation is present, but player-visible Unity/Web state, interaction, lifecycle and old-client comparison were not executed."
+    }
+  ],
+  "summary": {
+    "total": 65,
+    "status_counts": {
+      "blocked": 31,
+      "needs-runtime-verify": 34
+    }
+  }
+}

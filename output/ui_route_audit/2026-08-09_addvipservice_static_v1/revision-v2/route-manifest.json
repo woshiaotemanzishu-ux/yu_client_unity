@@ -1,0 +1,342 @@
+{
+  "route": "mainui.addvipservice.revision-v2",
+  "baseline": {
+    "audit_kind": "static-only",
+    "legacy_root": "E:/GitProject/yu_client/h5/src/addVipService/AddVipServiceView.ts",
+    "unity_prefab": "Assets/Prefabs/UI/AddVipService/AddVipServiceModule.prefab",
+    "runtime_authority": "not collected",
+    "revision": 2,
+    "supersedes": "../route-ledger.json",
+    "reconciliation": "adds alpha/first-charge/channel/level/open-day entry gates and exact 0/3 reward variants",
+    "config_snapshot": "ClientAddVipService rows 1 and 2; 14 top-level channels; row1 open_lv 90/reward 0; row2 open_lv 150/reward 3"
+  },
+  "nodes": [
+    {
+      "id": "addvip.route",
+      "parent": null,
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "icon_114_condition",
+          "kind": "conditional-entry",
+          "child": "addvip.entry_condition"
+        },
+        {
+          "id": "icon_114_click",
+          "kind": "navigation",
+          "child": "addvip.entry_open"
+        },
+        {
+          "id": "channel_config",
+          "kind": "conditional-state",
+          "child": "addvip.config_selection"
+        },
+        {
+          "id": "_img_bg",
+          "kind": "image",
+          "child": "addvip.image.background"
+        },
+        {
+          "id": "_img_title",
+          "kind": "config-image",
+          "child": "addvip.image.title"
+        },
+        {
+          "id": "_img_link",
+          "kind": "config-image",
+          "child": "addvip.image.link"
+        },
+        {
+          "id": "_img_bg1",
+          "kind": "image",
+          "child": "addvip.image.bg1"
+        },
+        {
+          "id": "bg3",
+          "kind": "image",
+          "child": "addvip.image.bg3"
+        },
+        {
+          "id": "_img_bg2",
+          "kind": "image",
+          "child": "addvip.image.divider"
+        },
+        {
+          "id": "_lab_title",
+          "kind": "config-text",
+          "child": "addvip.text.title"
+        },
+        {
+          "id": "des",
+          "kind": "config-text",
+          "child": "addvip.text.description"
+        },
+        {
+          "id": "Content",
+          "kind": "dynamic-list",
+          "child": "addvip.rewards"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "addvip.close"
+        }
+      ]
+    },
+    {
+      "id": "addvip.entry_open",
+      "parent": "addvip.route",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "icon 114 opens AddVipServiceView"
+    },
+    {
+      "id": "addvip.image.background",
+      "parent": "addvip.route",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "addvip.image.title",
+      "parent": "addvip.route",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "addvip.image.link",
+      "parent": "addvip.route",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "addvip.image.bg1",
+      "parent": "addvip.route",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "addvip.image.bg3",
+      "parent": "addvip.route",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "addvip.image.divider",
+      "parent": "addvip.route",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "addvip.text.title",
+      "parent": "addvip.route",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "addvip.text.description",
+      "parent": "addvip.route",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "addvip.rewards",
+      "parent": "addvip.route",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "row1_empty",
+          "kind": "conditional-empty-list",
+          "child": "addvip.rewards.row1_empty"
+        },
+        {
+          "id": "row2_reward_0",
+          "kind": "shared-item-navigation",
+          "child": "addvip.rewards.row2.item0"
+        },
+        {
+          "id": "row2_reward_1",
+          "kind": "shared-item-navigation",
+          "child": "addvip.rewards.row2.item1"
+        },
+        {
+          "id": "row2_reward_2",
+          "kind": "shared-item-navigation",
+          "child": "addvip.rewards.row2.item2"
+        },
+        {
+          "id": "reward_layout",
+          "kind": "layout",
+          "child": "addvip.rewards.layout"
+        }
+      ]
+    },
+    {
+      "id": "addvip.rewards.layout",
+      "parent": "addvip.rewards",
+      "type": "read",
+      "risk": "read-only",
+      "note": "85x85 items in HBox Content"
+    },
+    {
+      "id": "addvip.close",
+      "parent": "addvip.route",
+      "type": "return",
+      "risk": "read-only",
+      "note": "explicit close button and generic click sound"
+    },
+    {
+      "id": "addvip.entry_condition",
+      "parent": "addvip.route",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "non_alpha",
+          "kind": "condition",
+          "child": "addvip.entry.non_alpha"
+        },
+        {
+          "id": "first_recharge_15908",
+          "kind": "condition",
+          "child": "addvip.entry.first_recharge"
+        },
+        {
+          "id": "channel_tem",
+          "kind": "condition",
+          "child": "addvip.entry.channel"
+        },
+        {
+          "id": "channel_row_1",
+          "kind": "conditional-variant",
+          "child": "addvip.entry.variant1"
+        },
+        {
+          "id": "channel_row_2",
+          "kind": "conditional-variant",
+          "child": "addvip.entry.variant2"
+        },
+        {
+          "id": "open_level_day",
+          "kind": "condition",
+          "child": "addvip.entry.level_day"
+        }
+      ]
+    },
+    {
+      "id": "addvip.entry.non_alpha",
+      "parent": "addvip.entry_condition",
+      "type": "read",
+      "risk": "read-only",
+      "note": "PlatformManager.is_alpha must be false"
+    },
+    {
+      "id": "addvip.entry.first_recharge",
+      "parent": "addvip.entry_condition",
+      "type": "read",
+      "risk": "read-only",
+      "note": "15908 is_buy == 1 latches IsShowAddVipServiceIcon"
+    },
+    {
+      "id": "addvip.entry.channel",
+      "parent": "addvip.entry_condition",
+      "type": "read",
+      "risk": "read-only",
+      "note": "plat_name must match one of 14 top-level tem entries"
+    },
+    {
+      "id": "addvip.entry.variant1",
+      "parent": "addvip.entry_condition",
+      "type": "read",
+      "risk": "read-only",
+      "note": "13 channels: displayed icon_name 114, open_lv 90, open_day 0"
+    },
+    {
+      "id": "addvip.entry.variant2",
+      "parent": "addvip.entry_condition",
+      "type": "read",
+      "risk": "read-only",
+      "note": "yy_suyou: displayed icon_name 117, open_lv 150, open_day 0 while logical icon type remains 114"
+    },
+    {
+      "id": "addvip.entry.level_day",
+      "parent": "addvip.entry_condition",
+      "type": "read",
+      "risk": "read-only",
+      "note": "ActivityIconManager applies the selected row open_lv/open_day gate"
+    },
+    {
+      "id": "addvip.config_selection",
+      "parent": "addvip.route",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "row_1",
+          "kind": "conditional-config",
+          "child": "addvip.config.row1"
+        },
+        {
+          "id": "row_2",
+          "kind": "conditional-config",
+          "child": "addvip.config.row2"
+        },
+        {
+          "id": "unmatched",
+          "kind": "conditional-empty",
+          "child": "addvip.config.unmatched"
+        }
+      ]
+    },
+    {
+      "id": "addvip.config.row1",
+      "parent": "addvip.config_selection",
+      "type": "read",
+      "risk": "read-only",
+      "note": "ui_gz_title + image001 + row1 des/des1 + zero rewards"
+    },
+    {
+      "id": "addvip.config.row2",
+      "parent": "addvip.config_selection",
+      "type": "read",
+      "risk": "read-only",
+      "note": "ui_gz_title2 + image002 + row2 des/des1 + three rewards"
+    },
+    {
+      "id": "addvip.config.unmatched",
+      "parent": "addvip.config_selection",
+      "type": "read",
+      "risk": "read-only",
+      "note": "LoadSuccess returns without filling dynamic content"
+    },
+    {
+      "id": "addvip.rewards.row1_empty",
+      "parent": "addvip.rewards",
+      "type": "read",
+      "risk": "read-only",
+      "note": "row1 reward=[]; Content must stay empty without stale clones"
+    },
+    {
+      "id": "addvip.rewards.row2.item0",
+      "parent": "addvip.rewards",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "mapped reward [0,35,200]; exact EquipmentItem detail/return"
+    },
+    {
+      "id": "addvip.rewards.row2.item1",
+      "parent": "addvip.rewards",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "mapped reward [0,31,200000]; exact EquipmentItem detail/return"
+    },
+    {
+      "id": "addvip.rewards.row2.item2",
+      "parent": "addvip.rewards",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "mapped reward [0,37020002,1]; exact EquipmentItem detail/return"
+    }
+  ]
+}

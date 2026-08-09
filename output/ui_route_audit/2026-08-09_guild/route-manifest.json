@@ -1,0 +1,486 @@
+{
+  "route": "mainui.guild.route",
+  "baseline": {
+    "authority": "当前老客户端同账号、同状态、同 viewport 的真实运行结果；本轮只完成老端源码、Unity Prefab/Bind/Flow/协议静态调和，未启动 Unity 或浏览器。",
+    "open_day_branch": "ServerTimeModel.GetOpenServerDay() <= 4 时为 信息/成员/排行/宝箱；> 4 时为 信息/成员/宝箱/其他。",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/guildList/GuildListView.ts",
+      "E:/GitProject/yu_client/h5/src/guildList/GuildListItem.ts",
+      "E:/GitProject/yu_client/h5/src/guildList/GuildListTopItem.ts",
+      "E:/GitProject/yu_client/h5/src/guild/GuildMainBaseView.ts",
+      "E:/GitProject/yu_client/h5/src/guild/GuildMainView.ts",
+      "E:/GitProject/yu_client/h5/src/guild/GuildMemberView.ts",
+      "E:/GitProject/yu_client/h5/src/guild/GuildMemberItem.ts",
+      "E:/GitProject/yu_client/h5/src/guild/GuildApplyLookView.ts",
+      "E:/GitProject/yu_client/h5/src/guild/GuildApplyLookItem.ts",
+      "E:/GitProject/yu_client/h5/src/guild/GuildRewardBoxView.ts",
+      "E:/GitProject/yu_client/h5/src/guild/GuildRBItem.ts",
+      "E:/GitProject/yu_client/h5/src/guild/GuildDepotView.ts",
+      "E:/GitProject/yu_client/h5/src/guild/GuildDepotItem.ts",
+      "E:/GitProject/yu_client/h5/src/guild/GuildDepotSelectView.ts",
+      "E:/GitProject/yu_client/h5/src/guild/GuildJoinView.ts",
+      "E:/GitProject/yu_client/h5/src/guild/GuildJoinItem.ts",
+      "E:/GitProject/yu_client/h5/src/guild/GuildHelpView.ts",
+      "E:/GitProject/yu_client/h5/src/guild/GuildHelpItem.ts",
+      "E:/GitProject/yu_client/h5/src/guild/GuildHelpTipsView.ts",
+      "E:/GitProject/yu_client/h5/src/commonModel/GuildModel.ts"
+    ],
+    "unity_sources": [
+      "Assets/Prefabs/UI/GuildList/GuildListModule.prefab",
+      "Assets/Prefabs/UI/Guild/GuildModule.prefab",
+      "Assets/Prefabs/UI/Guild/GuildDepotItem.prefab",
+      "Assets/Prefabs/UI/Guild/GuildMergeItem.prefab",
+      "Assets/Scripts/Module/Core/GuildList",
+      "Assets/Scripts/Module/Core/Guild",
+      "Assets/Scripts/Generated/UI/GuildList",
+      "Assets/Scripts/Generated/UI/Guild"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "mainui.guild.route",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        { "id": "guild-list-entry", "kind": "conditional-navigation", "child": "mainui.guild.route.guild-list" },
+        { "id": "guild-main-entry", "kind": "conditional-navigation", "child": "mainui.guild.route.guild-main" },
+        { "id": "guild-help-entry", "kind": "conditional-navigation", "child": "mainui.guild.route.help" },
+        { "id": "route-return-and-reopen", "kind": "lifecycle", "child": "mainui.guild.route.lifecycle" }
+      ]
+    },
+
+    {
+      "id": "mainui.guild.route.guild-list",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route",
+      "control_inventory": [
+        { "id": "40001-open-refresh", "kind": "state", "child": "mainui.guild.route.guild-list.refresh" },
+        { "id": "top-three", "kind": "conditional-list", "child": "mainui.guild.route.guild-list.top" },
+        { "id": "full-list", "kind": "scroll-list", "child": "mainui.guild.route.guild-list.list" },
+        { "id": "build-guild", "kind": "button", "child": "mainui.guild.route.guild-list.build" },
+        { "id": "apply-all", "kind": "button", "child": "mainui.guild.route.guild-list.apply-all" },
+        { "id": "close", "kind": "button", "child": "mainui.guild.route.guild-list.close" },
+        { "id": "join-task-30008", "kind": "conditional-state", "child": "mainui.guild.route.guild-list.task-refresh" }
+      ]
+    },
+    { "id": "mainui.guild.route.guild-list.refresh", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-list" },
+    { "id": "mainui.guild.route.guild-list.build", "type": "transaction", "risk": "destructive-write", "parent": "mainui.guild.route.guild-list" },
+    { "id": "mainui.guild.route.guild-list.apply-all", "type": "transaction", "risk": "destructive-write", "parent": "mainui.guild.route.guild-list" },
+    { "id": "mainui.guild.route.guild-list.close", "type": "return", "risk": "read-only", "parent": "mainui.guild.route.guild-list" },
+    { "id": "mainui.guild.route.guild-list.task-refresh", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-list" },
+    {
+      "id": "mainui.guild.route.guild-list.top",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route.guild-list",
+      "control_inventory": [
+        { "id": "rank-one-two-three", "kind": "state", "child": "mainui.guild.route.guild-list.top.rank" },
+        { "id": "name-chief-members", "kind": "state", "child": "mainui.guild.route.guild-list.top.summary" },
+        { "id": "single-apply", "kind": "button", "child": "mainui.guild.route.guild-list.top.apply" },
+        { "id": "empty-slot-build", "kind": "conditional-button", "child": "mainui.guild.route.guild-list.top.build" }
+      ]
+    },
+    { "id": "mainui.guild.route.guild-list.top.rank", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-list.top" },
+    { "id": "mainui.guild.route.guild-list.top.summary", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-list.top" },
+    { "id": "mainui.guild.route.guild-list.top.apply", "type": "transaction", "risk": "destructive-write", "parent": "mainui.guild.route.guild-list.top" },
+    { "id": "mainui.guild.route.guild-list.top.build", "type": "transaction", "risk": "destructive-write", "parent": "mainui.guild.route.guild-list.top" },
+    {
+      "id": "mainui.guild.route.guild-list.list",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route.guild-list",
+      "control_inventory": [
+        { "id": "vertical-scroll", "kind": "scroll-drag", "child": "mainui.guild.route.guild-list.list.scroll" },
+        { "id": "row-summary", "kind": "list-item", "child": "mainui.guild.route.guild-list.list.row" },
+        { "id": "last-row", "kind": "conditional-list-item", "child": "mainui.guild.route.guild-list.list.last" }
+      ]
+    },
+    { "id": "mainui.guild.route.guild-list.list.scroll", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-list.list" },
+    { "id": "mainui.guild.route.guild-list.list.last", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-list.list" },
+    {
+      "id": "mainui.guild.route.guild-list.list.row",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route.guild-list.list",
+      "control_inventory": [
+        { "id": "guild-name", "kind": "text", "child": "mainui.guild.route.guild-list.list.row.name" },
+        { "id": "chief", "kind": "text", "child": "mainui.guild.route.guild-list.list.row.chief" },
+        { "id": "member-count", "kind": "text", "child": "mainui.guild.route.guild-list.list.row.members" },
+        { "id": "auto-approve-condition", "kind": "conditional-state", "child": "mainui.guild.route.guild-list.list.row.condition" },
+        { "id": "apply", "kind": "button", "child": "mainui.guild.route.guild-list.list.row.apply" }
+      ]
+    },
+    { "id": "mainui.guild.route.guild-list.list.row.name", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-list.list.row" },
+    { "id": "mainui.guild.route.guild-list.list.row.chief", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-list.list.row" },
+    { "id": "mainui.guild.route.guild-list.list.row.members", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-list.list.row" },
+    { "id": "mainui.guild.route.guild-list.list.row.condition", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-list.list.row" },
+    { "id": "mainui.guild.route.guild-list.list.row.apply", "type": "transaction", "risk": "destructive-write", "parent": "mainui.guild.route.guild-list.list.row" },
+
+    {
+      "id": "mainui.guild.route.guild-main",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route",
+      "control_inventory": [
+        { "id": "info-tab", "kind": "tab", "child": "mainui.guild.route.guild-main.info" },
+        { "id": "member-tab", "kind": "tab", "child": "mainui.guild.route.guild-main.member" },
+        { "id": "open-day-1-4-rank-tab", "kind": "conditional-tab", "child": "mainui.guild.route.guild-main.rank" },
+        { "id": "reward-box-tab", "kind": "tab", "child": "mainui.guild.route.guild-main.box" },
+        { "id": "open-day-5-plus-other-tab", "kind": "conditional-tab", "child": "mainui.guild.route.guild-main.other" },
+        { "id": "apply-popup", "kind": "conditional-popup", "child": "mainui.guild.route.guild-main.apply-popup" },
+        { "id": "depot-popup", "kind": "conditional-popup", "child": "mainui.guild.route.guild-main.depot" },
+        { "id": "window-return", "kind": "return", "child": "mainui.guild.route.guild-main.close" }
+      ]
+    },
+    { "id": "mainui.guild.route.guild-main.close", "type": "return", "risk": "read-only", "parent": "mainui.guild.route.guild-main" },
+    { "id": "mainui.guild.route.guild-main.rank", "type": "tab", "risk": "read-only", "parent": "mainui.guild.route.guild-main" },
+    {
+      "id": "mainui.guild.route.guild-main.info",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route.guild-main",
+      "control_inventory": [
+        { "id": "guild-summary", "kind": "state", "child": "mainui.guild.route.guild-main.info.summary" },
+        { "id": "rename", "kind": "button", "child": "mainui.guild.route.guild-main.info.rename" },
+        { "id": "announcement", "kind": "button", "child": "mainui.guild.route.guild-main.info.announcement" },
+        { "id": "upgrade", "kind": "button", "child": "mainui.guild.route.guild-main.info.upgrade" },
+        { "id": "four-info-tooltips", "kind": "button-group", "child": "mainui.guild.route.guild-main.info.tooltips" },
+        { "id": "main-function-list", "kind": "scroll-list", "child": "mainui.guild.route.guild-main.info.functions" },
+        { "id": "40005-refresh", "kind": "state", "child": "mainui.guild.route.guild-main.info.refresh" }
+      ]
+    },
+    { "id": "mainui.guild.route.guild-main.info.summary", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.info" },
+    { "id": "mainui.guild.route.guild-main.info.rename", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.guild-main.info" },
+    { "id": "mainui.guild.route.guild-main.info.announcement", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.guild-main.info" },
+    { "id": "mainui.guild.route.guild-main.info.upgrade", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.info" },
+    { "id": "mainui.guild.route.guild-main.info.tooltips", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.info" },
+    { "id": "mainui.guild.route.guild-main.info.refresh", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.info" },
+    {
+      "id": "mainui.guild.route.guild-main.info.functions",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route.guild-main.info",
+      "control_inventory": [
+        { "id": "daily-gift", "kind": "conditional-button", "child": "mainui.guild.route.guild-main.info.functions.gift" },
+        { "id": "guild-shelter", "kind": "button", "child": "mainui.guild.route.guild-main.info.functions.shelter" },
+        { "id": "guild-depot", "kind": "button", "child": "mainui.guild.route.guild-main.info.functions.depot" },
+        { "id": "guild-red-packet", "kind": "button", "child": "mainui.guild.route.guild-main.info.functions.red-packet" },
+        { "id": "guild-feast", "kind": "button", "child": "mainui.guild.route.guild-main.info.functions.feast" },
+        { "id": "prestige-shop", "kind": "conditional-button", "child": "mainui.guild.route.guild-main.info.functions.shop" },
+        { "id": "guild-idol", "kind": "conditional-button", "child": "mainui.guild.route.guild-main.info.functions.idol" },
+        { "id": "disband", "kind": "conditional-button", "child": "mainui.guild.route.guild-main.info.functions.disband" },
+        { "id": "merge", "kind": "conditional-button", "child": "mainui.guild.route.guild-main.info.functions.merge" },
+        { "id": "vertical-scroll", "kind": "scroll-drag", "child": "mainui.guild.route.guild-main.info.functions.scroll" }
+      ]
+    },
+    { "id": "mainui.guild.route.guild-main.info.functions.gift", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.guild-main.info.functions" },
+    { "id": "mainui.guild.route.guild-main.info.functions.shelter", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.guild-main.info.functions" },
+    { "id": "mainui.guild.route.guild-main.info.functions.depot", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.guild-main.info.functions" },
+    { "id": "mainui.guild.route.guild-main.info.functions.red-packet", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.guild-main.info.functions" },
+    { "id": "mainui.guild.route.guild-main.info.functions.feast", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.guild-main.info.functions" },
+    { "id": "mainui.guild.route.guild-main.info.functions.shop", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.guild-main.info.functions" },
+    { "id": "mainui.guild.route.guild-main.info.functions.idol", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.guild-main.info.functions" },
+    { "id": "mainui.guild.route.guild-main.info.functions.disband", "type": "destructive-write", "risk": "destructive-write", "parent": "mainui.guild.route.guild-main.info.functions" },
+    { "id": "mainui.guild.route.guild-main.info.functions.merge", "type": "transaction", "risk": "destructive-write", "parent": "mainui.guild.route.guild-main.info.functions" },
+    { "id": "mainui.guild.route.guild-main.info.functions.scroll", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.info.functions" },
+
+    {
+      "id": "mainui.guild.route.guild-main.member",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route.guild-main",
+      "control_inventory": [
+        { "id": "40006-member-list", "kind": "scroll-list", "child": "mainui.guild.route.guild-main.member.list" },
+        { "id": "approval-setting", "kind": "button", "child": "mainui.guild.route.guild-main.member.setting" },
+        { "id": "view-applications", "kind": "button", "child": "mainui.guild.route.guild-main.member.applications" },
+        { "id": "application-red-dot", "kind": "conditional-state", "child": "mainui.guild.route.guild-main.member.red-dot" }
+      ]
+    },
+    { "id": "mainui.guild.route.guild-main.member.setting", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.guild-main.member" },
+    { "id": "mainui.guild.route.guild-main.member.applications", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.guild-main.member" },
+    { "id": "mainui.guild.route.guild-main.member.red-dot", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.member" },
+    {
+      "id": "mainui.guild.route.guild-main.member.list",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route.guild-main.member",
+      "control_inventory": [
+        { "id": "vertical-scroll", "kind": "scroll-drag", "child": "mainui.guild.route.guild-main.member.list.scroll" },
+        { "id": "member-row", "kind": "list-item", "child": "mainui.guild.route.guild-main.member.list.row" },
+        { "id": "last-member", "kind": "conditional-list-item", "child": "mainui.guild.route.guild-main.member.list.last" }
+      ]
+    },
+    { "id": "mainui.guild.route.guild-main.member.list.scroll", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.member.list" },
+    { "id": "mainui.guild.route.guild-main.member.list.last", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.member.list" },
+    {
+      "id": "mainui.guild.route.guild-main.member.list.row",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route.guild-main.member.list",
+      "control_inventory": [
+        { "id": "head-name-title", "kind": "state", "child": "mainui.guild.route.guild-main.member.list.row.identity" },
+        { "id": "combat-and-online-time", "kind": "state", "child": "mainui.guild.route.guild-main.member.list.row.status" },
+        { "id": "row-click-profile", "kind": "button", "child": "mainui.guild.route.guild-main.member.list.row.profile" },
+        { "id": "quit-kick", "kind": "conditional-button", "child": "mainui.guild.route.guild-main.member.list.row.out" }
+      ]
+    },
+    { "id": "mainui.guild.route.guild-main.member.list.row.identity", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.member.list.row" },
+    { "id": "mainui.guild.route.guild-main.member.list.row.status", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.member.list.row" },
+    { "id": "mainui.guild.route.guild-main.member.list.row.profile", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.guild-main.member.list.row" },
+    { "id": "mainui.guild.route.guild-main.member.list.row.out", "type": "destructive-write", "risk": "destructive-write", "parent": "mainui.guild.route.guild-main.member.list.row" },
+
+    {
+      "id": "mainui.guild.route.guild-main.apply-popup",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route.guild-main",
+      "control_inventory": [
+        { "id": "40008-application-list", "kind": "scroll-list", "child": "mainui.guild.route.guild-main.apply-popup.list" },
+        { "id": "empty-state", "kind": "conditional-state", "child": "mainui.guild.route.guild-main.apply-popup.empty" },
+        { "id": "pass-all", "kind": "button", "child": "mainui.guild.route.guild-main.apply-popup.pass-all" },
+        { "id": "refuse-all", "kind": "button", "child": "mainui.guild.route.guild-main.apply-popup.refuse-all" },
+        { "id": "mask-close", "kind": "background", "child": "mainui.guild.route.guild-main.apply-popup.close" }
+      ]
+    },
+    { "id": "mainui.guild.route.guild-main.apply-popup.empty", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.apply-popup" },
+    { "id": "mainui.guild.route.guild-main.apply-popup.pass-all", "type": "destructive-write", "risk": "destructive-write", "parent": "mainui.guild.route.guild-main.apply-popup" },
+    { "id": "mainui.guild.route.guild-main.apply-popup.refuse-all", "type": "destructive-write", "risk": "destructive-write", "parent": "mainui.guild.route.guild-main.apply-popup" },
+    { "id": "mainui.guild.route.guild-main.apply-popup.close", "type": "return", "risk": "read-only", "parent": "mainui.guild.route.guild-main.apply-popup" },
+    {
+      "id": "mainui.guild.route.guild-main.apply-popup.list",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route.guild-main.apply-popup",
+      "control_inventory": [
+        { "id": "vertical-scroll", "kind": "scroll-drag", "child": "mainui.guild.route.guild-main.apply-popup.list.scroll" },
+        { "id": "identity-level-power", "kind": "state", "child": "mainui.guild.route.guild-main.apply-popup.list.row" },
+        { "id": "pass-one", "kind": "button", "child": "mainui.guild.route.guild-main.apply-popup.list.pass" },
+        { "id": "refuse-one", "kind": "button", "child": "mainui.guild.route.guild-main.apply-popup.list.refuse" }
+      ]
+    },
+    { "id": "mainui.guild.route.guild-main.apply-popup.list.scroll", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.apply-popup.list" },
+    { "id": "mainui.guild.route.guild-main.apply-popup.list.row", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.apply-popup.list" },
+    { "id": "mainui.guild.route.guild-main.apply-popup.list.pass", "type": "destructive-write", "risk": "destructive-write", "parent": "mainui.guild.route.guild-main.apply-popup.list" },
+    { "id": "mainui.guild.route.guild-main.apply-popup.list.refuse", "type": "destructive-write", "risk": "destructive-write", "parent": "mainui.guild.route.guild-main.apply-popup.list" },
+
+    {
+      "id": "mainui.guild.route.guild-main.box",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route.guild-main",
+      "control_inventory": [
+        { "id": "40301-box-list", "kind": "scroll-list", "child": "mainui.guild.route.guild-main.box.list" },
+        { "id": "send-record-list", "kind": "scroll-list", "child": "mainui.guild.route.guild-main.box.records" },
+        { "id": "empty-state", "kind": "conditional-state", "child": "mainui.guild.route.guild-main.box.empty" },
+        { "id": "send-rules", "kind": "button", "child": "mainui.guild.route.guild-main.box.send-rules" },
+        { "id": "receive-all", "kind": "button", "child": "mainui.guild.route.guild-main.box.receive-all" },
+        { "id": "instruction", "kind": "button", "child": "mainui.guild.route.guild-main.box.instruction" },
+        { "id": "next-attribute", "kind": "conditional-state", "child": "mainui.guild.route.guild-main.box.next-attr" },
+        { "id": "red-dot", "kind": "conditional-state", "child": "mainui.guild.route.guild-main.box.red-dot" }
+      ]
+    },
+    { "id": "mainui.guild.route.guild-main.box.empty", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.box" },
+    { "id": "mainui.guild.route.guild-main.box.send-rules", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.guild-main.box" },
+    { "id": "mainui.guild.route.guild-main.box.receive-all", "type": "transaction", "risk": "destructive-write", "parent": "mainui.guild.route.guild-main.box" },
+    { "id": "mainui.guild.route.guild-main.box.instruction", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.guild-main.box" },
+    { "id": "mainui.guild.route.guild-main.box.next-attr", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.box" },
+    { "id": "mainui.guild.route.guild-main.box.red-dot", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.box" },
+    {
+      "id": "mainui.guild.route.guild-main.box.list",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route.guild-main.box",
+      "control_inventory": [
+        { "id": "vertical-scroll", "kind": "scroll-drag", "child": "mainui.guild.route.guild-main.box.list.scroll" },
+        { "id": "task-title-sender-type-time", "kind": "state", "child": "mainui.guild.route.guild-main.box.list.row" },
+        { "id": "reward-items", "kind": "shared-component", "child": "mainui.guild.route.guild-main.box.list.rewards" },
+        { "id": "receive-one", "kind": "button", "child": "mainui.guild.route.guild-main.box.list.receive" }
+      ]
+    },
+    { "id": "mainui.guild.route.guild-main.box.list.scroll", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.box.list" },
+    { "id": "mainui.guild.route.guild-main.box.list.row", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.box.list" },
+    { "id": "mainui.guild.route.guild-main.box.list.rewards", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.guild-main.box.list" },
+    { "id": "mainui.guild.route.guild-main.box.list.receive", "type": "transaction", "risk": "destructive-write", "parent": "mainui.guild.route.guild-main.box.list" },
+    { "id": "mainui.guild.route.guild-main.box.records", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.box" },
+
+    {
+      "id": "mainui.guild.route.guild-main.other",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route.guild-main",
+      "control_inventory": [
+        { "id": "40001-list", "kind": "scroll-list", "child": "mainui.guild.route.guild-main.other.list" },
+        { "id": "empty-state", "kind": "conditional-state", "child": "mainui.guild.route.guild-main.other.empty" },
+        { "id": "build", "kind": "button", "child": "mainui.guild.route.guild-main.other.build" },
+        { "id": "apply-all", "kind": "button", "child": "mainui.guild.route.guild-main.other.apply-all" },
+        { "id": "empty-build", "kind": "conditional-button", "child": "mainui.guild.route.guild-main.other.empty-build" },
+        { "id": "apply-red-dot", "kind": "conditional-state", "child": "mainui.guild.route.guild-main.other.red-dot" },
+        { "id": "create-red-dot", "kind": "conditional-state", "child": "mainui.guild.route.guild-main.other.create-red-dot" }
+      ]
+    },
+    { "id": "mainui.guild.route.guild-main.other.empty", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.other" },
+    { "id": "mainui.guild.route.guild-main.other.build", "type": "transaction", "risk": "destructive-write", "parent": "mainui.guild.route.guild-main.other" },
+    { "id": "mainui.guild.route.guild-main.other.apply-all", "type": "transaction", "risk": "destructive-write", "parent": "mainui.guild.route.guild-main.other" },
+    { "id": "mainui.guild.route.guild-main.other.empty-build", "type": "transaction", "risk": "destructive-write", "parent": "mainui.guild.route.guild-main.other" },
+    { "id": "mainui.guild.route.guild-main.other.red-dot", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.other" },
+    { "id": "mainui.guild.route.guild-main.other.create-red-dot", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.other" },
+    {
+      "id": "mainui.guild.route.guild-main.other.list",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route.guild-main.other",
+      "control_inventory": [
+        { "id": "vertical-scroll", "kind": "scroll-drag", "child": "mainui.guild.route.guild-main.other.list.scroll" },
+        { "id": "name-level-chief-members-power-condition", "kind": "list-item", "child": "mainui.guild.route.guild-main.other.list.row" },
+        { "id": "apply-one", "kind": "button", "child": "mainui.guild.route.guild-main.other.list.apply" },
+        { "id": "chief-profile", "kind": "text-button", "child": "mainui.guild.route.guild-main.other.list.chief" }
+      ]
+    },
+    { "id": "mainui.guild.route.guild-main.other.list.scroll", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.other.list" },
+    { "id": "mainui.guild.route.guild-main.other.list.row", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.other.list" },
+    { "id": "mainui.guild.route.guild-main.other.list.apply", "type": "transaction", "risk": "destructive-write", "parent": "mainui.guild.route.guild-main.other.list" },
+    { "id": "mainui.guild.route.guild-main.other.list.chief", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.guild-main.other.list" },
+
+    {
+      "id": "mainui.guild.route.guild-main.depot",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route.guild-main",
+      "control_inventory": [
+        { "id": "40101-goods-list", "kind": "scroll-list", "child": "mainui.guild.route.guild-main.depot.goods" },
+        { "id": "exchange-record-list", "kind": "scroll-list", "child": "mainui.guild.route.guild-main.depot.records" },
+        { "id": "depot-score", "kind": "state", "child": "mainui.guild.route.guild-main.depot.score" },
+        { "id": "stage-filter", "kind": "dropdown", "child": "mainui.guild.route.guild-main.depot.stage-filter" },
+        { "id": "quality-filter", "kind": "dropdown", "child": "mainui.guild.route.guild-main.depot.quality-filter" },
+        { "id": "auto-clean", "kind": "button", "child": "mainui.guild.route.guild-main.depot.clean" },
+        { "id": "donate", "kind": "button", "child": "mainui.guild.route.guild-main.depot.donate" },
+        { "id": "donate-select-popup", "kind": "conditional-popup", "child": "mainui.guild.route.guild-main.depot-select" },
+        { "id": "close-chain", "kind": "return", "child": "mainui.guild.route.guild-main.depot.close" }
+      ]
+    },
+    { "id": "mainui.guild.route.guild-main.depot.score", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.depot" },
+    { "id": "mainui.guild.route.guild-main.depot.stage-filter", "type": "reversible-write", "risk": "reversible-write", "parent": "mainui.guild.route.guild-main.depot" },
+    { "id": "mainui.guild.route.guild-main.depot.quality-filter", "type": "reversible-write", "risk": "reversible-write", "parent": "mainui.guild.route.guild-main.depot" },
+    { "id": "mainui.guild.route.guild-main.depot.clean", "type": "destructive-write", "risk": "destructive-write", "parent": "mainui.guild.route.guild-main.depot" },
+    { "id": "mainui.guild.route.guild-main.depot.donate", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.guild-main.depot" },
+    { "id": "mainui.guild.route.guild-main.depot.close", "type": "return", "risk": "read-only", "parent": "mainui.guild.route.guild-main.depot" },
+    {
+      "id": "mainui.guild.route.guild-main.depot.goods",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route.guild-main.depot",
+      "control_inventory": [
+        { "id": "vertical-scroll", "kind": "scroll-drag", "child": "mainui.guild.route.guild-main.depot.goods.scroll" },
+        { "id": "equipment-item", "kind": "shared-component", "child": "mainui.guild.route.guild-main.depot.goods.item" },
+        { "id": "up-down-composite-ban-marks", "kind": "conditional-state", "child": "mainui.guild.route.guild-main.depot.goods.marks" },
+        { "id": "exchange", "kind": "item-click", "child": "mainui.guild.route.guild-main.depot.goods.exchange" }
+      ]
+    },
+    { "id": "mainui.guild.route.guild-main.depot.goods.scroll", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.depot.goods" },
+    { "id": "mainui.guild.route.guild-main.depot.goods.item", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.guild-main.depot.goods" },
+    { "id": "mainui.guild.route.guild-main.depot.goods.marks", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.depot.goods" },
+    { "id": "mainui.guild.route.guild-main.depot.goods.exchange", "type": "transaction", "risk": "destructive-write", "parent": "mainui.guild.route.guild-main.depot.goods" },
+    { "id": "mainui.guild.route.guild-main.depot.records", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.depot" },
+
+    {
+      "id": "mainui.guild.route.guild-main.depot-select",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route.guild-main.depot",
+      "control_inventory": [
+        { "id": "eligible-bag-equipment", "kind": "scroll-list", "child": "mainui.guild.route.guild-main.depot-select.list" },
+        { "id": "select-toggle", "kind": "list-item", "child": "mainui.guild.route.guild-main.depot-select.select" },
+        { "id": "score-preview", "kind": "state", "child": "mainui.guild.route.guild-main.depot-select.score" },
+        { "id": "confirm-donate", "kind": "button", "child": "mainui.guild.route.guild-main.depot-select.confirm" },
+        { "id": "close", "kind": "button", "child": "mainui.guild.route.guild-main.depot-select.close" }
+      ]
+    },
+    { "id": "mainui.guild.route.guild-main.depot-select.list", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.depot-select" },
+    { "id": "mainui.guild.route.guild-main.depot-select.select", "type": "reversible-write", "risk": "reversible-write", "parent": "mainui.guild.route.guild-main.depot-select" },
+    { "id": "mainui.guild.route.guild-main.depot-select.score", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.guild-main.depot-select" },
+    { "id": "mainui.guild.route.guild-main.depot-select.confirm", "type": "transaction", "risk": "destructive-write", "parent": "mainui.guild.route.guild-main.depot-select" },
+    { "id": "mainui.guild.route.guild-main.depot-select.close", "type": "return", "risk": "read-only", "parent": "mainui.guild.route.guild-main.depot-select" },
+
+    {
+      "id": "mainui.guild.route.help",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route",
+      "control_inventory": [
+        { "id": "40405-assist-list", "kind": "scroll-list", "child": "mainui.guild.route.help.list" },
+        { "id": "40031-prestige-count", "kind": "state", "child": "mainui.guild.route.help.prestige" },
+        { "id": "18916-extra-reward-count", "kind": "state", "child": "mainui.guild.route.help.extra-count" },
+        { "id": "instruction", "kind": "button", "child": "mainui.guild.route.help.instruction" },
+        { "id": "close", "kind": "button", "child": "mainui.guild.route.help.close" },
+        { "id": "help-confirm-popup", "kind": "conditional-popup", "child": "mainui.guild.route.help.confirm" }
+      ]
+    },
+    { "id": "mainui.guild.route.help.prestige", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.help" },
+    { "id": "mainui.guild.route.help.extra-count", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.help" },
+    { "id": "mainui.guild.route.help.instruction", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.help" },
+    { "id": "mainui.guild.route.help.close", "type": "return", "risk": "read-only", "parent": "mainui.guild.route.help" },
+    {
+      "id": "mainui.guild.route.help.list",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route.help",
+      "control_inventory": [
+        { "id": "vertical-scroll", "kind": "scroll-drag", "child": "mainui.guild.route.help.list.scroll" },
+        { "id": "identity-and-head", "kind": "state", "child": "mainui.guild.route.help.list.identity" },
+        { "id": "module-and-target", "kind": "state", "child": "mainui.guild.route.help.list.target" },
+        { "id": "unlock-condition", "kind": "conditional-state", "child": "mainui.guild.route.help.list.lock" },
+        { "id": "help-or-go", "kind": "conditional-button", "child": "mainui.guild.route.help.list.go" },
+        { "id": "cancel-or-recapture", "kind": "conditional-button", "child": "mainui.guild.route.help.list.cancel" },
+        { "id": "type-1-2-3-4-state", "kind": "conditional-state", "child": "mainui.guild.route.help.list.type-state" }
+      ]
+    },
+    { "id": "mainui.guild.route.help.list.scroll", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.help.list" },
+    { "id": "mainui.guild.route.help.list.identity", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.help.list" },
+    { "id": "mainui.guild.route.help.list.target", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.help.list" },
+    { "id": "mainui.guild.route.help.list.lock", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.help.list" },
+    { "id": "mainui.guild.route.help.list.go", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.help.list" },
+    { "id": "mainui.guild.route.help.list.cancel", "type": "transaction", "risk": "destructive-write", "parent": "mainui.guild.route.help.list" },
+    { "id": "mainui.guild.route.help.list.type-state", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.help.list" },
+    {
+      "id": "mainui.guild.route.help.confirm",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route.help",
+      "control_inventory": [
+        { "id": "target-description", "kind": "state", "child": "mainui.guild.route.help.confirm.desc" },
+        { "id": "reward-list", "kind": "shared-component-list", "child": "mainui.guild.route.help.confirm.rewards" },
+        { "id": "confirm-40402", "kind": "button", "child": "mainui.guild.route.help.confirm.accept" },
+        { "id": "cancel", "kind": "button", "child": "mainui.guild.route.help.confirm.cancel" },
+        { "id": "close", "kind": "button", "child": "mainui.guild.route.help.confirm.close" },
+        { "id": "field-boss-exit-branch", "kind": "conditional-navigation", "child": "mainui.guild.route.help.confirm.field-exit" }
+      ]
+    },
+    { "id": "mainui.guild.route.help.confirm.desc", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.help.confirm" },
+    { "id": "mainui.guild.route.help.confirm.rewards", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.help.confirm" },
+    { "id": "mainui.guild.route.help.confirm.accept", "type": "transaction", "risk": "destructive-write", "parent": "mainui.guild.route.help.confirm" },
+    { "id": "mainui.guild.route.help.confirm.cancel", "type": "return", "risk": "read-only", "parent": "mainui.guild.route.help.confirm" },
+    { "id": "mainui.guild.route.help.confirm.close", "type": "return", "risk": "read-only", "parent": "mainui.guild.route.help.confirm" },
+    { "id": "mainui.guild.route.help.confirm.field-exit", "type": "navigation", "risk": "read-only", "parent": "mainui.guild.route.help.confirm" },
+
+    {
+      "id": "mainui.guild.route.lifecycle",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.guild.route",
+      "control_inventory": [
+        { "id": "cold-open", "kind": "lifecycle", "child": "mainui.guild.route.lifecycle.cold" },
+        { "id": "warm-open", "kind": "lifecycle", "child": "mainui.guild.route.lifecycle.warm" },
+        { "id": "close-popup-before-parent", "kind": "return-chain", "child": "mainui.guild.route.lifecycle.popup-return" },
+        { "id": "disconnect-reset", "kind": "lifecycle", "child": "mainui.guild.route.lifecycle.disconnect" },
+        { "id": "two-viewports", "kind": "visual-state", "child": "mainui.guild.route.lifecycle.viewports" }
+      ]
+    },
+    { "id": "mainui.guild.route.lifecycle.cold", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.lifecycle" },
+    { "id": "mainui.guild.route.lifecycle.warm", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.lifecycle" },
+    { "id": "mainui.guild.route.lifecycle.popup-return", "type": "return", "risk": "read-only", "parent": "mainui.guild.route.lifecycle" },
+    { "id": "mainui.guild.route.lifecycle.disconnect", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.lifecycle" },
+    { "id": "mainui.guild.route.lifecycle.viewports", "type": "read", "risk": "read-only", "parent": "mainui.guild.route.lifecycle" }
+  ]
+}

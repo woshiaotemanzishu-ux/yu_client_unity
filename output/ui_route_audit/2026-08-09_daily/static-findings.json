@@ -1,0 +1,103 @@
+{
+  "route": "mainui.daily.route",
+  "schema": 6,
+  "ledger": {
+    "nodes": 121,
+    "status": {"not-run": 121},
+    "reason": "未启动 Unity/浏览器，未执行真实协议写事务；静态修复和构建不能替代任何运行闸"
+  },
+  "implemented": [
+    {
+      "id": "clone-baseview-lifecycle",
+      "files": [
+        "Assets/Scripts/Module/Core/Daily/Views/DailyTaskView.cs",
+        "Assets/Scripts/Module/Core/Daily/Views/DailyLimitActivityView.cs",
+        "Assets/Scripts/Module/Core/Daily/Views/DailyResFindView.cs",
+        "Assets/Scripts/Module/Core/Daily/Views/DailyStrongerView.cs"
+      ],
+      "result": "四类动态列表项克隆后显式 Show，再 SetData，恢复 EnsureBound/OnInit/点击绑定"
+    },
+    {
+      "id": "daily-open-default",
+      "files": ["Assets/Scripts/Module/Core/Daily/DailyFlow.cs"],
+      "result": "DailyFlow.Open 无参数按老端进入 tab0；dailyfind Toggle 保持 tab3，brightsea 保持 tab2"
+    },
+    {
+      "id": "stronger-three-tabs",
+      "files": [
+        "Assets/Scripts/Module/Core/Daily/DailyConfigs.cs",
+        "Assets/Scripts/Module/Core/Daily/Views/DailyStrongerView.cs",
+        "Assets/Scripts/Module/Core/Daily/Views/DailyStrongerItem.cs"
+      ],
+      "result": "复用模板落地经验/绑玉/装备三分类；按 type 过滤，复刻老端分值排序，切换回顶；补 icon_id 图标和已有星级子节点显隐"
+    },
+    {
+      "id": "resource-find-money-mode",
+      "files": [
+        "Assets/Scripts/Module/Core/Daily/Views/DailyResFindView.cs",
+        "Assets/Scripts/Module/Core/Daily/Views/DailyResFindItem.cs",
+        "Assets/Scripts/Module/Core/Daily/Views/DailyResFindTipsView.cs"
+      ],
+      "result": "默认免费、可切绑玉；选择同步排序/次数/单条弹窗/一键类型；41903/41904 前均补确认，付费分支明确风险文案"
+    }
+  ],
+  "static_checks": [
+    {"name":"route-ledger-init-and-validate","status":"passed","detail":"schema6, 121 nodes, 121 not-run"},
+    {"name":"component-manifest-json","status":"passed"},
+    {"name":"stronger-config-types","status":"passed","detail":"type1=11,type2=5,type3=6,type4=3,type5=1；老端三页签只消费 1..3"},
+    {"name":"dynamic-clone-show","status":"passed","detail":"Task/Limit/ResFind/Stronger 四个克隆入口均存在 Show()"},
+    {"name":"resource-find-confirm","status":"passed","detail":"单条与一键均通过 TipsManager.Confirm 后调用写请求"},
+    {"name":"core-build","status":"passed","detail":"dotnet build Shenxiao.Module.Core.csproj --no-restore -v:minimal -p:CustomAfterMicrosoftCommonTargets=.../2026-08-09_guild/include-new-guild-scripts.targets；0 errors，84 既有 warnings"},
+    {"name":"direct-core-build","status":"environment-blocked","detail":"Unity 尚未刷新 csproj，直接构建缺本轮 Guild 新脚本与并发 ShopBulkPurchaseView；使用 output-only targets 纳入新脚本/桩后通过，未修改 Shop 或工程文件"}
+  ],
+  "unresolved_static_gaps": [
+    {
+      "area": "DailyBottom 共享底栏",
+      "severity": "blocker",
+      "detail": "老端每日任务、限时活动、托管中心都创建 DailyBottomView；Unity 三个消费者均隐藏 _tpl_DailyBottomView。15703/15705、离线挂机、日历、活跃度形象、四宝箱、KfStage、首充链尚无完整业务 View。"
+    },
+    {
+      "area": "每日任务行",
+      "severity": "blocker",
+      "detail": "go/OpenFun、行详情、图标、开放时间、condition/destiny/corner 等仍未完整消费配置；领取 15717 不做本轮实发。"
+    },
+    {
+      "area": "限时活动行与弹窗",
+      "severity": "blocker",
+      "detail": "DailyLimitActivityTipsView、DailyReservationView、DailyActTipView 仍只有 Generated Bind；行详情、预约成功回链、15721 提醒簇和 Kf1vn 62102 分支未落业务类。"
+    },
+    {
+      "area": "资源找回",
+      "severity": "blocker",
+      "detail": "config_res_act 未在 DailyConfigs 加载闭包，活动名、奖励物品、免费/付费精确价格、滑杆正常/超额次数分段仍不可静态完成；本轮未发 41903/41904。"
+    },
+    {
+      "area": "我要变强",
+      "severity": "blocker",
+      "detail": "三分类/排序/图标已补，但 jump_id→OpenFun 公共路由仍日志降级；星级 Sprite 与选中 Sprite 需真实 Prefab/资源运行核对，61801 未实发。"
+    },
+    {
+      "area": "BrightSea 跨岛",
+      "severity": "blocker",
+      "detail": "BrightSeaModel/Controller 与 18900/18901/18902/18915/18916/18917 只读快照实际已存在，但 Daily 的 BrightSeaEnterView 未消费，8 槽、记录、倒计时、红点和操作按钮仍空/日志；未越界改 BrightSea。"
+    },
+    {
+      "area": "Deposit 跨岛",
+      "severity": "blocker",
+      "detail": "DepositModel/Controller 与 19201/19206/19208 实际已存在，但 Daily 的 DepositView 未消费；列表、收益、兑换、记录和托管设置仍空/日志；未越界改 Deposit。"
+    }
+  ],
+  "runtime_and_write_blockers": [
+    "同账号老 H5 与当前 Unity Web 包单会话顺序复走六页签",
+    "两档 viewport 的 2D 像素、滚动裁剪、长短文本与 cold/warm",
+    "15717/15705/15710/15719/15720/15722/41903/41904 等写事务的成功/失败回包、即时刷新、关闭重开",
+    "BrightSea/Deposit 读快照到 UI 的异步刷新与全部跨模块子页",
+    "Player/catalog/Git/dirty 指纹绑定和真实 Web route_run_id"
+  ],
+  "scope_audit": {
+    "prefab_edits": [],
+    "generated_edits": [],
+    "forbidden_edits": [],
+    "notes": "未改 BaseWindowSkin/MainUI/Common/BrightSea/Deposit/Generated/Addressables/Docs/Shop/Equip/Pet；未启动 Unity 或浏览器"
+  }
+}

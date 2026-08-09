@@ -1,0 +1,1554 @@
+{
+  "schema": 6,
+  "route": "mainui.push-gift",
+  "baseline": {
+    "scope": "PushGift/推送礼包静态完整路线：启动数据、主界面入口、通知红点、自动弹窗、礼包窗口、动态页签、礼包档位、奖励、购买前后态、关闭与重开",
+    "legacy_authority": "E:/GitProject/yu_client/h5/src PushGiftController/PushGiftModel/PushGiftView/PushGiftItem/PushGiftTips/PushGiftEntView/GiftPushIcon plus bin/assets resource config and scenes",
+    "legacy_inventory": "config_push_gift.json and config_push_gift_reward.json each contain 135 rows across 14 gift_id and 31 sub_id values",
+    "unity_scope": "Assets/Scripts/Module/Core/PushGift only; MainUI GiftPushIcon, shared notification queue, Common/Shop/Vip/Generated/Proto/Addressables are read-only blockers",
+    "runtime_policy": "static only by explicit user boundary; no Unity, browser, account writes, GM, purchase, full Core build or WebGL build"
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_pushgift_static_v1/route-manifest.json",
+    "sha256": "62871efb8684b5802691e58c6449118a485fb1877e3256e157cf2528870aa4e8"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "mainui.push-gift",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {
+          "id": "startup-data",
+          "kind": "lifecycle",
+          "child": "mainui.push-gift.startup"
+        },
+        {
+          "id": "hud-gift-icon",
+          "kind": "navigation",
+          "child": "mainui.push-gift.entry"
+        },
+        {
+          "id": "notification-redpoint",
+          "kind": "conditional-block",
+          "child": "mainui.push-gift.notification"
+        },
+        {
+          "id": "automatic-popup-queue",
+          "kind": "popup",
+          "child": "mainui.push-gift.auto-popup"
+        },
+        {
+          "id": "gift-window",
+          "kind": "page",
+          "child": "mainui.push-gift.window"
+        },
+        {
+          "id": "gift-tips-popup",
+          "kind": "popup",
+          "child": "mainui.push-gift.tips"
+        },
+        {
+          "id": "hide-reopen-refresh",
+          "kind": "lifecycle",
+          "child": "mainui.push-gift.lifecycle"
+        }
+      ],
+      "parent": null,
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.push-gift.entry, mainui.push-gift.notification, mainui.push-gift.auto-popup, mainui.push-gift.window, mainui.push-gift.tips"
+    },
+    {
+      "id": "mainui.push-gift.startup",
+      "parent": "mainui.push-gift",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "game-start-request-order",
+          "kind": "lifecycle",
+          "child": "mainui.push-gift.startup.order"
+        },
+        {
+          "id": "19101-active-list",
+          "kind": "dynamic-list",
+          "child": "mainui.push-gift.startup.list"
+        },
+        {
+          "id": "19101-type-branches",
+          "kind": "conditional-block",
+          "child": "mainui.push-gift.startup.type-state"
+        },
+        {
+          "id": "role-level-refetch",
+          "kind": "lifecycle",
+          "child": "mainui.push-gift.startup.level-refresh"
+        },
+        {
+          "id": "19102-keyed-detail-cache",
+          "kind": "state-block",
+          "child": "mainui.push-gift.startup.detail-cache"
+        },
+        {
+          "id": "expiry-pruning",
+          "kind": "lifecycle",
+          "child": "mainui.push-gift.startup.expiry"
+        }
+      ],
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.startup.order",
+      "parent": "mainui.push-gift.startup",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "静态确认 RequestStartup 严格按 19104 后 19101 发送；本轮禁止账号、Unity 和 Web，未验证真实回包及重复启动。"
+    },
+    {
+      "id": "mainui.push-gift.startup.list",
+      "parent": "mainui.push-gift.startup",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.startup.type-state",
+      "parent": "mainui.push-gift.startup",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.startup.level-refresh",
+      "parent": "mainui.push-gift.startup",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "静态确认角色等级变化会重拉 19101；未运行验证事件时序、去重与即时刷新。"
+    },
+    {
+      "id": "mainui.push-gift.startup.detail-cache",
+      "parent": "mainui.push-gift.startup",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "静态确认 19102 使用 gift_id/sub_id 复合键，保留奖励顺序与重复项；未运行验证真实回包、空奖励与静默无回包。"
+    },
+    {
+      "id": "mainui.push-gift.startup.expiry",
+      "parent": "mainui.push-gift.startup",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "模型存在过期剔除和下个结束时间计算；未运行验证服务器时间、边界秒与 UI 清理。"
+    },
+    {
+      "id": "mainui.push-gift.entry",
+      "parent": "mainui.push-gift",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "icon-identity",
+          "kind": "state-block",
+          "child": "mainui.push-gift.entry.identity"
+        },
+        {
+          "id": "icon-redpoint",
+          "kind": "conditional-block",
+          "child": "mainui.push-gift.entry.red"
+        },
+        {
+          "id": "icon-countdown",
+          "kind": "state-block",
+          "child": "mainui.push-gift.entry.countdown"
+        },
+        {
+          "id": "icon-click",
+          "kind": "button",
+          "child": "mainui.push-gift.entry.click"
+        },
+        {
+          "id": "icon-expiry-hide",
+          "kind": "conditional-block",
+          "child": "mainui.push-gift.entry.expiry"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.push-gift.entry.identity, mainui.push-gift.entry.red, mainui.push-gift.entry.countdown, mainui.push-gift.entry.click, mainui.push-gift.entry.expiry"
+    },
+    {
+      "id": "mainui.push-gift.entry.identity",
+      "parent": "mainui.push-gift.entry",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "入口位于本轮禁止修改的 MainUI/GiftPushIcon，且禁止 Unity/Web 运行；只读确认其不属于 PushGift 自属 Prefab。"
+    },
+    {
+      "id": "mainui.push-gift.entry.red",
+      "parent": "mainui.push-gift.entry",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "红点消费者位于禁止修改的 MainUI，共享通知链只能登记 blocker。"
+    },
+    {
+      "id": "mainui.push-gift.entry.countdown",
+      "parent": "mainui.push-gift.entry",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "倒计时 UI 位于禁止修改的 MainUI/GiftPushIcon，无法在 PushGift 文件岛内修复或复验。"
+    },
+    {
+      "id": "mainui.push-gift.entry.click",
+      "parent": "mainui.push-gift.entry",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "跨模块入口和路由属于明确禁止的 MainUI/共享 Flow；本轮不得接线。"
+    },
+    {
+      "id": "mainui.push-gift.entry.expiry",
+      "parent": "mainui.push-gift.entry",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "入口过期隐藏依赖禁止修改的 MainUI 消费者及真实时间运行证据。"
+    },
+    {
+      "id": "mainui.push-gift.notification",
+      "parent": "mainui.push-gift",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "aggregate-count",
+          "kind": "state-block",
+          "child": "mainui.push-gift.notification.count"
+        },
+        {
+          "id": "event-refresh",
+          "kind": "lifecycle",
+          "child": "mainui.push-gift.notification.refresh"
+        },
+        {
+          "id": "notification-click",
+          "kind": "button",
+          "child": "mainui.push-gift.notification.click"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.push-gift.notification.count, mainui.push-gift.notification.refresh, mainui.push-gift.notification.click"
+    },
+    {
+      "id": "mainui.push-gift.notification.count",
+      "parent": "mainui.push-gift.notification",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "PushGiftModel 只提供计数，实际汇总消费者在禁止修改的 MainUI 通知视图；本轮只能只读核对。"
+    },
+    {
+      "id": "mainui.push-gift.notification.refresh",
+      "parent": "mainui.push-gift.notification",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "EVT_PUSH_GIFT_UPDATE 的共享通知刷新链跨 MainUI，用户明确要求只登记 blocker。"
+    },
+    {
+      "id": "mainui.push-gift.notification.click",
+      "parent": "mainui.push-gift.notification",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "共享通知点击路由跨 MainUI/Router/Flow 禁区，不得修改。"
+    },
+    {
+      "id": "mainui.push-gift.auto-popup",
+      "parent": "mainui.push-gift",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "shared-popup-queue",
+          "kind": "dynamic-list",
+          "child": "mainui.push-gift.auto-popup.queue"
+        },
+        {
+          "id": "19101-type-1-2-3-enqueue",
+          "kind": "conditional-block",
+          "child": "mainui.push-gift.auto-popup.types"
+        },
+        {
+          "id": "queue-order",
+          "kind": "state-block",
+          "child": "mainui.push-gift.auto-popup.order"
+        },
+        {
+          "id": "close-to-next-popup",
+          "kind": "return",
+          "child": "mainui.push-gift.auto-popup.next"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.push-gift.auto-popup.queue, mainui.push-gift.auto-popup.types, mainui.push-gift.auto-popup.order, mainui.push-gift.auto-popup.next"
+    },
+    {
+      "id": "mainui.push-gift.auto-popup.queue",
+      "parent": "mainui.push-gift.auto-popup",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端 ViewGiftPopModel 是共享弹窗队列；Unity 对应共享队列不在 PushGift 文件岛，用户明确要求只登记 blocker。"
+    },
+    {
+      "id": "mainui.push-gift.auto-popup.types",
+      "parent": "mainui.push-gift.auto-popup",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "19101 type=1/2/3 的自动弹窗入队需要共享队列与弹窗实例，均跨禁止域。"
+    },
+    {
+      "id": "mainui.push-gift.auto-popup.order",
+      "parent": "mainui.push-gift.auto-popup",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "跨礼包/跨模块弹窗顺序属于共享队列语义，本轮禁止修改或运行。"
+    },
+    {
+      "id": "mainui.push-gift.auto-popup.next",
+      "parent": "mainui.push-gift.auto-popup",
+      "type": "return",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "关闭后弹出下一项依赖共享弹窗队列生命周期，超出严格文件岛。"
+    },
+    {
+      "id": "mainui.push-gift.window",
+      "parent": "mainui.push-gift",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {
+          "id": "window-shell-identity",
+          "kind": "state-block",
+          "child": "mainui.push-gift.window.identity"
+        },
+        {
+          "id": "dynamic-gift-tabs",
+          "kind": "tab-group",
+          "child": "mainui.push-gift.window.tabs"
+        },
+        {
+          "id": "selected-gift-page",
+          "kind": "page",
+          "child": "mainui.push-gift.window.gift"
+        },
+        {
+          "id": "leave-confirm-popup",
+          "kind": "popup",
+          "child": "mainui.push-gift.window.close-confirm"
+        },
+        {
+          "id": "window-close",
+          "kind": "return",
+          "child": "mainui.push-gift.window.close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.push-gift.window.gift"
+    },
+    {
+      "id": "mainui.push-gift.window.identity",
+      "parent": "mainui.push-gift.window",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.close",
+      "parent": "mainui.push-gift.window",
+      "type": "return",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.tabs",
+      "parent": "mainui.push-gift.window",
+      "type": "page",
+      "risk": "reversible-write",
+      "control_inventory": [
+        {
+          "id": "dynamic-tab-list",
+          "kind": "dynamic-list",
+          "child": "mainui.push-gift.window.tabs.dynamic"
+        },
+        {
+          "id": "tab-label",
+          "kind": "state-block",
+          "child": "mainui.push-gift.window.tabs.label"
+        },
+        {
+          "id": "tab-redpoint",
+          "kind": "conditional-block",
+          "child": "mainui.push-gift.window.tabs.red"
+        },
+        {
+          "id": "tab-select",
+          "kind": "tab",
+          "child": "mainui.push-gift.window.tabs.select"
+        },
+        {
+          "id": "requested-default-tab",
+          "kind": "state-block",
+          "child": "mainui.push-gift.window.tabs.default"
+        }
+      ],
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.tabs.dynamic",
+      "parent": "mainui.push-gift.window.tabs",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.tabs.label",
+      "parent": "mainui.push-gift.window.tabs",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.tabs.red",
+      "parent": "mainui.push-gift.window.tabs",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.tabs.select",
+      "parent": "mainui.push-gift.window.tabs",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.tabs.default",
+      "parent": "mainui.push-gift.window.tabs",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift",
+      "parent": "mainui.push-gift.window",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {
+          "id": "gift-title",
+          "kind": "state-block",
+          "child": "mainui.push-gift.window.gift.title"
+        },
+        {
+          "id": "gift-description",
+          "kind": "state-block",
+          "child": "mainui.push-gift.window.gift.description"
+        },
+        {
+          "id": "19102-detail-query",
+          "kind": "lifecycle",
+          "child": "mainui.push-gift.window.gift.detail-query"
+        },
+        {
+          "id": "first-red-clear",
+          "kind": "lifecycle",
+          "child": "mainui.push-gift.window.gift.red-clear"
+        },
+        {
+          "id": "gift-countdown",
+          "kind": "state-block",
+          "child": "mainui.push-gift.window.gift.timer"
+        },
+        {
+          "id": "grade-list",
+          "kind": "dynamic-list",
+          "child": "mainui.push-gift.window.gift.list"
+        },
+        {
+          "id": "empty-state",
+          "kind": "conditional-block",
+          "child": "mainui.push-gift.window.gift.empty"
+        },
+        {
+          "id": "grade-scroll",
+          "kind": "scroll",
+          "child": "mainui.push-gift.window.gift.scroll"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.push-gift.window.gift.list"
+    },
+    {
+      "id": "mainui.push-gift.window.gift.title",
+      "parent": "mainui.push-gift.window.gift",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.description",
+      "parent": "mainui.push-gift.window.gift",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.detail-query",
+      "parent": "mainui.push-gift.window.gift",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.red-clear",
+      "parent": "mainui.push-gift.window.gift",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.timer",
+      "parent": "mainui.push-gift.window.gift",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.empty",
+      "parent": "mainui.push-gift.window.gift",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.scroll",
+      "parent": "mainui.push-gift.window.gift",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list",
+      "parent": "mainui.push-gift.window.gift",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {
+          "id": "sub-grade-sort",
+          "kind": "state-block",
+          "child": "mainui.push-gift.window.gift.list.sort"
+        },
+        {
+          "id": "grade-item",
+          "kind": "list-item",
+          "child": "mainui.push-gift.window.gift.list.grade"
+        },
+        {
+          "id": "vertical-layout-height",
+          "kind": "state-block",
+          "child": "mainui.push-gift.window.gift.list.layout"
+        },
+        {
+          "id": "last-item-reachable",
+          "kind": "scroll",
+          "child": "mainui.push-gift.window.gift.list.last-item"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.push-gift.window.gift.list.grade"
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.sort",
+      "parent": "mainui.push-gift.window.gift.list",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.layout",
+      "parent": "mainui.push-gift.window.gift.list",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.last-item",
+      "parent": "mainui.push-gift.window.gift.list",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade",
+      "parent": "mainui.push-gift.window.gift.list",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {
+          "id": "grade-identity",
+          "kind": "state-block",
+          "child": "mainui.push-gift.window.gift.list.grade.identity"
+        },
+        {
+          "id": "current-original-cost",
+          "kind": "state-block",
+          "child": "mainui.push-gift.window.gift.list.grade.price"
+        },
+        {
+          "id": "discount-badge-digits",
+          "kind": "conditional-block",
+          "child": "mainui.push-gift.window.gift.list.grade.discount"
+        },
+        {
+          "id": "purchase-limit-count",
+          "kind": "conditional-block",
+          "child": "mainui.push-gift.window.gift.list.grade.limit"
+        },
+        {
+          "id": "sold-out-state",
+          "kind": "conditional-block",
+          "child": "mainui.push-gift.window.gift.list.grade.soldout"
+        },
+        {
+          "id": "grade-countdown",
+          "kind": "state-block",
+          "child": "mainui.push-gift.window.gift.list.grade.timer"
+        },
+        {
+          "id": "reward-list",
+          "kind": "dynamic-list",
+          "child": "mainui.push-gift.window.gift.list.grade.rewards"
+        },
+        {
+          "id": "buy-button",
+          "kind": "button",
+          "child": "mainui.push-gift.window.gift.list.grade.buy"
+        },
+        {
+          "id": "insufficient-currency-popup",
+          "kind": "popup",
+          "child": "mainui.push-gift.window.gift.list.grade.insufficient"
+        },
+        {
+          "id": "purchase-result-popup",
+          "kind": "popup",
+          "child": "mainui.push-gift.window.gift.list.grade.result"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.push-gift.window.gift.list.grade.buy, mainui.push-gift.window.gift.list.grade.rewards, mainui.push-gift.window.gift.list.grade.insufficient"
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade.identity",
+      "parent": "mainui.push-gift.window.gift.list.grade",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade.price",
+      "parent": "mainui.push-gift.window.gift.list.grade",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade.discount",
+      "parent": "mainui.push-gift.window.gift.list.grade",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade.limit",
+      "parent": "mainui.push-gift.window.gift.list.grade",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade.soldout",
+      "parent": "mainui.push-gift.window.gift.list.grade",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade.timer",
+      "parent": "mainui.push-gift.window.gift.list.grade",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade.buy",
+      "parent": "mainui.push-gift.window.gift.list.grade",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "19103 是真实购买事务；按项目硬约束，在完整可编辑页、配置/扣费冻结、确认、singleflight、错误、奖励、钱包/背包与重拉闭环前不得接入。"
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade.rewards",
+      "parent": "mainui.push-gift.window.gift.list.grade",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "reward-items",
+          "kind": "dynamic-list",
+          "child": "mainui.push-gift.window.gift.list.grade.rewards.items"
+        },
+        {
+          "id": "reward-scroll-crop",
+          "kind": "scroll",
+          "child": "mainui.push-gift.window.gift.list.grade.rewards.scroll"
+        },
+        {
+          "id": "reward-item-detail",
+          "kind": "list-button",
+          "child": "mainui.push-gift.window.gift.list.grade.rewards.detail"
+        },
+        {
+          "id": "quality-effect-state",
+          "kind": "conditional-block",
+          "child": "mainui.push-gift.window.gift.list.grade.rewards.effect"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.push-gift.window.gift.list.grade.rewards.detail"
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade.rewards.items",
+      "parent": "mainui.push-gift.window.gift.list.grade.rewards",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade.rewards.scroll",
+      "parent": "mainui.push-gift.window.gift.list.grade.rewards",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade.rewards.detail",
+      "parent": "mainui.push-gift.window.gift.list.grade.rewards",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "物品详情依赖禁止修改的 Common 共享组件与弹窗层，本轮不得复制或接线。"
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade.rewards.effect",
+      "parent": "mainui.push-gift.window.gift.list.grade.rewards",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade.insufficient",
+      "parent": "mainui.push-gift.window.gift.list.grade",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {
+          "id": "insufficient-copy",
+          "kind": "state-block",
+          "child": "mainui.push-gift.window.gift.list.grade.insufficient.copy"
+        },
+        {
+          "id": "bound-diamond-fallback",
+          "kind": "button",
+          "child": "mainui.push-gift.window.gift.list.grade.insufficient.bind-diamond"
+        },
+        {
+          "id": "recharge-navigation",
+          "kind": "button",
+          "child": "mainui.push-gift.window.gift.list.grade.insufficient.recharge"
+        },
+        {
+          "id": "cancel",
+          "kind": "return",
+          "child": "mainui.push-gift.window.gift.list.grade.insufficient.cancel"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.push-gift.window.gift.list.grade.insufficient.bind-diamond, mainui.push-gift.window.gift.list.grade.insufficient.recharge"
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade.insufficient.copy",
+      "parent": "mainui.push-gift.window.gift.list.grade.insufficient",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade.insufficient.bind-diamond",
+      "parent": "mainui.push-gift.window.gift.list.grade.insufficient",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "绑元兜底最终仍触发 19103 真实购买，且需要钱包/背包权威状态；本轮禁止账号写和事务。"
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade.insufficient.recharge",
+      "parent": "mainui.push-gift.window.gift.list.grade.insufficient",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "老端跳 OpenFun(21) 进入充值/Shop，属于本轮明确禁止的 Shop/Vip/共享路由。"
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade.insufficient.cancel",
+      "parent": "mainui.push-gift.window.gift.list.grade.insufficient",
+      "type": "return",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade.result",
+      "parent": "mainui.push-gift.window.gift.list.grade",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "result-rewards",
+          "kind": "dynamic-list",
+          "child": "mainui.push-gift.window.gift.list.grade.result.rewards"
+        },
+        {
+          "id": "parent-immediate-refresh",
+          "kind": "lifecycle",
+          "child": "mainui.push-gift.window.gift.list.grade.result.refresh"
+        },
+        {
+          "id": "result-close",
+          "kind": "return",
+          "child": "mainui.push-gift.window.gift.list.grade.result.close"
+        }
+      ],
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade.result.rewards",
+      "parent": "mainui.push-gift.window.gift.list.grade.result",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade.result.refresh",
+      "parent": "mainui.push-gift.window.gift.list.grade.result",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.gift.list.grade.result.close",
+      "parent": "mainui.push-gift.window.gift.list.grade.result",
+      "type": "return",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.close-confirm",
+      "parent": "mainui.push-gift.window",
+      "type": "page",
+      "risk": "reversible-write",
+      "control_inventory": [
+        {
+          "id": "leave-warning-copy",
+          "kind": "state-block",
+          "child": "mainui.push-gift.window.close-confirm.copy"
+        },
+        {
+          "id": "do-not-ask-checkbox",
+          "kind": "checkbox",
+          "child": "mainui.push-gift.window.close-confirm.checkbox"
+        },
+        {
+          "id": "confirm-leave",
+          "kind": "button",
+          "child": "mainui.push-gift.window.close-confirm.leave"
+        },
+        {
+          "id": "stay",
+          "kind": "return",
+          "child": "mainui.push-gift.window.close-confirm.stay"
+        }
+      ],
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.close-confirm.copy",
+      "parent": "mainui.push-gift.window.close-confirm",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.close-confirm.checkbox",
+      "parent": "mainui.push-gift.window.close-confirm",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.close-confirm.leave",
+      "parent": "mainui.push-gift.window.close-confirm",
+      "type": "return",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.window.close-confirm.stay",
+      "parent": "mainui.push-gift.window.close-confirm",
+      "type": "return",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.tips",
+      "parent": "mainui.push-gift",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {
+          "id": "tips-shell-identity",
+          "kind": "state-block",
+          "child": "mainui.push-gift.tips.identity"
+        },
+        {
+          "id": "19102-detail-query",
+          "kind": "lifecycle",
+          "child": "mainui.push-gift.tips.detail-query"
+        },
+        {
+          "id": "tips-countdown",
+          "kind": "state-block",
+          "child": "mainui.push-gift.tips.timer"
+        },
+        {
+          "id": "tips-price",
+          "kind": "state-block",
+          "child": "mainui.push-gift.tips.price"
+        },
+        {
+          "id": "tips-discount",
+          "kind": "conditional-block",
+          "child": "mainui.push-gift.tips.discount"
+        },
+        {
+          "id": "tips-reward-list",
+          "kind": "dynamic-list",
+          "child": "mainui.push-gift.tips.rewards"
+        },
+        {
+          "id": "tips-buy",
+          "kind": "button",
+          "child": "mainui.push-gift.tips.buy"
+        },
+        {
+          "id": "tips-sold-out",
+          "kind": "conditional-block",
+          "child": "mainui.push-gift.tips.soldout"
+        },
+        {
+          "id": "tips-recharge",
+          "kind": "button",
+          "child": "mainui.push-gift.tips.recharge"
+        },
+        {
+          "id": "tips-close",
+          "kind": "return",
+          "child": "mainui.push-gift.tips.close"
+        },
+        {
+          "id": "tips-backdrop-close",
+          "kind": "return",
+          "child": "mainui.push-gift.tips.backdrop"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.push-gift.tips.buy, mainui.push-gift.tips.recharge, mainui.push-gift.tips.rewards"
+    },
+    {
+      "id": "mainui.push-gift.tips.identity",
+      "parent": "mainui.push-gift.tips",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.tips.detail-query",
+      "parent": "mainui.push-gift.tips",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.tips.timer",
+      "parent": "mainui.push-gift.tips",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.tips.price",
+      "parent": "mainui.push-gift.tips",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.tips.discount",
+      "parent": "mainui.push-gift.tips",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.tips.buy",
+      "parent": "mainui.push-gift.tips",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Tips 的 _btn_go 同样发送 19103 真实购买；本轮无可编辑 Prefab且禁止账号写，不能接入或伪测。"
+    },
+    {
+      "id": "mainui.push-gift.tips.soldout",
+      "parent": "mainui.push-gift.tips",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.tips.recharge",
+      "parent": "mainui.push-gift.tips",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "充值跳转跨 Shop/Vip/共享路由禁区。"
+    },
+    {
+      "id": "mainui.push-gift.tips.close",
+      "parent": "mainui.push-gift.tips",
+      "type": "return",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.tips.backdrop",
+      "parent": "mainui.push-gift.tips",
+      "type": "return",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.tips.rewards",
+      "parent": "mainui.push-gift.tips",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "tips-reward-items",
+          "kind": "dynamic-list",
+          "child": "mainui.push-gift.tips.rewards.items"
+        },
+        {
+          "id": "tips-reward-scroll",
+          "kind": "scroll",
+          "child": "mainui.push-gift.tips.rewards.scroll"
+        },
+        {
+          "id": "tips-item-detail",
+          "kind": "list-button",
+          "child": "mainui.push-gift.tips.rewards.detail"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.push-gift.tips.rewards.detail"
+    },
+    {
+      "id": "mainui.push-gift.tips.rewards.items",
+      "parent": "mainui.push-gift.tips.rewards",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.tips.rewards.scroll",
+      "parent": "mainui.push-gift.tips.rewards",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.tips.rewards.detail",
+      "parent": "mainui.push-gift.tips.rewards",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Tips 奖励详情依赖禁止修改的 Common 共享物品详情组件。"
+    },
+    {
+      "id": "mainui.push-gift.lifecycle",
+      "parent": "mainui.push-gift",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "hide-cleanup",
+          "kind": "lifecycle",
+          "child": "mainui.push-gift.lifecycle.hide"
+        },
+        {
+          "id": "close-reopen",
+          "kind": "lifecycle",
+          "child": "mainui.push-gift.lifecycle.reopen"
+        },
+        {
+          "id": "cold-warm-open",
+          "kind": "performance",
+          "child": "mainui.push-gift.lifecycle.cold-warm"
+        },
+        {
+          "id": "instant-status-refresh",
+          "kind": "lifecycle",
+          "child": "mainui.push-gift.lifecycle.refresh"
+        }
+      ],
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.lifecycle.hide",
+      "parent": "mainui.push-gift.lifecycle",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.lifecycle.reopen",
+      "parent": "mainui.push-gift.lifecycle",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.lifecycle.cold-warm",
+      "parent": "mainui.push-gift.lifecycle",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.push-gift.lifecycle.refresh",
+      "parent": "mainui.push-gift.lifecycle",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": []
+    }
+  ],
+  "summary": {
+    "total": 91,
+    "status_counts": {
+      "blocked": 31,
+      "defect": 56,
+      "needs-runtime-verify": 4
+    },
+    "details": {
+      "mode": "static-only",
+      "initial_dirty": "PushGift module was clean; dedicated output path did not exist",
+      "implemented": "No production code or Prefab change: current controller/model startup and keyed-cache behavior already matches the allowed static boundary; UI conversion would cross explicitly forbidden islands",
+      "known_gap": "Unity has only PushGiftController/PushGiftModel; no PushGift-owned editable Prefab, no dynamic window/tabs/grade item/tips renderer, and no authorized 19103 purchase path",
+      "runtime": "Not executed by explicit user boundary"
+    }
+  },
+  "updated_at": "2026-08-09T16:16:00+08:00"
+}

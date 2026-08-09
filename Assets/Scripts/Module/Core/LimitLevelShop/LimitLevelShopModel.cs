@@ -1,16 +1,16 @@
+using System;
 using System.Collections.Generic;
 
 namespace Shenxiao.Module.Core.LimitLevelShop
 {
     /// <summary>
-    /// 限时等级抢购数据(对标老客户端 LimitLevelShopModel,模块 612)。只承载 61200 下发的
-    /// 抢购礼包列表(type/subtype/end_time),供主界面图标显隐判定用。服务端只下发"在开"的礼包,
+    /// 限时等级抢购数据(对标老客户端 LimitLevelShopModel,模块 612)。承载 61200 下发的
+    /// 抢购礼包列表及页面所需状态，并缓存 61203 的档位配置。服务端只下发"在开"的礼包,
     /// 故列表非空即视为有抢购活动在开(GetEntranceOpenState),对应主图标 61201 显示。
     ///
     /// 说明:老端每个礼包的真实图标类型来自 act_condition(erlang 串)里的 pic 字段(变体范围
-    /// 61201..61225),经 ErlangParser 解析后 addIcon(cond.pic)。本期图标化只做主图标 61201,
-    /// 暂不解析 act_condition;完整"一礼包一图标"的列表化待后续(见 Controller 的 TODO)。
-    /// 61203 已接为显式原始只读配置查询，不随61200自动请求；61201/61202 与 UI 玩法仍未迁移。
+    /// 61201..61225),经 ErlangParser 解析后 addIcon(cond.pic)。Unity 同样保存该映射并逐礼包只读请求 61203。
+    /// 61201 购买链仍按 hard-negative 保持未注册、未发送。
     /// </summary>
     public sealed class LimitLevelShopModel
     {
@@ -33,8 +33,13 @@ namespace Shenxiao.Module.Core.LimitLevelShop
             { Type = type; Subtype = subtype; Loaded = true; Entries = new List<GiftConfigEntry>(entries ?? new GiftConfigEntry[0]).AsReadOnly(); }
         }
         private readonly Dictionary<(ushort type, ushort subtype), GiftConfigSnapshot> _giftConfigs = new Dictionary<(ushort, ushort), GiftConfigSnapshot>();
+        public event Action DataChanged;
         public bool TryGetGiftConfig(ushort type, ushort subtype, out GiftConfigSnapshot snapshot) => _giftConfigs.TryGetValue((type, subtype), out snapshot);
-        public void ApplyGiftConfig(ushort type, ushort subtype, List<GiftConfigEntry> entries) => _giftConfigs[(type, subtype)] = new GiftConfigSnapshot(type, subtype, entries);
+        public void ApplyGiftConfig(ushort type, ushort subtype, List<GiftConfigEntry> entries)
+        {
+            _giftConfigs[(type, subtype)] = new GiftConfigSnapshot(type, subtype, entries);
+            DataChanged?.Invoke();
+        }
         public void ClearGiftConfigs() => _giftConfigs.Clear();
 
         /// <summary>
@@ -43,18 +48,44 @@ namespace Shenxiao.Module.Core.LimitLevelShop
         /// </summary>
         public const string ICON_TYPE = "61201";
 
-        /// <summary>61200 下发的单个抢购礼包(仅保留图标判定所需字段;end_time 备后续定时用)。</summary>
-        public readonly struct GiftEntry
+        public readonly struct GradeState
         {
-            public readonly int Type;
-            public readonly int Subtype;
-            public readonly long EndTime;
+            public readonly ushort Grade;
+            public readonly byte State;
+            public GradeState(ushort grade, byte state) { Grade = grade; State = state; }
+        }
 
-            public GiftEntry(int type, int subtype, long endTime)
+        /// <summary>61200 下发的单个在开礼包；保留页面只读展示所需的完整状态。</summary>
+        public sealed class GiftEntry
+        {
+            public ushort Type { get; }
+            public ushort Subtype { get; }
+            public long EndTime { get; }
+            public IReadOnlyList<GradeState> GradeStates { get; }
+            public IReadOnlyList<GradeState> OldGradeStates { get; }
+            public string ActCondition { get; }
+            public ushort OpenTimes { get; }
+            public string IconType { get; }
+
+            public GiftEntry(ushort type, ushort subtype, long endTime,
+                IEnumerable<GradeState> gradeStates, IEnumerable<GradeState> oldGradeStates,
+                string actCondition, ushort openTimes, string iconType)
             {
                 Type = type;
                 Subtype = subtype;
                 EndTime = endTime;
+                GradeStates = new List<GradeState>(gradeStates ?? Array.Empty<GradeState>()).AsReadOnly();
+                OldGradeStates = new List<GradeState>(oldGradeStates ?? Array.Empty<GradeState>()).AsReadOnly();
+                ActCondition = actCondition ?? "";
+                OpenTimes = openTimes;
+                IconType = string.IsNullOrEmpty(iconType) ? ICON_TYPE : iconType;
+            }
+
+            public byte GetState(ushort grade, bool old = false)
+            {
+                IReadOnlyList<GradeState> list = old ? OldGradeStates : GradeStates;
+                for (int i = 0; i < list.Count; i++) if (list[i].Grade == grade) return list[i].State;
+                return 0;
             }
         }
 
@@ -67,6 +98,14 @@ namespace Shenxiao.Module.Core.LimitLevelShop
         {
             _gifts.Clear();
             if (gifts != null) _gifts.AddRange(gifts);
+            DataChanged?.Invoke();
+        }
+
+        public GiftEntry FindByIcon(string iconType)
+        {
+            for (int i = 0; i < _gifts.Count; i++)
+                if (string.Equals(_gifts[i].IconType, iconType, StringComparison.Ordinal)) return _gifts[i];
+            return null;
         }
 
         /// <summary>
@@ -82,6 +121,7 @@ namespace Shenxiao.Module.Core.LimitLevelShop
         {
             ClearGiftConfigs();
             _gifts.Clear();
+            DataChanged?.Invoke();
         }
     }
 }

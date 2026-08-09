@@ -41,10 +41,20 @@ namespace Shenxiao.Module.Core.Chat
             }
         }
 
-        /// <summary>选中态(对标 SetSelect):切换选中高亮 _fg_line 显隐。</summary>
+        /// <summary>选中态对齐老端：选中显示 111 宽背景并用黑字，未选中隐藏背景并用白字。</summary>
         public void SetSelected(bool on)
         {
-            if (_fg_line != null) _fg_line.gameObject.SetActive(on);
+            if (_Image1 != null)
+            {
+                RectTransform backgroundRect = _Image1.rectTransform;
+                Vector2 size = backgroundRect.sizeDelta;
+                size.x = 111f;
+                backgroundRect.sizeDelta = size;
+                _Image1.gameObject.SetActive(on);
+            }
+
+            if (labelDisplay != null) labelDisplay.color = on ? Color.black : Color.white;
+            if (_fg_line != null) _fg_line.gameObject.SetActive(false);
         }
     }
 }

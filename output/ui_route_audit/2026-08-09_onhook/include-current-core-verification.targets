@@ -1,0 +1,16 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+    Unity 当前未刷新若干并行路线新增脚本到 .csproj。本文件仅用于本轮后台静态编译，
+    不参与运行时、Prefab、Generated 或 Addressables 写入。
+  -->
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'Shenxiao.Module.Core'">
+    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\Guild\GuildHelpRuntime.cs" />
+    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\Guild\GuildJoinRuntime.cs" />
+    <Compile Include="$(MSBuildProjectDirectory)\output\ui_route_audit\2026-08-09_guild\ShopBulkPurchaseView.compile-stub.cs" />
+    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\AutoBrush\AutoBrushRankView.cs" />
+    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\MainStronger\MainStrongerBootstrap.cs" />
+    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\MainStronger\MainStrongerConfigs.cs" />
+    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\MainStronger\MainStrongerFlow.cs" />
+    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\MainStronger\MainStrongerModel.cs" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,230 @@
+{
+  "route": "skill.complete",
+  "baseline": {
+    "authority": "当前老客户端同账号、同状态、同 viewport 的真实运行结果；本轮只做源码/Prefab/协议静态闭包，禁止 Unity、浏览器与账号写事务。",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/role/SkillSubView.ts",
+      "E:/GitProject/yu_client/h5/src/role/SkillInitiativeSubItem.ts",
+      "E:/GitProject/yu_client/h5/src/role/SkillPassiveSubItem.ts",
+      "E:/GitProject/yu_client/h5/src/innateSkill/InnateSkillView.ts",
+      "E:/GitProject/yu_client/h5/src/mainUI/MainUISkillView.ts",
+      "E:/GitProject/yu_client/h5/src/mainUI/MainUISkillItem.ts",
+      "E:/GitProject/yu_client/h5/src/skill/SkillController.ts",
+      "E:/GitProject/yu_client/h5/src/skill/SkillManager.ts"
+    ],
+    "unity_sources": [
+      "Assets/Scripts/Module/Core/Skill",
+      "Assets/Prefabs/UI/MainUI/Regions/HudSkillBar.prefab",
+      "Assets/Prefabs/UI/Role/RoleModule.prefab",
+      "Assets/Scripts/Module/Core/MainUI/Views/MainUISkillView.cs",
+      "Assets/Scripts/Module/Core/MainUI/Views/MainUISkillItem.cs",
+      "Assets/Scripts/Module/Core/Role/RoleFlow.cs",
+      "Assets/Scripts/Module/Core/Role/Views"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "skill.complete", "type": "page", "risk": "destructive-write", "parent": null,
+      "control_inventory": [
+        {"id": "entry", "kind": "entry", "child": "skill.complete.entry"},
+        {"id": "hud", "kind": "fixed-hud", "child": "skill.complete.hud"},
+        {"id": "window", "kind": "window", "child": "skill.complete.window"},
+        {"id": "active", "kind": "tab", "child": "skill.complete.active"},
+        {"id": "passive", "kind": "tab", "child": "skill.complete.passive"},
+        {"id": "talent", "kind": "tab", "child": "skill.complete.talent"},
+        {"id": "protocol", "kind": "protocol", "child": "skill.complete.protocol"},
+        {"id": "combat", "kind": "combat", "child": "skill.complete.combat"},
+        {"id": "lifecycle", "kind": "lifecycle", "child": "skill.complete.lifecycle"}
+      ]
+    },
+    {
+      "id": "skill.complete.entry", "type": "page", "risk": "read-only", "parent": "skill.complete",
+      "control_inventory": [
+        {"id": "hud-mount", "kind": "mount", "child": "skill.complete.entry.hud-mount"},
+        {"id": "role-open", "kind": "button", "child": "skill.complete.entry.role-open"},
+        {"id": "unlock-fly", "kind": "conditional-popup", "child": "skill.complete.entry.unlock-fly"},
+        {"id": "return", "kind": "return", "child": "skill.complete.entry.return"}
+      ]
+    },
+    {"id": "skill.complete.entry.hud-mount", "type": "read", "risk": "read-only", "parent": "skill.complete.entry"},
+    {"id": "skill.complete.entry.role-open", "type": "navigation", "risk": "read-only", "parent": "skill.complete.entry"},
+    {"id": "skill.complete.entry.unlock-fly", "type": "read", "risk": "read-only", "parent": "skill.complete.entry"},
+    {"id": "skill.complete.entry.return", "type": "navigation", "risk": "read-only", "parent": "skill.complete.entry"},
+    {
+      "id": "skill.complete.hud", "type": "page", "risk": "reversible-write", "parent": "skill.complete",
+      "control_inventory": [
+        {"id": "prefab", "kind": "resource", "child": "skill.complete.hud.prefab"},
+        {"id": "four-slots", "kind": "slot-list", "child": "skill.complete.hud.four-slots"},
+        {"id": "icon", "kind": "image", "child": "skill.complete.hud.icon"},
+        {"id": "lock", "kind": "conditional-state", "child": "skill.complete.hud.lock"},
+        {"id": "cd", "kind": "dynamic-state", "child": "skill.complete.hud.cd"},
+        {"id": "click", "kind": "button", "child": "skill.complete.hud.click"},
+        {"id": "deposit", "kind": "conditional-state", "child": "skill.complete.hud.deposit"},
+        {"id": "auto-toggle", "kind": "toggle", "child": "skill.complete.hud.auto-toggle"},
+        {"id": "auto-order", "kind": "ordering", "child": "skill.complete.hud.auto-order"},
+        {"id": "partner", "kind": "conditional-slot", "child": "skill.complete.hud.partner"},
+        {"id": "god", "kind": "conditional-slot", "child": "skill.complete.hud.god"}
+      ]
+    },
+    {"id": "skill.complete.hud.prefab", "type": "read", "risk": "read-only", "parent": "skill.complete.hud"},
+    {"id": "skill.complete.hud.four-slots", "type": "read", "risk": "read-only", "parent": "skill.complete.hud"},
+    {"id": "skill.complete.hud.icon", "type": "read", "risk": "read-only", "parent": "skill.complete.hud"},
+    {"id": "skill.complete.hud.lock", "type": "read", "risk": "read-only", "parent": "skill.complete.hud"},
+    {"id": "skill.complete.hud.cd", "type": "read", "risk": "read-only", "parent": "skill.complete.hud"},
+    {"id": "skill.complete.hud.click", "type": "reversible-write", "risk": "reversible-write", "parent": "skill.complete.hud"},
+    {"id": "skill.complete.hud.deposit", "type": "read", "risk": "read-only", "parent": "skill.complete.hud"},
+    {"id": "skill.complete.hud.auto-toggle", "type": "reversible-write", "risk": "reversible-write", "parent": "skill.complete.hud"},
+    {"id": "skill.complete.hud.auto-order", "type": "read", "risk": "read-only", "parent": "skill.complete.hud"},
+    {"id": "skill.complete.hud.partner", "type": "navigation", "risk": "read-only", "parent": "skill.complete.hud"},
+    {"id": "skill.complete.hud.god", "type": "reversible-write", "risk": "reversible-write", "parent": "skill.complete.hud"},
+    {
+      "id": "skill.complete.window", "type": "page", "risk": "read-only", "parent": "skill.complete",
+      "control_inventory": [
+        {"id": "prefab", "kind": "resource", "child": "skill.complete.window.prefab"},
+        {"id": "shell", "kind": "window-shell", "child": "skill.complete.window.shell"},
+        {"id": "tabs", "kind": "tab-list", "child": "skill.complete.window.tabs"},
+        {"id": "close", "kind": "button", "child": "skill.complete.window.close"}
+      ]
+    },
+    {"id": "skill.complete.window.prefab", "type": "read", "risk": "read-only", "parent": "skill.complete.window"},
+    {"id": "skill.complete.window.shell", "type": "read", "risk": "read-only", "parent": "skill.complete.window"},
+    {"id": "skill.complete.window.tabs", "type": "navigation", "risk": "read-only", "parent": "skill.complete.window"},
+    {"id": "skill.complete.window.close", "type": "navigation", "risk": "read-only", "parent": "skill.complete.window"},
+    {
+      "id": "skill.complete.active", "type": "page", "risk": "read-only", "parent": "skill.complete",
+      "control_inventory": [
+        {"id": "six-slots", "kind": "slot-list", "child": "skill.complete.active.six-slots"},
+        {"id": "selection", "kind": "button", "child": "skill.complete.active.selection"},
+        {"id": "locked", "kind": "conditional-state", "child": "skill.complete.active.locked"},
+        {"id": "current", "kind": "scroll-text", "child": "skill.complete.active.current"},
+        {"id": "next", "kind": "scroll-text", "child": "skill.complete.active.next"},
+        {"id": "max", "kind": "conditional-state", "child": "skill.complete.active.max"},
+        {"id": "forbidden", "kind": "disabled-button", "child": "skill.complete.active.forbidden"}
+      ]
+    },
+    {"id": "skill.complete.active.six-slots", "type": "read", "risk": "read-only", "parent": "skill.complete.active"},
+    {"id": "skill.complete.active.selection", "type": "read", "risk": "read-only", "parent": "skill.complete.active"},
+    {"id": "skill.complete.active.locked", "type": "read", "risk": "read-only", "parent": "skill.complete.active"},
+    {"id": "skill.complete.active.current", "type": "read", "risk": "read-only", "parent": "skill.complete.active"},
+    {"id": "skill.complete.active.next", "type": "read", "risk": "read-only", "parent": "skill.complete.active"},
+    {"id": "skill.complete.active.max", "type": "read", "risk": "read-only", "parent": "skill.complete.active"},
+    {"id": "skill.complete.active.forbidden", "type": "read", "risk": "read-only", "parent": "skill.complete.active"},
+    {
+      "id": "skill.complete.passive", "type": "page", "risk": "read-only", "parent": "skill.complete",
+      "control_inventory": [
+        {"id": "scroll", "kind": "scroll-list", "child": "skill.complete.passive.scroll"},
+        {"id": "item", "kind": "list-item", "child": "skill.complete.passive.item"},
+        {"id": "selection", "kind": "button", "child": "skill.complete.passive.selection"},
+        {"id": "normal-desc", "kind": "conditional-state", "child": "skill.complete.passive.normal-desc"},
+        {"id": "special-desc", "kind": "conditional-state", "child": "skill.complete.passive.special-desc"},
+        {"id": "upgrade-hidden", "kind": "disabled-button", "child": "skill.complete.passive.upgrade-hidden"},
+        {"id": "task", "kind": "dependency", "child": "skill.complete.passive.task"}
+      ]
+    },
+    {"id": "skill.complete.passive.scroll", "type": "read", "risk": "read-only", "parent": "skill.complete.passive"},
+    {"id": "skill.complete.passive.item", "type": "read", "risk": "read-only", "parent": "skill.complete.passive"},
+    {"id": "skill.complete.passive.selection", "type": "read", "risk": "read-only", "parent": "skill.complete.passive"},
+    {"id": "skill.complete.passive.normal-desc", "type": "read", "risk": "read-only", "parent": "skill.complete.passive"},
+    {"id": "skill.complete.passive.special-desc", "type": "read", "risk": "read-only", "parent": "skill.complete.passive"},
+    {"id": "skill.complete.passive.upgrade-hidden", "type": "read", "risk": "read-only", "parent": "skill.complete.passive"},
+    {"id": "skill.complete.passive.task", "type": "read", "risk": "read-only", "parent": "skill.complete.passive"},
+    {
+      "id": "skill.complete.talent", "type": "page", "risk": "destructive-write", "parent": "skill.complete",
+      "control_inventory": [
+        {"id": "turn-gate", "kind": "conditional-state", "child": "skill.complete.talent.turn-gate"},
+        {"id": "type-tabs", "kind": "tab-list", "child": "skill.complete.talent.type-tabs"},
+        {"id": "tree", "kind": "skill-tree", "child": "skill.complete.talent.tree"},
+        {"id": "scroll", "kind": "scroll-list", "child": "skill.complete.talent.scroll"},
+        {"id": "skill-item", "kind": "button", "child": "skill.complete.talent.skill-item"},
+        {"id": "info", "kind": "detail", "child": "skill.complete.talent.info"},
+        {"id": "conditions", "kind": "condition-list", "child": "skill.complete.talent.conditions"},
+        {"id": "cost", "kind": "resource", "child": "skill.complete.talent.cost"},
+        {"id": "learn", "kind": "button", "child": "skill.complete.talent.learn"},
+        {"id": "reset-confirm", "kind": "confirm", "child": "skill.complete.talent.reset-confirm"},
+        {"id": "reset", "kind": "button", "child": "skill.complete.talent.reset"}
+      ]
+    },
+    {"id": "skill.complete.talent.turn-gate", "type": "read", "risk": "read-only", "parent": "skill.complete.talent"},
+    {"id": "skill.complete.talent.type-tabs", "type": "navigation", "risk": "read-only", "parent": "skill.complete.talent"},
+    {"id": "skill.complete.talent.tree", "type": "read", "risk": "read-only", "parent": "skill.complete.talent"},
+    {"id": "skill.complete.talent.scroll", "type": "read", "risk": "read-only", "parent": "skill.complete.talent"},
+    {"id": "skill.complete.talent.skill-item", "type": "read", "risk": "read-only", "parent": "skill.complete.talent"},
+    {"id": "skill.complete.talent.info", "type": "read", "risk": "read-only", "parent": "skill.complete.talent"},
+    {"id": "skill.complete.talent.conditions", "type": "read", "risk": "read-only", "parent": "skill.complete.talent"},
+    {"id": "skill.complete.talent.cost", "type": "read", "risk": "read-only", "parent": "skill.complete.talent"},
+    {"id": "skill.complete.talent.learn", "type": "reversible-write", "risk": "reversible-write", "parent": "skill.complete.talent"},
+    {"id": "skill.complete.talent.reset-confirm", "type": "read", "risk": "read-only", "parent": "skill.complete.talent"},
+    {"id": "skill.complete.talent.reset", "type": "destructive-write", "risk": "destructive-write", "parent": "skill.complete.talent"},
+    {
+      "id": "skill.complete.protocol", "type": "page", "risk": "destructive-write", "parent": "skill.complete",
+      "control_inventory": [
+        {"id": "21002", "kind": "protocol-read", "child": "skill.complete.protocol.21002"},
+        {"id": "13007", "kind": "protocol-read", "child": "skill.complete.protocol.13007"},
+        {"id": "21001", "kind": "protocol-write", "child": "skill.complete.protocol.21001"},
+        {"id": "21010", "kind": "protocol-read", "child": "skill.complete.protocol.21010"},
+        {"id": "21011", "kind": "protocol-write", "child": "skill.complete.protocol.21011"},
+        {"id": "21012", "kind": "protocol-write", "child": "skill.complete.protocol.21012"},
+        {"id": "13008", "kind": "protocol-write", "child": "skill.complete.protocol.13008"},
+        {"id": "13010", "kind": "protocol-write", "child": "skill.complete.protocol.13010"},
+        {"id": "12093", "kind": "protocol-read", "child": "skill.complete.protocol.12093"},
+        {"id": "18401", "kind": "protocol-read", "child": "skill.complete.protocol.18401"},
+        {"id": "21003-21005", "kind": "dead-protocol", "child": "skill.complete.protocol.21003-21005"},
+        {"id": "21101-21104", "kind": "unreachable-protocol", "child": "skill.complete.protocol.21101-21104"},
+        {"id": "config-race", "kind": "state-refresh", "child": "skill.complete.protocol.config-race"}
+      ]
+    },
+    {"id": "skill.complete.protocol.21002", "type": "read", "risk": "read-only", "parent": "skill.complete.protocol"},
+    {"id": "skill.complete.protocol.13007", "type": "read", "risk": "read-only", "parent": "skill.complete.protocol"},
+    {"id": "skill.complete.protocol.21001", "type": "reversible-write", "risk": "reversible-write", "parent": "skill.complete.protocol"},
+    {"id": "skill.complete.protocol.21010", "type": "read", "risk": "read-only", "parent": "skill.complete.protocol"},
+    {"id": "skill.complete.protocol.21011", "type": "reversible-write", "risk": "reversible-write", "parent": "skill.complete.protocol"},
+    {"id": "skill.complete.protocol.21012", "type": "destructive-write", "risk": "destructive-write", "parent": "skill.complete.protocol"},
+    {"id": "skill.complete.protocol.13008", "type": "reversible-write", "risk": "reversible-write", "parent": "skill.complete.protocol"},
+    {"id": "skill.complete.protocol.13010", "type": "reversible-write", "risk": "reversible-write", "parent": "skill.complete.protocol"},
+    {"id": "skill.complete.protocol.12093", "type": "read", "risk": "read-only", "parent": "skill.complete.protocol"},
+    {"id": "skill.complete.protocol.18401", "type": "read", "risk": "read-only", "parent": "skill.complete.protocol"},
+    {"id": "skill.complete.protocol.21003-21005", "type": "read", "risk": "read-only", "parent": "skill.complete.protocol"},
+    {"id": "skill.complete.protocol.21101-21104", "type": "read", "risk": "read-only", "parent": "skill.complete.protocol"},
+    {"id": "skill.complete.protocol.config-race", "type": "read", "risk": "read-only", "parent": "skill.complete.protocol"},
+    {
+      "id": "skill.complete.combat", "type": "page", "risk": "reversible-write", "parent": "skill.complete",
+      "control_inventory": [
+        {"id": "can-attack", "kind": "gate", "child": "skill.complete.combat.can-attack"},
+        {"id": "release", "kind": "protocol-write", "child": "skill.complete.combat.release"},
+        {"id": "local-cd", "kind": "dynamic-state", "child": "skill.complete.combat.local-cd"},
+        {"id": "server-cd", "kind": "dynamic-state", "child": "skill.complete.combat.server-cd"},
+        {"id": "auto-select", "kind": "ordering", "child": "skill.complete.combat.auto-select"},
+        {"id": "effects", "kind": "dynamic-visual", "child": "skill.complete.combat.effects"},
+        {"id": "sound", "kind": "audio", "child": "skill.complete.combat.sound"},
+        {"id": "awake", "kind": "cross-route", "child": "skill.complete.combat.awake"}
+      ]
+    },
+    {"id": "skill.complete.combat.can-attack", "type": "read", "risk": "read-only", "parent": "skill.complete.combat"},
+    {"id": "skill.complete.combat.release", "type": "reversible-write", "risk": "reversible-write", "parent": "skill.complete.combat"},
+    {"id": "skill.complete.combat.local-cd", "type": "read", "risk": "read-only", "parent": "skill.complete.combat"},
+    {"id": "skill.complete.combat.server-cd", "type": "read", "risk": "read-only", "parent": "skill.complete.combat"},
+    {"id": "skill.complete.combat.auto-select", "type": "read", "risk": "read-only", "parent": "skill.complete.combat"},
+    {"id": "skill.complete.combat.effects", "type": "read", "risk": "read-only", "parent": "skill.complete.combat"},
+    {"id": "skill.complete.combat.sound", "type": "read", "risk": "read-only", "parent": "skill.complete.combat"},
+    {"id": "skill.complete.combat.awake", "type": "navigation", "risk": "read-only", "parent": "skill.complete.combat"},
+    {
+      "id": "skill.complete.lifecycle", "type": "page", "risk": "destructive-write", "parent": "skill.complete",
+      "control_inventory": [
+        {"id": "immediate", "kind": "state-refresh", "child": "skill.complete.lifecycle.immediate"},
+        {"id": "reopen", "kind": "state-refresh", "child": "skill.complete.lifecycle.reopen"},
+        {"id": "cold-warm", "kind": "performance", "child": "skill.complete.lifecycle.cold-warm"},
+        {"id": "back", "kind": "return", "child": "skill.complete.lifecycle.back"},
+        {"id": "two-viewports", "kind": "visual", "child": "skill.complete.lifecycle.two-viewports"},
+        {"id": "same-account", "kind": "comparison", "child": "skill.complete.lifecycle.same-account"},
+        {"id": "runtime", "kind": "runtime-gate", "child": "skill.complete.lifecycle.runtime"}
+      ]
+    },
+    {"id": "skill.complete.lifecycle.immediate", "type": "destructive-write", "risk": "destructive-write", "parent": "skill.complete.lifecycle"},
+    {"id": "skill.complete.lifecycle.reopen", "type": "navigation", "risk": "read-only", "parent": "skill.complete.lifecycle"},
+    {"id": "skill.complete.lifecycle.cold-warm", "type": "read", "risk": "read-only", "parent": "skill.complete.lifecycle"},
+    {"id": "skill.complete.lifecycle.back", "type": "navigation", "risk": "read-only", "parent": "skill.complete.lifecycle"},
+    {"id": "skill.complete.lifecycle.two-viewports", "type": "read", "risk": "read-only", "parent": "skill.complete.lifecycle"},
+    {"id": "skill.complete.lifecycle.same-account", "type": "read", "risk": "read-only", "parent": "skill.complete.lifecycle"},
+    {"id": "skill.complete.lifecycle.runtime", "type": "read", "risk": "read-only", "parent": "skill.complete.lifecycle"}
+  ]
+}

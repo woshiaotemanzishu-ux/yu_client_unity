@@ -1,0 +1,1119 @@
+{
+  "schema": 6,
+  "route": "mainui.map",
+  "baseline": {
+    "authority": "Current old H5 under the same account, state and viewport is final authority. This manifest freezes static topology only and claims no runtime gate.",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/map/MapEnterView.ts",
+      "E:/GitProject/yu_client/h5/src/map/WorldMapView.ts",
+      "E:/GitProject/yu_client/h5/src/map/WorldMapItem.ts",
+      "E:/GitProject/yu_client/h5/src/map/AreaMapView.ts",
+      "E:/GitProject/yu_client/h5/src/map/AreaMapMonItem.ts",
+      "E:/GitProject/yu_client/h5/src/map/AreaMapPonitItem.ts",
+      "E:/GitProject/yu_client/h5/src/map/AreaMapWayPonitItem.ts",
+      "E:/GitProject/yu_client/h5/src/commonModel/MapModel.ts"
+    ],
+    "unity_sources": [
+      "Assets/Prefabs/UI/Map/MapModule.prefab",
+      "Assets/Scripts/Generated/UI/Map/WorldMapViewBind.cs",
+      "Assets/Scripts/Generated/UI/Map/WorldMapItemBind.cs",
+      "Assets/Scripts/Generated/UI/Map/AreaMapViewBind.cs",
+      "Assets/Scripts/Generated/UI/Map/AreaMapMonItemBind.cs",
+      "Assets/Scripts/Generated/UI/Map/AreaMapPonitItemBind.cs",
+      "Assets/Scripts/Generated/UI/Map/AreaMapWayPonitItemBind.cs",
+      "Assets/Scripts/Module/Core/Map/MapFlow.cs",
+      "Assets/Scripts/Module/Core/Map/Views/WorldMapView.cs",
+      "Assets/Scripts/Module/Core/Map/Views/AreaMapView.cs"
+    ],
+    "protocol_inventory": {
+      "reads": [],
+      "writes": [
+        "12001",
+        "12005"
+      ],
+      "note": "Map data is client config plus current scene state. Area destination movement uses 12001; world city change uses 12005. No write transaction is authorized or executed in this pass."
+    },
+    "missing_runtime_assets": [
+      "resource/config/client/ClientMapConfig",
+      "resource/config/client/ClientWorldMapConfig",
+      "resource/game/map/area_map_img/{sceneId}.jpg",
+      "resource/game/map/world_map_img/{img_source}.png",
+      "resource/game/map/texture/big_bg.jpg"
+    ]
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_map/route-manifest.json",
+    "sha256": "21e1ad06d78a9e72ab821d3805b53181d2a88e39cf9a3231517721e72abd7e38"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "mainui.map",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        {
+          "id": "shell",
+          "kind": "window-shell",
+          "child": "mainui.map.shell"
+        },
+        {
+          "id": "area",
+          "kind": "top-tab",
+          "child": "mainui.map.area"
+        },
+        {
+          "id": "world",
+          "kind": "top-tab",
+          "child": "mainui.map.world"
+        },
+        {
+          "id": "route-state",
+          "kind": "route-lifecycle",
+          "child": "mainui.map.route-state"
+        }
+      ],
+      "note": "MainUI map entry opens old MapEnterView semantics: area map is tab 0/default and world map is tab 1.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.map.shell, mainui.map.area, mainui.map.world, mainui.map.route-state"
+    },
+    {
+      "id": "mainui.map.shell",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.map",
+      "control_inventory": [
+        {
+          "id": "identity",
+          "kind": "read",
+          "child": "mainui.map.shell.identity"
+        },
+        {
+          "id": "default-tab",
+          "kind": "read",
+          "child": "mainui.map.shell.default-tab"
+        },
+        {
+          "id": "tabs",
+          "kind": "navigation",
+          "child": "mainui.map.shell.tabs"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.map.shell.close"
+        }
+      ],
+      "note": "Old MapEnterView owns BaseWindow skin, title, two tabs and close. Current MapModule only bakes AreaMapView and WorldMapView.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.map.shell.tabs, mainui.map.shell.close"
+    },
+    {
+      "id": "mainui.map.shell.identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.shell",
+      "note": "Static identity is present; runtime layer and visibility remain unverified.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "runtime_gap": "MapModule root and the two direct child views are statically present; the actual Window layer, active child and player-visible result require runtime evidence.",
+      "applicable_gates": [
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.map.shell.default-tab",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.shell",
+      "note": "Default-area implementation is static only.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false,
+        "reopen": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "runtime_gap": "MapFlow statically defaults to AreaMapView, but cold-open player evidence has not been captured.",
+      "applicable_gates": [
+        "runtime_state",
+        "reopen"
+      ]
+    },
+    {
+      "id": "mainui.map.shell.tabs",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.map.shell",
+      "note": "Visible area/world tabs are absent from the editable Map prefab.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "MapModule.prefab has no editable visible MapEnterView area/world tab controls; MapFlow exposes switching APIs but no player-visible tabs can be clicked."
+    },
+    {
+      "id": "mainui.map.shell.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.map.shell",
+      "note": "Visible close control is absent.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "MapFlow.Close/Toggle exists, but MapModule.prefab has no old-client-equivalent visible close button or outer BaseWindow shell."
+    },
+    {
+      "id": "mainui.map.area",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.map",
+      "control_inventory": [
+        {
+          "id": "background",
+          "kind": "dynamic-image",
+          "child": "mainui.map.area.background"
+        },
+        {
+          "id": "map-scroll",
+          "kind": "scroll",
+          "child": "mainui.map.area.map-scroll"
+        },
+        {
+          "id": "current-marker",
+          "kind": "state",
+          "child": "mainui.map.area.current-marker"
+        },
+        {
+          "id": "points",
+          "kind": "item-list",
+          "child": "mainui.map.area.points"
+        },
+        {
+          "id": "monster-strip",
+          "kind": "item-list",
+          "child": "mainui.map.area.monster-strip"
+        },
+        {
+          "id": "waypoints",
+          "kind": "dynamic-list",
+          "child": "mainui.map.area.waypoints"
+        },
+        {
+          "id": "map-click",
+          "kind": "transaction",
+          "child": "mainui.map.area.map-click"
+        },
+        {
+          "id": "monster-click",
+          "kind": "transaction",
+          "child": "mainui.map.area.monster-click"
+        }
+      ],
+      "note": "Current-scene area map with two-axis map scroll, current role marker, configured points, horizontal monster list and path overlay.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.map.area.background, mainui.map.area.points, mainui.map.area.monster-strip, mainui.map.area.waypoints, mainui.map.area.map-click, mainui.map.area.monster-click"
+    },
+    {
+      "id": "mainui.map.area.background",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.map.area",
+      "control_inventory": [
+        {
+          "id": "asset",
+          "kind": "read",
+          "child": "mainui.map.area.background.asset"
+        },
+        {
+          "id": "ready",
+          "kind": "read",
+          "child": "mainui.map.area.background.ready"
+        }
+      ],
+      "note": "Area map image group.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.map.area.background.asset, mainui.map.area.background.ready"
+    },
+    {
+      "id": "mainui.map.area.background.asset",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.area.background",
+      "note": "Area map sprite load code exists, but the authoritative assets are missing.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "The current scene resource/game/map/area_map_img/{sceneId}.jpg assets are not in the Unity resource/Addressables closure."
+    },
+    {
+      "id": "mainui.map.area.background.ready",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.area.background",
+      "note": "Ready timing cannot be verified without the mapped resource and a matching Web build.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "Area map assets are missing, so 350ms/1000ms/ready player-visible evidence cannot be produced."
+    },
+    {
+      "id": "mainui.map.area.map-scroll",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.map.area",
+      "control_inventory": [
+        {
+          "id": "structure",
+          "kind": "read",
+          "child": "mainui.map.area.map-scroll.structure"
+        },
+        {
+          "id": "drag",
+          "kind": "read",
+          "child": "mainui.map.area.map-scroll.drag"
+        }
+      ],
+      "note": "Two-axis current-scene map viewport.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.map.area.map-scroll.structure, mainui.map.area.map-scroll.drag"
+    },
+    {
+      "id": "mainui.map.area.map-scroll.structure",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.area.map-scroll",
+      "note": "Static two-axis structure is fixed.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "layout_structure": false,
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "runtime_gap": "Prefab now has a two-axis ScrollRect with viewport/content, but real layout geometry and content extent require runtime evidence.",
+      "applicable_gates": [
+        "layout_structure",
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.map.area.map-scroll.drag",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.area.map-scroll",
+      "note": "Scroll axes are static; drag behavior remains runtime-only.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "scroll_interaction": false,
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "runtime_gap": "GraphicRaycaster drag, edge reachability, movement and clipping were not executed without Unity/Web runtime authorization.",
+      "applicable_gates": [
+        "scroll_interaction",
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.map.area.current-marker",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.map.area",
+      "control_inventory": [
+        {
+          "id": "position",
+          "kind": "read",
+          "child": "mainui.map.area.current-marker.position"
+        },
+        {
+          "id": "name",
+          "kind": "read",
+          "child": "mainui.map.area.current-marker.name"
+        }
+      ],
+      "note": "Current role marker group.",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.map.area.current-marker.position, mainui.map.area.current-marker.name"
+    },
+    {
+      "id": "mainui.map.area.current-marker.position",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.area.current-marker",
+      "note": "Coordinate conversion is static only.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false,
+        "page_space_geometry": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "runtime_gap": "SceneMapData/RoleModel coordinate conversion is implemented, but same-account page-space coordinates and pixels were not observed.",
+      "applicable_gates": [
+        "runtime_state",
+        "page_space_geometry"
+      ]
+    },
+    {
+      "id": "mainui.map.area.current-marker.name",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.area.current-marker",
+      "note": "Authoritative model binding is static only.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "runtime_gap": "RoleModel.Name is wired to role_name, but same-account text and font pixels were not captured.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ]
+    },
+    {
+      "id": "mainui.map.area.points",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.map.area",
+      "control_inventory": [
+        {
+          "id": "data",
+          "kind": "read",
+          "child": "mainui.map.area.points.data"
+        },
+        {
+          "id": "placement",
+          "kind": "read",
+          "child": "mainui.map.area.points.placement"
+        }
+      ],
+      "note": "Configured monster/NPC map point group.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.map.area.points.data, mainui.map.area.points.placement"
+    },
+    {
+      "id": "mainui.map.area.points.data",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.area.points",
+      "note": "Parser is implemented; authoritative input is missing.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "ClientMapConfig.json is not in the Unity resource closure; no current-scene point_list can be loaded without fabricating data."
+    },
+    {
+      "id": "mainui.map.area.points.placement",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.area.points",
+      "note": "Placement cannot be completed without authoritative points and runtime pixels.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "Point conversion and old -42/-63 offsets are implemented, but ClientMapConfig plus real runtime geometry are unavailable."
+    },
+    {
+      "id": "mainui.map.area.monster-strip",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.map.area",
+      "control_inventory": [
+        {
+          "id": "items",
+          "kind": "read",
+          "child": "mainui.map.area.monster-strip.items"
+        },
+        {
+          "id": "scroll",
+          "kind": "read",
+          "child": "mainui.map.area.monster-strip.scroll"
+        },
+        {
+          "id": "selected",
+          "kind": "read",
+          "child": "mainui.map.area.monster-strip.selected"
+        }
+      ],
+      "note": "Horizontal configured destination list.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.map.area.monster-strip.items, mainui.map.area.monster-strip.scroll, mainui.map.area.monster-strip.selected"
+    },
+    {
+      "id": "mainui.map.area.monster-strip.items",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.area.monster-strip",
+      "note": "Shared template cloning/name/level wiring exists; data and icon closure are incomplete.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "ClientMapConfig is missing and current MonsterConfigs/NpcConfigs do not provide a verified Map icon mapping/resource closure; item rows cannot match the old client."
+    },
+    {
+      "id": "mainui.map.area.monster-strip.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.area.monster-strip",
+      "note": "Runtime list interaction is blocked by missing input assets.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "The horizontal ScrollRect axis is fixed, but missing ClientMapConfig leaves no authoritative item count to verify last-item reachability and clipping."
+    },
+    {
+      "id": "mainui.map.area.monster-strip.selected",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.area.monster-strip",
+      "note": "Selected/unselected behavior remains unimplemented.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "No authoritative selection-state consumer is currently wired to switch the old uidu_009/uidu_009b visual states."
+    },
+    {
+      "id": "mainui.map.area.waypoints",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.map.area",
+      "control_inventory": [
+        {
+          "id": "path",
+          "kind": "read",
+          "child": "mainui.map.area.waypoints.path"
+        },
+        {
+          "id": "destination",
+          "kind": "read",
+          "child": "mainui.map.area.waypoints.destination"
+        }
+      ],
+      "note": "Path preview group.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.map.area.waypoints.path, mainui.map.area.waypoints.destination"
+    },
+    {
+      "id": "mainui.map.area.waypoints.path",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.area.waypoints",
+      "note": "Waypoint item state API exists, but path production/consumption is missing.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "No read-only Scene path-result pipeline is connected to AreaMapView; intermediate route nodes cannot be rendered or cleared authoritatively."
+    },
+    {
+      "id": "mainui.map.area.waypoints.destination",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.area.waypoints",
+      "note": "Destination visual API is not yet reachable.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "AreaMapWayPonitItem can display end_pos, but AreaMapView has no authorized path destination/result consumer."
+    },
+    {
+      "id": "mainui.map.area.map-click",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.map.area",
+      "note": "Requires authorized UI click, formal protocol, success result, immediate state and reopen verification.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "Real map click is a player movement write (12001). This pass had no account/runtime write authorization, so the transaction is intentionally not wired or executed."
+    },
+    {
+      "id": "mainui.map.area.monster-click",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.map.area",
+      "note": "Requires authorized formal transaction verification.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "Monster destination click is a player movement write (12001), including blocked-coordinate checks. No account/runtime write was authorized."
+    },
+    {
+      "id": "mainui.map.world",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.map",
+      "control_inventory": [
+        {
+          "id": "background",
+          "kind": "dynamic-image",
+          "child": "mainui.map.world.background"
+        },
+        {
+          "id": "map-scroll",
+          "kind": "scroll",
+          "child": "mainui.map.world.map-scroll"
+        },
+        {
+          "id": "cities",
+          "kind": "item-list",
+          "child": "mainui.map.world.cities"
+        },
+        {
+          "id": "current-location",
+          "kind": "state",
+          "child": "mainui.map.world.current-location"
+        },
+        {
+          "id": "city-click",
+          "kind": "transaction",
+          "child": "mainui.map.world.city-click"
+        }
+      ],
+      "note": "World map with nine configured city entries, open state, level range and current-scene marker.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.map.world.background, mainui.map.world.map-scroll, mainui.map.world.cities, mainui.map.world.current-location, mainui.map.world.city-click"
+    },
+    {
+      "id": "mainui.map.world.background",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.map.world",
+      "control_inventory": [
+        {
+          "id": "asset",
+          "kind": "read",
+          "child": "mainui.map.world.background.asset"
+        },
+        {
+          "id": "layers",
+          "kind": "read",
+          "child": "mainui.map.world.background.layers"
+        }
+      ],
+      "note": "World map background group.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.map.world.background.asset"
+    },
+    {
+      "id": "mainui.map.world.background.asset",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.world.background",
+      "note": "World background load path is implemented; asset is missing.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "resource/game/map/texture/big_bg.jpg is not in the Unity resource/Addressables closure."
+    },
+    {
+      "id": "mainui.map.world.background.layers",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.world.background",
+      "note": "Layer bindings exist; render result is unverified.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "render_completion": false,
+        "visual_match": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "runtime_gap": "map_bg/scene_con/frame_bg/map_cloud are statically bound, but final draw order, cloud visibility and clipping require player pixels.",
+      "applicable_gates": [
+        "render_completion",
+        "visual_match"
+      ]
+    },
+    {
+      "id": "mainui.map.world.map-scroll",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.map.world",
+      "control_inventory": [
+        {
+          "id": "structure",
+          "kind": "read",
+          "child": "mainui.map.world.map-scroll.structure"
+        },
+        {
+          "id": "initial",
+          "kind": "read",
+          "child": "mainui.map.world.map-scroll.initial"
+        }
+      ],
+      "note": "Horizontal world map viewport.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.map.world.map-scroll.initial"
+    },
+    {
+      "id": "mainui.map.world.map-scroll.structure",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.world.map-scroll",
+      "note": "Static horizontal structure is fixed.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "layout_structure": false,
+        "scroll_interaction": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "runtime_gap": "Prefab is horizontal-only with viewport/content, but actual edge reachability and clipping require runtime interaction.",
+      "applicable_gates": [
+        "layout_structure",
+        "scroll_interaction"
+      ]
+    },
+    {
+      "id": "mainui.map.world.map-scroll.initial",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.world.map-scroll",
+      "note": "Initial horizontal position is blocked by missing config and runtime evidence.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "Current-scene root_pos positioning is implemented, but ClientWorldMapConfig is absent so no authoritative current root can be resolved."
+    },
+    {
+      "id": "mainui.map.world.cities",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.map.world",
+      "control_inventory": [
+        {
+          "id": "items",
+          "kind": "read",
+          "child": "mainui.map.world.cities.items"
+        },
+        {
+          "id": "open-state",
+          "kind": "read",
+          "child": "mainui.map.world.cities.open-state"
+        },
+        {
+          "id": "level",
+          "kind": "read",
+          "child": "mainui.map.world.cities.level"
+        }
+      ],
+      "note": "Configured world city group.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.map.world.cities.items, mainui.map.world.cities.open-state, mainui.map.world.cities.level"
+    },
+    {
+      "id": "mainui.map.world.cities.items",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.world.cities",
+      "note": "Shared item cloning is implemented; authoritative inputs are missing.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "ClientWorldMapConfig and resource/game/map/world_map_img assets are absent from the Unity resource closure."
+    },
+    {
+      "id": "mainui.map.world.cities.open-state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.world.cities",
+      "note": "Config-driven state cannot be completed without the config.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "Open-state rendering code exists, but ClientWorldMapConfig is missing and unavailable cities cannot be compared or clicked in runtime."
+    },
+    {
+      "id": "mainui.map.world.cities.level",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.world.cities",
+      "note": "Formatting implementation has no current runtime/config evidence.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "Lv/神劫 formatting is implemented, but authoritative scene_lv rows and final font pixels are unavailable."
+    },
+    {
+      "id": "mainui.map.world.current-location",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.map.world",
+      "control_inventory": [
+        {
+          "id": "marker",
+          "kind": "read",
+          "child": "mainui.map.world.current-location.marker"
+        },
+        {
+          "id": "motion",
+          "kind": "read",
+          "child": "mainui.map.world.current-location.motion"
+        }
+      ],
+      "note": "Current city marker group.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.map.world.current-location.marker, mainui.map.world.current-location.motion"
+    },
+    {
+      "id": "mainui.map.world.current-location.marker",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.world.current-location",
+      "note": "Location placement code exists; authoritative config and head image are missing.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "Current-scene locate_pos requires ClientWorldMapConfig, and the old current-role head mapping/resource is not wired in the Map closure."
+    },
+    {
+      "id": "mainui.map.world.current-location.motion",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.world.current-location",
+      "note": "Motion code is static; visible dynamic proof is blocked by missing inputs.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "Ping-pong lifecycle code exists, but the current-location marker cannot be authoritatively instantiated without ClientWorldMapConfig/head resources, so two-timepoint evidence is impossible."
+    },
+    {
+      "id": "mainui.map.world.city-click",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.map.world",
+      "note": "Requires authorized formal scene-change transaction verification.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "Open non-current city selection is a scene-change write (12005). This pass had no account/runtime write authorization and intentionally injects no click callback."
+    },
+    {
+      "id": "mainui.map.route-state",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.map",
+      "control_inventory": [
+        {
+          "id": "open-close",
+          "kind": "route-lifecycle",
+          "child": "mainui.map.route-state.open-close"
+        },
+        {
+          "id": "tab-switch",
+          "kind": "route-lifecycle",
+          "child": "mainui.map.route-state.tab-switch"
+        },
+        {
+          "id": "warm-reopen",
+          "kind": "route-lifecycle",
+          "child": "mainui.map.route-state.warm-reopen"
+        },
+        {
+          "id": "viewports",
+          "kind": "visual",
+          "child": "mainui.map.route-state.viewports"
+        },
+        {
+          "id": "performance",
+          "kind": "performance",
+          "child": "mainui.map.route-state.performance"
+        }
+      ],
+      "note": "Whole-route lifecycle and real-Web completion gates.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.map.route-state.tab-switch"
+    },
+    {
+      "id": "mainui.map.route-state.open-close",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.route-state",
+      "note": "Lifecycle implementation is static only.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false,
+        "reopen": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "runtime_gap": "MapFlow statically tracks one current page and hides it on close; cold/toggle/reopen behavior was not executed in Unity/Web.",
+      "applicable_gates": [
+        "runtime_state",
+        "reopen"
+      ]
+    },
+    {
+      "id": "mainui.map.route-state.tab-switch",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.route-state",
+      "note": "Programmatic switch is not a substitute for real tab interaction.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "blocked_reason": "Exclusive Show/Hide exists in MapFlow, but the player-visible area/world tab controls are absent from MapModule.prefab."
+    },
+    {
+      "id": "mainui.map.route-state.warm-reopen",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.route-state",
+      "note": "Warm lifecycle code is static only.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "runtime_state": false,
+        "reopen": false,
+        "cleanup": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "runtime_gap": "Clone reuse, async epoch invalidation, resource release and refresh are implemented; duplicate/stale-state evidence requires runtime warm reopen.",
+      "applicable_gates": [
+        "runtime_state",
+        "reopen",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "mainui.map.route-state.viewports",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.route-state",
+      "note": "Real-Web visual gates remain open.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "visual_match": false,
+        "page_space_geometry": false,
+        "runtime_state": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "runtime_gap": "No matching Player/catalog real-Web run was authorized; old-vs-Unity comparison at 720x1280 and 1920x1080 is pending.",
+      "applicable_gates": [
+        "visual_match",
+        "page_space_geometry",
+        "runtime_state"
+      ]
+    },
+    {
+      "id": "mainui.map.route-state.performance",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.map.route-state",
+      "note": "No runtime performance claim is made.",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "performance": false,
+        "cleanup": false
+      },
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_map/static-audit.md"
+      ],
+      "runtime_gap": "Cold/warm timings, allocation, clone count and cleanup need one matching runtime evidence batch.",
+      "applicable_gates": [
+        "performance",
+        "cleanup"
+      ]
+    }
+  ],
+  "summary": {
+    "total": 49,
+    "status_counts": {
+      "blocked": 35,
+      "needs-runtime-verify": 14
+    }
+  }
+}

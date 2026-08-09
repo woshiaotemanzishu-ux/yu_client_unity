@@ -1,0 +1,1499 @@
+{
+  "schema": 6,
+  "route": "mainui.activity.sevenday",
+  "baseline": {},
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/route-manifest.json",
+    "sha256": "b2270426ea8b4233e1f568bf3a1e81aebb1781910c116855d539b5d433935a7b"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "mainui.activity.sevenday",
+      "parent": null,
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "icon.175",
+          "kind": "activity-icon",
+          "child": "mainui.activity.sevenday.icon.175"
+        },
+        {
+          "id": "icon.175_at_8",
+          "kind": "activity-icon",
+          "child": "mainui.activity.sevenday.icon.175_at_8"
+        },
+        {
+          "id": "icon.175_1",
+          "kind": "activity-icon",
+          "child": "mainui.activity.sevenday.icon.175_1"
+        },
+        {
+          "id": "snapshot.open",
+          "kind": "protocol-snapshot",
+          "child": "mainui.activity.sevenday.snapshot.open"
+        },
+        {
+          "id": "snapshot.merge",
+          "kind": "protocol-snapshot",
+          "child": "mainui.activity.sevenday.snapshot.merge"
+        },
+        {
+          "id": "refresh.level",
+          "kind": "condition-refresh",
+          "child": "mainui.activity.sevenday.refresh.level"
+        },
+        {
+          "id": "refresh.task",
+          "kind": "condition-refresh",
+          "child": "mainui.activity.sevenday.refresh.task"
+        },
+        {
+          "id": "icon.lifecycle",
+          "kind": "conditional-visibility",
+          "child": "mainui.activity.sevenday.icon.lifecycle"
+        },
+        {
+          "id": "icon.red-dot",
+          "kind": "red-dot",
+          "child": "mainui.activity.sevenday.icon.red-dot"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.activity.sevenday.icon.175, mainui.activity.sevenday.icon.175_at_8, mainui.activity.sevenday.icon.175_1"
+    },
+    {
+      "id": "mainui.activity.sevenday.icon.175",
+      "parent": "mainui.activity.sevenday",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.activity.sevenday.page.open"
+    },
+    {
+      "id": "mainui.activity.sevenday.icon.175_at_8",
+      "parent": "mainui.activity.sevenday",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.activity.sevenday.page.eight"
+    },
+    {
+      "id": "mainui.activity.sevenday.icon.175_1",
+      "parent": "mainui.activity.sevenday",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.activity.sevenday.page.merge"
+    },
+    {
+      "id": "mainui.activity.sevenday.snapshot.open",
+      "parent": "mainui.activity.sevenday",
+      "type": "read",
+      "risk": "read-only",
+      "status": "baseline-only",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json"
+      ],
+      "note": "老端17500与Unity现有只读解析/缓存静态一致；本轮未运行真实客户端。"
+    },
+    {
+      "id": "mainui.activity.sevenday.snapshot.merge",
+      "parent": "mainui.activity.sevenday",
+      "type": "read",
+      "risk": "read-only",
+      "status": "baseline-only",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json"
+      ],
+      "note": "老端17502与Unity现有只读解析/缓存静态一致；本轮未运行真实客户端。"
+    },
+    {
+      "id": "mainui.activity.sevenday.refresh.level",
+      "parent": "mainui.activity.sevenday",
+      "type": "read",
+      "risk": "read-only",
+      "status": "baseline-only",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json"
+      ],
+      "note": "等级真变化重拉17500/17502的静态链已存在；本轮未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.refresh.task",
+      "parent": "mainui.activity.sevenday",
+      "type": "read",
+      "risk": "read-only",
+      "status": "baseline-only",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json"
+      ],
+      "note": "普通七日任务门槛跨越只重拉17500的静态链已存在；本轮未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.icon.lifecycle",
+      "parent": "mainui.activity.sevenday",
+      "type": "read",
+      "risk": "read-only",
+      "status": "baseline-only",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json"
+      ],
+      "note": "三入口互斥、明天可领文案与开放门仅有源码/配置对照，未做运行验证。"
+    },
+    {
+      "id": "mainui.activity.sevenday.icon.red-dot",
+      "parent": "mainui.activity.sevenday",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json"
+      ],
+      "runtime_gap": "禁止启动Unity/浏览器；尚未验证175、175@8、175_1三入口的显示、切换、跨天与重开红点。",
+      "note": "增量补齐status=1入口红点派生，并在删图标前清理共享红点缓存。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open",
+      "parent": "mainui.activity.sevenday.icon.175",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "tab.day-1",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.open.tab.day-1"
+        },
+        {
+          "id": "tab.day-2",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.open.tab.day-2"
+        },
+        {
+          "id": "tab.day-3",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.open.tab.day-3"
+        },
+        {
+          "id": "tab.day-4",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.open.tab.day-4"
+        },
+        {
+          "id": "tab.day-5",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.open.tab.day-5"
+        },
+        {
+          "id": "tab.day-6",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.open.tab.day-6"
+        },
+        {
+          "id": "tab.day-7",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.open.tab.day-7"
+        },
+        {
+          "id": "dynamic-presentation",
+          "kind": "visual-state",
+          "child": "mainui.activity.sevenday.page.open.dynamic-presentation"
+        },
+        {
+          "id": "reward-list",
+          "kind": "scroll-list",
+          "child": "mainui.activity.sevenday.page.open.reward-list"
+        },
+        {
+          "id": "reward-detail.slot-1",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.open.reward-detail.slot-1"
+        },
+        {
+          "id": "reward-detail.slot-2",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.open.reward-detail.slot-2"
+        },
+        {
+          "id": "reward-detail.slot-3",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.open.reward-detail.slot-3"
+        },
+        {
+          "id": "reward-detail.slot-4",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.open.reward-detail.slot-4"
+        },
+        {
+          "id": "claim.unavailable",
+          "kind": "claim-button-state",
+          "child": "mainui.activity.sevenday.page.open.claim.unavailable"
+        },
+        {
+          "id": "claim.available",
+          "kind": "claim-button",
+          "child": "mainui.activity.sevenday.page.open.claim.available"
+        },
+        {
+          "id": "claim.received",
+          "kind": "claim-button-state",
+          "child": "mainui.activity.sevenday.page.open.claim.received"
+        },
+        {
+          "id": "red-dot",
+          "kind": "red-dot",
+          "child": "mainui.activity.sevenday.page.open.red-dot"
+        },
+        {
+          "id": "close",
+          "kind": "close-button",
+          "child": "mainui.activity.sevenday.page.open.close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.activity.sevenday.page.open.claim.available"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.tab.day-1",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.tab.day-2",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.tab.day-3",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.tab.day-4",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.tab.day-5",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.tab.day-6",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.tab.day-7",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.dynamic-presentation",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.reward-list",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.reward-detail.slot-1",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.reward-detail.slot-2",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.reward-detail.slot-3",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.reward-detail.slot-4",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.claim.unavailable",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.claim.available",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.activity.sevenday.page.open.claim.available.protocol, mainui.activity.sevenday.page.open.claim.available.immediate-refresh, mainui.activity.sevenday.page.open.claim.available.success-popup, mainui.activity.sevenday.page.open.claim.available.reopen"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.claim.received",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.red-dot",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.close",
+      "parent": "mainui.activity.sevenday.page.open",
+      "type": "return",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.claim.available.protocol",
+      "parent": "mainui.activity.sevenday.page.open.claim.available",
+      "type": "destructive-write",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json"
+      ],
+      "blocked_reason": "17501是真实背包/邮件发奖并持久化领取态的hard-negative；本轮无写事务授权，且三页/配置/单飞/错误/奖励链未闭环。",
+      "note": "禁止添加常量、sender、handler、乐观领取态、本地发奖或盲重试。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.claim.available.immediate-refresh",
+      "parent": "mainui.activity.sevenday.page.open.claim.available",
+      "type": "read",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "blocked_reason": "只能在权威领取成功链后验证；本轮禁止真实领取，且17501/17503仍为hard-negative。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.claim.available.success-popup",
+      "parent": "mainui.activity.sevenday.page.open.claim.available",
+      "type": "navigation",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "blocked_reason": "只能在权威领取成功链后验证；本轮禁止真实领取，且17501/17503仍为hard-negative。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.open.claim.available.reopen",
+      "parent": "mainui.activity.sevenday.page.open.claim.available",
+      "type": "read",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "blocked_reason": "只能在权威领取成功链后验证；本轮禁止真实领取，且17501/17503仍为hard-negative。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight",
+      "parent": "mainui.activity.sevenday.icon.175_at_8",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "tab.day-8",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.eight.tab.day-8"
+        },
+        {
+          "id": "tab.day-9",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.eight.tab.day-9"
+        },
+        {
+          "id": "tab.day-10",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.eight.tab.day-10"
+        },
+        {
+          "id": "tab.day-11",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.eight.tab.day-11"
+        },
+        {
+          "id": "tab.day-12",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.eight.tab.day-12"
+        },
+        {
+          "id": "tab.day-13",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.eight.tab.day-13"
+        },
+        {
+          "id": "tab.day-14",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.eight.tab.day-14"
+        },
+        {
+          "id": "dynamic-presentation",
+          "kind": "visual-state",
+          "child": "mainui.activity.sevenday.page.eight.dynamic-presentation"
+        },
+        {
+          "id": "reward-list",
+          "kind": "scroll-list",
+          "child": "mainui.activity.sevenday.page.eight.reward-list"
+        },
+        {
+          "id": "reward-detail.slot-1",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.eight.reward-detail.slot-1"
+        },
+        {
+          "id": "reward-detail.slot-2",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.eight.reward-detail.slot-2"
+        },
+        {
+          "id": "reward-detail.slot-3",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.eight.reward-detail.slot-3"
+        },
+        {
+          "id": "reward-detail.slot-4",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.eight.reward-detail.slot-4"
+        },
+        {
+          "id": "claim.unavailable",
+          "kind": "claim-button-state",
+          "child": "mainui.activity.sevenday.page.eight.claim.unavailable"
+        },
+        {
+          "id": "claim.available",
+          "kind": "claim-button",
+          "child": "mainui.activity.sevenday.page.eight.claim.available"
+        },
+        {
+          "id": "claim.received",
+          "kind": "claim-button-state",
+          "child": "mainui.activity.sevenday.page.eight.claim.received"
+        },
+        {
+          "id": "red-dot",
+          "kind": "red-dot",
+          "child": "mainui.activity.sevenday.page.eight.red-dot"
+        },
+        {
+          "id": "close",
+          "kind": "close-button",
+          "child": "mainui.activity.sevenday.page.eight.close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.activity.sevenday.page.eight.claim.available"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.tab.day-8",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.tab.day-9",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.tab.day-10",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.tab.day-11",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.tab.day-12",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.tab.day-13",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.tab.day-14",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.dynamic-presentation",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.reward-list",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.reward-detail.slot-1",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.reward-detail.slot-2",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.reward-detail.slot-3",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.reward-detail.slot-4",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.claim.unavailable",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.claim.available",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.activity.sevenday.page.eight.claim.available.protocol, mainui.activity.sevenday.page.eight.claim.available.immediate-refresh, mainui.activity.sevenday.page.eight.claim.available.success-popup, mainui.activity.sevenday.page.eight.claim.available.reopen"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.claim.received",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.red-dot",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.close",
+      "parent": "mainui.activity.sevenday.page.eight",
+      "type": "return",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenEightDayView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.claim.available.protocol",
+      "parent": "mainui.activity.sevenday.page.eight.claim.available",
+      "type": "destructive-write",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json"
+      ],
+      "blocked_reason": "17501是真实背包/邮件发奖并持久化领取态的hard-negative；本轮无写事务授权，且三页/配置/单飞/错误/奖励链未闭环。",
+      "note": "禁止添加常量、sender、handler、乐观领取态、本地发奖或盲重试。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.claim.available.immediate-refresh",
+      "parent": "mainui.activity.sevenday.page.eight.claim.available",
+      "type": "read",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "blocked_reason": "只能在权威领取成功链后验证；本轮禁止真实领取，且17501/17503仍为hard-negative。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.claim.available.success-popup",
+      "parent": "mainui.activity.sevenday.page.eight.claim.available",
+      "type": "navigation",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "blocked_reason": "只能在权威领取成功链后验证；本轮禁止真实领取，且17501/17503仍为hard-negative。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.eight.claim.available.reopen",
+      "parent": "mainui.activity.sevenday.page.eight.claim.available",
+      "type": "read",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "blocked_reason": "只能在权威领取成功链后验证；本轮禁止真实领取，且17501/17503仍为hard-negative。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge",
+      "parent": "mainui.activity.sevenday.icon.175_1",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "tab.day-1",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.merge.tab.day-1"
+        },
+        {
+          "id": "tab.day-2",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.merge.tab.day-2"
+        },
+        {
+          "id": "tab.day-3",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.merge.tab.day-3"
+        },
+        {
+          "id": "tab.day-4",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.merge.tab.day-4"
+        },
+        {
+          "id": "tab.day-5",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.merge.tab.day-5"
+        },
+        {
+          "id": "tab.day-6",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.merge.tab.day-6"
+        },
+        {
+          "id": "tab.day-7",
+          "kind": "day-tab",
+          "child": "mainui.activity.sevenday.page.merge.tab.day-7"
+        },
+        {
+          "id": "dynamic-presentation",
+          "kind": "visual-state",
+          "child": "mainui.activity.sevenday.page.merge.dynamic-presentation"
+        },
+        {
+          "id": "reward-list",
+          "kind": "scroll-list",
+          "child": "mainui.activity.sevenday.page.merge.reward-list"
+        },
+        {
+          "id": "reward-detail.slot-1",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.merge.reward-detail.slot-1"
+        },
+        {
+          "id": "reward-detail.slot-2",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.merge.reward-detail.slot-2"
+        },
+        {
+          "id": "reward-detail.slot-3",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.merge.reward-detail.slot-3"
+        },
+        {
+          "id": "reward-detail.slot-4",
+          "kind": "list-item",
+          "child": "mainui.activity.sevenday.page.merge.reward-detail.slot-4"
+        },
+        {
+          "id": "claim.unavailable",
+          "kind": "claim-button-state",
+          "child": "mainui.activity.sevenday.page.merge.claim.unavailable"
+        },
+        {
+          "id": "claim.available",
+          "kind": "claim-button",
+          "child": "mainui.activity.sevenday.page.merge.claim.available"
+        },
+        {
+          "id": "claim.received",
+          "kind": "claim-button-state",
+          "child": "mainui.activity.sevenday.page.merge.claim.received"
+        },
+        {
+          "id": "red-dot",
+          "kind": "red-dot",
+          "child": "mainui.activity.sevenday.page.merge.red-dot"
+        },
+        {
+          "id": "close",
+          "kind": "close-button",
+          "child": "mainui.activity.sevenday.page.merge.close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.activity.sevenday.page.merge.claim.available"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.tab.day-1",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.tab.day-2",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.tab.day-3",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.tab.day-4",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.tab.day-5",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.tab.day-6",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.tab.day-7",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.dynamic-presentation",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.reward-list",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.reward-detail.slot-1",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.reward-detail.slot-2",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.reward-detail.slot-3",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.reward-detail.slot-4",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.claim.unavailable",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.claim.available",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.activity.sevenday.page.merge.claim.available.protocol, mainui.activity.sevenday.page.merge.claim.available.immediate-refresh, mainui.activity.sevenday.page.merge.claim.available.success-popup, mainui.activity.sevenday.page.merge.claim.available.reopen"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.claim.received",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.red-dot",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "read",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.close",
+      "parent": "mainui.activity.sevenday.page.merge",
+      "type": "return",
+      "risk": "read-only",
+      "status": "defect",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "note": "Unity缺少SevenMergeView可编辑Prefab/View/Bind/路由/配置消费者，静态无法承载该叶；真实像素、滚动、特效、cold/warm均未运行。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.claim.available.protocol",
+      "parent": "mainui.activity.sevenday.page.merge.claim.available",
+      "type": "destructive-write",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json"
+      ],
+      "blocked_reason": "17503是真实背包/邮件发奖并持久化领取态的hard-negative；本轮无写事务授权，且三页/配置/单飞/错误/奖励链未闭环。",
+      "note": "禁止添加常量、sender、handler、乐观领取态、本地发奖或盲重试。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.claim.available.immediate-refresh",
+      "parent": "mainui.activity.sevenday.page.merge.claim.available",
+      "type": "read",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "blocked_reason": "只能在权威领取成功链后验证；本轮禁止真实领取，且17501/17503仍为hard-negative。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.claim.available.success-popup",
+      "parent": "mainui.activity.sevenday.page.merge.claim.available",
+      "type": "navigation",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "blocked_reason": "只能在权威领取成功链后验证；本轮禁止真实领取，且17501/17503仍为hard-negative。"
+    },
+    {
+      "id": "mainui.activity.sevenday.page.merge.claim.available.reopen",
+      "parent": "mainui.activity.sevenday.page.merge.claim.available",
+      "type": "read",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/static-reconciliation.json",
+        "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/component-dependencies.json"
+      ],
+      "blocked_reason": "只能在权威领取成功链后验证；本轮禁止真实领取，且17501/17503仍为hard-negative。"
+    }
+  ],
+  "summary": {
+    "total": 79,
+    "status_counts": {
+      "baseline-only": 5,
+      "blocked": 22,
+      "defect": 51,
+      "needs-runtime-verify": 1
+    },
+    "details": {
+      "runtime_policy": "no Unity, no browser, no transaction, no build",
+      "conversion": "blocked-before-convert: no legacy runtime snapshot and Unity execution forbidden"
+    }
+  },
+  "updated_at": "2026-08-09T00:00:00+08:00"
+}

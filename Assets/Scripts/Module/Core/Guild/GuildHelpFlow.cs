@@ -8,8 +8,8 @@ using UnityEngine;
 namespace Shenxiao.Module.Core.Guild
 {
     /// <summary>
-    /// Opens the old-client GuildHelpView entry from MainUI.
-    /// Uses the generated GuildModule safely until a dedicated business View is backfilled.
+    /// Opens the old-client GuildHelpView entry from MainUI and delegates data/interaction to
+    /// <see cref="GuildHelpRuntime"/> while preserving GuildModule.prefab as the visual fact source.
     /// </summary>
     public static class GuildHelpFlow
     {
@@ -18,6 +18,8 @@ namespace Shenxiao.Module.Core.Guild
 
         private static GameObject _moduleRoot;
         private static GuildHelpViewBind _helpView;
+        private static GuildHelpTipsViewBind _tipsView;
+        private static GuildHelpRuntime _runtime;
         private static bool _loading;
 
         public static void Toggle()
@@ -38,10 +40,7 @@ namespace Shenxiao.Module.Core.Guild
 
         public static void Close()
         {
-            if (_helpView != null)
-            {
-                _helpView.Hide();
-            }
+            _runtime?.Close();
         }
 
         private static async Task OpenAsync()
@@ -59,7 +58,8 @@ namespace Shenxiao.Module.Core.Guild
 
             _loading = true;
             string key = GameResPath.GetUIPrefab(MODULE, PREFAB);
-            GameObject root = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Window));
+            // 老端 GuildHelpView/GuildHelpTipsView 都在 Activity 层；Unity 等价层为 Popup，必须高于主窗。
+            GameObject root = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Popup));
             _loading = false;
 
             if (root == null)
@@ -83,6 +83,13 @@ namespace Shenxiao.Module.Core.Guild
                 return;
             }
 
+            _tipsView = root.GetComponentInChildren<GuildHelpTipsViewBind>(true);
+            if (_tipsView == null)
+            {
+                GameLog.Warn("Guild", "GuildModule missing GuildHelpTipsViewBind; GuildHelp confirmation remains unavailable.");
+            }
+            _runtime = new GuildHelpRuntime(_helpView, _tipsView);
+
             ShowHelp();
         }
 
@@ -93,29 +100,13 @@ namespace Shenxiao.Module.Core.Guild
                 return;
             }
 
-            _helpView.Show();
-            BindClose();
-            GameLog.Info("Guild", "GuildHelpView opened from MainUI.");
-        }
-
-        private static void BindClose()
-        {
-            if (_helpView == null || _helpView._btn_close == null)
-            {
-                return;
-            }
-
-            if (_helpView.GetType() != typeof(GuildHelpViewBind))
-            {
-                return;
-            }
-
-            UIUtil.ClearClicks(_helpView._btn_close);
-            UIUtil.AddClick(_helpView._btn_close, Close);
+            _runtime?.Show();
+            GameLog.Info("Guild", "GuildHelpView opened from MainUI with 40405/40031/18916 consumers.");
         }
 
         internal static void Reset()
         {
+            _runtime?.Dispose();
             if (_moduleRoot != null)
             {
                 ResManager.ReleaseInstance(_moduleRoot);
@@ -123,6 +114,8 @@ namespace Shenxiao.Module.Core.Guild
 
             _moduleRoot = null;
             _helpView = null;
+            _tipsView = null;
+            _runtime = null;
             _loading = false;
         }
     }

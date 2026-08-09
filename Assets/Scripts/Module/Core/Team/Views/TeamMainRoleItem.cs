@@ -3,6 +3,7 @@ using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.Team;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.Role;
 using UnityEngine;
 
@@ -70,8 +71,7 @@ namespace Shenxiao.Module.Core.Team
         }
 
         /// <summary>对标老端 GetOnlineStateImg:自己不显示;在线按同场景比较"附近/远离",离线灰图。
-        /// 简化:老端还把"同为野外场景"也算附近(IsFieldScene),Unity 暂无该判定,先按同 SceneId 精确
-        /// 比较,TODO 待场景系统补齐 IsFieldScene 后对齐。</summary>
+        /// 同场景或双方均为 config_scene.type==1 的野外场景时显示“附近”。</summary>
         private void RefreshOnlineIcon(TeamModel.MemberVo vo, long selfId)
         {
             if (online_img == null) return;
@@ -80,7 +80,10 @@ namespace Shenxiao.Module.Core.Team
             string spriteName;
             if (vo.Online == 1)
             {
-                spriteName = vo.SceneId == RoleModel.Instance.SceneId ? "uirwl_013" : "uirwl_012";
+                int selfSceneId = RoleModel.Instance.SceneId;
+                bool nearby = vo.SceneId == selfSceneId
+                              || (MainUIConfigs.IsFieldScene(vo.SceneId) && MainUIConfigs.IsFieldScene(selfSceneId));
+                spriteName = nearby ? "uirwl_013" : "uirwl_012";
             }
             else
             {

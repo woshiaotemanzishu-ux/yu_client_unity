@@ -1,0 +1,1007 @@
+{
+  "schema": 6,
+  "route": "mainui.role.person.achievement.v1",
+  "baseline": {
+    "account": "111111",
+    "viewport": "720x1280",
+    "legacy_run": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5",
+    "write_policy": "enumerate-only; 40902 and 40905 are not clicked without current-turn authorization"
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-08_role_achievement/route-manifest-v1.json",
+    "sha256": "f798e9b481b45322993d60b76754f5598d3b97a87564252080e5de24b343e000"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "mainui.role.person.achievement",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "person-achievement-entry",
+          "kind": "button",
+          "child": "mainui.role.person.achievement.open"
+        },
+        {
+          "id": "achievement-window",
+          "kind": "navigation-result",
+          "child": "mainui.role.person.achievement.window"
+        }
+      ],
+      "parent": null,
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.role.person.achievement.window"
+    },
+    {
+      "id": "mainui.role.person.achievement.open",
+      "parent": "mainui.role.person.achievement",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/route_summary.json",
+          "sha256": "776b08b59710de2a10fc9ff4fb94cac1dc5ead751d8ff865d22d09aa8cf99d3e"
+        },
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/config_audit_v3.json",
+          "sha256": "d870f59ed8c2fcd25d97bc5b045eada59a3d2f6646a460a695ba7574e57883ba"
+        }
+      ],
+      "runtime_gap": "Need current-source Unity click from Person _Group2 to AchvEnterView and target identity/cold timing evidence.",
+      "note": "Old H5 route opens the real achievement window; Unity entry and router registration pass static audit."
+    },
+    {
+      "id": "mainui.role.person.achievement.window",
+      "parent": "mainui.role.person.achievement",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "ready-state",
+          "kind": "state",
+          "child": "mainui.role.person.achievement.window.ready"
+        },
+        {
+          "id": "achievement-tabs",
+          "kind": "tab-strip",
+          "child": "mainui.role.person.achievement.window.tabs"
+        },
+        {
+          "id": "detail-scroll",
+          "kind": "scroll-container",
+          "child": "mainui.role.person.achievement.window.detail-scroll"
+        },
+        {
+          "id": "entry-claim",
+          "kind": "conditional-button",
+          "child": "mainui.role.person.achievement.window.entry-claim"
+        },
+        {
+          "id": "shared-reward-item",
+          "kind": "shared-component",
+          "child": "mainui.role.person.achievement.window.shared-award"
+        },
+        {
+          "id": "achievement-return",
+          "kind": "button",
+          "child": "mainui.role.person.achievement.window.return"
+        },
+        {
+          "id": "warm-reopen",
+          "kind": "navigation",
+          "child": "mainui.role.person.achievement.window.warm-reopen"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.role.person.achievement.window.tabs, mainui.role.person.achievement.window.entry-claim"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.ready",
+      "parent": "mainui.role.person.achievement.window",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/30_achievement_350ms.png",
+          "sha256": "f344d1a78ccb1356029cb0125aaaca1e1a55bb9e08324b6a27e2b1080be81615"
+        },
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/31_achievement_1000ms.png",
+          "sha256": "a66d17ed0243ed1a21b90fd1007fec403774d541e5413cecb0ad3bfa34548311"
+        },
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/32_achievement_ready.png",
+          "sha256": "50f1bd34a548e5a0ad4e5d3094963ad55f6047e98ccda8eb8babc164d5976db4"
+        }
+      ],
+      "runtime_gap": "Need Unity screenshots at about 350ms, 1000ms and actual ready; old H5 load states are baseline only."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs",
+      "parent": "mainui.role.person.achievement.window",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "tab-strip-horizontal-scroll",
+          "kind": "scroll-container",
+          "child": "mainui.role.person.achievement.window.tabs.scroll"
+        },
+        {
+          "id": "top-overview",
+          "kind": "tab",
+          "child": "mainui.role.person.achievement.window.tabs.overview"
+        },
+        {
+          "id": "top-personal",
+          "kind": "tab",
+          "child": "mainui.role.person.achievement.window.tabs.personal"
+        },
+        {
+          "id": "top-partner",
+          "kind": "tab",
+          "child": "mainui.role.person.achievement.window.tabs.partner"
+        },
+        {
+          "id": "top-equipment",
+          "kind": "tab",
+          "child": "mainui.role.person.achievement.window.tabs.equipment"
+        },
+        {
+          "id": "top-social",
+          "kind": "tab",
+          "child": "mainui.role.person.achievement.window.tabs.social"
+        },
+        {
+          "id": "top-daily",
+          "kind": "tab",
+          "child": "mainui.role.person.achievement.window.tabs.daily"
+        },
+        {
+          "id": "top-journey",
+          "kind": "tab",
+          "child": "mainui.role.person.achievement.window.tabs.journey"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.role.person.achievement.window.tabs.overview"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.scroll",
+      "parent": "mainui.role.person.achievement.window.tabs",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/route_summary.json",
+          "sha256": "776b08b59710de2a10fc9ff4fb94cac1dc5ead751d8ff865d22d09aa8cf99d3e"
+        }
+      ],
+      "runtime_gap": "Need Unity GraphicRaycaster horizontal drag, nonzero content delta and last top tab reachability."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.overview",
+      "parent": "mainui.role.person.achievement.window.tabs",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.role.person.achievement.window.tabs.overview.content"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.overview.content",
+      "parent": "mainui.role.person.achievement.window.tabs.overview",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "stage-progress",
+          "kind": "state",
+          "child": "mainui.role.person.achievement.window.tabs.overview.content.stage"
+        },
+        {
+          "id": "stage-attributes",
+          "kind": "state-list",
+          "child": "mainui.role.person.achievement.window.tabs.overview.content.attributes"
+        },
+        {
+          "id": "six-type-progress",
+          "kind": "state-list",
+          "child": "mainui.role.person.achievement.window.tabs.overview.content.types"
+        },
+        {
+          "id": "overview-achievement-rows",
+          "kind": "list",
+          "child": "mainui.role.person.achievement.window.tabs.overview.content.rows"
+        },
+        {
+          "id": "overview-scroll",
+          "kind": "scroll-container",
+          "child": "mainui.role.person.achievement.window.tabs.overview.content.scroll"
+        },
+        {
+          "id": "stage-claim",
+          "kind": "conditional-button",
+          "child": "mainui.role.person.achievement.window.tabs.overview.content.stage-claim"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.role.person.achievement.window.tabs.overview.content.stage-claim"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.overview.content.stage",
+      "parent": "mainui.role.person.achievement.window.tabs.overview.content",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/40_top_1.png",
+          "sha256": "3a0364a11b07ab608fa7664bd78f680fbb98c9e7da5e145c1c26ff44d2101634"
+        },
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/config_audit_v3.json",
+          "sha256": "d870f59ed8c2fcd25d97bc5b045eada59a3d2f6646a460a695ba7574e57883ba"
+        }
+      ],
+      "runtime_gap": "Need Unity authoritative 40901/40906 values, stage progress fill and total points rendering."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.overview.content.attributes",
+      "parent": "mainui.role.person.achievement.window.tabs.overview.content",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/40_top_1.png",
+          "sha256": "3a0364a11b07ab608fa7664bd78f680fbb98c9e7da5e145c1c26ff44d2101634"
+        },
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/config_audit_v3.json",
+          "sha256": "d870f59ed8c2fcd25d97bc5b045eada59a3d2f6646a460a695ba7574e57883ba"
+        }
+      ],
+      "runtime_gap": "Need Unity current/next stage attribute rows with no overlap and correct formatting."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.overview.content.types",
+      "parent": "mainui.role.person.achievement.window.tabs.overview.content",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/40_top_1.png",
+          "sha256": "3a0364a11b07ab608fa7664bd78f680fbb98c9e7da5e145c1c26ff44d2101634"
+        },
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/config_audit_v3.json",
+          "sha256": "d870f59ed8c2fcd25d97bc5b045eada59a3d2f6646a460a695ba7574e57883ba"
+        }
+      ],
+      "runtime_gap": "Need Unity six type progress cards bound to 40908 and same-build visual comparison."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.overview.content.rows",
+      "parent": "mainui.role.person.achievement.window.tabs.overview.content",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/40_top_1.png",
+          "sha256": "3a0364a11b07ab608fa7664bd78f680fbb98c9e7da5e145c1c26ff44d2101634"
+        },
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/route_summary.json",
+          "sha256": "776b08b59710de2a10fc9ff4fb94cac1dc5ead751d8ff865d22d09aa8cf99d3e"
+        }
+      ],
+      "runtime_gap": "Need Unity 40909 category 1 full chain, reward/state rows and current account values."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.overview.content.scroll",
+      "parent": "mainui.role.person.achievement.window.tabs.overview.content",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/40_top_1.png",
+          "sha256": "3a0364a11b07ab608fa7664bd78f680fbb98c9e7da5e145c1c26ff44d2101634"
+        }
+      ],
+      "runtime_gap": "Need Unity ScrollRect/Viewport/Content structure and a real drag reaching the last overview row."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.overview.content.stage-claim",
+      "parent": "mainui.role.person.achievement.window.tabs.overview.content",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/route_summary.json",
+          "sha256": "776b08b59710de2a10fc9ff4fb94cac1dc5ead751d8ff865d22d09aa8cf99d3e"
+        },
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/config_audit_v3.json",
+          "sha256": "d870f59ed8c2fcd25d97bc5b045eada59a3d2f6646a460a695ba7574e57883ba"
+        }
+      ],
+      "blocked_reason": "40902 permanently advances achievement stage and grants rewards; no current-turn account-write authorization. Code is wired and single-flight remains locked until 40901/40907 authority refresh, but no real transaction was sent."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.personal",
+      "parent": "mainui.role.person.achievement.window.tabs",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.achievement.window.tabs.personal.character, mainui.role.person.achievement.window.tabs.personal.fashion, mainui.role.person.achievement.window.tabs.personal.soul, mainui.role.person.achievement.window.tabs.personal.compose"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.personal.character",
+      "parent": "mainui.role.person.achievement.window.tabs.personal",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.achievement.window.tabs.personal.character.list"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.personal.character.list",
+      "parent": "mainui.role.person.achievement.window.tabs.personal.character",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/50_top_2_sub_1.png",
+          "sha256": "b797467936d111603e3dd2df660b823b626d6a3314f6e7453fdcfc0c024db9ef"
+        }
+      ],
+      "runtime_gap": "Need Unity 个人成长/人物 click, list rows, states and rewards."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.personal.fashion",
+      "parent": "mainui.role.person.achievement.window.tabs.personal",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.achievement.window.tabs.personal.fashion.list"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.personal.fashion.list",
+      "parent": "mainui.role.person.achievement.window.tabs.personal.fashion",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/50_top_2_sub_2.png",
+          "sha256": "7598869ad8e6c112ad91ca9ac11c772763b5a452b5a2a9d53686b3f8994b9645"
+        }
+      ],
+      "runtime_gap": "Need Unity 个人成长/时装 click, list rows, states and rewards."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.personal.soul",
+      "parent": "mainui.role.person.achievement.window.tabs.personal",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.achievement.window.tabs.personal.soul.list"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.personal.soul.list",
+      "parent": "mainui.role.person.achievement.window.tabs.personal.soul",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/50_top_2_sub_3.png",
+          "sha256": "01d7914418b6cc080494999081399788ce743a666c5cda9b0239d77d6b49c3bb"
+        }
+      ],
+      "runtime_gap": "Need Unity 个人成长/灵魄 click, list rows, states and rewards."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.personal.compose",
+      "parent": "mainui.role.person.achievement.window.tabs.personal",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.achievement.window.tabs.personal.compose.list"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.personal.compose.list",
+      "parent": "mainui.role.person.achievement.window.tabs.personal.compose",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/50_top_2_sub_4.png",
+          "sha256": "b34236a3501ac4de337503dc3605ca14df358a707c4b996d0230a4846eef6a8a"
+        }
+      ],
+      "runtime_gap": "Need Unity 个人成长/合成 click, list rows, states and rewards."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.partner",
+      "parent": "mainui.role.person.achievement.window.tabs",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.achievement.window.tabs.partner.cultivate"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.partner.cultivate",
+      "parent": "mainui.role.person.achievement.window.tabs.partner",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.achievement.window.tabs.partner.cultivate.list"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.partner.cultivate.list",
+      "parent": "mainui.role.person.achievement.window.tabs.partner.cultivate",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/50_top_3_sub_1.png",
+          "sha256": "b267f6a4354fd5908fab3c318cc85185558547be33c06674e37e19345f89cf0f"
+        },
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/51_top_3_sub_1_scrolled.png",
+          "sha256": "322031f97040bcf5291d24bed3f003b2c07a4c7886ac1cce58f41d877b156de5"
+        }
+      ],
+      "runtime_gap": "Need Unity 伙伴培养/培养 list and real drag to its last row."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.equipment",
+      "parent": "mainui.role.person.achievement.window.tabs",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.achievement.window.tabs.equipment.forge, mainui.role.person.achievement.window.tabs.equipment.wear, mainui.role.person.achievement.window.tabs.equipment.resonance"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.equipment.forge",
+      "parent": "mainui.role.person.achievement.window.tabs.equipment",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.achievement.window.tabs.equipment.forge.list"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.equipment.forge.list",
+      "parent": "mainui.role.person.achievement.window.tabs.equipment.forge",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/50_top_4_sub_1.png",
+          "sha256": "b201343f4f490c9b662ca0c9ee0411552f49467666d86c90ce31edd78ea46062"
+        }
+      ],
+      "runtime_gap": "Need Unity 装备打造/打造 click, list rows, states and rewards."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.equipment.wear",
+      "parent": "mainui.role.person.achievement.window.tabs.equipment",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.achievement.window.tabs.equipment.wear.list"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.equipment.wear.list",
+      "parent": "mainui.role.person.achievement.window.tabs.equipment.wear",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/50_top_4_sub_2.png",
+          "sha256": "4e6dfeaed5f684aaed86f34dccde1986e07bcfc773cadc4f87c17fda476cddeb"
+        }
+      ],
+      "runtime_gap": "Need Unity 装备打造/穿戴 click, list rows, states and rewards."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.equipment.resonance",
+      "parent": "mainui.role.person.achievement.window.tabs.equipment",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.achievement.window.tabs.equipment.resonance.list"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.equipment.resonance.list",
+      "parent": "mainui.role.person.achievement.window.tabs.equipment.resonance",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/50_top_4_sub_3.png",
+          "sha256": "3d747ab2f3214ff6d3c1f4034585e9ee58155a94690e726e60c77b3f29591663"
+        }
+      ],
+      "runtime_gap": "Need Unity 装备打造/共鸣 click, list rows, states and rewards."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.social",
+      "parent": "mainui.role.person.achievement.window.tabs",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.achievement.window.tabs.social.friend, mainui.role.person.achievement.window.tabs.social.guild"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.social.friend",
+      "parent": "mainui.role.person.achievement.window.tabs.social",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.achievement.window.tabs.social.friend.list"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.social.friend.list",
+      "parent": "mainui.role.person.achievement.window.tabs.social.friend",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/50_top_5_sub_1.png",
+          "sha256": "a066ef3883a33af8083095eae06b366a3f284f3a37c682d86cfdf5b069b0cfb0"
+        }
+      ],
+      "runtime_gap": "Need Unity 社交活动/交友 click, list rows, states and rewards."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.social.guild",
+      "parent": "mainui.role.person.achievement.window.tabs.social",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.achievement.window.tabs.social.guild.list"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.social.guild.list",
+      "parent": "mainui.role.person.achievement.window.tabs.social.guild",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/50_top_5_sub_2.png",
+          "sha256": "e5c62d391be9f00141c9e0b1265cacd4cb0519a580ca13e41a5b5ca39d22e4bb"
+        }
+      ],
+      "runtime_gap": "Need Unity 社交活动/结社 click, list rows, states and rewards."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.daily",
+      "parent": "mainui.role.person.achievement.window.tabs",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.achievement.window.tabs.daily.routine, mainui.role.person.achievement.window.tabs.daily.wealth"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.daily.routine",
+      "parent": "mainui.role.person.achievement.window.tabs.daily",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.achievement.window.tabs.daily.routine.list"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.daily.routine.list",
+      "parent": "mainui.role.person.achievement.window.tabs.daily.routine",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/50_top_6_sub_1.png",
+          "sha256": "b4e716f4129c688cb4d0cd204e27a6aa87560a7c6c2bfde16f6c0987f7066362"
+        }
+      ],
+      "runtime_gap": "Need Unity 日常活跃/日常 click, list rows, states and rewards."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.daily.wealth",
+      "parent": "mainui.role.person.achievement.window.tabs.daily",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.achievement.window.tabs.daily.wealth.list"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.daily.wealth.list",
+      "parent": "mainui.role.person.achievement.window.tabs.daily.wealth",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/50_top_6_sub_2.png",
+          "sha256": "44158d3bc6c981f8f0ea3e6cbe36bb5cb26e41450888254c07853f7b4b4c9d9e"
+        }
+      ],
+      "runtime_gap": "Need Unity 日常活跃/财富 click, list rows, states and rewards."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.journey",
+      "parent": "mainui.role.person.achievement.window.tabs",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.achievement.window.tabs.journey.activity, mainui.role.person.achievement.window.tabs.journey.dungeon, mainui.role.person.achievement.window.tabs.journey.demon"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.journey.activity",
+      "parent": "mainui.role.person.achievement.window.tabs.journey",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.achievement.window.tabs.journey.activity.list"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.journey.activity.list",
+      "parent": "mainui.role.person.achievement.window.tabs.journey.activity",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/50_top_7_sub_1.png",
+          "sha256": "470626e3baff8a4c3df582dfdfd5282a4f42117e3503cbfcd73db642b7d76ced"
+        }
+      ],
+      "runtime_gap": "Need Unity 精彩历程/活动 click, list rows, states and rewards."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.journey.dungeon",
+      "parent": "mainui.role.person.achievement.window.tabs.journey",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.achievement.window.tabs.journey.dungeon.list"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.journey.dungeon.list",
+      "parent": "mainui.role.person.achievement.window.tabs.journey.dungeon",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/50_top_7_sub_2.png",
+          "sha256": "6d9fc2f73e5286647742db4b564f866bd4d5f1669971cf908f46494e790c94b5"
+        }
+      ],
+      "runtime_gap": "Need Unity 精彩历程/副本 click, list rows, states and rewards."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.journey.demon",
+      "parent": "mainui.role.person.achievement.window.tabs.journey",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.achievement.window.tabs.journey.demon.list"
+    },
+    {
+      "id": "mainui.role.person.achievement.window.tabs.journey.demon.list",
+      "parent": "mainui.role.person.achievement.window.tabs.journey.demon",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/50_top_7_sub_3.png",
+          "sha256": "40fdae61a0d7109b82e9a94947a8a3386f1f843bb2e503d593e72e7f4d81a2b0"
+        }
+      ],
+      "runtime_gap": "Need Unity 精彩历程/大妖 click, list rows, states and rewards."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.detail-scroll",
+      "parent": "mainui.role.person.achievement.window",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/51_top_3_sub_1_scrolled.png",
+          "sha256": "322031f97040bcf5291d24bed3f003b2c07a4c7886ac1cce58f41d877b156de5"
+        },
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/config_audit_v3.json",
+          "sha256": "d870f59ed8c2fcd25d97bc5b045eada59a3d2f6646a460a695ba7574e57883ba"
+        }
+      ],
+      "runtime_gap": "Need Unity ScrollRect -> masked viewport -> content structure, nonzero raycast drag and last row reachability."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.entry-claim",
+      "parent": "mainui.role.person.achievement.window",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/route_summary.json",
+          "sha256": "776b08b59710de2a10fc9ff4fb94cac1dc5ead751d8ff865d22d09aa8cf99d3e"
+        },
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/config_audit_v3.json",
+          "sha256": "d870f59ed8c2fcd25d97bc5b045eada59a3d2f6646a460a695ba7574e57883ba"
+        }
+      ],
+      "blocked_reason": "40905 permanently grants a reward and advances that achievement chain; no current-turn account-write authorization. Code is wired and remains single-flight until 40903/40909 authority refresh, but no real transaction was sent."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.shared-award",
+      "parent": "mainui.role.person.achievement.window",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/config_audit_v3.json",
+          "sha256": "d870f59ed8c2fcd25d97bc5b045eada59a3d2f6646a460a695ba7574e57883ba"
+        }
+      ],
+      "runtime_gap": "Shared BaseAwardItem GUID/instance chain passes static audit; need Unity reward rendering and representative item-detail interaction."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.return",
+      "parent": "mainui.role.person.achievement.window",
+      "type": "return",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/60_return_to_role.png",
+          "sha256": "7e17b26a30629ae5e9dcd969c0d878bd6150ce22677ed1c44b5008442fa297ba"
+        }
+      ],
+      "runtime_gap": "Need current-source Unity return click and immediate restoration of Person page state."
+    },
+    {
+      "id": "mainui.role.person.achievement.window.warm-reopen",
+      "parent": "mainui.role.person.achievement.window",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/shots/61_warm_reopen.png",
+          "sha256": "fad3173db8b7aea61b3b5fd765350bc516ee5113c964db7207ba2d6f5095b5d8"
+        },
+        {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/old_full_achievement_v5/route_summary.json",
+          "sha256": "776b08b59710de2a10fc9ff4fb94cac1dc5ead751d8ff865d22d09aa8cf99d3e"
+        }
+      ],
+      "runtime_gap": "Old H5 warm reopen is 162ms; need current-source Unity warm timing, current selection and list reset/restore behavior."
+    }
+  ],
+  "summary": {
+    "total": 55,
+    "status_counts": {
+      "blocked": 7,
+      "needs-runtime-verify": 48
+    },
+    "details": {
+      "old_h5": "7 top tabs, 15 sub tabs, read-only traversal complete, 40902/40905 observed and not clicked",
+      "unity": "implementation and offline compile complete; current-source Unity runtime and real Web comparison not executed",
+      "write_boundary": "stage claim and entry claim require current-turn authorization and remain blocked"
+    }
+  },
+  "updated_at": "2026-08-08T16:09:53+08:00"
+}

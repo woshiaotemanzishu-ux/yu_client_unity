@@ -1,0 +1,15 @@
+<Project>
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'Shenxiao.Module.Core'">
+    <!-- Unity has not refreshed the generated csproj for concurrent route files. This target is build-only evidence. -->
+    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\AutoBrush\AutoBrushRankView.cs" />
+    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\Activity\*.cs" />
+    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\Shop\Views\ShopBulkPurchaseView.cs" />
+    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\Guild\GuildHelpRuntime.cs" />
+    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\Guild\GuildJoinRuntime.cs" />
+    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\MainStronger\MainStronger*.cs" />
+    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\Dungeon\Views\DungeonRune\*.cs" />
+    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\Halo\Views\HaloItem.cs" />
+    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\BaseDungeon\BaseDungeonFlow.cs" />
+    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\BaseDungeon\DungeonTower*.cs" />
+  </ItemGroup>
+</Project>

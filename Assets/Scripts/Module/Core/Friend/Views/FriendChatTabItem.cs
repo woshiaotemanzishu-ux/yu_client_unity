@@ -1,3 +1,4 @@
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.Friend;
 using Shenxiao.Module.Core.Chat;
@@ -33,6 +34,16 @@ namespace Shenxiao.Module.Core.Friend
             _roleId = roleId;
             FriendModel.ChatPartnerInfo info = FriendModel.Instance.GetChatPartner(roleId);
             if (_lb_name != null) _lb_name.text = info != null ? info.Name : ("角色" + roleId);
+
+            // 老端 FriendChatTabItem.dataChanged: index==0 使用 uilt_018，其他会话使用
+            // uilt_019。Prefab 默认只保存了 uilt_019，之前忽略 isActive 会让当前会话无选中态。
+            if (_Image1 != null)
+            {
+                _ = ResManager.SetImageAsync(
+                    _Image1,
+                    GameResPath.GetIcon("friend", isActive ? "uilt_018" : "uilt_019"),
+                    nativeSize: false);
+            }
 
             RefreshRedDot();
             _ = LoadHead(roleId, info);

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Shenxiao.Common.Tips;
 using Shenxiao.Generated.UI.Friend;
 using Shenxiao.Framework.Event;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using TMPro;
@@ -15,8 +16,7 @@ namespace Shenxiao.Module.Core.Friend
     /// rela==1(好友):查看信息/开始聊天/赠礼给TA/删除好友/拉入黑名单;rela==3或4(黑名单):查看信息/解除黑名单;
     /// 其余(陌生人):查看信息/加为好友/赠礼给TA/拉入黑名单。打开即发 14010(菜单数据,自身节流)。
     ///
-    /// 简化:老端按点击处 stageX/stageY 精确定位菜单框,本轮未做屏幕坐标→画布本地坐标换算,菜单固定显示在
-    /// prefab 默认位置(TODO)。"赠礼给TA"(MarriageFlowerView)/"举报头像"(CustomRoleHead)两按钮功能未移植,
+    /// "赠礼给TA"(MarriageFlowerView)/"举报头像"(CustomRoleHead)两按钮功能未移植,
     /// 点击仅日志降级。
     /// </summary>
     public sealed class FriendMenuView : FriendMenuViewBind
@@ -28,6 +28,7 @@ namespace Shenxiao.Module.Core.Friend
         }
 
         private FriendModel.FriendVo _vo;
+        private Vector2 _screenPos;
         private readonly List<GameObject> _buttons = new List<GameObject>();
         private bool _subscribed;
 
@@ -35,7 +36,11 @@ namespace Shenxiao.Module.Core.Friend
 
         protected override void OnShow(object args)
         {
-            if (args is OpenArgs oa) _vo = oa.Vo;
+            if (args is OpenArgs oa)
+            {
+                _vo = oa.Vo;
+                _screenPos = oa.ScreenPos;
+            }
             if (_vo == null) { Hide(); return; }
 
             Subscribe();
@@ -79,6 +84,10 @@ namespace Shenxiao.Module.Core.Friend
             else if (info.Rela == 3 || info.Rela == 4) labels.AddRange(new[] { "查看信息", "解除黑名单" });
             else labels.AddRange(new[] { "查看信息", "加为好友", "赠礼给TA", "拉入黑名单" });
 
+            // 老端仅当 picture 是该角色上传头像(role_id)时追加“举报头像”。普通系统头像不出现。
+            if (long.TryParse(_vo.Picture, out long pictureRoleId) && pictureRoleId == _vo.RoleId)
+                labels.Add("举报头像");
+
             BuildButtons(labels);
         }
 
@@ -94,8 +103,12 @@ namespace Shenxiao.Module.Core.Friend
                 if (rt != null) rt.sizeDelta = new Vector2(149, 60);
 
                 Image img = go.AddComponent<Image>();
-                img.color = (label == "拉入黑名单" || label == "解除黑名单" || label == "删除好友")
-                    ? new Color(0.55f, 0.16f, 0.16f) : new Color(0.16f, 0.32f, 0.55f);
+                bool isDanger = label == "拉入黑名单" || label == "解除黑名单" || label == "删除好友";
+                img.color = Color.white;
+                _ = ResManager.SetImageAsync(
+                    img,
+                    GameResPath.GetIcon("common", isDanger ? "com_rect_btn3" : "com_rect_btn1"),
+                    nativeSize: false);
 
                 var textGo = new GameObject("Label", typeof(RectTransform));
                 textGo.transform.SetParent(go.transform, false);
@@ -110,6 +123,32 @@ namespace Shenxiao.Module.Core.Friend
                 UIUtil.AddClick(img, () => OnClickButton(label));
                 _buttons.Add(go);
             }
+
+            UpdateMenuGeometry(labels.Count);
+        }
+
+        /// <summary>
+        /// 对标老端 FriendMenuView.initView/updateView：菜单落在触发条目的屏幕位置，背景高度
+        /// 按“按钮数 * 60 + 16”伸缩。先换算到 Window 父容器局部坐标，避免 CanvasScaler
+        /// 下直接把屏幕像素写入 anchoredPosition。
+        /// </summary>
+        private void UpdateMenuGeometry(int buttonCount)
+        {
+            float height = buttonCount * 60f + 16f;
+            if (img_bg != null)
+                img_bg.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+
+            RectTransform rect = transform as RectTransform;
+            RectTransform parent = rect != null ? rect.parent as RectTransform : null;
+            if (rect == null || parent == null) return;
+            rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+
+            Canvas canvas = GetComponentInParent<Canvas>();
+            Camera camera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay
+                ? canvas.worldCamera
+                : null;
+            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(parent, _screenPos, camera, out Vector2 localPoint))
+                rect.anchoredPosition = localPoint;
         }
 
         private void ClearButtons()

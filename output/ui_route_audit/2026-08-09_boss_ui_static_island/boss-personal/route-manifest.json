@@ -1,0 +1,104 @@
+{
+  "route": "mainui.boss.personal",
+  "baseline": {
+    "old_h5_source": "E:/GitProject/yu_client/h5/src/bossPersonal",
+    "unity_prefab": "Assets/Prefabs/UI/BossPersonal/BossPersonalModule.prefab",
+    "unity_runtime": "not-run",
+    "real_web_same_account": "not-run"
+  },
+  "nodes": [
+    {
+      "id": "mainui.boss.personal",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        {"id":"entry","kind":"main-boss-navigation","child":"mainui.boss.personal.entry"},
+        {"id":"identity","kind":"page-identity-layout","child":"mainui.boss.personal.identity"},
+        {"id":"state","kind":"61020-authoritative-state","child":"mainui.boss.personal.state"},
+        {"id":"boss-list","kind":"horizontal-dungeon-list","child":"mainui.boss.personal.list"},
+        {"id":"boss-model","kind":"dynamic-monster-model","child":"mainui.boss.personal.model"},
+        {"id":"rewards","kind":"career-reward-list","child":"mainui.boss.personal.rewards"},
+        {"id":"drop-log","kind":"drop-record-button","child":"mainui.boss.personal.drop-log"},
+        {"id":"soul-shop","kind":"conditional-soul-shop-button","child":"mainui.boss.personal.soul-shop"},
+        {"id":"times","kind":"remaining-attempt-state","child":"mainui.boss.personal.times"},
+        {"id":"ticket","kind":"conditional-ticket-row","child":"mainui.boss.personal.ticket"},
+        {"id":"vip-add","kind":"add-attempt-popup","child":"mainui.boss.personal.vip-add"},
+        {"id":"challenge","kind":"enter-dungeon-button","child":"mainui.boss.personal.challenge"},
+        {"id":"conditions","kind":"level-vip-card-ticket-first-state","child":"mainui.boss.personal.conditions"},
+        {"id":"lifecycle","kind":"update-hide-reopen-lifecycle","child":"mainui.boss.personal.lifecycle"},
+        {"id":"presentation","kind":"visual-effect-performance","child":"mainui.boss.personal.presentation"}
+      ],
+      "note": "老端 BossPersonalEnterView 的完整页面路线；专属大妖通过 Dungeon 61020/61001，不走 Boss 46003。"
+    },
+    {"id":"mainui.boss.personal.entry","type":"navigation","risk":"read-only","parent":"mainui.boss.personal"},
+    {"id":"mainui.boss.personal.identity","type":"read","risk":"read-only","parent":"mainui.boss.personal"},
+    {"id":"mainui.boss.personal.state","type":"read","risk":"read-only","parent":"mainui.boss.personal"},
+    {
+      "id":"mainui.boss.personal.list","type":"page","risk":"read-only","parent":"mainui.boss.personal",
+      "control_inventory":[
+        {"id":"scroll","kind":"horizontal-scroll-and-arrows","child":"mainui.boss.personal.list.scroll"},
+        {"id":"select","kind":"per-dungeon-item-click","child":"mainui.boss.personal.list.select"},
+        {"id":"selected","kind":"selected-state","child":"mainui.boss.personal.list.selected"},
+        {"id":"locked","kind":"level-locked-state","child":"mainui.boss.personal.list.locked"},
+        {"id":"first","kind":"first-challenge-red-state","child":"mainui.boss.personal.list.first"},
+        {"id":"last","kind":"last-item-reachability","child":"mainui.boss.personal.list.last"}
+      ]
+    },
+    {"id":"mainui.boss.personal.list.scroll","type":"read","risk":"read-only","parent":"mainui.boss.personal.list"},
+    {"id":"mainui.boss.personal.list.select","type":"navigation","risk":"read-only","parent":"mainui.boss.personal.list"},
+    {"id":"mainui.boss.personal.list.selected","type":"read","risk":"read-only","parent":"mainui.boss.personal.list"},
+    {"id":"mainui.boss.personal.list.locked","type":"read","risk":"read-only","parent":"mainui.boss.personal.list"},
+    {"id":"mainui.boss.personal.list.first","type":"read","risk":"read-only","parent":"mainui.boss.personal.list"},
+    {"id":"mainui.boss.personal.list.last","type":"read","risk":"read-only","parent":"mainui.boss.personal.list"},
+    {"id":"mainui.boss.personal.model","type":"read","risk":"read-only","parent":"mainui.boss.personal"},
+    {
+      "id":"mainui.boss.personal.rewards","type":"page","risk":"read-only","parent":"mainui.boss.personal",
+      "control_inventory":[
+        {"id":"career-items","kind":"career-filtered-equipment-items","child":"mainui.boss.personal.rewards.items"},
+        {"id":"detail","kind":"equipment-detail-popup","child":"mainui.boss.personal.rewards.detail"},
+        {"id":"scroll","kind":"reward-scroll-last-item","child":"mainui.boss.personal.rewards.scroll"}
+      ]
+    },
+    {"id":"mainui.boss.personal.rewards.items","type":"read","risk":"read-only","parent":"mainui.boss.personal.rewards"},
+    {"id":"mainui.boss.personal.rewards.detail","type":"navigation","risk":"read-only","parent":"mainui.boss.personal.rewards"},
+    {"id":"mainui.boss.personal.rewards.scroll","type":"read","risk":"read-only","parent":"mainui.boss.personal.rewards"},
+    {"id":"mainui.boss.personal.drop-log","type":"navigation","risk":"read-only","parent":"mainui.boss.personal"},
+    {"id":"mainui.boss.personal.soul-shop","type":"navigation","risk":"read-only","parent":"mainui.boss.personal"},
+    {"id":"mainui.boss.personal.times","type":"read","risk":"read-only","parent":"mainui.boss.personal"},
+    {"id":"mainui.boss.personal.ticket","type":"navigation","risk":"read-only","parent":"mainui.boss.personal"},
+    {
+      "id":"mainui.boss.personal.vip-add","type":"page","risk":"read-only","parent":"mainui.boss.personal",
+      "control_inventory":[
+        {"id":"open","kind":"plus-button","child":"mainui.boss.personal.vip-add.open"},
+        {"id":"branch","kind":"vip-svip-conditional-content","child":"mainui.boss.personal.vip-add.branch"},
+        {"id":"go","kind":"vip-navigation","child":"mainui.boss.personal.vip-add.go"},
+        {"id":"close","kind":"popup-close","child":"mainui.boss.personal.vip-add.close"}
+      ]
+    },
+    {"id":"mainui.boss.personal.vip-add.open","type":"navigation","risk":"read-only","parent":"mainui.boss.personal.vip-add"},
+    {"id":"mainui.boss.personal.vip-add.branch","type":"read","risk":"read-only","parent":"mainui.boss.personal.vip-add"},
+    {"id":"mainui.boss.personal.vip-add.go","type":"navigation","risk":"read-only","parent":"mainui.boss.personal.vip-add"},
+    {"id":"mainui.boss.personal.vip-add.close","type":"return","risk":"read-only","parent":"mainui.boss.personal.vip-add"},
+    {
+      "id":"mainui.boss.personal.challenge","type":"page","risk":"reversible-write","parent":"mainui.boss.personal",
+      "control_inventory":[
+        {"id":"first-direct","kind":"first-free-enter","child":"mainui.boss.personal.challenge.first-direct"},
+        {"id":"ticket-alert","kind":"ticket-shortage-popup","child":"mainui.boss.personal.challenge.ticket-alert"},
+        {"id":"alert-close","kind":"popup-close-cancel","child":"mainui.boss.personal.challenge.alert-close"},
+        {"id":"alert-confirm","kind":"popup-confirm-enter-or-vip","child":"mainui.boss.personal.challenge.alert-confirm"},
+        {"id":"enter","kind":"61001-enter-transaction","child":"mainui.boss.personal.challenge.enter"},
+        {"id":"immediate","kind":"success-failure-immediate-state","child":"mainui.boss.personal.challenge.immediate"}
+      ]
+    },
+    {"id":"mainui.boss.personal.challenge.first-direct","type":"transaction","risk":"reversible-write","parent":"mainui.boss.personal.challenge"},
+    {"id":"mainui.boss.personal.challenge.ticket-alert","type":"navigation","risk":"read-only","parent":"mainui.boss.personal.challenge"},
+    {"id":"mainui.boss.personal.challenge.alert-close","type":"return","risk":"read-only","parent":"mainui.boss.personal.challenge"},
+    {"id":"mainui.boss.personal.challenge.alert-confirm","type":"transaction","risk":"reversible-write","parent":"mainui.boss.personal.challenge"},
+    {"id":"mainui.boss.personal.challenge.enter","type":"transaction","risk":"reversible-write","parent":"mainui.boss.personal.challenge"},
+    {"id":"mainui.boss.personal.challenge.immediate","type":"read","risk":"read-only","parent":"mainui.boss.personal.challenge"},
+    {"id":"mainui.boss.personal.conditions","type":"read","risk":"read-only","parent":"mainui.boss.personal"},
+    {"id":"mainui.boss.personal.lifecycle","type":"read","risk":"read-only","parent":"mainui.boss.personal"},
+    {"id":"mainui.boss.personal.presentation","type":"read","risk":"read-only","parent":"mainui.boss.personal"}
+  ]
+}

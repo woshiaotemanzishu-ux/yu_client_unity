@@ -1,0 +1,547 @@
+{
+  "schema": 6,
+  "route": "autobrush.gubao.monster.static-v1",
+  "baseline": {
+    "observed_at": "2026-08-09T00:00:00+08:00",
+    "evidence_level": "static-three-way-reconciliation-only",
+    "legacy_parent": "AutoBrushBaseView",
+    "legacy_page": "MonsterMainView",
+    "legacy_tab": "EnumAutoBrushTabType.eSoap",
+    "legacy_task_entry": "TaskTipType.ActiveSoap (89)",
+    "unity_entry": "TaskModel TIP_ACTIVE_SOAP -> GuBaoShellView.Show",
+    "unity_page": "GuBaoShellView(TempShell), runtime-created uGUI without editable Prefab",
+    "scope_boundary": "Only GuBao-owned code and this output directory are in scope; AutoBrush, Task, shared views, configs, models and resources are read-only dependencies",
+    "runtime_boundary": "Unity, browser, build, real account, GM and write transactions are prohibited for this batch"
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_gubao_monster_static_v1/route-manifest.json",
+    "sha256": "9a76ba08dbb65ef6d31cde2c7db58f7f8a8e0e7d0d008a10398eab5aa4f9f794"
+  },
+  "verification_runs": {
+    "static-20260809-gubao-monster": {
+      "recorded_at": "2026-08-09T16:20:00+08:00",
+      "environment": "static",
+      "git_commit": "92b3f5578a90befb85a6255157f08e482214aa1a",
+      "dirty_fingerprint": "5bfd0c05c568c3d1a6822518f5c1b425cfdb6008e39f68c974887d88137cc841",
+      "report": {
+        "path": "output/ui_route_audit/2026-08-09_gubao_monster_static_v1/static-reconciliation.md",
+        "sha256": "20ae0d1c48b84cf330248ec877fd76fbe974c7b7384687f1221251de633201b0"
+      }
+    }
+  },
+  "nodes": [
+    {
+      "id": "autobrush.gubao.monster",
+      "type": "page",
+      "risk": "read-only",
+      "note": "Old MonsterMainView is the GuBao page inside AutoBrushBaseView; Unity currently exposes only a hard-coded temporary shell.",
+      "control_inventory": [
+        {
+          "id": "parent-tab",
+          "kind": "tab",
+          "child": "autobrush.gubao.monster.parent-tab"
+        },
+        {
+          "id": "parent-return",
+          "kind": "button",
+          "child": "autobrush.gubao.monster.parent-return"
+        },
+        {
+          "id": "properties",
+          "kind": "button",
+          "child": "autobrush.gubao.monster.properties"
+        },
+        {
+          "id": "previous-soap",
+          "kind": "button",
+          "child": "autobrush.gubao.monster.previous-soap"
+        },
+        {
+          "id": "next-soap",
+          "kind": "button",
+          "child": "autobrush.gubao.monster.next-soap"
+        },
+        {
+          "id": "soap-state",
+          "kind": "conditional",
+          "child": "autobrush.gubao.monster.soap-state"
+        },
+        {
+          "id": "fragment-list",
+          "kind": "list",
+          "child": "autobrush.gubao.monster.fragment-list"
+        },
+        {
+          "id": "fragment-detail",
+          "kind": "conditional-page",
+          "child": "autobrush.gubao.monster.fragment-detail"
+        },
+        {
+          "id": "total-attributes",
+          "kind": "list",
+          "child": "autobrush.gubao.monster.total-attributes"
+        },
+        {
+          "id": "inactive-jump",
+          "kind": "button",
+          "child": "autobrush.gubao.monster.inactive-jump"
+        },
+        {
+          "id": "combat",
+          "kind": "read",
+          "child": "autobrush.gubao.monster.combat"
+        },
+        {
+          "id": "model",
+          "kind": "dynamic-render",
+          "child": "autobrush.gubao.monster.model"
+        },
+        {
+          "id": "guide-red-state",
+          "kind": "conditional",
+          "child": "autobrush.gubao.monster.guide-red-state"
+        },
+        {
+          "id": "protocol-state",
+          "kind": "conditional",
+          "child": "autobrush.gubao.monster.protocol-state"
+        },
+        {
+          "id": "full-activation-result",
+          "kind": "conditional-popup",
+          "child": "autobrush.gubao.monster.full-activation-result"
+        }
+      ],
+      "parent": null,
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: autobrush.gubao.monster.parent-tab, autobrush.gubao.monster.parent-return, autobrush.gubao.monster.properties, autobrush.gubao.monster.previous-soap, autobrush.gubao.monster.next-soap, autobrush.gubao.monster.soap-state, autobrush.gubao.monster.fragment-list, autobrush.gubao.monster.fragment-detail, autobrush.gubao.monster.total-attributes, autobrush.gubao.monster.inactive-jump, autobrush.gubao.monster.combat, autobrush.gubao.monster.model, autobrush.gubao.monster.guide-red-state, autobrush.gubao.monster.protocol-state, autobrush.gubao.monster.full-activation-result"
+    },
+    {
+      "id": "autobrush.gubao.monster.parent-tab",
+      "parent": "autobrush.gubao.monster",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "Static parent/tab identity is reconciled; click, return and cold/warm behavior are NVR.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "AutoBrushBaseView parent tab is a forbidden shared dependency; no Unity/browser runtime was authorized."
+    },
+    {
+      "id": "autobrush.gubao.monster.parent-return",
+      "parent": "autobrush.gubao.monster",
+      "type": "return",
+      "risk": "read-only",
+      "note": "Static return ownership is known; no shared file was changed.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "The shared BaseWindowComponent return chain is outside the GuBao island and runtime verification is prohibited."
+    },
+    {
+      "id": "autobrush.gubao.monster.properties",
+      "parent": "autobrush.gubao.monster",
+      "type": "page",
+      "risk": "read-only",
+      "note": "attrImg opens Activity-layer MonsterPropertyView with background-click close.",
+      "control_inventory": [
+        {
+          "id": "attribute-list",
+          "kind": "scroll-list",
+          "child": "autobrush.gubao.monster.properties.attribute-list"
+        },
+        {
+          "id": "empty-state",
+          "kind": "conditional",
+          "child": "autobrush.gubao.monster.properties.empty-state"
+        },
+        {
+          "id": "backdrop-close",
+          "kind": "button",
+          "child": "autobrush.gubao.monster.properties.backdrop-close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: autobrush.gubao.monster.properties.attribute-list, autobrush.gubao.monster.properties.empty-state, autobrush.gubao.monster.properties.backdrop-close"
+    },
+    {
+      "id": "autobrush.gubao.monster.properties.attribute-list",
+      "parent": "autobrush.gubao.monster.properties",
+      "type": "read",
+      "risk": "read-only",
+      "note": "Legacy vertical list and aggregate attribute source were statically enumerated.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "MonsterPropertyView has no GuBao-owned Unity Prefab and depends on a shared scroll/item chain; runtime scrolling is prohibited."
+    },
+    {
+      "id": "autobrush.gubao.monster.properties.empty-state",
+      "parent": "autobrush.gubao.monster.properties",
+      "type": "read",
+      "risk": "read-only",
+      "note": "Legacy mutual visibility of attrsList and none_conta is recorded.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "The popup is absent in Unity and empty/non-empty account states cannot be exercised in this static-only batch."
+    },
+    {
+      "id": "autobrush.gubao.monster.properties.backdrop-close",
+      "parent": "autobrush.gubao.monster.properties",
+      "type": "return",
+      "risk": "read-only",
+      "note": "Legacy click_bg_toClose behavior was statically confirmed.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "The Activity-layer popup and backdrop are absent in Unity; real click/return verification is prohibited."
+    },
+    {
+      "id": "autobrush.gubao.monster.previous-soap",
+      "parent": "autobrush.gubao.monster",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "Legacy first-boundary visibility and left red-dot search are recorded.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Unity temporary shell has no soap carousel and the dynamic 26-soap state cannot be runtime verified."
+    },
+    {
+      "id": "autobrush.gubao.monster.next-soap",
+      "parent": "autobrush.gubao.monster",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "Legacy last-boundary visibility and right red-dot search are recorded.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Unity temporary shell has no soap carousel and the dynamic 26-soap state cannot be runtime verified."
+    },
+    {
+      "id": "autobrush.gubao.monster.soap-state",
+      "parent": "autobrush.gubao.monster",
+      "type": "read",
+      "risk": "read-only",
+      "note": "26 soap configs and progress-based show selection were statically reconciled.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "The full dynamic soap UI is missing from Unity; no editable Prefab exists and its resource closure crosses forbidden domains."
+    },
+    {
+      "id": "autobrush.gubao.monster.fragment-list",
+      "parent": "autobrush.gubao.monster",
+      "type": "page",
+      "risk": "read-only",
+      "note": "Two or four MonsterIconItem slots; each item is a clickable fragment selector.",
+      "control_inventory": [
+        {
+          "id": "select-item",
+          "kind": "list-item",
+          "child": "autobrush.gubao.monster.fragment-list.select-item"
+        },
+        {
+          "id": "item-state",
+          "kind": "conditional",
+          "child": "autobrush.gubao.monster.fragment-list.item-state"
+        },
+        {
+          "id": "layout",
+          "kind": "conditional-layout",
+          "child": "autobrush.gubao.monster.fragment-list.layout"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: autobrush.gubao.monster.fragment-list.select-item, autobrush.gubao.monster.fragment-list.item-state, autobrush.gubao.monster.fragment-list.layout"
+    },
+    {
+      "id": "autobrush.gubao.monster.fragment-list.select-item",
+      "parent": "autobrush.gubao.monster.fragment-list",
+      "type": "tab",
+      "risk": "read-only",
+      "note": "TAB_SELECT and selection-to-detail flow were statically traced.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Unity temporary shell lacks the selectable MonsterIconItem component and detail-panel transition; real clicks are prohibited."
+    },
+    {
+      "id": "autobrush.gubao.monster.fragment-list.item-state",
+      "parent": "autobrush.gubao.monster.fragment-list",
+      "type": "read",
+      "risk": "read-only",
+      "note": "Activated, locked, selected and sufficient-material states were enumerated.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Goods icons, gate labels, selection frame and red dots depend on shared Goods/AutoBrush resources outside the GuBao island."
+    },
+    {
+      "id": "autobrush.gubao.monster.fragment-list.layout",
+      "parent": "autobrush.gubao.monster.fragment-list",
+      "type": "read",
+      "risk": "read-only",
+      "note": "The first soap's two centered slots and later four-slot layout were statically identified.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "No editable Unity Prefab exists to hold the old 2/4-slot geometry, and viewport/runtime visual verification is prohibited."
+    },
+    {
+      "id": "autobrush.gubao.monster.fragment-detail",
+      "parent": "autobrush.gubao.monster",
+      "type": "page",
+      "risk": "read-only",
+      "note": "Animated 200 ms fragment panel replaces totalBox after fragment selection.",
+      "control_inventory": [
+        {
+          "id": "return",
+          "kind": "button",
+          "child": "autobrush.gubao.monster.fragment-detail.return"
+        },
+        {
+          "id": "cost-item",
+          "kind": "item",
+          "child": "autobrush.gubao.monster.fragment-detail.cost-item"
+        },
+        {
+          "id": "cost-text",
+          "kind": "conditional-text",
+          "child": "autobrush.gubao.monster.fragment-detail.cost-text"
+        },
+        {
+          "id": "attribute-list",
+          "kind": "list",
+          "child": "autobrush.gubao.monster.fragment-detail.attribute-list"
+        },
+        {
+          "id": "jump",
+          "kind": "button",
+          "child": "autobrush.gubao.monster.fragment-detail.jump"
+        },
+        {
+          "id": "activate",
+          "kind": "button",
+          "child": "autobrush.gubao.monster.fragment-detail.activate"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: autobrush.gubao.monster.fragment-detail.return, autobrush.gubao.monster.fragment-detail.cost-item, autobrush.gubao.monster.fragment-detail.cost-text, autobrush.gubao.monster.fragment-detail.attribute-list, autobrush.gubao.monster.fragment-detail.jump, autobrush.gubao.monster.fragment-detail.activate"
+    },
+    {
+      "id": "autobrush.gubao.monster.fragment-detail.return",
+      "parent": "autobrush.gubao.monster.fragment-detail",
+      "type": "return",
+      "risk": "read-only",
+      "note": "Legacy detail-to-total return behavior is recorded.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Unity temporary shell has no fragment detail panel or its 200 ms transition; runtime click verification is prohibited."
+    },
+    {
+      "id": "autobrush.gubao.monster.fragment-detail.cost-item",
+      "parent": "autobrush.gubao.monster.fragment-detail",
+      "type": "read",
+      "risk": "read-only",
+      "note": "Configured goods identity and 85x85 old item size were statically traced.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "The cost cell uses shared BaseAwardItem/Goods resources outside the GuBao file island."
+    },
+    {
+      "id": "autobrush.gubao.monster.fragment-detail.cost-text",
+      "parent": "autobrush.gubao.monster.fragment-detail",
+      "type": "read",
+      "risk": "read-only",
+      "note": "Owned/required and green/red semantics are recorded.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Live GoodsModel counts and sufficiency colors require shared state and a runtime account, both unavailable in this batch."
+    },
+    {
+      "id": "autobrush.gubao.monster.fragment-detail.attribute-list",
+      "parent": "autobrush.gubao.monster.fragment-detail",
+      "type": "read",
+      "risk": "read-only",
+      "note": "All fragment attr strings are present in the 102-entry config and the old vertical list path is known.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "The detail list is absent from Unity and depends on shared scrolling/item components; no runtime scroll evidence is allowed."
+    },
+    {
+      "id": "autobrush.gubao.monster.fragment-detail.jump",
+      "parent": "autobrush.gubao.monster.fragment-detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "The insufficient-material condition and destination were statically confirmed.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "jumpBox targets forbidden AutoBrushBaseView eAutoBrush and cannot be clicked in this static-only batch."
+    },
+    {
+      "id": "autobrush.gubao.monster.fragment-detail.activate",
+      "parent": "autobrush.gubao.monster.fragment-detail",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "Packet format hh, success/failure branches and expected immediate refresh were statically reconciled only.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "13321 consumes fragment state and is a prohibited real-account write transaction; the complete Prefab and shared dependencies are also absent."
+    },
+    {
+      "id": "autobrush.gubao.monster.total-attributes",
+      "parent": "autobrush.gubao.monster",
+      "type": "read",
+      "risk": "read-only",
+      "note": "Aggregate selected-soap attributes and detail-panel mutual visibility were enumerated.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Unity temporary shell omits totalBox/attrsList, and the shared list implementation is outside the permitted closure."
+    },
+    {
+      "id": "autobrush.gubao.monster.inactive-jump",
+      "parent": "autobrush.gubao.monster",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "Visibility while the current soap is incomplete is statically confirmed.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "jump1Box targets forbidden AutoBrushBaseView eAutoBrush and Unity temporary shell has no equivalent control."
+    },
+    {
+      "id": "autobrush.gubao.monster.combat",
+      "parent": "autobrush.gubao.monster",
+      "type": "read",
+      "risk": "read-only",
+      "note": "Protocol field and post-activation refresh semantics were statically traced.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "The shared FightingShowSmallItem consumer is absent from Unity GuBao UI and no 13320/13321 runtime account was authorized."
+    },
+    {
+      "id": "autobrush.gubao.monster.model",
+      "parent": "autobrush.gubao.monster",
+      "type": "read",
+      "risk": "read-only",
+      "note": "Configured model ids [18,1..20,1] and selection-change cleanup path are static facts only.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "The model chain is shared, outside the GuBao island, and no Unity model RenderTexture/two-frame evidence may be collected."
+    },
+    {
+      "id": "autobrush.gubao.monster.guide-red-state",
+      "parent": "autobrush.gubao.monster",
+      "type": "read",
+      "risk": "read-only",
+      "note": "All known guide and red-dot conditions were recorded without modifying shared files.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "TaskTips, AutoBrush guide steps, GoodsModel and parent-tab red dots are forbidden shared dependencies; runtime state preparation is prohibited."
+    },
+    {
+      "id": "autobrush.gubao.monster.protocol-state",
+      "parent": "autobrush.gubao.monster",
+      "type": "read",
+      "risk": "read-only",
+      "note": "Unity register/decode paths and old-client event paths were statically compared; no packet was sent.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Real 13320/13321 packets, authoritative refresh and close/reopen persistence require a runtime account and include prohibited writes."
+    },
+    {
+      "id": "autobrush.gubao.monster.full-activation-result",
+      "parent": "autobrush.gubao.monster",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "Legacy completion condition, model/name payload and GUBAO type were statically confirmed.",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "OutwardChangedView and its shared model presentation are outside GuBao, and reaching it requires prohibited 13321 write transactions."
+    }
+  ],
+  "summary": {
+    "total": 28,
+    "status_counts": {
+      "blocked": 28
+    }
+  }
+}

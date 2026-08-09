@@ -22,23 +22,32 @@ namespace Shenxiao.Module.Core.Festival
 
         private static GameObject _moduleRoot;
         private static bool _loading;
+        private static bool _wantShown;
+        private static int _requestGeneration;
 
         public static bool IsShown => _moduleRoot != null && _moduleRoot.activeSelf;
 
         public static void Toggle()
         {
-            if (IsShown) { Close(); return; }
-            _ = OpenAsync();
+            if (_wantShown || IsShown) { Close(); return; }
+            Open();
         }
 
-        public static void Open() => _ = OpenAsync();
+        public static void Open()
+        {
+            _wantShown = true;
+            int generation = ++_requestGeneration;
+            _ = OpenAsync(generation);
+        }
 
         public static void Close()
         {
+            _wantShown = false;
+            _requestGeneration++;
             if (_moduleRoot != null) _moduleRoot.SetActive(false);
         }
 
-        private static async Task OpenAsync()
+        private static async Task OpenAsync(int generation)
         {
             FestivalModel.Instance.ClearLoginRedDot();
             ActivityIconManager.Instance.SetIconRedDot(
@@ -47,19 +56,43 @@ namespace Shenxiao.Module.Core.Festival
 
             if (_moduleRoot != null)
             {
-                _moduleRoot.SetActive(true);
+                if (_wantShown && generation == _requestGeneration)
+                {
+                    _moduleRoot.SetActive(true);
+                }
                 return;
             }
 
             if (_loading) return;
             _loading = true;
+            GameObject root = null;
             string key = GameResPath.GetUIPrefab(MODULE, PREFAB);
-            GameObject root = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Window));
-            _loading = false;
+            try
+            {
+                root = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Window));
+            }
+            finally
+            {
+                _loading = false;
+            }
 
             if (root == null)
             {
                 GameLog.Error("Festival", "FestivalModule prefab load failed: {0}", key);
+                if (_wantShown && generation != _requestGeneration)
+                {
+                    _ = OpenAsync(_requestGeneration);
+                }
+                return;
+            }
+
+            if (!_wantShown || generation != _requestGeneration)
+            {
+                ResManager.ReleaseInstance(root);
+                if (_wantShown)
+                {
+                    _ = OpenAsync(_requestGeneration);
+                }
                 return;
             }
 
@@ -71,9 +104,10 @@ namespace Shenxiao.Module.Core.Festival
 
         internal static void Reset()
         {
+            _wantShown = false;
+            _requestGeneration++;
             if (_moduleRoot != null) ResManager.ReleaseInstance(_moduleRoot);
             _moduleRoot = null;
-            _loading = false;
         }
     }
 }

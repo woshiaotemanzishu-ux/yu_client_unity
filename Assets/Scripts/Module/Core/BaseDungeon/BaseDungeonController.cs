@@ -3,6 +3,7 @@ using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.Role;
+using System.Collections.Generic;
 
 namespace Shenxiao.Module.Core.BaseDungeon
 {
@@ -10,11 +11,13 @@ namespace Shenxiao.Module.Core.BaseDungeon
     /// 限时爬塔控制器(对标老客户端 BaseDungeonController 的限时爬塔部分)。进游戏请求 61117 拿爬塔状态;
     /// 回包据 round/over_time/reward_mode 增删主界面限时塔图标(331@97,带倒计时 over_time)。
     /// 等级变化(EVT_ROLE_INFO_UPDATE)复请求 61117(对标老端 CHANGE_LEVEL→RequestLimitTowerData),
-    /// 让达到开放条件后图标及时出现。本期只做图标:副本/爬塔玩法(挑战/扫荡/领取大奖 61118)一律不移植,
-    /// 面板(DungeonTowerBaseView)待用户验收。
+    /// 让达到开放条件后图标及时出现。现有 DungeonTowerModule 已由业务 View 接管，大奖 61118
+    /// 按权威回包接线；关卡挑战、扫荡与战斗场景进入仍属于 Dungeon 跨岛依赖，不在本岛实现。
     /// </summary>
     public sealed class BaseDungeonController : BaseController
     {
+        // pt_611.erl: read/write(61118),请求 Round:u8，回应 Code:i32。
+        private const int TowerBigRewardCommand = 61118;
         public static readonly BaseDungeonController Instance = new BaseDungeonController();
         private BaseDungeonController() { }
 
@@ -26,6 +29,8 @@ namespace Shenxiao.Module.Core.BaseDungeon
         protected override void Register()
         {
             RegisterProtocal(Proto.BASEDUNGEON_TOWER_INFO, On61117);
+            RegisterProtocal(TowerBigRewardCommand, On61118);
+            MainUIRouter.Register(TOWER_ICON_TYPE, BaseDungeonFlow.Toggle);
             // 对标老端 CHANGE_LEVEL→RequestLimitTowerData:等级变化时复请求。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             // ServerClock(轮20 P4)补 DAY_CHANGE 复拉钩子(对标老端 BaseDungeonController.ts:230-240
@@ -42,6 +47,8 @@ namespace Shenxiao.Module.Core.BaseDungeon
             EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
             ActivityIconManager.Instance.SetIconRedDot(TOWER_ICON_TYPE, false);
             ActivityIconManager.Instance.DeleteIcon(TOWER_ICON_TYPE);
+            MainUIRouter.Unregister(TOWER_ICON_TYPE);
+            BaseDungeonFlow.Reset();
             BaseDungeonModel.Instance.Reset();
             _lastLevel = -1;
             base.Dispose();
@@ -61,13 +68,15 @@ namespace Shenxiao.Module.Core.BaseDungeon
             long overTime = r.ReadU32();
             int rewardMode = r.ReadU8();
             int passCount = r.ReadU16();
+            var passedDungeonIds = new List<uint>(passCount);
             for (int i = 0; i < passCount; i++)
             {
-                r.ReadU32(); // pass_list dun_id(已通关关卡,爬塔玩法用,本期图标不需)
+                passedDungeonIds.Add(r.ReadU32());
             }
 
             BaseDungeonModel m = BaseDungeonModel.Instance;
-            m.SetTowerInfo(round, overTime, rewardMode);
+            m.SetTowerInfo(round, overTime, rewardMode, passedDungeonIds);
+            BaseDungeonFlow.RefreshWindowChrome();
             ActivityIconManager.Instance.SetIconRedDot(TOWER_ICON_TYPE, m.HasTowerRewardRedDot());
 
             // 对标老端 AddTowerIcon:活动进行中(over_time>0 且非「已领大奖且本次未持续显示」)则挂图标(带倒计时+轮次图),否则删。
@@ -83,6 +92,29 @@ namespace Shenxiao.Module.Core.BaseDungeon
 
             GameLog.Info("BaseDungeon", "61117 限时爬塔: round={0} over_time={1} reward_mode={2} open={3}",
                 round, overTime, rewardMode, m.GetTowerIconOpenState());
+        }
+
+        /// <summary>大奖按钮正式事务；本轮只做静态接线，未执行账号写入。</summary>
+        public void RequestTowerBigReward()
+        {
+            BaseDungeonModel model = BaseDungeonModel.Instance;
+            if (model.Round <= 0 || model.RewardMode != 1) return;
+            SendFmt(TowerBigRewardCommand, "c", model.Round);
+        }
+
+        private void On61118(NetReader r)
+        {
+            int code = r.ReadI32();
+            if (code != 1)
+            {
+                GameLog.Warn("BaseDungeon", "61118 限时塔大奖领取失败 code={0}", code);
+                return;
+            }
+
+            BaseDungeonModel model = BaseDungeonModel.Instance;
+            model.MarkBigRewardClaimed();
+            ActivityIconManager.Instance.SetIconRedDot(TOWER_ICON_TYPE, false);
+            GameLog.Info("BaseDungeon", "61118 限时塔大奖领取成功 round={0}", model.Round);
         }
 
         // 对标老端:主角等级变化复请求 61117(EVT_ROLE_INFO_UPDATE 亦随经验/货币触发,故只在等级真变时发)。

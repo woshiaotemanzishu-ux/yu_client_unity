@@ -9,5 +9,11 @@ namespace Shenxiao.Module.Core.Map
     /// </summary>
     public sealed class AreaMapWayPonitItem : AreaMapWayPonitItemBind
     {
+        public void SetData(UnityEngine.Vector2 position, bool destination)
+        {
+            if (transform is UnityEngine.RectTransform root) root.anchoredPosition = position;
+            if (point != null) point.gameObject.SetActive(!destination);
+            if (end_pos != null) end_pos.gameObject.SetActive(destination);
+        }
     }
 }

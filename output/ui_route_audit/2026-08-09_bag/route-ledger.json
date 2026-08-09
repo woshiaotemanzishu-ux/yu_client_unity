@@ -1,0 +1,2077 @@
+{
+  "schema": 6,
+  "route": "mainui.bag.window",
+  "baseline": {
+    "authority": "当前老客户端同账号同状态真实运行结果；本轮未启动浏览器或 Unity，仅完成源码、配置、Prefab、Bind、Flow 与协议静态调和",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/bag/BagView.ts",
+      "E:/GitProject/yu_client/h5/src/bag/BagComponentView.ts",
+      "E:/GitProject/yu_client/h5/src/bag/WarehouseView.ts",
+      "E:/GitProject/yu_client/h5/src/bag/ExpandBagView.ts",
+      "E:/GitProject/yu_client/h5/src/bag/BagSmeltView.ts",
+      "E:/GitProject/yu_client/h5/src/bag/SmeltPropView.ts",
+      "E:/GitProject/yu_client/h5/src/bag/OneKeyUseView.ts",
+      "E:/GitProject/yu_client/h5/src/bag/OneKeyTabItem.ts",
+      "E:/GitProject/yu_client/h5/src/bag/OneKeyUseItem.ts",
+      "E:/GitProject/yu_client/h5/src/bag/SelectGiftView.ts",
+      "E:/GitProject/yu_client/h5/src/common/ItemUseView.ts",
+      "E:/GitProject/yu_client/h5/src/commonController/BagController.ts",
+      "E:/GitProject/yu_client/h5/src/commonModel/BagModel.ts",
+      "E:/GitProject/yu_client/h5/src/holySeal/HolySealView.ts",
+      "E:/GitProject/yu_client/h5/src/revelation/RevelationEquipView.ts",
+      "E:/GitProject/yu_client/h5/src/longlanguage/longlanguageView.ts"
+    ],
+    "unity_sources": [
+      "Assets/Prefabs/UI/Bag/BagModule.prefab",
+      "Assets/Prefabs/UI/Bag/BagEquipmentIcon.prefab",
+      "Assets/Scripts/Generated/UI/Bag",
+      "Assets/Scripts/Module/Core/Bag/BagFlow.cs",
+      "Assets/Scripts/Module/Core/Bag/BagController.cs",
+      "Assets/Scripts/Module/Core/Bag/BagModel.cs",
+      "Assets/Scripts/Module/Core/Bag/ItemUseFlow.cs",
+      "Assets/Scripts/Module/Core/Bag/Views"
+    ]
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_bag/route-manifest.json",
+    "sha256": "570054bdf23182922ee6ed61e6ce06654dd9055a07f6a47a86fb3580a547a34d"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "mainui.bag.window",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        {
+          "id": "mainui-bag-entry",
+          "kind": "button",
+          "child": "mainui.bag.window.open"
+        },
+        {
+          "id": "tab-bag",
+          "kind": "tab",
+          "child": "mainui.bag.window.bag"
+        },
+        {
+          "id": "tab-warehouse",
+          "kind": "tab",
+          "child": "mainui.bag.window.warehouse"
+        },
+        {
+          "id": "tab-holy-seal",
+          "kind": "conditional-tab",
+          "child": "mainui.bag.window.holy-seal"
+        },
+        {
+          "id": "tab-revelation",
+          "kind": "tab",
+          "child": "mainui.bag.window.revelation"
+        },
+        {
+          "id": "tab-longlanguage",
+          "kind": "tab",
+          "child": "mainui.bag.window.longlanguage"
+        },
+        {
+          "id": "window-close",
+          "kind": "return",
+          "child": "mainui.bag.window.close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.bag.window.bag, mainui.bag.window.warehouse, mainui.bag.window.holy-seal, mainui.bag.window.revelation, mainui.bag.window.longlanguage"
+    },
+    {
+      "id": "mainui.bag.window.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bag.window",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bag.window",
+      "control_inventory": [
+        {
+          "id": "role-display",
+          "kind": "state-group",
+          "child": "mainui.bag.window.bag.role"
+        },
+        {
+          "id": "bag-grid",
+          "kind": "scroll-list",
+          "child": "mainui.bag.window.bag.grid"
+        },
+        {
+          "id": "one-key-equip",
+          "kind": "button",
+          "child": "mainui.bag.window.bag.one-key-equip"
+        },
+        {
+          "id": "smelt",
+          "kind": "button",
+          "child": "mainui.bag.window.bag.smelt"
+        },
+        {
+          "id": "resonance",
+          "kind": "button",
+          "child": "mainui.bag.window.bag.resonance"
+        },
+        {
+          "id": "expand",
+          "kind": "button",
+          "child": "mainui.bag.window.bag.expand"
+        },
+        {
+          "id": "one-key-use",
+          "kind": "button",
+          "child": "mainui.bag.window.bag.one-key-use"
+        },
+        {
+          "id": "guard-1",
+          "kind": "conditional-button",
+          "child": "mainui.bag.window.bag.guard-1"
+        },
+        {
+          "id": "guard-2",
+          "kind": "conditional-button",
+          "child": "mainui.bag.window.bag.guard-2"
+        },
+        {
+          "id": "dragon-ball",
+          "kind": "conditional-button",
+          "child": "mainui.bag.window.bag.dragon-ball"
+        },
+        {
+          "id": "red-states",
+          "kind": "conditional-state-group",
+          "child": "mainui.bag.window.bag.red-states"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.bag.window.bag.grid, mainui.bag.window.bag.one-key-equip, mainui.bag.window.bag.resonance, mainui.bag.window.bag.guard-1, mainui.bag.window.bag.guard-2, mainui.bag.window.bag.dragon-ball, mainui.bag.window.bag.smelt, mainui.bag.window.bag.expand, mainui.bag.window.bag.one-key-use"
+    },
+    {
+      "id": "mainui.bag.window.bag.role",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag",
+      "control_inventory": [
+        {
+          "id": "role-name-fighting",
+          "kind": "state",
+          "child": "mainui.bag.window.bag.role.summary"
+        },
+        {
+          "id": "role-model",
+          "kind": "model",
+          "child": "mainui.bag.window.bag.role.model"
+        },
+        {
+          "id": "equipment-slots",
+          "kind": "conditional-item-list",
+          "child": "mainui.bag.window.bag.role.equipment-slots"
+        }
+      ],
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.bag.window.bag.role.summary, mainui.bag.window.bag.role.model, mainui.bag.window.bag.role.equipment-slots"
+    },
+    {
+      "id": "mainui.bag.window.bag.role.summary",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.role",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.role.model",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.role",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.role.equipment-slots",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.role",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.grid",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag",
+      "control_inventory": [
+        {
+          "id": "scroll-drag",
+          "kind": "scroll-drag",
+          "child": "mainui.bag.window.bag.grid.scroll"
+        },
+        {
+          "id": "empty-and-filled-slots",
+          "kind": "state-matrix",
+          "child": "mainui.bag.window.bag.grid.slots"
+        },
+        {
+          "id": "item-cell",
+          "kind": "list-item-button",
+          "child": "mainui.bag.window.bag.grid.item-detail"
+        },
+        {
+          "id": "equipment-cell",
+          "kind": "conditional-list-item-button",
+          "child": "mainui.bag.window.bag.grid.equipment-compare"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.bag.window.bag.grid.item-detail, mainui.bag.window.bag.grid.equipment-compare"
+    },
+    {
+      "id": "mainui.bag.window.bag.grid.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.grid",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.grid.slots",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.grid",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.grid.item-detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.grid",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "目标由 Common/Equipment 共享详情或比较窗承载；超出 Bag 独占写入范围，只登记跨岛依赖"
+    },
+    {
+      "id": "mainui.bag.window.bag.grid.equipment-compare",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.grid",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "目标由 Common/Equipment 共享详情或比较窗承载；超出 Bag 独占写入范围，只登记跨岛依赖"
+    },
+    {
+      "id": "mainui.bag.window.bag.one-key-equip",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.bag.window.bag",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "15201 会修改账号物品/容量/穿戴状态；本轮没有真实写事务授权，未执行"
+    },
+    {
+      "id": "mainui.bag.window.bag.resonance",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "目标功能属于共鸣/守护/龙珠跨模块闭包；当前 Bag 入口未形成完整可达链，本轮禁止跨岛修改"
+    },
+    {
+      "id": "mainui.bag.window.bag.guard-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "目标功能属于共鸣/守护/龙珠跨模块闭包；当前 Bag 入口未形成完整可达链，本轮禁止跨岛修改"
+    },
+    {
+      "id": "mainui.bag.window.bag.guard-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "目标功能属于共鸣/守护/龙珠跨模块闭包；当前 Bag 入口未形成完整可达链，本轮禁止跨岛修改"
+    },
+    {
+      "id": "mainui.bag.window.bag.dragon-ball",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "目标功能属于共鸣/守护/龙珠跨模块闭包；当前 Bag 入口未形成完整可达链，本轮禁止跨岛修改"
+    },
+    {
+      "id": "mainui.bag.window.bag.red-states",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.smelt",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag",
+      "control_inventory": [
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.bag.window.bag.smelt.close"
+        },
+        {
+          "id": "modal-background",
+          "kind": "return",
+          "child": "mainui.bag.window.bag.smelt.background-close"
+        },
+        {
+          "id": "item-list",
+          "kind": "scroll-list",
+          "child": "mainui.bag.window.bag.smelt.list-scroll"
+        },
+        {
+          "id": "item-select",
+          "kind": "list-item-toggle",
+          "child": "mainui.bag.window.bag.smelt.item-select"
+        },
+        {
+          "id": "stage-filter",
+          "kind": "dropdown",
+          "child": "mainui.bag.window.bag.smelt.stage-filter"
+        },
+        {
+          "id": "color-filter",
+          "kind": "dropdown",
+          "child": "mainui.bag.window.bag.smelt.color-filter"
+        },
+        {
+          "id": "properties",
+          "kind": "button",
+          "child": "mainui.bag.window.bag.smelt.properties"
+        },
+        {
+          "id": "auto-smelt",
+          "kind": "toggle",
+          "child": "mainui.bag.window.bag.smelt.auto-toggle"
+        },
+        {
+          "id": "one-star",
+          "kind": "toggle",
+          "child": "mainui.bag.window.bag.smelt.one-star-toggle"
+        },
+        {
+          "id": "fuse",
+          "kind": "button",
+          "child": "mainui.bag.window.bag.smelt.fuse"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.bag.window.bag.smelt.stage-filter, mainui.bag.window.bag.smelt.color-filter, mainui.bag.window.bag.smelt.fuse"
+    },
+    {
+      "id": "mainui.bag.window.bag.smelt.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.smelt",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.smelt.background-close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.smelt",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.smelt.list-scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.smelt",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.smelt.item-select",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.bag.window.bag.smelt",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.smelt.stage-filter",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.bag.window.bag.smelt",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "熔炼阶数/颜色下拉模板当前隐藏且无完整筛选交互；需在真实老端状态取证后补 Bag Prefab/Bind/Flow"
+    },
+    {
+      "id": "mainui.bag.window.bag.smelt.color-filter",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.bag.window.bag.smelt",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "熔炼阶数/颜色下拉模板当前隐藏且无完整筛选交互；需在真实老端状态取证后补 Bag Prefab/Bind/Flow"
+    },
+    {
+      "id": "mainui.bag.window.bag.smelt.auto-toggle",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.bag.window.bag.smelt",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.smelt.one-star-toggle",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.bag.window.bag.smelt",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.smelt.fuse",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.bag.window.bag.smelt",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "15025 会修改账号物品/容量/穿戴状态；本轮没有真实写事务授权，未执行"
+    },
+    {
+      "id": "mainui.bag.window.bag.smelt.properties",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.smelt",
+      "control_inventory": [
+        {
+          "id": "attribute-content",
+          "kind": "state",
+          "child": "mainui.bag.window.bag.smelt.properties.content"
+        },
+        {
+          "id": "attribute-scroll",
+          "kind": "scroll-drag",
+          "child": "mainui.bag.window.bag.smelt.properties.scroll"
+        },
+        {
+          "id": "modal-background",
+          "kind": "return",
+          "child": "mainui.bag.window.bag.smelt.properties.close"
+        }
+      ],
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.bag.window.bag.smelt.properties.content, mainui.bag.window.bag.smelt.properties.scroll, mainui.bag.window.bag.smelt.properties.close"
+    },
+    {
+      "id": "mainui.bag.window.bag.smelt.properties.content",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.smelt.properties",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.smelt.properties.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.smelt.properties",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.smelt.properties.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.smelt.properties",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.expand",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag",
+      "control_inventory": [
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.bag.window.bag.expand.close"
+        },
+        {
+          "id": "modal-background",
+          "kind": "return",
+          "child": "mainui.bag.window.bag.expand.background-close"
+        },
+        {
+          "id": "cancel",
+          "kind": "return",
+          "child": "mainui.bag.window.bag.expand.cancel"
+        },
+        {
+          "id": "decrease",
+          "kind": "button",
+          "child": "mainui.bag.window.bag.expand.decrease"
+        },
+        {
+          "id": "increase",
+          "kind": "button",
+          "child": "mainui.bag.window.bag.expand.increase"
+        },
+        {
+          "id": "max",
+          "kind": "button",
+          "child": "mainui.bag.window.bag.expand.max"
+        },
+        {
+          "id": "numeric-input",
+          "kind": "button-input",
+          "child": "mainui.bag.window.bag.expand.calculator"
+        },
+        {
+          "id": "cost-item",
+          "kind": "item-button",
+          "child": "mainui.bag.window.bag.expand.cost-detail"
+        },
+        {
+          "id": "confirm",
+          "kind": "button",
+          "child": "mainui.bag.window.bag.expand.confirm"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.bag.window.bag.expand.calculator, mainui.bag.window.bag.expand.cost-detail, mainui.bag.window.bag.expand.confirm"
+    },
+    {
+      "id": "mainui.bag.window.bag.expand.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.expand",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.expand.background-close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.expand",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.expand.cancel",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.expand",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.expand.decrease",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.bag.window.bag.expand",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.expand.increase",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.bag.window.bag.expand",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.expand.max",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.bag.window.bag.expand",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.expand.calculator",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.expand",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "Unity 仅有生成 CalculatorViewBind，缺当前 Bag 扩容链的可达运行实现；本轮禁止扩展到共享模块"
+    },
+    {
+      "id": "mainui.bag.window.bag.expand.cost-detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.expand",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "目标由 Common/Equipment 共享详情或比较窗承载；超出 Bag 独占写入范围，只登记跨岛依赖"
+    },
+    {
+      "id": "mainui.bag.window.bag.expand.confirm",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.bag.window.bag.expand",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "15002 会修改账号物品/容量/穿戴状态；本轮没有真实写事务授权，未执行"
+    },
+    {
+      "id": "mainui.bag.window.bag.one-key-use",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag",
+      "control_inventory": [
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.bag.window.bag.one-key-use.close"
+        },
+        {
+          "id": "modal-background",
+          "kind": "return",
+          "child": "mainui.bag.window.bag.one-key-use.background-close"
+        },
+        {
+          "id": "categories",
+          "kind": "toggle-list",
+          "child": "mainui.bag.window.bag.one-key-use.categories"
+        },
+        {
+          "id": "item-list",
+          "kind": "scroll-list",
+          "child": "mainui.bag.window.bag.one-key-use.list-scroll"
+        },
+        {
+          "id": "item-select",
+          "kind": "list-item-toggle",
+          "child": "mainui.bag.window.bag.one-key-use.item-select"
+        },
+        {
+          "id": "use",
+          "kind": "button",
+          "child": "mainui.bag.window.bag.one-key-use.confirm"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.bag.window.bag.one-key-use.confirm"
+    },
+    {
+      "id": "mainui.bag.window.bag.one-key-use.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.one-key-use",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.one-key-use.background-close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.one-key-use",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.one-key-use.list-scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.one-key-use",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.one-key-use.item-select",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.bag.window.bag.one-key-use",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.one-key-use.confirm",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.bag.window.bag.one-key-use",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "15050 会修改账号物品/容量/穿戴状态；本轮没有真实写事务授权，未执行"
+    },
+    {
+      "id": "mainui.bag.window.bag.one-key-use.categories",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.bag.one-key-use",
+      "control_inventory": [
+        {
+          "id": "gift",
+          "kind": "toggle",
+          "child": "mainui.bag.window.bag.one-key-use.categories.gift"
+        },
+        {
+          "id": "experience",
+          "kind": "toggle",
+          "child": "mainui.bag.window.bag.one-key-use.categories.experience"
+        },
+        {
+          "id": "other",
+          "kind": "toggle",
+          "child": "mainui.bag.window.bag.one-key-use.categories.other"
+        }
+      ],
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.bag.window.bag.one-key-use.categories.gift, mainui.bag.window.bag.one-key-use.categories.experience, mainui.bag.window.bag.one-key-use.categories.other"
+    },
+    {
+      "id": "mainui.bag.window.bag.one-key-use.categories.gift",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.bag.window.bag.one-key-use.categories",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.one-key-use.categories.experience",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.bag.window.bag.one-key-use.categories",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.bag.one-key-use.categories.other",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.bag.window.bag.one-key-use.categories",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.warehouse",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bag.window",
+      "control_inventory": [
+        {
+          "id": "bag-grid",
+          "kind": "scroll-list",
+          "child": "mainui.bag.window.warehouse.bag-grid"
+        },
+        {
+          "id": "warehouse-grid",
+          "kind": "scroll-list",
+          "child": "mainui.bag.window.warehouse.warehouse-grid"
+        },
+        {
+          "id": "expand-warehouse",
+          "kind": "button",
+          "child": "mainui.bag.window.warehouse.expand-warehouse"
+        },
+        {
+          "id": "expand-bag",
+          "kind": "button",
+          "child": "mainui.bag.window.warehouse.expand-bag"
+        },
+        {
+          "id": "smelt",
+          "kind": "button",
+          "child": "mainui.bag.window.warehouse.smelt"
+        },
+        {
+          "id": "one-key-use",
+          "kind": "button",
+          "child": "mainui.bag.window.warehouse.one-key-use"
+        },
+        {
+          "id": "resonance",
+          "kind": "button",
+          "child": "mainui.bag.window.warehouse.resonance"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.bag.window.warehouse.bag-grid, mainui.bag.window.warehouse.warehouse-grid, mainui.bag.window.warehouse.resonance, mainui.bag.window.warehouse.expand-warehouse"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.bag-grid",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.warehouse",
+      "control_inventory": [
+        {
+          "id": "scroll-drag",
+          "kind": "scroll-drag",
+          "child": "mainui.bag.window.warehouse.bag-grid.scroll"
+        },
+        {
+          "id": "slot-state",
+          "kind": "state-matrix",
+          "child": "mainui.bag.window.warehouse.bag-grid.slots"
+        },
+        {
+          "id": "single-click",
+          "kind": "list-item-button",
+          "child": "mainui.bag.window.warehouse.bag-grid.detail"
+        },
+        {
+          "id": "double-click",
+          "kind": "list-item-double-click",
+          "child": "mainui.bag.window.warehouse.bag-grid.move"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.bag.window.warehouse.bag-grid.detail, mainui.bag.window.warehouse.bag-grid.move"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.bag-grid.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.warehouse.bag-grid",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.bag-grid.slots",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.warehouse.bag-grid",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.bag-grid.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.warehouse.bag-grid",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "目标由 Common/Equipment 共享详情或比较窗承载；超出 Bag 独占写入范围，只登记跨岛依赖"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.bag-grid.move",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.bag.window.warehouse.bag-grid",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "15003 会修改账号物品/容量/穿戴状态；本轮没有真实写事务授权，未执行"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.warehouse-grid",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.warehouse",
+      "control_inventory": [
+        {
+          "id": "scroll-drag",
+          "kind": "scroll-drag",
+          "child": "mainui.bag.window.warehouse.warehouse-grid.scroll"
+        },
+        {
+          "id": "slot-state",
+          "kind": "state-matrix",
+          "child": "mainui.bag.window.warehouse.warehouse-grid.slots"
+        },
+        {
+          "id": "single-click",
+          "kind": "list-item-button",
+          "child": "mainui.bag.window.warehouse.warehouse-grid.detail"
+        },
+        {
+          "id": "double-click",
+          "kind": "list-item-double-click",
+          "child": "mainui.bag.window.warehouse.warehouse-grid.move"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.bag.window.warehouse.warehouse-grid.detail, mainui.bag.window.warehouse.warehouse-grid.move"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.warehouse-grid.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.warehouse.warehouse-grid",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.warehouse-grid.slots",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.warehouse.warehouse-grid",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.warehouse-grid.detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.warehouse.warehouse-grid",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "目标由 Common/Equipment 共享详情或比较窗承载；超出 Bag 独占写入范围，只登记跨岛依赖"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.warehouse-grid.move",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.bag.window.warehouse.warehouse-grid",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "15003 会修改账号物品/容量/穿戴状态；本轮没有真实写事务授权，未执行"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.expand-bag",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.warehouse",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.smelt",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.warehouse",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.one-key-use",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.warehouse",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.resonance",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.warehouse",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "目标功能属于共鸣/守护/龙珠跨模块闭包；当前 Bag 入口未形成完整可达链，本轮禁止跨岛修改"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.expand-warehouse",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.warehouse",
+      "control_inventory": [
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.bag.window.warehouse.expand-warehouse.close"
+        },
+        {
+          "id": "modal-background",
+          "kind": "return",
+          "child": "mainui.bag.window.warehouse.expand-warehouse.background-close"
+        },
+        {
+          "id": "cancel",
+          "kind": "return",
+          "child": "mainui.bag.window.warehouse.expand-warehouse.cancel"
+        },
+        {
+          "id": "decrease",
+          "kind": "button",
+          "child": "mainui.bag.window.warehouse.expand-warehouse.decrease"
+        },
+        {
+          "id": "increase",
+          "kind": "button",
+          "child": "mainui.bag.window.warehouse.expand-warehouse.increase"
+        },
+        {
+          "id": "max",
+          "kind": "button",
+          "child": "mainui.bag.window.warehouse.expand-warehouse.max"
+        },
+        {
+          "id": "numeric-input",
+          "kind": "button-input",
+          "child": "mainui.bag.window.warehouse.expand-warehouse.calculator"
+        },
+        {
+          "id": "cost-item",
+          "kind": "item-button",
+          "child": "mainui.bag.window.warehouse.expand-warehouse.cost-detail"
+        },
+        {
+          "id": "confirm",
+          "kind": "button",
+          "child": "mainui.bag.window.warehouse.expand-warehouse.confirm"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.bag.window.warehouse.expand-warehouse.calculator, mainui.bag.window.warehouse.expand-warehouse.cost-detail, mainui.bag.window.warehouse.expand-warehouse.confirm"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.expand-warehouse.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.warehouse.expand-warehouse",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.expand-warehouse.background-close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.warehouse.expand-warehouse",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.expand-warehouse.cancel",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.warehouse.expand-warehouse",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.expand-warehouse.decrease",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.bag.window.warehouse.expand-warehouse",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.expand-warehouse.increase",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.bag.window.warehouse.expand-warehouse",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.expand-warehouse.max",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.bag.window.warehouse.expand-warehouse",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "runtime_gap": "本轮明确禁止启动 Unity/浏览器；尚缺真实 Prefab 点击、玩家可见状态、同账号老 H5 对比与关闭重开复验"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.expand-warehouse.calculator",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.warehouse.expand-warehouse",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "Unity 仅有生成 CalculatorViewBind，缺当前 Bag 扩容链的可达运行实现；本轮禁止扩展到共享模块"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.expand-warehouse.cost-detail",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.warehouse.expand-warehouse",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "目标由 Common/Equipment 共享详情或比较窗承载；超出 Bag 独占写入范围，只登记跨岛依赖"
+    },
+    {
+      "id": "mainui.bag.window.warehouse.expand-warehouse.confirm",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.bag.window.warehouse.expand-warehouse",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "15002 会修改账号物品/容量/穿戴状态；本轮没有真实写事务授权，未执行"
+    },
+    {
+      "id": "mainui.bag.window.holy-seal",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bag.window",
+      "control_inventory": [
+        {
+          "id": "equipped-slots",
+          "kind": "item-list",
+          "child": "mainui.bag.window.holy-seal.equipped-slots"
+        },
+        {
+          "id": "bag-scroll",
+          "kind": "scroll-list",
+          "child": "mainui.bag.window.holy-seal.bag-scroll"
+        },
+        {
+          "id": "holy-main",
+          "kind": "button",
+          "child": "mainui.bag.window.holy-seal.main"
+        },
+        {
+          "id": "attribute",
+          "kind": "button",
+          "child": "mainui.bag.window.holy-seal.attribute"
+        },
+        {
+          "id": "tips",
+          "kind": "button",
+          "child": "mainui.bag.window.holy-seal.tips"
+        },
+        {
+          "id": "strengthen",
+          "kind": "button",
+          "child": "mainui.bag.window.holy-seal.strengthen"
+        },
+        {
+          "id": "preview",
+          "kind": "button",
+          "child": "mainui.bag.window.holy-seal.preview"
+        },
+        {
+          "id": "decompose",
+          "kind": "button",
+          "child": "mainui.bag.window.holy-seal.decompose"
+        },
+        {
+          "id": "composite",
+          "kind": "button",
+          "child": "mainui.bag.window.holy-seal.composite"
+        },
+        {
+          "id": "soul",
+          "kind": "button",
+          "child": "mainui.bag.window.holy-seal.soul"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.bag.window.holy-seal.equipped-slots, mainui.bag.window.holy-seal.bag-scroll, mainui.bag.window.holy-seal.main, mainui.bag.window.holy-seal.attribute, mainui.bag.window.holy-seal.tips, mainui.bag.window.holy-seal.strengthen, mainui.bag.window.holy-seal.preview, mainui.bag.window.holy-seal.decompose, mainui.bag.window.holy-seal.composite, mainui.bag.window.holy-seal.soul"
+    },
+    {
+      "id": "mainui.bag.window.holy-seal.equipped-slots",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.holy-seal",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用圣印页签；完整圣印模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.holy-seal.bag-scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.holy-seal",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用圣印页签；完整圣印模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.holy-seal.main",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.holy-seal",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用圣印页签；完整圣印模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.holy-seal.attribute",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.holy-seal",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用圣印页签；完整圣印模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.holy-seal.tips",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.holy-seal",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用圣印页签；完整圣印模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.holy-seal.strengthen",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.holy-seal",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用圣印页签；完整圣印模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.holy-seal.preview",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.holy-seal",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用圣印页签；完整圣印模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.holy-seal.decompose",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.holy-seal",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用圣印页签；完整圣印模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.holy-seal.composite",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.holy-seal",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用圣印页签；完整圣印模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.holy-seal.soul",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.holy-seal",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用圣印页签；完整圣印模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.revelation",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bag.window",
+      "control_inventory": [
+        {
+          "id": "equipped-slots",
+          "kind": "item-list",
+          "child": "mainui.bag.window.revelation.equipped-slots"
+        },
+        {
+          "id": "bag-scroll",
+          "kind": "scroll-list",
+          "child": "mainui.bag.window.revelation.bag-scroll"
+        },
+        {
+          "id": "suit",
+          "kind": "button",
+          "child": "mainui.bag.window.revelation.suit"
+        },
+        {
+          "id": "source",
+          "kind": "button",
+          "child": "mainui.bag.window.revelation.source"
+        },
+        {
+          "id": "compose",
+          "kind": "button",
+          "child": "mainui.bag.window.revelation.compose"
+        },
+        {
+          "id": "devour",
+          "kind": "button",
+          "child": "mainui.bag.window.revelation.devour"
+        },
+        {
+          "id": "property",
+          "kind": "button",
+          "child": "mainui.bag.window.revelation.property"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.bag.window.revelation.equipped-slots, mainui.bag.window.revelation.bag-scroll, mainui.bag.window.revelation.suit, mainui.bag.window.revelation.source, mainui.bag.window.revelation.compose, mainui.bag.window.revelation.devour, mainui.bag.window.revelation.property"
+    },
+    {
+      "id": "mainui.bag.window.revelation.equipped-slots",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.revelation",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用天启页签；完整天启模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.revelation.bag-scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.revelation",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用天启页签；完整天启模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.revelation.suit",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.revelation",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用天启页签；完整天启模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.revelation.source",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.revelation",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用天启页签；完整天启模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.revelation.compose",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.revelation",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用天启页签；完整天启模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.revelation.devour",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.revelation",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用天启页签；完整天启模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.revelation.property",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.revelation",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用天启页签；完整天启模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.longlanguage",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.bag.window",
+      "control_inventory": [
+        {
+          "id": "equipped-slots",
+          "kind": "item-list",
+          "child": "mainui.bag.window.longlanguage.equipped-slots"
+        },
+        {
+          "id": "bag-scroll",
+          "kind": "scroll-list",
+          "child": "mainui.bag.window.longlanguage.bag-scroll"
+        },
+        {
+          "id": "page-1",
+          "kind": "button",
+          "child": "mainui.bag.window.longlanguage.page-1"
+        },
+        {
+          "id": "page-2",
+          "kind": "button",
+          "child": "mainui.bag.window.longlanguage.page-2"
+        },
+        {
+          "id": "page-3",
+          "kind": "button",
+          "child": "mainui.bag.window.longlanguage.page-3"
+        },
+        {
+          "id": "page-4",
+          "kind": "button",
+          "child": "mainui.bag.window.longlanguage.page-4"
+        },
+        {
+          "id": "shop",
+          "kind": "button",
+          "child": "mainui.bag.window.longlanguage.shop"
+        },
+        {
+          "id": "property",
+          "kind": "button",
+          "child": "mainui.bag.window.longlanguage.property"
+        },
+        {
+          "id": "main-icon",
+          "kind": "button",
+          "child": "mainui.bag.window.longlanguage.main-icon"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.bag.window.longlanguage.equipped-slots, mainui.bag.window.longlanguage.bag-scroll, mainui.bag.window.longlanguage.page-1, mainui.bag.window.longlanguage.page-2, mainui.bag.window.longlanguage.page-3, mainui.bag.window.longlanguage.page-4, mainui.bag.window.longlanguage.shop, mainui.bag.window.longlanguage.property, mainui.bag.window.longlanguage.main-icon"
+    },
+    {
+      "id": "mainui.bag.window.longlanguage.equipped-slots",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.longlanguage",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用龙语页签；完整龙语模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.longlanguage.bag-scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.longlanguage",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用龙语页签；完整龙语模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.longlanguage.page-1",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.longlanguage",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用龙语页签；完整龙语模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.longlanguage.page-2",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.longlanguage",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用龙语页签；完整龙语模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.longlanguage.page-3",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.longlanguage",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用龙语页签；完整龙语模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.longlanguage.page-4",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.longlanguage",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用龙语页签；完整龙语模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.longlanguage.shop",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.longlanguage",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用龙语页签；完整龙语模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.longlanguage.property",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.longlanguage",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用龙语页签；完整龙语模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    },
+    {
+      "id": "mainui.bag.window.longlanguage.main-icon",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.bag.window.longlanguage",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_bag/static-audit.md"
+      ],
+      "blocked_reason": "当前 BagFlow 禁用龙语页签；完整龙语模块不在 Bag 私有 Prefab/代码闭包内，本轮禁止跨岛实现"
+    }
+  ],
+  "summary": {
+    "total": 107,
+    "status_counts": {
+      "blocked": 61,
+      "needs-runtime-verify": 46
+    }
+  }
+}

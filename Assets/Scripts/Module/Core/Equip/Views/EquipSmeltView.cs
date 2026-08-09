@@ -1,3 +1,4 @@
+using Shenxiao.Common.Tips;
 using Shenxiao.Generated.UI.Equip;
 using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
@@ -12,8 +13,8 @@ namespace Shenxiao.Module.Core.Equip
     /// EquipAttrItem)+ 消耗材料(goods_icon/goods_icon_top BaseAwardItem,标题"神兵淬炼消耗")+ 精炼/一键精炼
     /// 按钮(btnStrOne/btnStrAll)+ 红点(_reddot)+ 各特效层(_group_eff*/gp_effect)。
     ///
-    /// 精炼协议(15250/15251,经 EquipSmeltController,自动循环 轮4 队列#4)已接线:btnStrOne→SmeltOne(固定武器槽,
-    /// 无选中态,同 EquipStrenView 既有先例)、btnStrAll→SmeltAll();EquipSmeltItem 选中态由
+    /// 精炼协议(15250/15251,经 EquipSmeltController,自动循环 轮4 队列#4)已接线；单件/一键精炼都必须先由
+    /// 真实装备格建立选中态，当前列表未落地时明确阻断；EquipSmeltItem 选中态由
     /// <see cref="SelectEquipType"/> 记录,供后续列表铺格接入。
     /// 降级:EquipModel/GoodsModel/RedDotManager(UPDATE_*_SMELT 回包展示、config_equip_refine_* 配置)、子项渲染
     /// (EquipSmeltItem/EquipAttrItem/BaseAwardItem/FightingShowSmallItem)与淬炼特效均未移植 →
@@ -22,9 +23,9 @@ namespace Shenxiao.Module.Core.Equip
     /// </summary>
     public sealed class EquipSmeltView : EquipSmeltViewBind
     {
-        /// <summary>当前选中部位(对标老端 SELECT_SMELT_EQUIP)。TODO:装备列表未铺格,暂固定武器槽,
-        /// 同 EquipStrenView.BindStren 既有先例;<see cref="EquipSmeltItem"/> 铺格后经 SelectEquipType 覆盖。</summary>
-        private int _selectedEquipType = 1;
+        /// <summary>当前选中部位(对标老端 SELECT_SMELT_EQUIP)。装备列表未铺格时保持 0，
+        /// <see cref="EquipSmeltItem"/> 铺格后经 SelectEquipType 建立真实选择。</summary>
+        private int _selectedEquipType;
 
         protected override void OnInit()
         {
@@ -36,6 +37,7 @@ namespace Shenxiao.Module.Core.Equip
 
         protected override void OnShow(object args)
         {
+            _selectedEquipType = 0;
             // 老端 LoadSuccess/InitView:铺穿戴装备格 + 默认选中 + 刷消耗/属性/战力/红点。数据未移植 → 列表空、属性默认降级。
             GameLog.Info("Equip", "神兵淬炼界面打开 → 待对接 EquipModel/协议(列表空/属性默认降级)");
         }
@@ -73,11 +75,23 @@ namespace Shenxiao.Module.Core.Equip
         {
             BindClick(btnStrOne, () =>
             {
+                if (_selectedEquipType <= 0)
+                {
+                    TipsManager.Toast("请先选择已穿戴装备");
+                    GameLog.Warn("Equip", "点击[精炼]被阻止：装备列表尚未建立真实选中态");
+                    return;
+                }
                 GameLog.Info("Equip", "点击[精炼] → SmeltOne(equip_type={0})", _selectedEquipType);
                 EquipSmeltController.Instance.SmeltOne(_selectedEquipType);
             });
             BindClick(btnStrAll, () =>
             {
+                if (_selectedEquipType <= 0)
+                {
+                    TipsManager.Toast("请先选择已穿戴装备");
+                    GameLog.Warn("Equip", "点击[一键精炼]被阻止：装备列表尚未建立真实选中态");
+                    return;
+                }
                 GameLog.Info("Equip", "点击[一键精炼] → SmeltAll()");
                 EquipSmeltController.Instance.SmeltAll();
             });

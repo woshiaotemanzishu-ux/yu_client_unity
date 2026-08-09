@@ -32,6 +32,7 @@ namespace Shenxiao.Module.Core.Welfare
 
         // 等级去抖(EVT_ROLE_INFO_UPDATE 亦随经验/货币变化触发,只在等级真变时判门槛;同 GrowthBenefitsController 先例)。
         private int _lastLevel = -1;
+        private int _onlineRedScheduleVersion;
 
         protected override void Register()
         {
@@ -50,6 +51,7 @@ namespace Shenxiao.Module.Core.Welfare
 
         public override void Dispose()
         {
+            _onlineRedScheduleVersion++;
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
@@ -65,6 +67,7 @@ namespace Shenxiao.Module.Core.Welfare
         /// 已是死条件,本端镜像不自动发,仅留 <see cref="RequestXinyueGift"/> 供未来 UI 调用。</summary>
         private async void OnGameStart()
         {
+            _onlineRedScheduleVersion++;
             WelfareModel.Instance.Reset();
             GameNoticeBootstrap.RefreshEntranceRedDot();
             await WelfareConfigs.EnsureLoaded();
@@ -105,8 +108,12 @@ namespace Shenxiao.Module.Core.Welfare
         /// <summary>签到领取(对标老端 Handler41704 触发点,发 "cc" day,retroactive)。</summary>
         public void ClaimCheckin(int day, int retroactive) => SendFmt(Proto.WELFARE_CHECKIN_CLAIM, "cc", day, retroactive);
 
-        /// <summary>补签(发 "c" day)。</summary>
-        public void RetroactiveCheckin(int day) => SendFmt(Proto.WELFARE_CHECKIN_RETROACTIVE, "c", day);
+        /// <summary>领取累计签到天数奖励(参数为累计天数 sum；老端 DailySignTotalItem 使用 41705)。</summary>
+        public void ClaimTotalCheckin(int sum) => SendFmt(Proto.WELFARE_CHECKIN_RETROACTIVE, "c", sum);
+
+        /// <summary>兼容旧调用名；41705 实际语义是累计签到奖励，补签走 41704 的 retroactive=1。</summary>
+        [System.Obsolete("41705 is the cumulative check-in reward; use ClaimTotalCheckin(sum).")]
+        public void RetroactiveCheckin(int sum) => ClaimTotalCheckin(sum);
 
         public void RequestDownloadInfo() => SendFmt(Proto.WELFARE_DOWNLOAD_INFO);
         public void ClaimDownload() => SendFmt(Proto.WELFARE_DOWNLOAD_CLAIM);
@@ -167,7 +174,7 @@ namespace Shenxiao.Module.Core.Welfare
             GameLog.Info("Welfare", "41704 签到领取 code={0} rewardN={1} extraN={2}", code, reward.Count, extraReward.Count);
         }
 
-        /// <summary>41705 补签(Rewads 结构同 41704 首个数组,三字段均 32 位)。</summary>
+        /// <summary>41705 累计签到天数奖励(Rewads 结构同 41704 首个数组,三字段均 32 位)。</summary>
         private void On41705(NetReader r)
         {
             int code = (int)r.ReadU32();
@@ -180,10 +187,10 @@ namespace Shenxiao.Module.Core.Welfare
             }
             else
             {
-                TipsManager.Toast("补签失败(" + code + ")");
+                TipsManager.Toast("累计签到奖励领取失败(" + code + ")");
             }
             EventDispatcher.Emit(GlobalEvent.EVT_WELFARE_RESULT, Proto.WELFARE_CHECKIN_RETROACTIVE, code);
-            GameLog.Info("Welfare", "41705 补签 code={0} rewardN={1}", code, reward.Count);
+            GameLog.Info("Welfare", "41705 累计签到奖励 code={0} rewardN={1}", code, reward.Count);
         }
 
         /// <summary>41707 静默下载奖励信息(标准 write_object_list:Type:8,TypeId:32,Num:32)。
@@ -273,6 +280,8 @@ namespace Shenxiao.Module.Core.Welfare
             List<WelfareModel.OnlineEntry> list = r.ReadArray(rr => new WelfareModel.OnlineEntry((int)rr.ReadU32(), rr.ReadU8()));
             WelfareModel.Instance.SetOnlineInfo(time, loginTime, list);
             RefreshEntranceRedDot();
+            int scheduleVersion = ++_onlineRedScheduleVersion;
+            ScheduleOnlineRedDotRefresh(scheduleVersion);
             EventDispatcher.Emit(GlobalEvent.EVT_WELFARE_UPDATE, Proto.WELFARE_ONLINE_INFO);
             GameLog.Info("Welfare", "41715 在线福利信息 time={0} loginTime={1} listN={2}", time, loginTime, list.Count);
         }
@@ -280,6 +289,20 @@ namespace Shenxiao.Module.Core.Welfare
         private static void RefreshEntranceRedDot()
         {
             GameNoticeBootstrap.RefreshEntranceRedDot();
+        }
+
+        /// <summary>
+        /// 老端会在 41715 回包后按服务器时钟继续推进在线奖励倒计时，并在跨过下一档时点亮入口红点。
+        /// 每次新回包/重进/销毁都会递增版本，使旧等待自然失效。
+        /// </summary>
+        private async void ScheduleOnlineRedDotRefresh(int scheduleVersion)
+        {
+            int delaySeconds = WelfareModel.Instance.GetNextOnlineRewardDelaySeconds();
+            if (delaySeconds <= 0) return;
+            long delayMs = (long)delaySeconds * 1000L;
+            await TimeUtil.Delay(delayMs >= int.MaxValue ? int.MaxValue : (int)delayMs);
+            if (scheduleVersion != _onlineRedScheduleVersion) return;
+            RefreshEntranceRedDot();
         }
 
         /// <summary>41716 领取在线福利(二层嵌套 SendList{RewardId,Rewards(ObjectList),OtherRewards(ObjectList)})。

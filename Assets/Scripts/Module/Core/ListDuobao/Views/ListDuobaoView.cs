@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.UI;
+using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.ListDuobao;
 using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.CustomActivity;
@@ -22,12 +23,12 @@ namespace Shenxiao.Module.Core.ListDuobao
         protected override void OnInit()
         {
             if (_tpl_BaseAwardItem != null) _tpl_BaseAwardItem.SetActive(false);
-            BindClick(_img_bg, ListDuobaoFlow.OpenRank);
+            BindClick(_img_bg2, ListDuobaoFlow.OpenRank);
             BindClick(_img_arr, ListDuobaoFlow.OpenRank);
+            BindClick(_gp_rank, ListDuobaoFlow.OpenRank);
             BindClick(_btn1, OnHelp);
             BindClick(_btn2, ListDuobaoFlow.OpenRecord);
             BindClick(_btn3, OnStageAction);
-            BindClick(_btn4, ListDuobaoFlow.OpenReward);
             BindClick(_btn_one, OnDrawOne);
             BindClick(_btn_ten, OnDrawTen);
         }
@@ -47,6 +48,18 @@ namespace Shenxiao.Module.Core.ListDuobao
         }
 
         public void RefreshData() => _ = RefreshDataAsync();
+
+        private void Update()
+        {
+            if (!IsShown || _lb_time == null) return;
+            CustomActivityModel.ActEntry act = CustomActivityModel.Instance.GetActiveListDuobaoAct();
+            if (act == null) return;
+            long left = System.Math.Max(0L, act.Etime - TimeUtil.NowSec());
+            System.TimeSpan span = System.TimeSpan.FromSeconds(left);
+            _lb_time.text = span.TotalDays >= 1
+                ? "活动倒计时：" + (int)span.TotalDays + "天" + span.Hours.ToString("00") + "时"
+                : "活动倒计时：" + ((int)span.TotalHours).ToString("00") + ":" + span.Minutes.ToString("00") + ":" + span.Seconds.ToString("00");
+        }
 
         private async Task RefreshDataAsync()
         {
@@ -72,15 +85,14 @@ namespace Shenxiao.Module.Core.ListDuobao
             for (int i = 0; i < info.RewardList.Count && slot < slots.Length; i++)
             {
                 List<CustomActivityModel.RewardObj> list = info.RewardList[i].Reward;
-                for (int k = 0; k < list.Count && slot < slots.Length; k++, slot++)
-                {
-                    if (slots[slot] == null) continue;
-                    GameObject go = Instantiate(_tpl_BaseAwardItem, slots[slot]);
-                    go.SetActive(true);
-                    BaseAwardItem item = go.GetComponent<BaseAwardItem>();
-                    if (item != null) item.SetData(list[k].GoodsId, list[k].Num, list[k].Type > 0);
-                    _poolCells.Add(go);
-                }
+                if (list == null || list.Count == 0) continue;
+                if (slots[slot] == null) { slot++; continue; }
+                GameObject go = Instantiate(_tpl_BaseAwardItem, slots[slot]);
+                go.SetActive(true);
+                BaseAwardItem item = go.GetComponent<BaseAwardItem>();
+                if (item != null) item.SetData(list[0].GoodsId, list[0].Num, list[0].Type > 0);
+                _poolCells.Add(go);
+                slot++;
             }
         }
 
@@ -109,10 +121,18 @@ namespace Shenxiao.Module.Core.ListDuobao
             ListDuobaoConfigs.TryReadCost(condition, "one_cost", out ListDuobaoConfigs.CostEntry one);
             ListDuobaoConfigs.TryReadCost(condition, "ten_cost", out ListDuobaoConfigs.CostEntry ten);
             ListDuobaoConfigs.TryReadCondition(condition, "score", out int score);
-            if (_lb_cost1 != null) _lb_cost1.text = one.Num.ToString();
-            if (_lb_cost10 != null) _lb_cost10.text = ten.Num.ToString();
-            if (_lb_have1 != null) _lb_have1.text = RoleModel.Instance.BGold.ToString();
-            if (_lb_have10 != null) _lb_have10.text = RoleModel.Instance.BGold.ToString();
+            if (_lb_cost1 != null) _lb_cost1.text = "/" + one.Num;
+            if (_lb_cost10 != null) _lb_cost10.text = "/" + ten.Num;
+            if (_lb_have1 != null)
+            {
+                _lb_have1.text = " " + RoleModel.Instance.BGold;
+                _lb_have1.color = RoleModel.Instance.BGold >= one.Num ? new Color32(10, 149, 62, 255) : new Color32(255, 79, 80, 255);
+            }
+            if (_lb_have10 != null)
+            {
+                _lb_have10.text = " " + RoleModel.Instance.BGold;
+                _lb_have10.color = RoleModel.Instance.BGold >= ten.Num ? new Color32(10, 149, 62, 255) : new Color32(255, 79, 80, 255);
+            }
             if (_lb_tips != null) _lb_tips.text = "每次夺宝可获得" + score + "积分";
         }
 
@@ -163,7 +183,7 @@ namespace Shenxiao.Module.Core.ListDuobao
             else TipsManager.Toast("元宝不足");
         }
 
-        private static void OnHelp() => TipsManager.Toast("夺宝可获得积分，积分达到阶段要求后可领取奖励");
+        private static void OnHelp() => InstructionFlow.Show(332116);
 
         private void BindEvents()
         {

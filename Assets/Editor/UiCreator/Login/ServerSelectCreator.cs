@@ -25,7 +25,7 @@ namespace Shenxiao.Editor.UiCreator.Login
         private const string PrefabPath = "Assets/Prefabs/UI/Login/ServerSelectView.prefab";
 
         // 老端源图(GameRes 相对路径;均已确认在 Assets/GameRes 下)
-        private const string IMG_BG = "resource/game/login/other/full_screen_bg.jpg";
+        private const string IMG_BG = "resource/game/login/other/full_screen_bg.png";
         private const string IMG_CARD = "resource/game/login/texture/ui_content_bg1.png";
         private const string IMG_TITLE = "resource/game/login/texture/ui_Login_20.png";       // 标题底「选择服务器」
         private const string IMG_TITLE_LINE = "resource/game/login/texture/com_titleline_4.png"; // 顶部分割线

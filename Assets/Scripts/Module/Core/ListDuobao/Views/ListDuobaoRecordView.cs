@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.ListDuobao;
+using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.CustomActivity;
 using TMPro;
 using UnityEngine;
@@ -13,8 +14,13 @@ namespace Shenxiao.Module.Core.ListDuobao
     {
         private readonly List<GameObject> _lines = new List<GameObject>();
         private bool _eventsBound;
+        private float _baseHeight;
 
-        protected override void OnInit() => BindClick(_img_close, ListDuobaoFlow.ClosePopup);
+        protected override void OnInit()
+        {
+            _baseHeight = _gp_record != null ? _gp_record.rect.height : 0f;
+            BindClick(_img_close, ListDuobaoFlow.ClosePopup);
+        }
 
         protected override void OnShow(object args)
         {
@@ -34,13 +40,21 @@ namespace Shenxiao.Module.Core.ListDuobao
             CustomActivityModel.WinLogData data = CustomActivityModel.Instance.GetWinLog(ListDuobaoFlow.BaseType, sub);
             if (data == null) return;
             int y = 0;
+            for (int i = 0; i < data.LogList.Count; i++) AddLine("全服记录  " + Describe(data.LogList[i]), ref y);
             for (int i = 0; i < data.SelfList.Count; i++) AddLine("我的记录  " + Describe(data.SelfList[i]), ref y);
+            if (data.LogList.Count == 0 && data.SelfList.Count == 0) AddLine("暂无夺宝记录", ref y);
+            _gp_record.sizeDelta = new Vector2(_gp_record.sizeDelta.x, Mathf.Max(_baseHeight, y));
         }
 
         private static string Describe(CustomActivityModel.WinLogEntry entry)
         {
             string text = string.IsNullOrEmpty(entry.Name) ? "玩家" : entry.Name;
-            if (entry.RewardList.Count > 0) text += " 获得 " + entry.RewardList[0].GoodsId + "×" + entry.RewardList[0].Num;
+            if (entry.RewardList.Count > 0)
+            {
+                int goodsId = entry.RewardList[0].GoodsId;
+                string name = GoodsModel.GetGoodsName(goodsId);
+                text += " 获得 " + (string.IsNullOrEmpty(name) ? goodsId.ToString() : name) + "×" + entry.RewardList[0].Num;
+            }
             return text;
         }
 

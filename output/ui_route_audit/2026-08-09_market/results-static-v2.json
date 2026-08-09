@@ -1,0 +1,3109 @@
+{
+  "nodes": [
+    {
+      "id": "mainui.market.entry.icon-local",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Market Controller/Model static implementation exists, but no Unity/player/real-Web session was run and no player-visible claim is made.",
+      "note": "Static data-chain finding only; runtime behavior remains unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.entry.icon-kf",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Market Controller/Model static implementation exists, but no Unity/player/real-Web session was run and no player-visible claim is made.",
+      "note": "Static data-chain finding only; runtime behavior remains unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.entry.level-gate",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Market Controller/Model static implementation exists, but no Unity/player/real-Web session was run and no player-visible claim is made.",
+      "note": "Static data-chain finding only; runtime behavior remains unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.entry.kf-time",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Market Controller/Model static implementation exists, but no Unity/player/real-Web session was run and no player-visible claim is made.",
+      "note": "Static data-chain finding only; runtime behavior remains unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.entry.open",
+      "status": "blocked",
+      "blocked_reason": "The icon/data layer exists, but Unity has no Market page Prefab, runtime View or registered click target; conversion is outside this agent's edit island.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.shell.title",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.shell.background",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.shell.currency",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.shell.tab-buy",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.shell.tab-plz",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.shell.tab-sell",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.shell.tab-auction",
+      "status": "blocked",
+      "blocked_reason": "The current old-client route removes/comments this tab, and Unity has no editable page Prefab/runtime View for it.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.shell.tab-record",
+      "status": "blocked",
+      "blocked_reason": "The current old-client route removes/comments this tab, and Unity has no editable page Prefab/runtime View for it.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.shell.close",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.categories.type-1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.categories.type-5",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.categories.type-6",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.categories.type-4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.categories.type-2",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.categories.type-3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.categories.type-7",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.categories.type-8",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t1-s0",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t1-s1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t1-s2",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t1-s3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t1-s4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t1-s5",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t1-s6",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t5-s0",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t5-s1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t5-s2",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t5-s3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t5-s4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t5-s5",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t5-s6",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t6-s0",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t6-s1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t6-s2",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t6-s3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t6-s4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s0",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s2",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s5",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s6",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s7",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s8",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s9",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s10",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t4-s11",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t2-s0",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t2-s1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t2-s2",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t2-s3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t2-s4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t2-s5",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t2-s6",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t2-s7",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s0",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s5",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s6",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s8",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s9",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s10",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s11",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s12",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s13",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s14",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s15",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t3-s16",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t7-s0",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t7-s1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t7-s2",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t7-s3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t7-s4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s0",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s2",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s5",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s6",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s7",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s8",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s9",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.subtypes.t8-s10",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.quality.cond-99",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.quality.cond-3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.quality.cond-4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.quality.cond-5",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.quality.cond-6",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.quality.cond-7",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-99",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-2",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-5",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-6",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-7",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-8",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-9",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-10",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-11",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-12",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-13",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-14",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-15",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.stage.cond-16",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.star.cond-99",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.star.cond-0",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.star.cond-1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.star.cond-2",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.star.cond-3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.filters.star.cond-4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.list-state.structure",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.list-state.scroll",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.list-state.empty",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.list-state.kf-tip",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.list-state.price-sort",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.list-state.buy-times",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.item.identity",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.item.detail",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.item.name-stage",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.item.wear-state",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.item.seller",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.item.buy",
+      "status": "blocked",
+      "blocked_reason": "This leaf sends an account/server write or consumes/locks goods or currency. The pass explicitly forbids Market write transactions, so it was not executed.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.item.sell",
+      "status": "blocked",
+      "blocked_reason": "This leaf sends an account/server write or consumes/locks goods or currency. The pass explicitly forbids Market write transactions, so it was not executed.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.buy.item.repeal",
+      "status": "blocked",
+      "blocked_reason": "This leaf sends an account/server write or consumes/locks goods or currency. The pass explicitly forbids Market write transactions, so it was not executed.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.tabs.list",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.tabs.create",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.list.scope.all",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.list.scope.mine",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.list.price-sort",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.list.structure",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.list.scroll",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.list.empty",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.list.item.identity",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.list.item.name-stage",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.list.item.player",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.list.item.sell",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.list.item.repeal",
+      "status": "blocked",
+      "blocked_reason": "This leaf sends an account/server write or consumes/locks goods or currency. The pass explicitly forbids Market write transactions, so it was not executed.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.categories.type-1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.categories.type-5",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.categories.type-6",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.categories.type-4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.categories.type-2",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.categories.type-3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.categories.type-7",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.categories.type-8",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t1-s1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t1-s2",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t1-s3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t1-s4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t1-s5",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t1-s6",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t5-s1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t5-s2",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t5-s3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t5-s4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t5-s5",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t5-s6",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t6-s1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t6-s2",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t6-s3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t6-s4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s2",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s5",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s6",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s7",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s8",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s9",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s10",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t4-s11",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t2-s1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t2-s2",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t2-s3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t2-s4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t2-s5",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t2-s6",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t2-s7",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s5",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s6",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s8",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s9",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s10",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s11",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s12",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s13",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s14",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s15",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t3-s16",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t7-s1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t7-s2",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t7-s3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t7-s4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t8-s1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t8-s2",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t8-s3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t8-s4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t8-s5",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t8-s6",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t8-s7",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t8-s8",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t8-s9",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.subtypes.t8-s10",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.quality.cond-99",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.quality.cond-3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.quality.cond-4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.quality.cond-5",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.quality.cond-6",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.quality.cond-7",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-99",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-2",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-5",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-6",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-7",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-8",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-9",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-10",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-11",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-12",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-13",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-14",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-15",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.stage.cond-16",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.star.cond-99",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.star.cond-0",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.star.cond-1",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.star.cond-2",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.star.cond-3",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.filters.star.cond-4",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.goods.structure",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.goods.scroll",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.goods.select",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.goods.empty",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.price.fixed",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.price.custom",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.price.minus",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.price.plus",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.price.calculator",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.price.ratio",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.count.minus",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.count.plus",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.count.calculator",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.count.limit",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.summary",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.create.confirm",
+      "status": "blocked",
+      "blocked_reason": "This leaf sends an account/server write or consumes/locks goods or currency. The pass explicitly forbids Market write transactions, so it was not executed.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.sell-tip.identity",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.sell-tip.close",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.sell-tip.item",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.sell-tip.goods",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.sell-tip.vip-tax",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.plz.sell-tip.confirm",
+      "status": "blocked",
+      "blocked_reason": "This leaf sends an account/server write or consumes/locks goods or currency. The pass explicitly forbids Market write transactions, so it was not executed.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.bag-tabs.equipment",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.bag-tabs.goods",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.bag.structure",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.bag.scroll",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.bag.empty",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.bag.item",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.bag.detail",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.bag.up-shelf",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.shelf.count",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.shelf.structure",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.shelf.scroll",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.shelf.empty",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.shelf.item.identity",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.shelf.item.detail",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.shelf.item.wear-state",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.shelf.item.shout",
+      "status": "blocked",
+      "blocked_reason": "This leaf sends an account/server write or consumes/locks goods or currency. The pass explicitly forbids Market write transactions, so it was not executed.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.shelf.item.down-shelf",
+      "status": "blocked",
+      "blocked_reason": "This leaf sends an account/server write or consumes/locks goods or currency. The pass explicitly forbids Market write transactions, so it was not executed.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.identity",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.close",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.item",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.own",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.shout-toggle",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.price.fixed",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.price.custom",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.price.minus",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.price.plus",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.price.calculator",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.price.ratio",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.count.minus",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.count.plus",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.count.calculator",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.count.limit",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.vip-tax",
+      "status": "blocked",
+      "blocked_reason": "The old-client control is statically enumerated, but Unity has no editable Market page Prefab/runtime View. The delegated island forbids converting missing pages or modifying shared/Common UI.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.sell.sell-popup.confirm",
+      "status": "blocked",
+      "blocked_reason": "This leaf sends an account/server write or consumes/locks goods or currency. The pass explicitly forbids Market write transactions, so it was not executed.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.legacy.auction",
+      "status": "blocked",
+      "blocked_reason": "The current old-client route removes/comments this tab, and Unity has no editable page Prefab/runtime View for it.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.legacy.record.gate",
+      "status": "blocked",
+      "blocked_reason": "The current old-client route removes/comments this tab, and Unity has no editable page Prefab/runtime View for it.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.legacy.record.request",
+      "status": "blocked",
+      "blocked_reason": "The current old-client route removes/comments this tab, and Unity has no editable page Prefab/runtime View for it.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.legacy.record.list",
+      "status": "blocked",
+      "blocked_reason": "The current old-client route removes/comments this tab, and Unity has no editable page Prefab/runtime View for it.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.legacy.record.empty",
+      "status": "blocked",
+      "blocked_reason": "The current old-client route removes/comments this tab, and Unity has no editable page Prefab/runtime View for it.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.shared-item.prefab",
+      "status": "blocked",
+      "blocked_reason": "The only existing Market Prefab is a Generated-Bind-only shared template consumed by ChatModule; its runtime owner and cross-route representative verification are outside this file island.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.shared-item.bind",
+      "status": "blocked",
+      "blocked_reason": "The only existing Market Prefab is a Generated-Bind-only shared template consumed by ChatModule; its runtime owner and cross-route representative verification are outside this file island.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.shared-item.equipment",
+      "status": "blocked",
+      "blocked_reason": "The only existing Market Prefab is a Generated-Bind-only shared template consumed by ChatModule; its runtime owner and cross-route representative verification are outside this file island.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.shared-item.chat-consumer",
+      "status": "blocked",
+      "blocked_reason": "The only existing Market Prefab is a Generated-Bind-only shared template consumed by ChatModule; its runtime owner and cross-route representative verification are outside this file island.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.shared-item.runtime-owner",
+      "status": "blocked",
+      "blocked_reason": "The only existing Market Prefab is a Generated-Bind-only shared template consumed by ChatModule; its runtime owner and cross-route representative verification are outside this file island.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.protocols.p15100",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Market Controller/Model static implementation exists, but no Unity/player/real-Web session was run and no player-visible claim is made.",
+      "note": "Static data-chain finding only; runtime behavior remains unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.protocols.p15101",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Market Controller/Model static implementation exists, but no Unity/player/real-Web session was run and no player-visible claim is made.",
+      "note": "Static data-chain finding only; runtime behavior remains unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.protocols.p15102",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Market Controller/Model static implementation exists, but no Unity/player/real-Web session was run and no player-visible claim is made.",
+      "note": "Static data-chain finding only; runtime behavior remains unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.protocols.p15106",
+      "status": "blocked",
+      "blocked_reason": "This leaf sends an account/server write or consumes/locks goods or currency. The pass explicitly forbids Market write transactions, so it was not executed.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.protocols.p15108",
+      "status": "blocked",
+      "blocked_reason": "This leaf sends an account/server write or consumes/locks goods or currency. The pass explicitly forbids Market write transactions, so it was not executed.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.protocols.p15109",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Market Controller/Model static implementation exists, but no Unity/player/real-Web session was run and no player-visible claim is made.",
+      "note": "Static data-chain finding only; runtime behavior remains unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.protocols.p15111",
+      "status": "blocked",
+      "blocked_reason": "This leaf sends an account/server write or consumes/locks goods or currency. The pass explicitly forbids Market write transactions, so it was not executed.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.protocols.p15112",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Market Controller/Model static implementation exists, but no Unity/player/real-Web session was run and no player-visible claim is made.",
+      "note": "Static data-chain finding only; runtime behavior remains unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.protocols.p15114",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Market Controller/Model static implementation exists, but no Unity/player/real-Web session was run and no player-visible claim is made.",
+      "note": "Static data-chain finding only; runtime behavior remains unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.protocols.p15115",
+      "status": "blocked",
+      "blocked_reason": "This leaf sends an account/server write or consumes/locks goods or currency. The pass explicitly forbids Market write transactions, so it was not executed.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.protocols.p15116",
+      "status": "blocked",
+      "blocked_reason": "This leaf sends an account/server write or consumes/locks goods or currency. The pass explicitly forbids Market write transactions, so it was not executed.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.protocols.p15117",
+      "status": "blocked",
+      "blocked_reason": "This leaf sends an account/server write or consumes/locks goods or currency. The pass explicitly forbids Market write transactions, so it was not executed.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.protocols.p15118",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Market Controller/Model static implementation exists, but no Unity/player/real-Web session was run and no player-visible claim is made.",
+      "note": "Static data-chain finding only; runtime behavior remains unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.protocols.p15119",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Market Controller/Model static implementation exists, but no Unity/player/real-Web session was run and no player-visible claim is made.",
+      "note": "Static data-chain finding only; runtime behavior remains unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.protocols.p15120",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Market Controller/Model static implementation exists, but no Unity/player/real-Web session was run and no player-visible claim is made.",
+      "note": "Static data-chain finding only; runtime behavior remains unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.protocols.p15121",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Market Controller/Model static implementation exists, but no Unity/player/real-Web session was run and no player-visible claim is made.",
+      "note": "Static data-chain finding only; runtime behavior remains unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.protocols.p15122",
+      "status": "blocked",
+      "blocked_reason": "This leaf sends an account/server write or consumes/locks goods or currency. The pass explicitly forbids Market write transactions, so it was not executed.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.protocols.exclusions",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Market Controller/Model static implementation exists, but no Unity/player/real-Web session was run and no player-visible claim is made.",
+      "note": "Static data-chain finding only; runtime behavior remains unverified.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.lifecycle.open-close",
+      "status": "blocked",
+      "blocked_reason": "No Market page Prefab/runtime View exists in Unity, and this pass may not launch Unity or real Web; visual, interaction, lifecycle and performance evidence cannot be produced.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.lifecycle.cold-warm",
+      "status": "blocked",
+      "blocked_reason": "No Market page Prefab/runtime View exists in Unity, and this pass may not launch Unity or real Web; visual, interaction, lifecycle and performance evidence cannot be produced.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.lifecycle.viewports",
+      "status": "blocked",
+      "blocked_reason": "No Market page Prefab/runtime View exists in Unity, and this pass may not launch Unity or real Web; visual, interaction, lifecycle and performance evidence cannot be produced.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.lifecycle.scroll-clipping",
+      "status": "blocked",
+      "blocked_reason": "No Market page Prefab/runtime View exists in Unity, and this pass may not launch Unity or real Web; visual, interaction, lifecycle and performance evidence cannot be produced.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.lifecycle.state-refresh",
+      "status": "blocked",
+      "blocked_reason": "No Market page Prefab/runtime View exists in Unity, and this pass may not launch Unity or real Web; visual, interaction, lifecycle and performance evidence cannot be produced.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.market.lifecycle.resource-stability",
+      "status": "blocked",
+      "blocked_reason": "No Market page Prefab/runtime View exists in Unity, and this pass may not launch Unity or real Web; visual, interaction, lifecycle and performance evidence cannot be produced.",
+      "note": "Blocked without inventing a page, crossing the file island, launching runtime tools or executing a write transaction.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_market/static-audit.md"
+      ]
+    }
+  ]
+}

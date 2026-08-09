@@ -13,20 +13,25 @@ description: 执行项目统一的“UI 对接 / UI 精修”流程：对照老 
 
 每轮交付老端事实、Unity 差异证据、功能树/叶子状态、确定性修复和真实 Prefab 自动回归。多条路由成批收口时再补部署后 Web 复验。页面完成必须同时通过功能、真实运行态、视觉和性能四层；CLI 点击、协议回包或“最终能打开”都只覆盖其中一层。
 
-开始前读取 [references/yu-client-unity-runbook.md](references/yu-client-unity-runbook.md)。新建或重开路线时，同时读取 [references/route-ledger-schema.md](references/route-ledger-schema.md)并先生成台账。路径、账号或发布地址与项目权威文档冲突时，以当前文档和运行事实为准并更新参考文件。
+### 事实源优先级
+
+当前老客户端在同账号、同状态、同 viewport 下的真实运行最终表现，是跨客户端验收的唯一目标。老端源码、配置和完整运行树用于解释这个结果；当前 Prefab 是 Unity 侧唯一可编辑视觉实现源；转换规则、公共架构和静态测试只负责帮助实现与定位。它们与老端最终画面、状态、时序、合成或生命周期冲突时，一律改 Unity，不得反过来降低或重新定义老端标准。若老端自身存在版本/状态分支，先记录实际入口、版本、账号状态和时间点，再固定该分支为本轮基线。用户运行证据可推翻历史绿灯，但只更新其明确观察到的精确范围。
+
+开始前读取 [references/yu-client-unity-runbook.md](references/yu-client-unity-runbook.md)。新建或重开路线时，同时读取 [references/route-ledger-schema.md](references/route-ledger-schema.md)并先生成台账。页面需要特定等级、任务、物品、货币、成就或功能开放状态时，还要读取 [references/gm-test-state.md](references/gm-test-state.md)，先准备可复现测试态再采证。路径、账号或发布地址与项目权威文档冲突时，以当前文档和运行事实为准并更新参考文件。
 
 ## 0. 低成本批处理通道
 
 把“发现”和“修复”拆成两种节奏，避免为每个按钮重复启动、截图、编译和重新加载上下文：
 
 1. **一次枚举**：老端运行态只负责确认页面身份、条件显隐、文本和交互语义；同一页面的固定控件列表随后从老端源码、Unity Bind/Prefab 和配置交叉生成，不逐按钮反复截图。
-2. **一次建账**：先写一个精简 manifest，再运行 `python scripts/route_ledger.py init <manifest.json> <route-ledger.json>`。每批测试只写实际跑过叶子的紧凑`results.json`，用`apply`合并并自动回卷父状态；每个节点只保存差异、风险、证据路径和闸口布尔值，用`validate`阻止父节点提前完成。
+2. **一次建账**：先写一个精简 manifest，再运行 `python scripts/route_ledger.py init <manifest.json> <route-ledger.json>`。新账固定为 schema 6；`init` 拒绝覆盖现有目标。每批测试只写实际跑过叶子的紧凑`results.json`，用通用 `apply` 原子合并并自动回卷父状态；同一台账的并发写者由非阻塞进程锁拒绝，调用方应在读取最新账后重放 results。路线专用脚本只能生成 manifest/results，不得直接写正式台账。每个 `done` 闸必须同时绑定 `gate_runs`、`gate_evidence` 和对应结构化证据，不能只保存任意路径字符串或残留布尔值。
 3. **按风险分批**：只读叶子一批；可恢复写入逐项执行并立即还原；破坏性写入只在专用测试态或明确授权下执行。协议帧、状态更新和返回链可在同一次 Unity CLI 会话中批量验证。
 4. **按修改面编译**：纯 C# 先离线编译和定向 case；Prefab/资源累计成逻辑批次后再运行 Unity。默认使用当前工作树和持续构建状态，不新建 worktree/Library。首次或内容状态不可信时完整构建内容+壳；改 C# 重打壳，纯 Addressable Prefab/资源改动在已验证基线上只打内容。禁止每修一个按钮就全量打包，但每个完整页面 `done` 前必须有当前真实 Web 报告。
 5. **复用热状态**：后台 Headless Playwright/Puppeteer 保持浏览器缓存，老端采证并断线后再用同账号跑 Unity Web；Unity route case 保持同一登录/模型快照。cold 只测一次，warm 至少测一次，不用重复登录制造无意义耗时。
-6. **证据去重**：页面级截图挂父节点，协议日志/断言挂叶子。多个叶子共用同一页面事实时引用同一路径，不复制大段截图或日志。
-7. **模型开销分层**：确定性的枚举、台账校验、资源闭包和协议帧解析交给脚本；模型只处理视觉判断、跨模块根因和修复决策。除非用户明确要求，不为机械枚举另开高成本代理。
-8. **克隆与滚动初始化**：运行时克隆 `BaseView` 必须走 `Show/Hide` 触发 `OnInit`，不可只 `SetActive`。动态列表必须修改实际 `ScrollRect.content` 的锚点和高度；真实拖动从可命中子项开始，并点击滚动后才出现的末项。
+6. **GM 测试态配方**：账号缺等级、任务、物品、货币、功能开放或成就进度时，不得长期等待用户手工养号。优先复用 `111111`；会产生不可恢复写入、需要多个互斥状态或可能污染日常号时，通过现有注册链创建专用测试号。使用项目现有 `11100/11101` GM 通道按最小命令集准备状态，并保存 `account/commands/order/expected/reset/probes` 配方。GM 只准备被测事务的前置条件；领取、升级、穿戴、购买等目标事务仍必须由真实 UI 点击和正式协议完成，禁止直接用 GM 伪造结果。
+7. **证据去重**：页面级截图挂父节点，协议日志/断言挂叶子。多个叶子共用同一页面事实时引用同一路径，不复制大段截图或日志。
+8. **模型开销分层**：确定性的枚举、台账校验、资源闭包和协议帧解析交给脚本；模型只处理视觉判断、跨模块根因和修复决策。除非用户明确要求，不为机械枚举另开高成本代理。
+9. **克隆与滚动初始化**：运行时克隆 `BaseView` 必须走 `Show/Hide` 触发 `OnInit`，不可只 `SetActive`。动态列表必须修改实际 `ScrollRect.content` 的锚点和高度；真实拖动从可命中子项开始，并点击滚动后才出现的末项。
 
 ### 共享组件依赖与状态矩阵
 
@@ -36,7 +41,7 @@ description: 执行项目统一的“UI 对接 / UI 精修”流程：对照老 
 
 共享组件发生修改时，先静态枚举全部直接消费者，再按直接/嵌套实例、展示/交互、空/有数据、特效开/关、宿主缩放或 viewport 等使用形态分组。运行态默认验证目标页，并从每个实质不同的组抽一个独立代表，常规总量控制在 2～4 个宿主页；根组件、序列化字段或生命周期变化时必须包含一个高频既有页面。抽样失败就扩大同组检查并继续修公共根因；只有公共 API/序列化字段删除或改名、引用整体替换、或连续抽样失败时才逐一核对全部消费者。`component_evidence[]` 必须记录消费者总表、分组、抽样理由和结果，不能只报引用数量。
 
-新台账或被用户截图推翻后重开的路线，适用叶子必须启用 `shared_component_identity` 与 `component_state_matrix`，分别保存 `component_evidence[]` 和 `component_state_evidence[]`；前者同时承担共享消费者影响面与代表性抽查证据。确实不存在复用关系或状态变体时，应从 `applicable_gates` 明确移除并在 note 写明原因，不能缺证据默认通过。
+新台账使用 schema 6。适用叶子必须启用 `shared_component_identity` 与 `component_state_matrix`，分别保存结构化 `component_evidence[]` 和 `component_state_evidence[]`；前者同时承担共享消费者影响面与代表性抽查证据。确实不存在复用关系或状态变体时，不声明这两个附加闸，并在节点 note 写明事实依据；不得用空 `applicable_gates`、空矩阵或“整页看着没问题”完成。历史 schema 2～5 只读兼容，新证据重开时禁止只抬 schema 数字，必须从 manifest 新建 schema 6 并显式重新绑定仍有效证据。
 
 ### 十分钟路线纠偏
 
@@ -46,7 +51,7 @@ description: 执行项目统一的“UI 对接 / UI 精修”流程：对照老 
 
 1. **功能**：真实点击、路由、协议、结果、即时刷新、重开和返回链全部通过。
 2. **运行态**：使用同一账号、角色和可对齐的权威状态，逐项核对选中、激活、穿戴、锁定、红点、属性、按钮文案及条件显隐；禁止用合成 Model 或测试注入截图冒充玩家运行态。
-3. **视觉**：在相同逻辑分辨率下保存老端、Unity 和叠加/diff 三份证据。2D 的位置、尺寸、锚点、层级、裁剪、图片、文字和间距按像素对齐。位置必须换算到页面根左上角坐标，不能只比不同父容器下的 `anchoredPosition`。弹窗还要核对实际 View 类型、根尺寸、主底图 Sprite/启用态和遮罩层，不能把“打开了某个弹窗”当作目标弹窗一致。存在 3D 展示位时，模型必须出现，职业/部件正确，无镜像、翻转和明显角度错误，位置与比例合理；跨引擎抗锯齿和 Shader 不要求逐像素相同。模型骨骼常驻特效与独立 UI 特效分别对照，不得因模型已出现就忽略特效。
+3. **视觉**：在相同逻辑分辨率下保存老端、Unity 和叠加/diff 三份证据。2D 的位置、尺寸、锚点、层级、裁剪、图片、文字和间距按像素对齐。位置必须换算到页面根左上角坐标，不能只比不同父容器下的 `anchoredPosition`。遇到弧形/放射/折叠页签、竖排文字、`width/height=0` 自动尺寸文本或带父级 scale/skew 的节点时，先保存 `reference_corner/pivot/runtime_size/parent_transform/state/text_bounds` 几何合同；多个同尺寸节点统一偏移半宽/半高时优先判 pivot 语义，不进入逐像素盲调。弹窗还要核对实际 View 类型、根尺寸、主底图 Sprite/启用态和遮罩层，不能把“打开了某个弹窗”当作目标弹窗一致。存在 3D 展示位时，模型必须出现，职业/部件正确，无镜像、翻转和明显角度错误，位置与比例合理；跨引擎抗锯齿和 Shader 不要求逐像素相同。模型骨骼常驻特效与独立 UI 特效分别对照，不得因模型已出现就忽略特效。
 4. **性能**：记录 cold/warm 的首屏可见和可交互就绪；超过老端 2 倍或 2 秒登记缺陷，5 秒以上必须拆耗时根因。资源型页面还必须连续跑两次预检：第二次 `imported=0、configured=0`，并证明玩家点击前后资源目录零新增。
 
 ### 同账号单会话对照硬规则
@@ -59,20 +64,28 @@ description: 执行项目统一的“UI 对接 / UI 精修”流程：对照老 
 
 Unity CLI 的成功依据必须是业务入口写出的 `VERDICT pass=True`，不能只看进程退出码。项目的 `CliVerify.Run` 会在用例完成后主动退出 Editor，调用这类入口时不要再传 `-quit`：代码刚改动触发 AssetDatabase 编译/域重载时，`-quit` 可能在 `executeMethod` 尚未执行前正常退出并返回 0。一次批次用一个 suite 串行跑多个 case，日志中既要有每段 `code=0`，也要有 suite 总 `VERDICT`。
 
+### 台账原子性、证据新鲜度与同批指纹
+
+正式 `route-ledger.json` 只能由通用 `route_ledger.py init/apply` 写入。`apply` 候选失败时正式文件必须保持逐字节不变；不得让路线专用 Node/Python 脚本先改正式账再调用 `validate`。schema 6 的 `done` 结果必须在本批结果中显式提交全部适用闸的 `gates=true`、`gate_runs`、`gate_evidence` 及专项结构，禁止借节点里残留的旧绿灯重新完成。
+
+每个 verification run 记录带时区时间、Git HEAD 与 dirty SHA-256；真实 Web run 另记录 Player/catalog SHA-256、`720×1280` 与 `1920×1080`、老端已断线、Unity 会话有效和 Headless 报告。文件证据保存路径与 SHA-256，校验时必须真实存在且哈希一致；人工观察写明来源、时间、精确范围。根页面只有 `route_run_id` 指向该同批真实 Web run 才能 `done`；根页一旦降级就清除旧 ID，重新完成所用 Web run 不得早于任何完成叶的 run，并须与这些 run 的 Git/dirty 指纹一致。Editor、CLI、旧 Web 批次或用户一句局部确认都不能升级为整页 Web 完成。
+
+新截图推翻旧结论时，结果文件用 `invalidate_gates`、`invalidation_reason` 和带时区 `observed_at` 精确作废受影响闸；工具把旧绑定移入 `evidence_history` 并回卷父状态。若已完成叶直接降级但没有指定闸，则默认作废该叶全部适用闸，防止旧证据残留。详细字段以 [references/route-ledger-schema.md](references/route-ledger-schema.md) 为准。
+
 ## 1. 预检与隔离
 
 1. 按项目 `AGENTS.md` 读取全局记忆索引、项目记忆、`Docs/README.md` 及当前模块权威文档。
 2. 检查 `git status`。默认在当前分支、当前工作树原地做最小修改并保留用户无关改动；只有确认存在同文件冲突、必须并发构建或破坏性实验等无法安全原地完成的实际隔离需求时，才说明磁盘/导入/等待成本并取得用户同意后使用 `codex/*` worktree。
 3. 常规视觉对比优先使用后台 Headless Playwright/Puppeteer 操作老 Web 和 Unity WebGL，不抢前台。不得使用 computer-use，除非用户本轮明确授权；Browser MCP 可用于一次性探索，但不能替代可重跑的真实 Web 路线与构建指纹报告。
-4. 建立证据目录 `output/ui_route_audit/<日期>_<入口>/`，使用稳定文件名保存截图、日志、耗时和台账。
-5. 在点击前保存目标资源目录的文件清单与 `git status --untracked-files=all`。运行后新增的 PNG、`.meta`、模型或配置都必须说明来源；若是页面打开时由编辑器兜底导入，则先记为缺陷，不能把这批本机缓存当作完成证据。
+4. 建立不可变运行目录 `output/ui_route_audit/<日期>_<入口>/<run-id>/`，使用稳定文件名保存截图、日志、耗时和报告；每个正式文件在台账中记录 SHA-256，不覆盖旧 run 的同名文件。
+5. 建树时同时保存老端运行时控件快照、老端源码/配置扫描和 Unity Prefab/Bind 扫描，三方调和后生成 `control_inventory[]`；schema 6 页面完成时把三份带哈希证据写入 `inventory_evidence`。在点击前另保存目标资源目录的文件清单与 `git status --untracked-files=all`。运行后新增的 PNG、`.meta`、模型或配置都必须说明来源；若是页面打开时由编辑器兜底导入，则先记为缺陷，不能把这批本机缓存当作完成证据。
 
 ## 2. 先建树，再选一条线跑到底
 
 打开页面后先枚举页签、按钮、列表项、开关、输入、弹窗、条件显隐块、返回链和动态生成入口。为每个节点分配稳定 ID，记录父节点、老端预期、Unity 现状、写入风险和证据。
 
 - 枚举不是“看见并写下名字”：每个可见按钮、状态按钮和条件按钮都必须映射到一个直接子节点，并在对应状态下经过真实点击。页签已逐个点过，不能替代页签内部的“更换/激活/升级/预览/确认”等按钮；按钮没有点击证据时，该页面父节点不得完成。
-- `type=page` 的机器台账节点必须保存 `control_inventory[]`，每项至少写 `id/kind/child`，其中 `child` 必须是该页直接子节点。新增截图里出现台账外控件时，先补清单并回卷父状态，再继续修复。
+- `type=page` 的机器台账节点必须保存 `control_inventory[]`，每项至少写 `id/kind/child`，其中 `child` 必须是该页直接子节点。schema 6 要求控件 ID 唯一、每个直接子节点恰好被覆盖一次；`manifest_source` 的哈希、路线名、节点集合及 `parent/type/risk/control_inventory` 必须与台账一致。漏子节点、多个控件共用一个笼统子节点或新增截图出现台账外控件都会失败；此时修正 manifest 并初始化新版本台账，再显式重绑仍有效证据，禁止静默改旧账拓扑。
 
 - 先列同层清单，再选一个未完叶子。沿该分支一直跑到最终显示或可验证的业务结果，修复与复验后才换下一条分支。
 - 节点状态只用 `not-run / baseline-only / defect / fixing / needs-runtime-verify / blocked / done`。父节点只有在所有应验叶子为 `done` 时才能是 `done`；子节点 `blocked` 时父节点同样不得完成。
@@ -80,7 +93,7 @@ Unity CLI 的成功依据必须是业务入口写出的 `VERDICT pass=True`，�
 
 ## 3. 建立老端事实基线
 
-1. 启动老端资源工具和预览服务；确认端口、页面和账号，不假设服务已就绪。
+1. 启动老端资源工具和预览服务；确认端口、页面和账号，不假设服务已就绪。若当前账号不具备目标状态，先执行并保存 GM 测试态配方；状态准备失败才登记环境 blocker，不能把可由现有 GM 命令解决的等级、任务或物品不足写成页面 blocker。
 2. 通过后台 Headless 浏览器沿玩家真实路径逐击。保存入口前、目标页、页签、提交后父页、关闭重开、弹窗、确认框和返回后页面；路线尚未脚本化时可用 Browser MCP 探索一次，但必须将最终路径固化为可重跑步骤。
 3. 记录控件清单、文案、页签/层级、点击语义、协议/回包、即时 UI/Model 变化、重开持久性、返回链和状态恢复方式。
 4. 核对跳转页的“页面身份”：当前老端的标题、布局、页签、功能数量和主要资源。同名旧页或占位页不是对等目标。
@@ -91,7 +104,7 @@ Unity CLI 的成功依据必须是业务入口写出的 `VERDICT pass=True`，�
 
 ## 4. Unity 同路径复现
 
-1. 使用同一账号、角色和尽量相同的状态。
+1. 使用同一账号、角色和同一份权威状态。记录 `state_recipe_id`、执行后的关键状态探针与采证时间；老端完成并断线后，Unity 必须先确认这些探针仍匹配再开始路线。若目标事务会永久改变状态，则用可重置配方或各自独立的专用测试号，不得拿两个未对齐账号直接做视觉/状态 diff。
 2. 浏览器中每次动态读取 canvas 矩形、页面滚动和实际分辨率，不复用硬编码屏幕坐标。
 3. 用 Playwright/Puppeteer 向真实 Canvas 发送指针事件，收集截图、控制台/协议日志和冷/热耗时。可由开发态只读桥查询 Bind 屏幕 Rect 和 ready 状态，但直接调用 `OnClick`、私有方法或路由函数不算运行态点击通过。
 4. 同一控件的未激活、可操作、处理中和已完成状态分别核对显隐与文案；对可操作态必须实际点击到确认/结果，不能用“另一个账号当前不可操作”永久跳过。
@@ -108,17 +121,18 @@ Unity CLI 的成功依据必须是业务入口写出的 `VERDICT pass=True`，�
 
 ## 5. 诊断与增量修复
 
-- 当前可编辑 Prefab 是视觉事实源。已转换或人工接管的页面不得重跑转换器、Creator 或全量覆盖。
+- 当前可编辑 Prefab 是 Unity 侧唯一视觉实现源，老客户端同状态真实运行结果才是跨客户端验收事实源。已转换或人工接管的页面不得重跑转换器、Creator 或全量覆盖。
 - 视觉问题调用项目 `fix-view` Skill，依据 diff 或截图差异增量修改当前 Prefab。
 - 功能问题检查绑定、Flow/Router、Controller、Model、协议与老端调用链。涉及协议时同时核对客户端、服务端和项目负约束。
 - 状态问题沿“回包 → Model 权威切片 → 事件 → 已打开 View 刷新”逐段核对，再检查重开时是否从 Model 恢复。不得用退出重进掩盖当前界面不刷新。
 - 性能问题区分冷启动资源加载、热重开、重复加载和串行等待，用日志/时间戳找最长阶段。
 - 版本漂移先核对当前老端运行页、源码/配置和 Unity 目标模块的功能清单。目标页整体过时时，不在旧页上修一个局部按钮就宣称路线完成；按 `convert-module` 或 `fix-view` 边界处理整页。
 - 可见按钮的唯一点击语义必须绑在玩家实际命中的 `Graphic` 上，用 `GraphicRaycaster→PointerClick` 验收。
-- 坐标差异先换算到页面根空间。父容器 x=599、子图右锚 x=-45 并不等价于老端页面 x=599；保存 `page_space_geometry` 后再决定改锚点还是局部位置。
+- 坐标差异先换算到页面根空间。父容器 x=599、子图右锚 x=-45 并不等价于老端页面 x=599；保存 `page_space_geometry` 后再决定改锚点还是局部位置。离散弧形位置保存在 Prefab 具名槽位；连续纯文字排版才使用只包文字的 LayoutGroup。Laya 设计态 `height=0` 不能当作运行时零高度，必须使用真实运行 bounds。
 - 运行态赋图（例如品质大卡底图）必须进入配置可达资源闭包并在“视觉 ready”中要求 Sprite 非空、组件启用且未被 Canvas cull；只验证 RectTransform 尺寸会产生假绿灯。
 - RenderTexture 已分配或 RawImage 已绑定不代表模型已经出帧。模型页必须在相机真正 `Render` 完成后才置 ready，并读取 RT 像素证明存在足量非透明像素；保存 `render_evidence[]`，禁止用“Renderer 存在”或固定等待替代。
-- UI 特效先从老端真实调用点记录 `effectName/parent/position/scale/rotation/loop/renderSize`，再确认效果归属页面、共享槽位还是模型骨骼。旧端数值是转换输入，不是所有 Unity 宿主可直接复用的最终值；结合转换资源基准、宿主缩放、profile 和共享通道映射后，用隔离足迹校准。验收要隔离精确 Handle，在两个不同时间点真实 Render，保存两帧 PNG、动画时间或材质属性推进值、像素差、非透明像素和 alpha 包围盒宽高；`Animation.isPlaying`、单帧、Handle 存在或几个亮点都不算动态 `effect_match/render_completion`。曲线属性必须与 shader/material 实际消费分支一致。共享 RT/RawImage 中的列表项还要把实例边界与祖先 `RectMask2D/Mask` 求交，分别留完整、部分和完全滚出 viewport 的证据，完全离开后目标实例 alpha 必须为零。
+- UI 特效先从老端真实调用点记录 `effectName/parent/position/scale/rotation/loop/renderSize`，再确认效果归属页面、共享槽位还是模型骨骼。诊断必须拆成四层：宿主几何/裁切、粒子模拟与缓存拓扑、离屏 RT 的真实 RGBA、RT 贴回 Canvas 的最终合成；用户已确认数量/大小/方向正确时，禁止继续用源/副本拓扑解释灰片、变色或透明度错误。重复/批量特效只有相位、随机形态或重叠节奏确实不符时，才额外记录 `use_cache/cache_key/source_simulation_count/display_copy_count/composition_order`。所有 UI 离屏特效都要核对源纹理透明像素是否保存非黑 RGB、粒子材质 RGB/Alpha blend、RT 颜色空间/格式和最终 RawImage shader/blend；不得全局丢弃 RT alpha 或无条件以亮度代替 alpha。验收要隔离精确 Handle，在两个不同时间点真实 Render，保存原始 RT RGBA、最终 Canvas、动画时间或材质属性推进值、像素差和 alpha 包围盒；再以一个同链正常 UI 特效及一个不走该链的场景特效作控制，并分别覆盖 Editor 与当前 WebGL。共享 RT/RawImage 中的列表项还要把实例边界与祖先 `RectMask2D/Mask` 求交，分别留完整、部分和完全滚出 viewport 的证据，完全离开后目标实例 alpha 必须为零。`Animation.isPlaying`、单帧、Handle 存在或几个亮点都不算动态 `effect_match/render_completion`。
+- 若已证明旧特效在固定私有 RT 内混合多种材质语义，转换后的共享 RT 无法恢复每实例最终 Alpha/颜色，允许使用资源专属的“旧运行时最终 RGBA 序列”兼容层。必须从真实老端特效宿主读取 RT，禁止截整页；记录客户端指纹、调用参数、宿主尺寸、帧率、时长、原始 RGBA/图集哈希，并逐像素验证图集单元。若老端 `use_cache=true`，Unity 仍保持一个序列时钟到 N 个 presenter；最终门禁继续要求 Unity Editor/WebGL 多时点 Canvas、轨迹、重叠和清理，不能用图集字节一致直接标页面完成。
 - 动态详情必须核对“字段语义 → 容器”映射、内容高度、相邻组不重叠和背景包围盒；例如 `config_goods` 的详情字段与来源字段不能因为文案相近而塞进同一滚动组。
 - 每次最终截图使用新的不可变证据目录。已由桌面或图片查看器映射的 PNG 不原地覆盖，避免 Windows 1224 文件映射错误把旧图误当新结果。
 - 不实现没有老端证据、没有产品授权或会扩大范围的功能。
@@ -142,9 +156,15 @@ Unity CLI 的成功依据必须是业务入口写出的 `VERDICT pass=True`，�
 台账提交或交付前运行：
 
 ```powershell
+python .agents/skills/audit-game-ui-route/scripts/ui_route_master.py output/ui_route_audit --repo-root . --json-out <master.json> --markdown-out <master.md>
+python .agents/skills/audit-game-ui-route/scripts/route_ledger.py init <manifest.json> <new-route-ledger.json>
 python .agents/skills/audit-game-ui-route/scripts/route_ledger.py apply <route-ledger.json> <results.json>
 python .agents/skills/audit-game-ui-route/scripts/route_ledger.py validate <route-ledger.json>
 ```
+
+`ui_route_master.py` 只生成项目级排程索引，并将 schema 6 与历史 schema 2～5 分栏；它不替代正式台账校验，也不得把历史完成态升级为当前完成。
+
+已有正式台账时不要重复 `init` 覆盖；`init` 只用于新路线或从历史 schema 2～5 manifest 建立新的 schema 6 台账。日常结果统一走原子 `apply`。
 
 ## 7. 记录与收口
 
@@ -153,4 +173,4 @@ python .agents/skills/audit-game-ui-route/scripts/route_ledger.py validate <rout
 | ID/父节点 | 叶子步骤 | 老端行为 | Unity 修复前/后 | 即时状态 | 重开 | 耗时 | 2D视觉/3D模型/特效 | 状态/证据 |
 |---|---|---|---|---|---|---|---|---|
 
-列出“已修复叶子”“仍缺失叶子”“被阻塞叶子”和“同层下一条线”。不要把未执行最终事务、未检查即时刷新、未核对目标版本或未测耗时的页面写成已完成。同步更新模块权威文档、`Docs/Shenxiao实施进度.md` 和 `Docs/README.md` 索引。完成提交后按项目规则合并到本地 `main`，并验证用户现场未被误改。
+列出“已修复叶子”“仍缺失叶子”“被阻塞叶子”和“同层下一条线”，并记录本轮 `state_recipe_id`、测试账号用途、执行/重置结果。不要把未执行最终事务、未检查即时刷新、未核对目标版本或未测耗时的页面写成已完成。同步更新模块权威文档、`Docs/Shenxiao实施进度.md` 和 `Docs/README.md` 索引。完成提交后按项目规则合并到本地 `main`，并验证用户现场未被误改。

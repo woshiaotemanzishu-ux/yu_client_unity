@@ -411,7 +411,7 @@ namespace Shenxiao.Module.Core.Chat
             BindBtn(voice, "voice switch");
             BindBtn(_dress_up, "dress up");
             BindBtn(_position, "position share");
-            BindBtn(_to_bottom, "scroll bottom");
+            BindScrollBottom(_to_bottom);
         }
 
         private void BindToggle(Component target, string viewType, string label)
@@ -453,6 +453,21 @@ namespace Shenxiao.Module.Core.Chat
 
             img.raycastTarget = true;
             UIUtil.AddClick(img, () => GameLog.Info("Chat", "click {0}; feature pending", label));
+        }
+
+        private void BindScrollBottom(Component target)
+        {
+            Image img = FindClickableImage(target);
+            if (img == null) return;
+
+            img.raycastTarget = true;
+            UIUtil.ClearClicks(img);
+            UIUtil.AddClick(img, () =>
+            {
+                if (content_Scroller == null) return;
+                content_Scroller.StopMovement();
+                content_Scroller.verticalNormalizedPosition = 0f;
+            });
         }
 
         private void SendCurrentMessage()

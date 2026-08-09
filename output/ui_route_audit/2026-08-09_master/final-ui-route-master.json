@@ -1,0 +1,5182 @@
+{
+  "master_schema": 1,
+  "source_root": "output/ui_route_audit",
+  "policy": {
+    "read_only_sources": true,
+    "ledger_validation": "not-performed; this report is inventory, not completion proof",
+    "current_route_schema": 6,
+    "historical_route_schemas": [
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  "summary": {
+    "ledgers_discovered": 106,
+    "ledgers_parsed": 106,
+    "ledger_errors": 0,
+    "manifests_discovered": 113,
+    "route_manifests_parsed": 112,
+    "ignored_non_route_manifests": 1,
+    "routes_by_boundary": {
+      "current-schema": 93,
+      "historical-read-only": 13
+    },
+    "nodes_total": 14665,
+    "node_status_counts": {
+      "done": 394,
+      "blocked": 7385,
+      "needs-runtime-verify": 5491,
+      "defect": 334,
+      "baseline-only": 21,
+      "not-run": 1040
+    },
+    "root_status_counts": {
+      "done": 5,
+      "blocked": 86,
+      "needs-runtime-verify": 5,
+      "baseline-only": 1,
+      "not-run": 9
+    },
+    "verification_environment_run_counts": {
+      "static": 2
+    },
+    "duplicate_route_names": [
+      "mainui.compete.338",
+      "mainui.friend-invite",
+      "mainui.growth-benefits",
+      "mainui.level-reward",
+      "mainui.market",
+      "mainui.rank",
+      "mainui.red-packet",
+      "mainui.redpacket",
+      "mainui.reincarnation",
+      "mainui.team",
+      "marriage"
+    ]
+  },
+  "routes": [
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_gubao_monster_static_v1/route-ledger.json",
+      "route": "autobrush.gubao.monster.static-v1",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 28,
+      "status_counts": {
+        "blocked": 28
+      },
+      "root": {
+        "count": 1,
+        "id": "autobrush.gubao.monster",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 1,
+        "environments": [
+          "static"
+        ],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_gubao_monster_static_v1/route-manifest.json",
+          "sha256": "9a76ba08dbb65ef6d31cde2c7db58f7f8a8e0e7d0d008a10398eab5aa4f9f794",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_gubao_monster_static_v1/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/dungeon/route-ledger.json",
+      "route": "core.dungeon",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 93,
+      "status_counts": {
+        "blocked": 79,
+        "needs-runtime-verify": 14
+      },
+      "root": {
+        "count": 1,
+        "id": "core.dungeon",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/dungeon/route-manifest.json",
+          "sha256": "5e476b624f8edf729508270349b698278ce7bf67c728ee73ce6d30f7f2d0de6b",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/dungeon/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-domain/route-ledger.json",
+      "route": "cross-server.boss-domain",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 39,
+      "status_counts": {
+        "blocked": 24,
+        "needs-runtime-verify": 15
+      },
+      "root": {
+        "count": 1,
+        "id": "cross-server.boss-domain",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-domain/route-manifest.json",
+          "sha256": "5954ef856f38dbaf2cf7c9d06dc36ff2b7e850ca93185e48307a8f1e8f94fde6",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-domain/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-mystery/route-ledger.json",
+      "route": "cross-server.boss-mystery",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 17,
+      "status_counts": {
+        "blocked": 10,
+        "needs-runtime-verify": 7
+      },
+      "root": {
+        "count": 1,
+        "id": "cross-server.boss-mystery",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-mystery/route-manifest.json",
+          "sha256": "55062245b47871addc33c262b6e3ed6e7fd49c9a800d005072955d800882d8f4",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-mystery/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_redpacket_rain_static_v1/route-ledger.json",
+      "route": "customactivity.redpacket-rain",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T16:20:00+08:00",
+      "nodes_total": 41,
+      "status_counts": {
+        "blocked": 41
+      },
+      "root": {
+        "count": 1,
+        "id": "customactivity.redpacket-rain",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_redpacket_rain_static_v1/route-manifest.json",
+          "sha256": "ba7faa9499293c840684ab4597364af24d41e6e628ec0fc634f531471ed15f8e",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_redpacket_rain_static_v1/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/dungeon-partner/route-ledger.json",
+      "route": "dungeon-enter.dungeon-partner",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 60,
+      "status_counts": {
+        "blocked": 52,
+        "needs-runtime-verify": 8
+      },
+      "root": {
+        "count": 1,
+        "id": "dungeon-enter.dungeon-partner",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/dungeon-partner/route-manifest.json",
+          "sha256": "f5bd53fbf192c072d05fbc6eaa1d8b6213f0f8e668375f641355c8100c48dd24",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/dungeon-partner/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_gamenotice_static_v1/route-ledger.json",
+      "route": "gamenotice.static.v1",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 28,
+      "status_counts": {
+        "blocked": 26,
+        "needs-runtime-verify": 2
+      },
+      "root": {
+        "count": 1,
+        "id": "gamenotice.static.v1",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_gamenotice_static_v1/route-manifest.json",
+          "sha256": "9e9ebf0325c3674712ac30217e5e106b68b32c2361bb5bcfa8af62e074680df0",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_gamenotice_static_v1/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_main_stronger/route-ledger.json",
+      "route": "mainstronger.158",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 39,
+      "status_counts": {
+        "blocked": 31,
+        "needs-runtime-verify": 8
+      },
+      "root": {
+        "count": 1,
+        "id": "mainstronger.158",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_main_stronger/route-manifest.json",
+          "sha256": "72eb675d0afe583f0d1573508b96d2b6592009b96839928ace6362078a9c492b",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_main_stronger/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_activity/route-ledger.json",
+      "route": "mainui.activity.direct-pages",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 56,
+      "status_counts": {
+        "blocked": 29,
+        "needs-runtime-verify": 27
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.activity.direct-pages",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_activity/route-manifest.json",
+          "sha256": "d4d9c76b78b50994563e3d2086c9c5ff12c3c3042d40f57abdddd56b39281bcd",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_activity/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/route-ledger.json",
+      "route": "mainui.activity.sevenday",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T00:00:00+08:00",
+      "nodes_total": 79,
+      "status_counts": {
+        "blocked": 22,
+        "needs-runtime-verify": 1,
+        "defect": 51,
+        "baseline-only": 5
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.activity.sevenday",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/route-manifest.json",
+          "sha256": "b2270426ea8b4233e1f568bf3a1e81aebb1781910c116855d539b5d433935a7b",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_addvipservice_static_v1/route-ledger.json",
+      "route": "mainui.addvipservice",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T15:29:00+08:00",
+      "nodes_total": 17,
+      "status_counts": {
+        "blocked": 17
+      },
+      "root": {
+        "count": 1,
+        "id": "addvip.route",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_addvipservice_static_v1/route-manifest.json",
+          "sha256": "871a6897823260ad6834ebf06964e57beb0f4a8320373ff7d4daf099714c7bd7",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_addvipservice_static_v1/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_addvipservice_static_v1/revision-v2/route-ledger.json",
+      "route": "mainui.addvipservice.revision-v2",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T15:48:00+08:00",
+      "nodes_total": 28,
+      "status_counts": {
+        "blocked": 28
+      },
+      "root": {
+        "count": 1,
+        "id": "addvip.route",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_addvipservice_static_v1/revision-v2/route-manifest.json",
+          "sha256": "6c0c21c33e8cf54c486d5c746983c5e35a93f9433f72b34e19f3f8112b64cfe3",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_addvipservice_static_v1/revision-v2/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_adventure/route-ledger.json",
+      "route": "mainui.adventure",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 423,
+      "status_counts": {
+        "blocked": 401,
+        "needs-runtime-verify": 22
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.adventure",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_adventure/route-manifest.json",
+          "sha256": "cb733b25ea53712c0b76a399367821b1420ff91da9f0158d1fe2614115fb7d3c",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_adventure/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_attention_static_v1/route-ledger.json",
+      "route": "mainui.attention",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T18:35:00+08:00",
+      "nodes_total": 32,
+      "status_counts": {
+        "blocked": 13,
+        "needs-runtime-verify": 1,
+        "defect": 18
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.attention",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_attention_static_v1/route-manifest.json",
+          "sha256": "45ae1e04b96138f2f6f180952e14ab61ed3574283b6e9b070a41e2cf643f4f6a",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_attention_static_v1/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_autobrush/route-ledger.json",
+      "route": "mainui.autobrush",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 65,
+      "status_counts": {
+        "blocked": 19,
+        "needs-runtime-verify": 46
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.autobrush",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_autobrush/route-manifest.json",
+          "sha256": "f96e321b9b4f795169e2037f522aab0f29b75310ddffc7cca8028d6453f0f488",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_autobrush/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_bag/route-ledger.json",
+      "route": "mainui.bag.window",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 107,
+      "status_counts": {
+        "blocked": 61,
+        "needs-runtime-verify": 46
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.bag.window",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_bag/route-manifest.json",
+          "sha256": "570054bdf23182922ee6ed61e6ce06654dd9055a07f6a47a86fb3580a547a34d",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_bag/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/route-ledger.json",
+      "route": "mainui.base-dungeon.limit-tower",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 376,
+      "status_counts": {
+        "blocked": 370,
+        "needs-runtime-verify": 6
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.base-dungeon.limit-tower",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/route-manifest.json",
+          "sha256": "669e89dfd8d7c32a9497837b490e8f341ac4a483f698b7fea338f65a3dbbe915",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/route-ledger.json",
+      "route": "mainui.boss.field",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 82,
+      "status_counts": {
+        "blocked": 63,
+        "needs-runtime-verify": 19
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.boss.field",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/route-manifest.json",
+          "sha256": "1c7f1f15b0ec742e28b7274409f69d17259e0da6ba7e481aa9bf24b6ce13b630",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/route-ledger.json",
+      "route": "mainui.boss.main-entry-and-fight",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 46,
+      "status_counts": {
+        "blocked": 41,
+        "needs-runtime-verify": 5
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.boss.main-entry-and-fight",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/route-manifest.json",
+          "sha256": "d24c50a22f669bf0a250d9c266a948f4a60783b120a675affbf6cd031f046648",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-personal/route-ledger.json",
+      "route": "mainui.boss.personal",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 35,
+      "status_counts": {
+        "blocked": 23,
+        "needs-runtime-verify": 12
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.boss.personal",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-personal/route-manifest.json",
+          "sha256": "c40be05a30052d4f04ea465888b4bb349d3a4c7ef69fbd8a7eebb6633bc40365",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-personal/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_mainui_down/route-ledger.json",
+      "route": "mainui.bottom.fixed",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 104,
+      "status_counts": {
+        "blocked": 30,
+        "needs-runtime-verify": 74
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.bottom.fixed",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_mainui_down/route-manifest.json",
+          "sha256": "bd1f911534849fd98dd2612435d19cba7cdffd11389af3098a648a797a46433a",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_mainui_down/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_chat/route-ledger.json",
+      "route": "mainui.chat.fullscreen",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 88,
+      "status_counts": {
+        "not-run": 88
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.chat.fullscreen",
+        "status": "not-run"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_chat/route-manifest.json",
+          "sha256": "d92c670806fe1e0cfc70216f6138429afd27e1e3f165c3fac49d9978891b4d74",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_chat/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_compete_static_v1/revision-v2/route-ledger.json",
+      "route": "mainui.compete.338",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 47,
+      "status_counts": {
+        "not-run": 47
+      },
+      "root": {
+        "count": 1,
+        "id": "compete.route",
+        "status": "not-run"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_compete_static_v1/revision-v2/route-manifest.json",
+          "sha256": "884dc72bc98acca85e33ed947970467bc21fd67ac39012dede6d3fb42b6128f2",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_compete_static_v1/revision-v2/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_compete_static_v1/revision-v3/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_compete_static_v1/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_compete_static_v1/revision-v3/route-ledger.json",
+      "route": "mainui.compete.338",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T16:30:00+08:00",
+      "nodes_total": 49,
+      "status_counts": {
+        "blocked": 24,
+        "defect": 20,
+        "baseline-only": 5
+      },
+      "root": {
+        "count": 1,
+        "id": "compete.route",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_compete_static_v1/revision-v3/route-manifest.json",
+          "sha256": "f47aab6625e65ddf4da5e9c0429659a1db3f5beb0f5dcb0ba9cb6e0aa0db5a11",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_compete_static_v1/revision-v2/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_compete_static_v1/revision-v3/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_compete_static_v1/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_compete_static_v1/route-ledger.json",
+      "route": "mainui.compete.338",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 46,
+      "status_counts": {
+        "not-run": 46
+      },
+      "root": {
+        "count": 1,
+        "id": "compete.route",
+        "status": "not-run"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_compete_static_v1/route-manifest.json",
+          "sha256": "be7e4514775d2a52a0c6135ad9cb0eeaff2e8452d284f899d2b8a640651f0f89",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_compete_static_v1/revision-v2/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_compete_static_v1/revision-v3/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_compete_static_v1/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_composite/route-ledger.json",
+      "route": "mainui.composite.full-static-v1",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 144,
+      "status_counts": {
+        "blocked": 120,
+        "needs-runtime-verify": 24
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.composite",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_composite/route-manifest.json",
+          "sha256": "4893f7c4e134abffe98f0d1dd2b88fe72945c6031e37441deb05c7ee667c539e",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_composite/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_daily/route-ledger.json",
+      "route": "mainui.daily.route",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 121,
+      "status_counts": {
+        "not-run": 121
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.daily.route",
+        "status": "not-run"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_daily/route-manifest.json",
+          "sha256": "787cd4a4aeea10650dfca4d0c54549da3b3b0c21bb02f253421b77de89dac83e",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_daily/component-dependency-manifest.json",
+          "output/ui_route_audit/2026-08-09_daily/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_armor/route-ledger.json",
+      "route": "mainui.equip.armor",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 89,
+      "status_counts": {
+        "blocked": 31,
+        "needs-runtime-verify": 58
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.equip.armor",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_armor/route-manifest.json",
+          "sha256": "4f277b93382b3631b862c4d575afd1dcffe3354fed022bc619f6d5f57938fb99",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_armor/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_equip/route-ledger.json",
+      "route": "mainui.equip.window",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 139,
+      "status_counts": {
+        "blocked": 115,
+        "needs-runtime-verify": 24
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.equip.window",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_equip/route-manifest.json",
+          "sha256": "8de7039bc32a9d7e4885218226f8ca13683782c21d720038644bc728f990490b",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_equip/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_parallel_ui_refine/festival/route-ledger.json",
+      "route": "mainui.festival",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 37,
+      "status_counts": {
+        "blocked": 35,
+        "needs-runtime-verify": 2
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.festival",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_parallel_ui_refine/festival/route-manifest.json",
+          "sha256": "5f15f1365dab8ed138d813f28f98b39a8a743e7c9cc5311ac3aec1aad8a4539a",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_parallel_ui_refine/festival/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_parallel_ui_refine/firstrecharge/route-ledger.json",
+      "route": "mainui.first-recharge",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T16:03:47+08:00",
+      "nodes_total": 63,
+      "status_counts": {
+        "blocked": 18,
+        "needs-runtime-verify": 5,
+        "defect": 40
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.first-recharge",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_parallel_ui_refine/firstrecharge/route-manifest.json",
+          "sha256": "27898e04b2dce73a2722ec87f6915ad263f6c04aced42531a73866e3973b4b49",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_parallel_ui_refine/firstrecharge/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_mainui_fixed_hud/route-ledger.json",
+      "route": "mainui.fixed-hud.route",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 103,
+      "status_counts": {
+        "not-run": 103
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.fixed-hud.route",
+        "status": "not-run"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_mainui_fixed_hud/route-manifest.json",
+          "sha256": "9fd15d79d3292724448e6c3b7f48ae8ae2aeff1d0685cbbb7dc9d5ba9810fbce",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_mainui_fixed_hud/component-dependency-manifest.json",
+          "output/ui_route_audit/2026-08-09_mainui_fixed_hud/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_friend_email/route-ledger.json",
+      "route": "mainui.friend-email.shared",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 117,
+      "status_counts": {
+        "not-run": 117
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.friend-email.shared",
+        "status": "not-run"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_friend_email/route-manifest.json",
+          "sha256": "7a5d62761a0c4386d93124849458d0115666f19cdc8a5df671d4a64a1ac181df",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_friend_email/component-dependency-manifest.json",
+          "output/ui_route_audit/2026-08-09_friend_email/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_friendinvite_static_v1/route-ledger.json",
+      "route": "mainui.friend-invite",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 70,
+      "status_counts": {
+        "blocked": 22,
+        "needs-runtime-verify": 48
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.friend-invite",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_friendinvite_static_v1/route-manifest.json",
+          "sha256": "f4cbd4d5047e22a8a3311f6a78737f0aa9f98b6456bbcea1b12cc59525115b0f",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_friendinvite_static_v1/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_friendinvite_static_v3/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_friendinvite_static_v3/route-ledger.json",
+      "route": "mainui.friend-invite",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 83,
+      "status_counts": {
+        "blocked": 72,
+        "needs-runtime-verify": 11
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.friend-invite",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_friendinvite_static_v3/route-manifest.json",
+          "sha256": "6e1a99579fa10699390fecdd05d1cf2270f8ba6d425e832095f8b3195cf347bb",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_friendinvite_static_v1/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_friendinvite_static_v3/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_friendinvite_static_v2/route-ledger.json",
+      "route": "mainui.friend-invite-v2",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 83,
+      "status_counts": {
+        "blocked": 71,
+        "needs-runtime-verify": 12
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.friend-invite",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_friendinvite_static_v2/route-manifest.json",
+          "sha256": "ccc015e05fbc0e732b0366dc538f57042bb0ab6cf5099da7936ccea89096b751",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_friendinvite_static_v2/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_growthbenefits/route-ledger.json",
+      "route": "mainui.growth-benefits",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 40,
+      "status_counts": {
+        "blocked": 32,
+        "needs-runtime-verify": 8
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.growth-benefits",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_growthbenefits/route-manifest.json",
+          "sha256": "6e0541a2a911e7bb8eee83c8e5fc6d6d0abfa3fc0a45e5446df871bd184d613d",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_growthbenefits/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_growthbenefits_revision_v2/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_growthbenefits_revision_v2/route-ledger.json",
+      "route": "mainui.growth-benefits",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 901,
+      "status_counts": {
+        "blocked": 897,
+        "needs-runtime-verify": 4
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.growth-benefits",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_growthbenefits_revision_v2/route-manifest.json",
+          "sha256": "0b1e9ddea6f0f44a6d788460fdf9ad3507efcfb059a1b568702b48a0bc4245df",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_growthbenefits/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_growthbenefits_revision_v2/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_guild/route-ledger.json",
+      "route": "mainui.guild.route",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 134,
+      "status_counts": {
+        "not-run": 134
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.guild.route",
+        "status": "not-run"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_guild/route-manifest.json",
+          "sha256": "48d74ca30779df3950c45be1d74175fc8d0f89114904b00cd0035c10d29b3f98",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_guild/component-dependency-manifest.json",
+          "output/ui_route_audit/2026-08-09_guild/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_halo/route-ledger.json",
+      "route": "mainui.halo",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T00:00:00+08:00",
+      "nodes_total": 89,
+      "status_counts": {
+        "blocked": 35,
+        "needs-runtime-verify": 54
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.halo",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_halo/route-manifest.json",
+          "sha256": "14ded045a99bfa37aa54359b7beb77df53b1d74eef050d2ef70988916e587b78",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_halo/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_jjc_static_v1/route-ledger.json",
+      "route": "mainui.jjc.arena.full-route",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 82,
+      "status_counts": {
+        "blocked": 30,
+        "needs-runtime-verify": 49,
+        "defect": 3
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.jjc.arena.full-route",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_jjc_static_v1/route-manifest.json",
+          "sha256": "bbdff9b543391c6a0c687753ea1450a95b0cd76f8b136d6b056fde6475d86a61",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_jjc_static_v1/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_parallel_ui_refine/kaifu/route-ledger.json",
+      "route": "mainui.kaifu.invest",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 68,
+      "status_counts": {
+        "blocked": 54,
+        "needs-runtime-verify": 14
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.kaifu.invest",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_parallel_ui_refine/kaifu/route-manifest.json",
+          "sha256": "b59ab94b56bb528eabaccb8511861120a12cc7b8e8b8f6d3b173c9599c0bd3da",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_parallel_ui_refine/kaifu/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_kf1vn_static_v1/route-ledger.json",
+      "route": "mainui.kf1vn",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 98,
+      "status_counts": {
+        "blocked": 19,
+        "needs-runtime-verify": 77,
+        "defect": 2
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.kf1vn",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_kf1vn_static_v1/route-manifest.json",
+          "sha256": "f99a9ab30510fca9932c84add59c77818078111b3ca7a2d11992d1f46c7fcd5f",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_kf1vn_static_v1/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_levelreward/route-ledger.json",
+      "route": "mainui.level-reward",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 31,
+      "status_counts": {
+        "blocked": 20,
+        "needs-runtime-verify": 11
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.level-reward",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_levelreward/route-manifest.json",
+          "sha256": "d044768b8bab32158bd8b3fda03ce8685eee38351d7db3482deabdfc1965d903",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_levelreward/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_levelreward_revision_v2/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_levelreward_revision_v2/route-ledger.json",
+      "route": "mainui.level-reward",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 779,
+      "status_counts": {
+        "blocked": 672,
+        "needs-runtime-verify": 107
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.level-reward",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_levelreward_revision_v2/route-manifest.json",
+          "sha256": "58f38c5cc9c5a9310df40cd29ec60e83b91ea6882d992238acef610126d5932a",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_levelreward/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_levelreward_revision_v2/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_limit_level_shop/route-ledger.json",
+      "route": "mainui.limit-level-shop",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 35,
+      "status_counts": {
+        "blocked": 9,
+        "needs-runtime-verify": 26
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.limit-level-shop",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_limit_level_shop/route-manifest.json",
+          "sha256": "6be9b596989b9cd84b2093769c40721761e877e6e178c53971bcc99bbb24a8be",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_limit_level_shop/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_list_duobao/route-ledger.json",
+      "route": "mainui.list-duobao",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 55,
+      "status_counts": {
+        "blocked": 8,
+        "needs-runtime-verify": 47
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.list-duobao",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_list_duobao/route-manifest.json",
+          "sha256": "0a9d1500618babf7d47c9bfe55b42451af300951b04cbc6652964d66c1d73aa4",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_list_duobao/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_map/route-ledger.json",
+      "route": "mainui.map",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 49,
+      "status_counts": {
+        "blocked": 35,
+        "needs-runtime-verify": 14
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.map",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_map/route-manifest.json",
+          "sha256": "21e1ad06d78a9e72ab821d3805b53181d2a88e39cf9a3231517721e72abd7e38",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_map/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_market/route-ledger-v2.json",
+      "route": "mainui.market",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 376,
+      "status_counts": {
+        "blocked": 361,
+        "needs-runtime-verify": 15
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.market",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_market/route-manifest-v2.json",
+          "sha256": "fbfbf00023696cea9d3e1dc1511b6a95f23cea412a7cd5bc090d1a8d57921214",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_market/route-manifest-v2.json",
+          "output/ui_route_audit/2026-08-09_market/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_market/route-ledger.json",
+      "route": "mainui.market",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 376,
+      "status_counts": {
+        "blocked": 361,
+        "needs-runtime-verify": 15
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.market",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_market/route-manifest.json",
+          "sha256": "e2dc4ed04aa6e019822acb087be55fd373ea76989abb9217b330c1bcca703995",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_market/route-manifest-v2.json",
+          "output/ui_route_audit/2026-08-09_market/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_onhook/route-ledger.json",
+      "route": "mainui.onhook.complete",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 109,
+      "status_counts": {
+        "blocked": 9,
+        "defect": 8,
+        "not-run": 92
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.onhook.complete",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_onhook/route-manifest.json",
+          "sha256": "1be92e459352d0d10e2ba9f7e20d246956ed80e04104defa93408de0daf150c5",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_onhook/component-dependency-manifest.json",
+          "output/ui_route_audit/2026-08-09_onhook/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_pet/route-ledger.json",
+      "route": "mainui.pet.window",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 151,
+      "status_counts": {
+        "blocked": 117,
+        "needs-runtime-verify": 34
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.pet.window",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_pet/route-manifest.json",
+          "sha256": "d8fe882f80507763e43acd992ca530313409a44a6e8b730c8e5d0aaefa5c2781",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_pet/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_pushgift_static_v1/route-ledger.json",
+      "route": "mainui.push-gift",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T16:16:00+08:00",
+      "nodes_total": 91,
+      "status_counts": {
+        "blocked": 31,
+        "needs-runtime-verify": 4,
+        "defect": 56
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.push-gift",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_pushgift_static_v1/route-manifest.json",
+          "sha256": "62871efb8684b5802691e58c6449118a485fb1877e3256e157cf2528870aa4e8",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_pushgift_static_v1/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_rank_static_v1/route-ledger.json",
+      "route": "mainui.rank",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 66,
+      "status_counts": {
+        "blocked": 55,
+        "needs-runtime-verify": 11
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.rank",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_rank_static_v1/route-manifest.json",
+          "sha256": "beced3e71cb6f5a3a0a64b28f6275657220ca2a980356492815047af0d6b81a2",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_rank_static_v1/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_rank_static_v2/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_rank_static_v2/route-ledger.json",
+      "route": "mainui.rank",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 77,
+      "status_counts": {
+        "blocked": 63,
+        "needs-runtime-verify": 14
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.rank",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_rank_static_v2/route-manifest.json",
+          "sha256": "0ba4c62e1976bbda6c4d9c523bbe2f9c374204a3f50921e009fde48bdc43307e",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_rank_static_v1/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_rank_static_v2/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_redpacket_static_v3/route-ledger.json",
+      "route": "mainui.red-packet",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 62,
+      "status_counts": {
+        "blocked": 53,
+        "needs-runtime-verify": 9
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.red-packet",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_redpacket_static_v3/route-manifest.json",
+          "sha256": "02d6c9cbfda880cb6eeaa599341bf1b7ab2a0b7e40b59e3dd26e42eac53f3d50",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_redpacket_static_v1/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_redpacket_static_v3/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_redpacket_static_v4/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_redpacket_static_v4/route-ledger.json",
+      "route": "mainui.red-packet",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 65,
+      "status_counts": {
+        "blocked": 53,
+        "needs-runtime-verify": 12
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.red-packet",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_redpacket_static_v4/route-manifest.json",
+          "sha256": "107c8700f0bde2786f734bdce30a3349c9cd402d11610f1e3d824484215b2e4b",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_redpacket_static_v1/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_redpacket_static_v3/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_redpacket_static_v4/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_redpacket_static_v1/route-ledger.json",
+      "route": "mainui.redpacket",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T00:00:00+08:00",
+      "nodes_total": 45,
+      "status_counts": {
+        "blocked": 3,
+        "needs-runtime-verify": 4,
+        "defect": 38
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.redpacket",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_redpacket_static_v1/route-manifest.json",
+          "sha256": "ebf73c3f65d04b26a7886f9d8870fef3cfa01ada884214d4c8bd8c605861308d",
+          "exists": true,
+          "sha256_matches": false
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_redpacket_static_v1/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_redpacket_static_v2/route-manifest.json"
+        ]
+      },
+      "issues": [
+        "declared manifest_source SHA-256 mismatch"
+      ]
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_redpacket_static_v2/route-ledger.json",
+      "route": "mainui.redpacket",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T15:45:00+08:00",
+      "nodes_total": 45,
+      "status_counts": {
+        "blocked": 3,
+        "needs-runtime-verify": 4,
+        "defect": 38
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.redpacket",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_redpacket_static_v2/route-manifest.json",
+          "sha256": "37c29e087fa4b43cfde7c9a69c045f40797be38b5f89d561bc90b766279e62b2",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_redpacket_static_v2/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_reincarnation_static/route-ledger.json",
+      "route": "mainui.reincarnation",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T00:00:00+08:00",
+      "nodes_total": 52,
+      "status_counts": {
+        "blocked": 52
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.reincarnation",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_reincarnation_static/route-manifest.json",
+          "sha256": "ce417337cbb8e0d9670456080fccd7bcf1a148a9fef681e5cd1647d877f5c72d",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_reincarnation_static/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_reincarnation_static_v2/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_reincarnation_static_v3/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_reincarnation_static_v2/route-ledger.json",
+      "route": "mainui.reincarnation",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T00:00:00+08:00",
+      "nodes_total": 53,
+      "status_counts": {
+        "blocked": 53
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.reincarnation",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_reincarnation_static_v2/route-manifest.json",
+          "sha256": "98e882dbe624c75bf73e91b741d8fb4eb8901d907eb007beb32649302644c187",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_reincarnation_static/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_reincarnation_static_v2/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_reincarnation_static_v3/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_reincarnation_static_v3/route-ledger.json",
+      "route": "mainui.reincarnation",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T00:00:00+08:00",
+      "nodes_total": 67,
+      "status_counts": {
+        "blocked": 67
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.reincarnation",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_reincarnation_static_v3/route-manifest.json",
+          "sha256": "782e8666554fd06b4222aa959d507ec700af855446c0a9157b097f5db6ed2149",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_reincarnation_static/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_reincarnation_static_v2/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_reincarnation_static_v3/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_role_outward/route-ledger.json",
+      "route": "mainui.role.outward",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 234,
+      "status_counts": {
+        "blocked": 143,
+        "needs-runtime-verify": 91
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.role.outward",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_role_outward/route-manifest.json",
+          "sha256": "2eaa37c850d921b58094b85e01cf803c86da5df801902479364d49f7b3de8da9",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_role_outward/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-08_role_achievement/route-ledger-v1.json",
+      "route": "mainui.role.person.achievement.v1",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-08T16:09:53+08:00",
+      "nodes_total": 55,
+      "status_counts": {
+        "blocked": 7,
+        "needs-runtime-verify": 48
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.role.person.achievement",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/route-manifest-v1.json",
+          "sha256": "f798e9b481b45322993d60b76754f5598d3b97a87564252080e5de24b343e000",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-08_role_achievement/route-manifest-v1.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-08_role_achievement/route-ledger-v2.json",
+      "route": "mainui.role.person.achievement.v2",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T13:15:12+08:00",
+      "nodes_total": 63,
+      "status_counts": {
+        "blocked": 10,
+        "needs-runtime-verify": 53
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.role.person.achievement",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-08_role_achievement/route-manifest-v2.json",
+          "sha256": "39b2d2c7e4fb1547d4b11e98bf5fcd62a5b257bfa87434411b0e8ed8a5ac5e92",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-08_role_achievement/route-manifest-v2.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_role_medal/route-ledger.json",
+      "route": "mainui.role.person.medal.v1",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T00:00:00+08:00",
+      "nodes_total": 20,
+      "status_counts": {
+        "blocked": 12,
+        "needs-runtime-verify": 8
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.role.person.medal",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_role_medal/route-manifest.json",
+          "sha256": "183560afe2c1cf8df4d95b65137bd3c63eb2353fb1aa672af9d5067cb1e75de3",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_role_medal/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_role_unreal/route-ledger.json",
+      "route": "mainui.role.unreal",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 57,
+      "status_counts": {
+        "blocked": 5,
+        "not-run": 52
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.role.unreal",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_role_unreal/route-manifest.json",
+          "sha256": "c63237aca14f1ba08689d919f7f9c1381f1085453bebea22854346e9202bac0c",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_role_unreal/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_rune_static_v1/route-ledger.json",
+      "route": "mainui.rune",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T17:10:00+08:00",
+      "nodes_total": 81,
+      "status_counts": {
+        "blocked": 15,
+        "needs-runtime-verify": 6,
+        "defect": 60
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.rune",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_rune_static_v1/route-manifest.json",
+          "sha256": "80c9b6727a157a70e6c6638ffec8a7f596147f73fb767546cfd3744fa0c031f0",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_rune_static_v1/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_setting/route-ledger.json",
+      "route": "mainui.setting.complete",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 90,
+      "status_counts": {
+        "blocked": 13,
+        "not-run": 77
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.setting.complete",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_setting/route-manifest.json",
+          "sha256": "33be93711941711e000b753ca7ebe25366cf268bc5d2e9f99ae26dbb977c148b",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_setting/component-dependency-manifest.json",
+          "output/ui_route_audit/2026-08-09_setting/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_shop/route-ledger.json",
+      "route": "mainui.shop",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 65,
+      "status_counts": {
+        "blocked": 31,
+        "needs-runtime-verify": 34
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.shop",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_shop/route-manifest.json",
+          "sha256": "376808327192a958d5be240ec36e786fa7426cb04cc92f0eee06cfae9271261b",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_shop/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_task/route-ledger.json",
+      "route": "mainui.task.route",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 123,
+      "status_counts": {
+        "not-run": 123
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.task.route",
+        "status": "not-run"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_task/route-manifest.json",
+          "sha256": "9b8a3e501b3743b6f5a07e6666a8ea113ee0323f75747b980fc2a8b79a81e145",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_task/component-dependency-manifest.json",
+          "output/ui_route_audit/2026-08-09_task/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_team_static_v1/route-ledger.json",
+      "route": "mainui.team",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 84,
+      "status_counts": {
+        "blocked": 83,
+        "needs-runtime-verify": 1
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.team",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_team_static_v1/route-manifest.json",
+          "sha256": "c118469eeec360a1a53eed12f160ea1e85eff38a12c01e65406b7175250188c8",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_team_static_v1/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_team_static_v2/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_team_static_v3/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_team_static_v4/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_team_static_v2/route-ledger.json",
+      "route": "mainui.team",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 127,
+      "status_counts": {
+        "blocked": 126,
+        "needs-runtime-verify": 1
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.team",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_team_static_v2/route-manifest.json",
+          "sha256": "d51034df7cde054a0e44e72b2a6544b6126fde9f1a791fdbaa89027ae5daa98e",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_team_static_v1/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_team_static_v2/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_team_static_v3/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_team_static_v4/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_team_static_v3/route-ledger.json",
+      "route": "mainui.team",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 132,
+      "status_counts": {
+        "blocked": 132
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.team",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_team_static_v3/route-manifest.json",
+          "sha256": "152abbb166dffd14f430b23f196be20c75f7920d6998b02ca575012adc13c287",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_team_static_v1/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_team_static_v2/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_team_static_v3/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_team_static_v4/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_team_static_v4/route-ledger.json",
+      "route": "mainui.team",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 140,
+      "status_counts": {
+        "blocked": 140
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.team",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_team_static_v4/route-manifest.json",
+          "sha256": "501a914efd4caa488da88b60342b7242115264df705b9582cb93072d08de881a",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_team_static_v1/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_team_static_v2/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_team_static_v3/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_team_static_v4/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_toppk_static_v1/route-ledger.json",
+      "route": "mainui.toppk",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T16:00:00+08:00",
+      "nodes_total": 73,
+      "status_counts": {
+        "blocked": 72,
+        "needs-runtime-verify": 1
+      },
+      "root": {
+        "count": 1,
+        "id": "toppk.route",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_toppk_static_v1/route-manifest.json",
+          "sha256": "40e31255a58bf630259be106ee7f3877df7354478ce9c108fa6c9fa9e1631418",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_toppk_static_v1/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_topvip_static_v1/route-ledger.json",
+      "route": "mainui.topvip",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T15:22:00+08:00",
+      "nodes_total": 82,
+      "status_counts": {
+        "blocked": 82
+      },
+      "root": {
+        "count": 1,
+        "id": "topvip.route",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_topvip_static_v1/route-manifest.json",
+          "sha256": "ee67eae577aa68628f373bd8aa283adae7e5d6c454f3f3536bee915c35dc8422",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_topvip_static_v1/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_topvip_static_v1/revision-v2/route-ledger.json",
+      "route": "mainui.topvip.revision-v2",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T15:48:00+08:00",
+      "nodes_total": 133,
+      "status_counts": {
+        "blocked": 133
+      },
+      "root": {
+        "count": 1,
+        "id": "topvip.route",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_topvip_static_v1/revision-v2/route-manifest.json",
+          "sha256": "57fd6c3fabbd836aae988195e5c4ddffacd21e1a4f080f3d4e2e67a556d31bda",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_topvip_static_v1/revision-v2/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_god_beast/route-ledger.json",
+      "route": "mainui.treasure.god-beast",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T18:00:00+08:00",
+      "nodes_total": 168,
+      "status_counts": {
+        "blocked": 161,
+        "needs-runtime-verify": 7
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.treasure.god-beast",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_god_beast/route-manifest.json",
+          "sha256": "aa29a9c6619ed87827c69eff25b61474604b65957d1a21a12172dfc9e122cd2a",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_god_beast/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_gubao_secret_treasure_static_v1/route-ledger.json",
+      "route": "mainui.treasure.secret-treasure.static-v1",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T15:33:25+08:00",
+      "nodes_total": 62,
+      "status_counts": {
+        "blocked": 62
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.treasure",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 1,
+        "environments": [
+          "static"
+        ],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_gubao_secret_treasure_static_v1/route-manifest.json",
+          "sha256": "f9980dc1b36dd49e00f044af44654a9a1df1c943818c7e08c3101026f284afe1",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_gubao_secret_treasure_static_v1/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_vip_main/route-ledger.json",
+      "route": "mainui.vip",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 45,
+      "status_counts": {
+        "blocked": 16,
+        "needs-runtime-verify": 29
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.vip",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_vip_main/route-manifest.json",
+          "sha256": "4fe12adfc2060f955043083cc19104953c61dbe9e6e7ce1c10b366074d868b9e",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_vip_main/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_vip_main_revision_v2/route-ledger.json",
+      "route": "mainui.vip.v2",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 1389,
+      "status_counts": {
+        "blocked": 97,
+        "needs-runtime-verify": 1292
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.vip.v2",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_vip_main_revision_v2/route-manifest.json",
+          "sha256": "fdae7b1a289fbfff7733e1d2ecf47b9672afbf30810d0b0341fd9dead14ff2b1",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_vip_main_revision_v2/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_vip_main_revision_v3/route-ledger.json",
+      "route": "mainui.vip.v3",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 1347,
+      "status_counts": {
+        "blocked": 83,
+        "needs-runtime-verify": 1264
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.vip.v3",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_vip_main_revision_v3/route-manifest.json",
+          "sha256": "9f7434e861aa90a239d788610b39183eb9169738dbf39cb890d0a7e659a06136",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_vip_main_revision_v3/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_vip_main_revision_v4/route-ledger.json",
+      "route": "mainui.vip.v4",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 1347,
+      "status_counts": {
+        "blocked": 83,
+        "needs-runtime-verify": 1264
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.vip.v4",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_vip_main_revision_v4/route-manifest.json",
+          "sha256": "f2ff4e4000c58c2eef79246d92e1322fd542e439ab69bc5c6e8b2e27de1305c5",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_vip_main_revision_v4/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_welfare/route-ledger.json",
+      "route": "mainui.welfare",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 88,
+      "status_counts": {
+        "blocked": 71,
+        "needs-runtime-verify": 17
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.welfare",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_welfare/route-manifest.json",
+          "sha256": "ef269c7d19ba4dcf4fc13412cf200078cb5f7b0c860bc59b0cde79869d8faf6e",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_welfare/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_exchange/route-ledger.json",
+      "route": "mainui.welfare.exchange-gift",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": "2026-08-09T12:00:00+08:00",
+      "nodes_total": 16,
+      "status_counts": {
+        "blocked": 11,
+        "needs-runtime-verify": 5
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.welfare.exchange-gift",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_exchange/route-manifest.json",
+          "sha256": "7d54651d87db1296e88658e7a184860d996f93e408dd33531a27a85041089b5e",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_exchange/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_marriage/route-ledger.json",
+      "route": "marriage",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 192,
+      "status_counts": {
+        "blocked": 170,
+        "needs-runtime-verify": 22
+      },
+      "root": {
+        "count": 1,
+        "id": "marriage",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_marriage/route-manifest.json",
+          "sha256": "5d7cfbbc42a2196dde11913a68a2b361ecf2651f5c22cfcea7d7cd34d749187a",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_marriage/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_marriage_v3/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_marriage_v3/route-ledger.json",
+      "route": "marriage",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 217,
+      "status_counts": {
+        "blocked": 196,
+        "needs-runtime-verify": 21
+      },
+      "root": {
+        "count": 1,
+        "id": "marriage",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_marriage_v3/route-manifest.json",
+          "sha256": "cf353160c5c56a06be16aebb73ad6765fcf0db55f007ad0733f0ae731aa763f4",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_marriage/route-manifest.json",
+          "output/ui_route_audit/2026-08-09_marriage_v3/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_marriage_v2/route-ledger.json",
+      "route": "marriage_v2",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 217,
+      "status_counts": {
+        "blocked": 192,
+        "needs-runtime-verify": 25
+      },
+      "root": {
+        "count": 1,
+        "id": "marriage",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_marriage_v2/route-manifest.json",
+          "sha256": "957185c1240def691f3de605ab156385e0482cc28d05348d08c0fc0bfbd6a588",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_marriage_v2/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_notice_static_v1/route-ledger.json",
+      "route": "notice.system-overlays",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 59,
+      "status_counts": {
+        "blocked": 59
+      },
+      "root": {
+        "count": 1,
+        "id": "notice.system-overlays",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_notice_static_v1/route-manifest.json",
+          "sha256": "71b2f564b9f8a5ae6e6a2dcab1ba16a8843d9d33658032fc4b93d7efb6e9db52",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_notice_static_v1/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_dialogue/route-ledger.json",
+      "route": "scene.dialogue.npc-task",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 56,
+      "status_counts": {
+        "blocked": 29,
+        "needs-runtime-verify": 27
+      },
+      "root": {
+        "count": 1,
+        "id": "scene.dialogue.npc-task",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_dialogue/route-manifest.json",
+          "sha256": "1a88e616c0f04bb0c2dac26f8b66614ea3a6a487e93cba9acdab8670b63c4b63",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_dialogue/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_skill/route-ledger.json",
+      "route": "skill.complete",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 82,
+      "status_counts": {
+        "blocked": 35,
+        "needs-runtime-verify": 47
+      },
+      "root": {
+        "count": 1,
+        "id": "skill.complete",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_skill/route-manifest.json",
+          "sha256": "46fd04d85d34ec19b92087f15bba3cd259e9443efa699b9aad5fe3a9d0dcc1dc",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_skill/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/dungeon-heart/route-ledger.json",
+      "route": "task.dungeon-heart",
+      "schema": 6,
+      "boundary": {
+        "class": "current-schema",
+        "write_policy": "route_ledger_init_apply_only",
+        "completion_claim": "current-evidence-contract"
+      },
+      "updated_at": null,
+      "nodes_total": 32,
+      "status_counts": {
+        "blocked": 24,
+        "needs-runtime-verify": 8
+      },
+      "root": {
+        "count": 1,
+        "id": "task.dungeon-heart",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": {
+          "path": "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/dungeon-heart/route-manifest.json",
+          "sha256": "50f685ca5182e9954d5b2e953b5a7b5bb927d62721ed66145bc33238bc25814c",
+          "exists": true,
+          "sha256_matches": true
+        },
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/dungeon-heart/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-05_bitmap-fonts/route-ledger.json",
+      "route": "global.bitmap-fonts",
+      "schema": 4,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 7,
+      "status_counts": {
+        "done": 7
+      },
+      "root": {
+        "count": 1,
+        "id": "global.bitmap-fonts",
+        "status": "done"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-05_bitmap-fonts/manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-06_bitmap-font-remediation/route-ledger.json",
+      "route": "global.bitmap-fonts.remediation-20260806",
+      "schema": 4,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 7,
+      "status_counts": {
+        "done": 1,
+        "needs-runtime-verify": 6
+      },
+      "root": {
+        "count": 1,
+        "id": "global.bitmap-fonts.remediation-20260806",
+        "status": "needs-runtime-verify"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-06_bitmap-font-remediation/manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/route-ledger.json",
+      "route": "mainui.onhook.boost-sweep",
+      "schema": 4,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 5,
+      "status_counts": {
+        "done": 2,
+        "needs-runtime-verify": 3
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.onhook",
+        "status": "needs-runtime-verify"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-04_mainui_notifications/route-ledger.json",
+      "route": "mainui.reported-defects",
+      "schema": 4,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 6,
+      "status_counts": {
+        "done": 6
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.reported-defects",
+        "status": "done"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-04_mainui_notifications/manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-04_role/role-route-ledger.json",
+      "route": "mainui.role",
+      "schema": 4,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 117,
+      "status_counts": {
+        "done": 72,
+        "blocked": 4,
+        "baseline-only": 11,
+        "not-run": 30
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.role",
+        "status": "baseline-only"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-04_role/manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-06_role_attribute_potion/route-ledger.json",
+      "route": "mainui.role.person.attribute-potion",
+      "schema": 4,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 84,
+      "status_counts": {
+        "done": 26,
+        "needs-runtime-verify": 58
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.role.person.attribute-potion",
+        "status": "needs-runtime-verify"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-06_role_attribute_potion/manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-06_role_instruction/route-ledger.json",
+      "route": "mainui.role.person.instruction",
+      "schema": 4,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 10,
+      "status_counts": {
+        "not-run": 10
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.role.person.instruction",
+        "status": "not-run"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-06_role_instruction/manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-07_resonance/route-ledger.json",
+      "route": "mainui.role.person.resonance",
+      "schema": 4,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": "2026-08-07T17:05:20+08:00",
+      "nodes_total": 458,
+      "status_counts": {
+        "done": 264,
+        "blocked": 80,
+        "needs-runtime-verify": 114
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.role.person.resonance",
+        "status": "blocked"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-07_resonance/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/route-ledger.json",
+      "route": "mainui.settings.visual-reopen",
+      "schema": 2,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 8,
+      "status_counts": {
+        "done": 8
+      },
+      "root": {
+        "count": 1,
+        "id": "mainui.settings.visual-reopen",
+        "status": "done"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-06_designation_ghost/route-ledger.json",
+      "route": "scene.designation.main-follow",
+      "schema": 4,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 2,
+      "status_counts": {
+        "done": 2
+      },
+      "root": {
+        "count": 1,
+        "id": "scene.designation.main-follow",
+        "status": "done"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-06_designation_ghost/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-08_base_window_skin_shared/route-ledger.json",
+      "route": "shared.base-window-skin",
+      "schema": 5,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 4,
+      "status_counts": {
+        "needs-runtime-verify": 4
+      },
+      "root": {
+        "count": 1,
+        "id": "shared.base-window-skin",
+        "status": "needs-runtime-verify"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": []
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-07_shared_item_presentation/route-ledger.json",
+      "route": "shared.item.presentation",
+      "schema": 5,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 5,
+      "status_counts": {
+        "needs-runtime-verify": 5
+      },
+      "root": {
+        "count": 1,
+        "id": "shared.item.presentation",
+        "status": "needs-runtime-verify"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-07_shared_item_presentation/route-manifest.json"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "ledger_path": "output/ui_route_audit/2026-08-04_web-foundation/route-ledger.json",
+      "route": "web.foundation.loading-entry-adaptation",
+      "schema": 4,
+      "boundary": {
+        "class": "historical-read-only",
+        "write_policy": "do-not-update-in-place",
+        "completion_claim": "historical-snapshot-not-schema6"
+      },
+      "updated_at": null,
+      "nodes_total": 6,
+      "status_counts": {
+        "done": 6
+      },
+      "root": {
+        "count": 1,
+        "id": "web.foundation",
+        "status": "done"
+      },
+      "verification": {
+        "run_count": 0,
+        "environments": [],
+        "route_run_id": null,
+        "route_run_environment": null
+      },
+      "manifest": {
+        "declared": null,
+        "linked_paths": [
+          "output/ui_route_audit/2026-08-04_web-foundation/manifest.json"
+        ]
+      },
+      "issues": []
+    }
+  ],
+  "manifests": [
+    {
+      "path": "output/ui_route_audit/2026-08-09_gubao_monster_static_v1/route-manifest.json",
+      "route": "autobrush.gubao.monster.static-v1",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 28
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/dungeon/route-manifest.json",
+      "route": "core.dungeon",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 93
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-domain/route-manifest.json",
+      "route": "cross-server.boss-domain",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 39
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-mystery/route-manifest.json",
+      "route": "cross-server.boss-mystery",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 17
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_redpacket_rain_static_v1/route-manifest.json",
+      "route": "customactivity.redpacket-rain",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 41
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/dungeon-partner/route-manifest.json",
+      "route": "dungeon-enter.dungeon-partner",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 60
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_gamenotice_static_v1/route-manifest.json",
+      "route": "gamenotice.static.v1",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 28
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-05_bitmap-fonts/manifest.json",
+      "route": "global.bitmap-fonts",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 7
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-06_bitmap-font-remediation/manifest.json",
+      "route": "global.bitmap-fonts.remediation-20260806",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 7
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_main_stronger/route-manifest.json",
+      "route": "mainstronger.158",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 39
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_activity/route-manifest.json",
+      "route": "mainui.activity.direct-pages",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 56
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/route-manifest.json",
+      "route": "mainui.activity.sevenday",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 79
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_addvipservice_static_v1/route-manifest.json",
+      "route": "mainui.addvipservice",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 17
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_addvipservice_static_v1/revision-v2/route-manifest.json",
+      "route": "mainui.addvipservice.revision-v2",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 28
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_adventure/route-manifest.json",
+      "route": "mainui.adventure",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 423
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_attention_static_v1/route-manifest.json",
+      "route": "mainui.attention",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 32
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_autobrush/route-manifest.json",
+      "route": "mainui.autobrush",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 65
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_bag/route-manifest.json",
+      "route": "mainui.bag.window",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 107
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/route-manifest.json",
+      "route": "mainui.base-dungeon.limit-tower",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 376
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/route-manifest.json",
+      "route": "mainui.boss.field",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 82
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/route-manifest.json",
+      "route": "mainui.boss.main-entry-and-fight",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 46
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-personal/route-manifest.json",
+      "route": "mainui.boss.personal",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 35
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_mainui_down/route-manifest.json",
+      "route": "mainui.bottom.fixed",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 104
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_chat/route-manifest.json",
+      "route": "mainui.chat.fullscreen",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 88
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_compete_static_v1/revision-v2/route-manifest.json",
+      "route": "mainui.compete.338",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 47
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_compete_static_v1/revision-v3/route-manifest.json",
+      "route": "mainui.compete.338",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 49
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_compete_static_v1/route-manifest.json",
+      "route": "mainui.compete.338",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 46
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_composite/route-manifest.json",
+      "route": "mainui.composite.full-static-v1",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 144
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_daily/component-dependency-manifest.json",
+      "route": "mainui.daily.route",
+      "schema": null,
+      "kind": "route-metadata",
+      "node_count": null
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_daily/route-manifest.json",
+      "route": "mainui.daily.route",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 121
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_armor/route-manifest.json",
+      "route": "mainui.equip.armor",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 89
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_equip/route-manifest.json",
+      "route": "mainui.equip.window",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 139
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_parallel_ui_refine/festival/route-manifest.json",
+      "route": "mainui.festival",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 37
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_parallel_ui_refine/firstrecharge/route-manifest.json",
+      "route": "mainui.first-recharge",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 63
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_mainui_fixed_hud/component-dependency-manifest.json",
+      "route": "mainui.fixed-hud.route",
+      "schema": null,
+      "kind": "route-metadata",
+      "node_count": null
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_mainui_fixed_hud/route-manifest.json",
+      "route": "mainui.fixed-hud.route",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 103
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_friend_email/component-dependency-manifest.json",
+      "route": "mainui.friend-email.shared",
+      "schema": null,
+      "kind": "route-metadata",
+      "node_count": null
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_friend_email/route-manifest.json",
+      "route": "mainui.friend-email.shared",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 117
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_friendinvite_static_v1/route-manifest.json",
+      "route": "mainui.friend-invite",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 70
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_friendinvite_static_v3/route-manifest.json",
+      "route": "mainui.friend-invite",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 83
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_friendinvite_static_v2/route-manifest.json",
+      "route": "mainui.friend-invite-v2",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 83
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_growthbenefits/route-manifest.json",
+      "route": "mainui.growth-benefits",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 40
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_growthbenefits_revision_v2/route-manifest.json",
+      "route": "mainui.growth-benefits",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 901
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_guild/component-dependency-manifest.json",
+      "route": "mainui.guild.route",
+      "schema": null,
+      "kind": "route-metadata",
+      "node_count": null
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_guild/route-manifest.json",
+      "route": "mainui.guild.route",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 134
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_halo/route-manifest.json",
+      "route": "mainui.halo",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 89
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_jjc_static_v1/route-manifest.json",
+      "route": "mainui.jjc.arena.full-route",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 82
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_parallel_ui_refine/kaifu/route-manifest.json",
+      "route": "mainui.kaifu.invest",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 68
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_kf1vn_static_v1/route-manifest.json",
+      "route": "mainui.kf1vn",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 98
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_levelreward/route-manifest.json",
+      "route": "mainui.level-reward",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 31
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_levelreward_revision_v2/route-manifest.json",
+      "route": "mainui.level-reward",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 779
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_limit_level_shop/route-manifest.json",
+      "route": "mainui.limit-level-shop",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 35
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_list_duobao/route-manifest.json",
+      "route": "mainui.list-duobao",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 55
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_map/route-manifest.json",
+      "route": "mainui.map",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 49
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_market/route-manifest-v2.json",
+      "route": "mainui.market",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 376
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_market/route-manifest.json",
+      "route": "mainui.market",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 376
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/manifest.json",
+      "route": "mainui.onhook.boost-sweep",
+      "schema": 4,
+      "kind": "route-metadata",
+      "node_count": null
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_onhook/component-dependency-manifest.json",
+      "route": "mainui.onhook.complete",
+      "schema": null,
+      "kind": "route-metadata",
+      "node_count": null
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_onhook/route-manifest.json",
+      "route": "mainui.onhook.complete",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 109
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_pet/route-manifest.json",
+      "route": "mainui.pet.window",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 151
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_pushgift_static_v1/route-manifest.json",
+      "route": "mainui.push-gift",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 91
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_rank_static_v1/route-manifest.json",
+      "route": "mainui.rank",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 66
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_rank_static_v2/route-manifest.json",
+      "route": "mainui.rank",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 77
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_redpacket_static_v1/route-manifest.json",
+      "route": "mainui.red-packet",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 62
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_redpacket_static_v3/route-manifest.json",
+      "route": "mainui.red-packet",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 62
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_redpacket_static_v4/route-manifest.json",
+      "route": "mainui.red-packet",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 65
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_redpacket_static_v2/route-manifest.json",
+      "route": "mainui.redpacket",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 45
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_reincarnation_static/route-manifest.json",
+      "route": "mainui.reincarnation",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 52
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_reincarnation_static_v2/route-manifest.json",
+      "route": "mainui.reincarnation",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 53
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_reincarnation_static_v3/route-manifest.json",
+      "route": "mainui.reincarnation",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 67
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-04_mainui_notifications/manifest.json",
+      "route": "mainui.reported-defects",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 6
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-04_role/manifest.json",
+      "route": "mainui.role",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 48
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_role_outward/route-manifest.json",
+      "route": "mainui.role.outward",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 234
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-08_role_achievement/route-manifest-v1.json",
+      "route": "mainui.role.person.achievement.v1",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 55
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-08_role_achievement/route-manifest-v2.json",
+      "route": "mainui.role.person.achievement.v2",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 63
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-06_role_attribute_potion/manifest.json",
+      "route": "mainui.role.person.attribute-potion",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 84
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-06_role_instruction/manifest.json",
+      "route": "mainui.role.person.instruction",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 10
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_role_medal/route-manifest.json",
+      "route": "mainui.role.person.medal.v1",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 20
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-07_resonance/route-manifest.json",
+      "route": "mainui.role.person.resonance",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 458
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_role_unreal/route-manifest.json",
+      "route": "mainui.role.unreal",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 57
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_rune_static_v1/route-manifest.json",
+      "route": "mainui.rune",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 81
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_setting/component-dependency-manifest.json",
+      "route": "mainui.setting.complete",
+      "schema": null,
+      "kind": "route-metadata",
+      "node_count": null
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_setting/route-manifest.json",
+      "route": "mainui.setting.complete",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 90
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/manifest.json",
+      "route": "mainui.settings.visual-reopen",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 8
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_shop/route-manifest.json",
+      "route": "mainui.shop",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 65
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_task/component-dependency-manifest.json",
+      "route": "mainui.task.route",
+      "schema": null,
+      "kind": "route-metadata",
+      "node_count": null
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_task/route-manifest.json",
+      "route": "mainui.task.route",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 123
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_team_static_v1/route-manifest.json",
+      "route": "mainui.team",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 84
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_team_static_v2/route-manifest.json",
+      "route": "mainui.team",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 127
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_team_static_v3/route-manifest.json",
+      "route": "mainui.team",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 132
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_team_static_v4/route-manifest.json",
+      "route": "mainui.team",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 140
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_toppk_static_v1/route-manifest.json",
+      "route": "mainui.toppk",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 73
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_topvip_static_v1/route-manifest.json",
+      "route": "mainui.topvip",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 82
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_topvip_static_v1/revision-v2/route-manifest.json",
+      "route": "mainui.topvip.revision-v2",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 133
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_god_beast/route-manifest.json",
+      "route": "mainui.treasure.god-beast",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 168
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_gubao_secret_treasure_static_v1/route-manifest.json",
+      "route": "mainui.treasure.secret-treasure.static-v1",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 62
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_vip_main/route-manifest.json",
+      "route": "mainui.vip",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 45
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_vip_main_revision_v2/route-manifest.json",
+      "route": "mainui.vip.v2",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 1389
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_vip_main_revision_v3/route-manifest.json",
+      "route": "mainui.vip.v3",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 1347
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_vip_main_revision_v4/route-manifest.json",
+      "route": "mainui.vip.v4",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 1347
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_welfare/route-manifest.json",
+      "route": "mainui.welfare",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 88
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_exchange/route-manifest.json",
+      "route": "mainui.welfare.exchange-gift",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 16
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_marriage/route-manifest.json",
+      "route": "marriage",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 192
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_marriage_v3/route-manifest.json",
+      "route": "marriage",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 217
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_marriage_v2/route-manifest.json",
+      "route": "marriage_v2",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 217
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_notice_static_v1/route-manifest.json",
+      "route": "notice.system-overlays",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 59
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-06_designation_ghost/route-manifest.json",
+      "route": "scene.designation.main-follow",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 2
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_dialogue/route-manifest.json",
+      "route": "scene.dialogue.npc-task",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 56
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-07_shared_item_presentation/route-manifest.json",
+      "route": "shared.item.presentation",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 5
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_skill/route-manifest.json",
+      "route": "skill.complete",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 82
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/dungeon-heart/route-manifest.json",
+      "route": "task.dungeon-heart",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 32
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-04_web-foundation/manifest.json",
+      "route": "web.foundation.loading-entry-adaptation",
+      "schema": null,
+      "kind": "topology",
+      "node_count": 6
+    }
+  ],
+  "errors": {
+    "ledgers": [],
+    "manifests": []
+  },
+  "ignored_manifests": [
+    "output/ui_route_audit/2026-08-09_reward_fly_rgba_capture_03/legacy_rgba/capture-manifest.json"
+  ],
+  "source_files": [
+    "output/ui_route_audit/2026-08-04_mainui_notifications/manifest.json",
+    "output/ui_route_audit/2026-08-04_mainui_notifications/route-ledger.json",
+    "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/manifest.json",
+    "output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/route-ledger.json",
+    "output/ui_route_audit/2026-08-04_role/manifest.json",
+    "output/ui_route_audit/2026-08-04_role/role-route-ledger.json",
+    "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/manifest.json",
+    "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/route-ledger.json",
+    "output/ui_route_audit/2026-08-04_web-foundation/manifest.json",
+    "output/ui_route_audit/2026-08-04_web-foundation/route-ledger.json",
+    "output/ui_route_audit/2026-08-05_bitmap-fonts/manifest.json",
+    "output/ui_route_audit/2026-08-05_bitmap-fonts/route-ledger.json",
+    "output/ui_route_audit/2026-08-06_bitmap-font-remediation/manifest.json",
+    "output/ui_route_audit/2026-08-06_bitmap-font-remediation/route-ledger.json",
+    "output/ui_route_audit/2026-08-06_designation_ghost/route-ledger.json",
+    "output/ui_route_audit/2026-08-06_designation_ghost/route-manifest.json",
+    "output/ui_route_audit/2026-08-06_role_attribute_potion/manifest.json",
+    "output/ui_route_audit/2026-08-06_role_attribute_potion/route-ledger.json",
+    "output/ui_route_audit/2026-08-06_role_instruction/manifest.json",
+    "output/ui_route_audit/2026-08-06_role_instruction/route-ledger.json",
+    "output/ui_route_audit/2026-08-07_resonance/route-ledger.json",
+    "output/ui_route_audit/2026-08-07_resonance/route-manifest.json",
+    "output/ui_route_audit/2026-08-07_shared_item_presentation/route-ledger.json",
+    "output/ui_route_audit/2026-08-07_shared_item_presentation/route-manifest.json",
+    "output/ui_route_audit/2026-08-08_base_window_skin_shared/route-ledger.json",
+    "output/ui_route_audit/2026-08-08_role_achievement/route-ledger-v1.json",
+    "output/ui_route_audit/2026-08-08_role_achievement/route-ledger-v2.json",
+    "output/ui_route_audit/2026-08-08_role_achievement/route-manifest-v1.json",
+    "output/ui_route_audit/2026-08-08_role_achievement/route-manifest-v2.json",
+    "output/ui_route_audit/2026-08-09_activity/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_activity/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_addvipservice_static_v1/revision-v2/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_addvipservice_static_v1/revision-v2/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_addvipservice_static_v1/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_addvipservice_static_v1/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_adventure/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_adventure/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_armor/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_armor/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_attention_static_v1/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_attention_static_v1/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_autobrush/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_autobrush/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_bag/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_bag/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-domain/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-domain/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-field/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-mystery/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-mystery/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-personal/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-personal/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_chat/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_chat/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_compete_static_v1/revision-v2/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_compete_static_v1/revision-v2/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_compete_static_v1/revision-v3/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_compete_static_v1/revision-v3/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_compete_static_v1/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_compete_static_v1/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_composite/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_composite/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_daily/component-dependency-manifest.json",
+    "output/ui_route_audit/2026-08-09_daily/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_daily/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_dialogue/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_dialogue/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/base-dungeon/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/dungeon-heart/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/dungeon-heart/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/dungeon-partner/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/dungeon-partner/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/dungeon/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/dungeon/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_equip/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_equip/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_exchange/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_exchange/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_friend_email/component-dependency-manifest.json",
+    "output/ui_route_audit/2026-08-09_friend_email/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_friend_email/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_friendinvite_static_v1/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_friendinvite_static_v1/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_friendinvite_static_v2/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_friendinvite_static_v2/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_friendinvite_static_v3/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_friendinvite_static_v3/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_gamenotice_static_v1/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_gamenotice_static_v1/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_god_beast/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_god_beast/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_growthbenefits/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_growthbenefits/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_growthbenefits_revision_v2/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_growthbenefits_revision_v2/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_gubao_monster_static_v1/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_gubao_monster_static_v1/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_gubao_secret_treasure_static_v1/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_gubao_secret_treasure_static_v1/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_guild/component-dependency-manifest.json",
+    "output/ui_route_audit/2026-08-09_guild/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_guild/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_halo/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_halo/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_jjc_static_v1/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_jjc_static_v1/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_kf1vn_static_v1/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_kf1vn_static_v1/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_levelreward/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_levelreward/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_levelreward_revision_v2/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_levelreward_revision_v2/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_limit_level_shop/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_limit_level_shop/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_list_duobao/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_list_duobao/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_main_stronger/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_main_stronger/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_mainui_down/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_mainui_down/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_mainui_fixed_hud/component-dependency-manifest.json",
+    "output/ui_route_audit/2026-08-09_mainui_fixed_hud/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_mainui_fixed_hud/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_map/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_map/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_market/route-ledger-v2.json",
+    "output/ui_route_audit/2026-08-09_market/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_market/route-manifest-v2.json",
+    "output/ui_route_audit/2026-08-09_market/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_marriage/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_marriage/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_marriage_v2/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_marriage_v2/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_marriage_v3/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_marriage_v3/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_notice_static_v1/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_notice_static_v1/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_onhook/component-dependency-manifest.json",
+    "output/ui_route_audit/2026-08-09_onhook/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_onhook/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_parallel_ui_refine/festival/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_parallel_ui_refine/festival/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_parallel_ui_refine/firstrecharge/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_parallel_ui_refine/firstrecharge/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_parallel_ui_refine/kaifu/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_parallel_ui_refine/kaifu/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_parallel_ui_refine/sevenday/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_pet/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_pet/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_pushgift_static_v1/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_pushgift_static_v1/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_rank_static_v1/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_rank_static_v1/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_rank_static_v2/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_rank_static_v2/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_redpacket_rain_static_v1/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_redpacket_rain_static_v1/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_redpacket_static_v1/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_redpacket_static_v1/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_redpacket_static_v2/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_redpacket_static_v2/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_redpacket_static_v3/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_redpacket_static_v3/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_redpacket_static_v4/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_redpacket_static_v4/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_reincarnation_static/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_reincarnation_static/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_reincarnation_static_v2/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_reincarnation_static_v2/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_reincarnation_static_v3/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_reincarnation_static_v3/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_reward_fly_rgba_capture_03/legacy_rgba/capture-manifest.json",
+    "output/ui_route_audit/2026-08-09_role_medal/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_role_medal/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_role_outward/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_role_outward/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_role_unreal/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_role_unreal/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_rune_static_v1/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_rune_static_v1/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_setting/component-dependency-manifest.json",
+    "output/ui_route_audit/2026-08-09_setting/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_setting/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_shop/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_shop/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_skill/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_skill/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_task/component-dependency-manifest.json",
+    "output/ui_route_audit/2026-08-09_task/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_task/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_team_static_v1/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_team_static_v1/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_team_static_v2/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_team_static_v2/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_team_static_v3/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_team_static_v3/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_team_static_v4/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_team_static_v4/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_toppk_static_v1/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_toppk_static_v1/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_topvip_static_v1/revision-v2/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_topvip_static_v1/revision-v2/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_topvip_static_v1/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_topvip_static_v1/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_vip_main/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_vip_main/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_vip_main_revision_v2/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_vip_main_revision_v2/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_vip_main_revision_v3/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_vip_main_revision_v3/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_vip_main_revision_v4/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_vip_main_revision_v4/route-manifest.json",
+    "output/ui_route_audit/2026-08-09_welfare/route-ledger.json",
+    "output/ui_route_audit/2026-08-09_welfare/route-manifest.json"
+  ]
+}

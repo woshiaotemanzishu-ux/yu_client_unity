@@ -16,6 +16,9 @@ namespace Shenxiao.Module.Core.ListDuobao
 
         public void SetData(IReadOnlyList<ListDuobaoConfigs.RewardEntry> rewards)
         {
+            // 该组件既作为模块内模板克隆，也作为独立 ListGoodsItem.prefab 消费。
+            // 调用方可能直接 SetData；必须先走 BaseView 生命周期完成 BindNodes/OnInit。
+            if (!IsInitialized) Show();
             Clear();
             if (_tpl_BaseAwardItem == null || _gp_item == null || rewards == null) return;
             for (int i = 0; i < rewards.Count; i++)

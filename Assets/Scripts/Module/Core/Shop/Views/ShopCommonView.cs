@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Shenxiao.Generated.UI.Shop;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
+using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Bag;
 using Shenxiao.Module.Core.Common;
@@ -109,6 +110,7 @@ namespace Shenxiao.Module.Core.Shop
         public void SetShopType(int shopType)
         {
             _shopType = shopType;
+            ResetItemScroll();
             BuildSeriesTabs();
             RefreshMoneyDisplay();
             RefreshItemList();
@@ -116,8 +118,18 @@ namespace Shenxiao.Module.Core.Shop
 
         private void BuildSeriesTabs()
         {
-            foreach (GameObject go in _tabCells) if (go != null) Object.Destroy(go);
+            foreach (GameObject go in _tabCells)
+            {
+                if (go == null) continue;
+                go.GetComponent<BaseView>()?.Hide();
+                Object.Destroy(go);
+            }
             _tabCells.Clear();
+            if (_list_tab_con != null)
+            {
+                _list_tab_con.StopMovement();
+                _list_tab_con.horizontalNormalizedPosition = 0f;
+            }
 
             List<(int id, string desc)> series = ShopConfigs.GetShopSeries(_shopType);
             var filtered = new List<(int id, string desc)>();
@@ -134,9 +146,13 @@ namespace Shenxiao.Module.Core.Shop
                 (int id, string desc) s = filtered[i];
                 bool selected = i == 0;
                 GameObject cellGo = Object.Instantiate(_tpl_ShopSeriesTab, _list_tab_con.content);
-                cellGo.SetActive(true);
                 ShopSeriesTab tab = cellGo.GetComponent<ShopSeriesTab>();
-                if (tab != null) tab.SetData(s.id, s.desc, selected, () => OnSeriesTabClick(s.id));
+                if (tab != null)
+                {
+                    tab.Show();
+                    tab.SetData(s.id, s.desc, selected, () => OnSeriesTabClick(s.id));
+                }
+                else cellGo.SetActive(true);
                 _tabCells.Add(cellGo);
             }
         }
@@ -144,6 +160,7 @@ namespace Shenxiao.Module.Core.Shop
         private void OnSeriesTabClick(int seriesId)
         {
             _curSeriesId = seriesId;
+            ResetItemScroll();
             RefreshItemList();
             foreach (GameObject go in _tabCells)
             {
@@ -156,7 +173,12 @@ namespace Shenxiao.Module.Core.Shop
         /// 终生限购已售罄条目沉底 + 按 shop_type 选 ShopItem/ShopLimitItem 渲染类。</summary>
         private void RefreshItemList()
         {
-            foreach (GameObject go in _itemCells) if (go != null) Object.Destroy(go);
+            foreach (GameObject go in _itemCells)
+            {
+                if (go == null) continue;
+                go.GetComponent<BaseView>()?.Hide();
+                Object.Destroy(go);
+            }
             _itemCells.Clear();
 
             if (_shopType <= 0) return;
@@ -185,12 +207,30 @@ namespace Shenxiao.Module.Core.Shop
             foreach (ShopModel.GoodsVo vo in display)
             {
                 GameObject cellGo = Object.Instantiate(tpl, scroll_group.content);
-                cellGo.SetActive(true);
-                if (useLimitItem) cellGo.GetComponent<ShopLimitItem>()?.SetData(vo);
-                else cellGo.GetComponent<ShopItem>()?.SetData(vo);
+                BaseView cell = useLimitItem
+                    ? (BaseView)cellGo.GetComponent<ShopLimitItem>()
+                    : cellGo.GetComponent<ShopItem>();
+                if (cell != null) cell.Show();
+                else cellGo.SetActive(true);
+                if (useLimitItem) (cell as ShopLimitItem)?.SetData(vo);
+                else (cell as ShopItem)?.SetData(vo);
                 _itemCells.Add(cellGo);
             }
             GameLog.Info("Shop", "商城列表刷新 shop_type={0} series={1} count={2}", _shopType, _curSeriesId, display.Count);
+        }
+
+        private void ResetItemScroll()
+        {
+            if (scroll != null)
+            {
+                scroll.StopMovement();
+                scroll.verticalNormalizedPosition = 1f;
+            }
+            if (scroll_group != null)
+            {
+                scroll_group.StopMovement();
+                scroll_group.verticalNormalizedPosition = 1f;
+            }
         }
 
         /// <summary>货币显示区(对标 InitEvents cur_money_type 分支 + InitShopContent 尾段货币图标赋值)。</summary>

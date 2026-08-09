@@ -70,6 +70,12 @@ namespace Shenxiao.Module.Core.AutoBrush
                 Proto.AUTOBRUSH_TOGGLE, enabled, type);
         }
 
+        /// <summary>刷新斩妖排行榜。老端主面板和排行榜弹窗每次打开都会发送空 13301。</summary>
+        public void RequestRankInfo()
+        {
+            SendStartupRequest(Proto.AUTOBRUSH_RANK);
+        }
+
         /// <summary>
         /// Enter or exit the main-line auto-brush dungeon. Old client sends 13305 "c" with 0=enter/exit request.
         /// </summary>
@@ -193,23 +199,26 @@ namespace Shenxiao.Module.Core.AutoBrush
             int topRankLevel = 0;
 
             int count = r.ReadU16();
+            var entries = new List<AutoBrushModel.RankEntry>(count);
             for (int i = 0; i < count; i++)
             {
-                r.ReadU32();    // server_id
-                int serverNum = (int)r.ReadU32();
-                r.ReadU64();    // role_id
+                uint serverId = r.ReadU32();
+                uint serverNum = r.ReadU32();
+                long roleId = r.ReadU64();
                 string roleName = r.ReadString();
-                int rank = (int)r.ReadU32();
-                int rankLevel = (int)r.ReadU32();
-                r.ReadU64();    // combat
+                uint rank = r.ReadU32();
+                uint rankLevel = r.ReadU32();
+                long combat = r.ReadU64();
+                entries.Add(new AutoBrushModel.RankEntry(serverId, serverNum, roleId, roleName,
+                    rank, rankLevel, combat));
                 if (rank == 1)
                 {
-                    topRankLevel = rankLevel;
+                    topRankLevel = (int)rankLevel;
                     topRankName = rankType == 1 ? "S" + serverNum + "." + roleName : roleName;
                 }
             }
 
-            AutoBrushModel.Instance.SetRankInfo(rankType, roleRank, level, topRankName, topRankLevel);
+            AutoBrushModel.Instance.SetRankInfo(rankType, roleRank, level, topRankName, topRankLevel, entries);
             GameLog.Info("AutoBrush", "13301 level={0} rankType={1} roleRank={2} top={3}/{4}",
                 level, rankType, roleRank, topRankName, topRankLevel);
         }

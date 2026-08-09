@@ -1,0 +1,954 @@
+[
+  {
+    "id": "mainui.equip.window.entry-mainui",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.entry-role",
+    "status": "blocked",
+    "blocked_reason": "Role/Bag 装备格进入 Common 共享详情/比较，不直接等价 EquipModule；本轮禁止修改 Role/Bag/Common，只登记跨岛入口",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.entry-bag",
+    "status": "blocked",
+    "blocked_reason": "Role/Bag 装备格进入 Common 共享详情/比较，不直接等价 EquipModule；本轮禁止修改 Role/Bag/Common，只登记跨岛入口",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.close",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.strengthen.equipment-slots",
+    "status": "blocked",
+    "blocked_reason": "强化装备格、真实选中、属性/成本/战力/红点或大师条件尚未落地；已阻断固定武器槽与无条件发送",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.strengthen.equipment-select",
+    "status": "blocked",
+    "blocked_reason": "强化装备格、真实选中、属性/成本/战力/红点或大师条件尚未落地；已阻断固定武器槽与无条件发送",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.strengthen.selected-display",
+    "status": "blocked",
+    "blocked_reason": "强化装备格、真实选中、属性/成本/战力/红点或大师条件尚未落地；已阻断固定武器槽与无条件发送",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.strengthen.fight-power",
+    "status": "blocked",
+    "blocked_reason": "强化装备格、真实选中、属性/成本/战力/红点或大师条件尚未落地；已阻断固定武器槽与无条件发送",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.strengthen.attributes",
+    "status": "blocked",
+    "blocked_reason": "强化装备格、真实选中、属性/成本/战力/红点或大师条件尚未落地；已阻断固定武器槽与无条件发送",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.strengthen.cost",
+    "status": "blocked",
+    "blocked_reason": "强化装备格、真实选中、属性/成本/战力/红点或大师条件尚未落地；已阻断固定武器槽与无条件发送",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.strengthen.strengthen-one",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.strengthen.strengthen-all",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.strengthen.stop-auto",
+    "status": "blocked",
+    "blocked_reason": "强化装备格、真实选中、属性/成本/战力/红点或大师条件尚未落地；已阻断固定武器槽与无条件发送",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.strengthen.red-states",
+    "status": "blocked",
+    "blocked_reason": "强化装备格、真实选中、属性/成本/战力/红点或大师条件尚未落地；已阻断固定武器槽与无条件发送",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.strengthen.effect",
+    "status": "blocked",
+    "blocked_reason": "强化装备格、真实选中、属性/成本/战力/红点或大师条件尚未落地；已阻断固定武器槽与无条件发送",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.strengthen.master.current-attributes",
+    "status": "blocked",
+    "blocked_reason": "强化装备格、真实选中、属性/成本/战力/红点或大师条件尚未落地；已阻断固定武器槽与无条件发送",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.strengthen.master.next-attributes",
+    "status": "blocked",
+    "blocked_reason": "强化装备格、真实选中、属性/成本/战力/红点或大师条件尚未落地；已阻断固定武器槽与无条件发送",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.strengthen.master.progress",
+    "status": "blocked",
+    "blocked_reason": "强化装备格、真实选中、属性/成本/战力/红点或大师条件尚未落地；已阻断固定武器槽与无条件发送",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.strengthen.master.activate",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.strengthen.master.close",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.smelt.equipment-slots",
+    "status": "blocked",
+    "blocked_reason": "淬炼装备格与 config_equip_refine_* / whole_reward、属性、成本、红点和特效尚未形成完整闭包",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.smelt.selected-display",
+    "status": "blocked",
+    "blocked_reason": "淬炼装备格与 config_equip_refine_* / whole_reward、属性、成本、红点和特效尚未形成完整闭包",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.smelt.fight-power",
+    "status": "blocked",
+    "blocked_reason": "淬炼装备格与 config_equip_refine_* / whole_reward、属性、成本、红点和特效尚未形成完整闭包",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.smelt.attributes",
+    "status": "blocked",
+    "blocked_reason": "淬炼装备格与 config_equip_refine_* / whole_reward、属性、成本、红点和特效尚未形成完整闭包",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.smelt.normal-cost",
+    "status": "blocked",
+    "blocked_reason": "淬炼装备格与 config_equip_refine_* / whole_reward、属性、成本、红点和特效尚未形成完整闭包",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.smelt.upper-cost",
+    "status": "blocked",
+    "blocked_reason": "淬炼装备格与 config_equip_refine_* / whole_reward、属性、成本、红点和特效尚未形成完整闭包",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.smelt.red-states",
+    "status": "blocked",
+    "blocked_reason": "淬炼装备格与 config_equip_refine_* / whole_reward、属性、成本、红点和特效尚未形成完整闭包",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.smelt.effect",
+    "status": "blocked",
+    "blocked_reason": "淬炼装备格与 config_equip_refine_* / whole_reward、属性、成本、红点和特效尚未形成完整闭包",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.smelt.equipment-select",
+    "status": "blocked",
+    "blocked_reason": "淬炼装备格与 config_equip_refine_* / whole_reward、属性、成本、红点和特效尚未形成完整闭包",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.smelt.smelt-one",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.smelt.smelt-all",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.equipment-slots",
+    "status": "blocked",
+    "blocked_reason": "镶嵌主页装备位/六槽/战力/红点或一键状态依赖缺失模板与配置，尚未形成真实可达链",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.equipment-select",
+    "status": "blocked",
+    "blocked_reason": "镶嵌主页装备位/六槽/战力/红点或一键状态依赖缺失模板与配置，尚未形成真实可达链",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.fight-power",
+    "status": "blocked",
+    "blocked_reason": "镶嵌主页装备位/六槽/战力/红点或一键状态依赖缺失模板与配置，尚未形成真实可达链",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.one-key-inlay",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.one-key-upgrade",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.red-states",
+    "status": "blocked",
+    "blocked_reason": "镶嵌主页装备位/六槽/战力/红点或一键状态依赖缺失模板与配置，尚未形成真实可达链",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.stone-slots.slot-1",
+    "status": "blocked",
+    "blocked_reason": "JewelModule 主装备位/六宝石槽缺克隆模板，宝石背包从主页面不可达；镶嵌/宝石等级配置缺失",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.stone-slots.slot-2",
+    "status": "blocked",
+    "blocked_reason": "JewelModule 主装备位/六宝石槽缺克隆模板，宝石背包从主页面不可达；镶嵌/宝石等级配置缺失",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.stone-slots.slot-3",
+    "status": "blocked",
+    "blocked_reason": "JewelModule 主装备位/六宝石槽缺克隆模板，宝石背包从主页面不可达；镶嵌/宝石等级配置缺失",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.stone-slots.slot-4",
+    "status": "blocked",
+    "blocked_reason": "JewelModule 主装备位/六宝石槽缺克隆模板，宝石背包从主页面不可达；镶嵌/宝石等级配置缺失",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.stone-slots.slot-5",
+    "status": "blocked",
+    "blocked_reason": "JewelModule 主装备位/六宝石槽缺克隆模板，宝石背包从主页面不可达；镶嵌/宝石等级配置缺失",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.stone-slots.slot-6",
+    "status": "blocked",
+    "blocked_reason": "JewelModule 主装备位/六宝石槽缺克隆模板，宝石背包从主页面不可达；镶嵌/宝石等级配置缺失",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.master.current-attributes",
+    "status": "blocked",
+    "blocked_reason": "镶嵌大师当前/下一阶属性与激活条件未铺设；当前阻断 15260",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.master.next-attributes",
+    "status": "blocked",
+    "blocked_reason": "镶嵌大师当前/下一阶属性与激活条件未铺设；当前阻断 15260",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.master.progress",
+    "status": "blocked",
+    "blocked_reason": "镶嵌大师当前/下一阶属性与激活条件未铺设；当前阻断 15260",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.master.activate",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.master.close",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.crave.equipment-list",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.crave.selected-equipment",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.crave.jewel-preview",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.crave.attribute-list",
+    "status": "blocked",
+    "blocked_reason": "雕刻属性/材料/选择配置链未落地；材料 type_id 不得猜 0，15211 已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.crave.material-list",
+    "status": "blocked",
+    "blocked_reason": "雕刻属性/材料/选择配置链未落地；材料 type_id 不得猜 0，15211 已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.crave.equipment-select",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.crave.material-select",
+    "status": "blocked",
+    "blocked_reason": "雕刻属性/材料/选择配置链未落地；材料 type_id 不得猜 0，15211 已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.crave.carve",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.crave.carve-all",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.crave.return-chain",
+    "status": "blocked",
+    "blocked_reason": "Unity 直接打开内容 View，跳过老端 EquipJewelCraveEnterView 外窗身份，缺独立等价返回链",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.stone-bag.list-scroll",
+    "status": "blocked",
+    "blocked_reason": "JewelModule 主装备位/六宝石槽缺克隆模板，宝石背包从主页面不可达；镶嵌/宝石等级配置缺失",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.stone-bag.regular-stone",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.stone-bag.upgrade-current",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.stone-bag.unset-current",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.stone-bag.direct-up-item",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.stone-bag.direct-up-confirm",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.jewel.stone-bag.close",
+    "status": "blocked",
+    "blocked_reason": "JewelModule 主装备位/六宝石槽缺克隆模板，宝石背包从主页面不可达；镶嵌/宝石等级配置缺失",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.equipment-scroll",
+    "status": "blocked",
+    "blocked_reason": "洗魄装备列表、四槽、config_equip_wash*、材料/保底/选材与详情链尚未闭包；写入口已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.current-equipment-detail",
+    "status": "blocked",
+    "blocked_reason": "洗魄装备列表、四槽、config_equip_wash*、材料/保底/选材与详情链尚未闭包；写入口已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.wash-stone",
+    "status": "blocked",
+    "blocked_reason": "洗魄装备列表、四槽、config_equip_wash*、材料/保底/选材与详情链尚未闭包；写入口已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.extra-material",
+    "status": "blocked",
+    "blocked_reason": "洗魄装备列表、四槽、config_equip_wash*、材料/保底/选材与详情链尚未闭包；写入口已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.division-conditions",
+    "status": "blocked",
+    "blocked_reason": "洗魄装备列表、四槽、config_equip_wash*、材料/保底/选材与详情链尚未闭包；写入口已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.red-states",
+    "status": "blocked",
+    "blocked_reason": "洗魄装备列表、四槽、config_equip_wash*、材料/保底/选材与详情链尚未闭包；写入口已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.effects",
+    "status": "blocked",
+    "blocked_reason": "洗魄装备列表、四槽、config_equip_wash*、材料/保底/选材与详情链尚未闭包；写入口已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.equipment-select",
+    "status": "blocked",
+    "blocked_reason": "洗魄装备列表、四槽、config_equip_wash*、材料/保底/选材与详情链尚未闭包；写入口已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.purple-guarantee",
+    "status": "blocked",
+    "blocked_reason": "洗魄装备列表、四槽、config_equip_wash*、材料/保底/选材与详情链尚未闭包；写入口已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.wash-or-division",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.gift-entry",
+    "status": "blocked",
+    "blocked_reason": "洗魄装备列表、四槽、config_equip_wash*、材料/保底/选材与详情链尚未闭包；写入口已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.property-slots.slot-1.open",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.property-slots.slot-1.lock",
+    "status": "blocked",
+    "blocked_reason": "洗魄装备列表、四槽、config_equip_wash*、材料/保底/选材与详情链尚未闭包；写入口已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.property-slots.slot-2.open",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.property-slots.slot-2.lock",
+    "status": "blocked",
+    "blocked_reason": "洗魄装备列表、四槽、config_equip_wash*、材料/保底/选材与详情链尚未闭包；写入口已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.property-slots.slot-3.open",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.property-slots.slot-3.lock",
+    "status": "blocked",
+    "blocked_reason": "洗魄装备列表、四槽、config_equip_wash*、材料/保底/选材与详情链尚未闭包；写入口已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.property-slots.slot-4.open",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.property-slots.slot-4.lock",
+    "status": "blocked",
+    "blocked_reason": "洗魄装备列表、四槽、config_equip_wash*、材料/保底/选材与详情链尚未闭包；写入口已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.goods-popup.list-scroll",
+    "status": "blocked",
+    "blocked_reason": "洗魄装备列表、四槽、config_equip_wash*、材料/保底/选材与详情链尚未闭包；写入口已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.goods-popup.item-select",
+    "status": "blocked",
+    "blocked_reason": "洗魄装备列表、四槽、config_equip_wash*、材料/保底/选材与详情链尚未闭包；写入口已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.goods-popup.unload",
+    "status": "blocked",
+    "blocked_reason": "洗魄装备列表、四槽、config_equip_wash*、材料/保底/选材与详情链尚未闭包；写入口已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.wash.goods-popup.close",
+    "status": "blocked",
+    "blocked_reason": "洗魄装备列表、四槽、config_equip_wash*、材料/保底/选材与详情链尚未闭包；写入口已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.refinement.equipment-scroll",
+    "status": "blocked",
+    "blocked_reason": "神炼装备列表、config_equip_refinement、属性/消耗/详情/说明与结果链尚未闭包；15255 已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.refinement.current-attributes",
+    "status": "blocked",
+    "blocked_reason": "神炼装备列表、config_equip_refinement、属性/消耗/详情/说明与结果链尚未闭包；15255 已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.refinement.next-attributes",
+    "status": "blocked",
+    "blocked_reason": "神炼装备列表、config_equip_refinement、属性/消耗/详情/说明与结果链尚未闭包；15255 已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.refinement.extra-attributes",
+    "status": "blocked",
+    "blocked_reason": "神炼装备列表、config_equip_refinement、属性/消耗/详情/说明与结果链尚未闭包；15255 已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.refinement.cost",
+    "status": "blocked",
+    "blocked_reason": "神炼装备列表、config_equip_refinement、属性/消耗/详情/说明与结果链尚未闭包；15255 已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.refinement.red-states",
+    "status": "blocked",
+    "blocked_reason": "神炼装备列表、config_equip_refinement、属性/消耗/详情/说明与结果链尚未闭包；15255 已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.refinement.effects",
+    "status": "blocked",
+    "blocked_reason": "神炼装备列表、config_equip_refinement、属性/消耗/详情/说明与结果链尚未闭包；15255 已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.refinement.equipment-select",
+    "status": "blocked",
+    "blocked_reason": "神炼装备列表、config_equip_refinement、属性/消耗/详情/说明与结果链尚未闭包；15255 已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.refinement.equipment-detail",
+    "status": "blocked",
+    "blocked_reason": "神炼装备列表、config_equip_refinement、属性/消耗/详情/说明与结果链尚未闭包；15255 已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.refinement.refine",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.refinement.instruction",
+    "status": "blocked",
+    "blocked_reason": "神炼装备列表、config_equip_refinement、属性/消耗/详情/说明与结果链尚未闭包；15255 已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.refinement.result.equipment",
+    "status": "blocked",
+    "blocked_reason": "神炼装备列表、config_equip_refinement、属性/消耗/详情/说明与结果链尚未闭包；15255 已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.refinement.result.attribute-gain",
+    "status": "blocked",
+    "blocked_reason": "神炼装备列表、config_equip_refinement、属性/消耗/详情/说明与结果链尚未闭包；15255 已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.refinement.result.effect",
+    "status": "blocked",
+    "blocked_reason": "神炼装备列表、config_equip_refinement、属性/消耗/详情/说明与结果链尚未闭包；15255 已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.refinement.result.close-lifecycle",
+    "status": "blocked",
+    "blocked_reason": "神炼装备列表、config_equip_refinement、属性/消耗/详情/说明与结果链尚未闭包；15255 已阻断",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.armor.stage-list",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.armor.position-list",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.armor.attributes",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.armor.current-equipment",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.armor.materials",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.armor.red-states",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.armor.result-effect",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.armor.stage-select",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.armor.type-left",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.armor.type-right",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.armor.position-select",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.armor.make",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.armor.confirm",
+    "status": "blocked",
+    "blocked_reason": "该叶会发送 14402/152xx/15201 等真实账号写事务；本轮没有培养、消耗、穿戴或制造授权，未执行",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.armor.all-attributes.attribute-scroll",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.armor.all-attributes.empty-state",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  },
+  {
+    "id": "mainui.equip.window.armor.all-attributes.close",
+    "status": "needs-runtime-verify",
+    "runtime_gap": "本轮禁止启动 Unity/浏览器；尚缺真实 Prefab 射线点击、状态/滚动/弹窗身份、两档 viewport、关闭重开及同账号老 H5/Unity Web 复验",
+    "evidence": [
+      "output/ui_route_audit/2026-08-09_equip/static-audit.md"
+    ]
+  }
+]

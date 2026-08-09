@@ -60,7 +60,8 @@ namespace Shenxiao.Module.Core.Daily
         // 我要变强(老端 tabStrList[5].open_lv=100)门控;无尽之海(老端 tab_new_cond["2"]=CheckFuncOpenState)门控。
         private const int StrongerTabIndex = 5;
         private const int StrongerOpenLv = 100;
-        private const int DefaultTab = 3;
+        private const int DailyTaskTab = 0;
+        private const int DailyFindTab = 3;
         private const int BrightSeaTab = 2;
 
         private static GameObject _frameRoot;
@@ -71,7 +72,7 @@ namespace Shenxiao.Module.Core.Daily
         public static void Toggle()
         {
             if (_window != null && _window.IsShown) { Close(); return; }
-            _ = OpenAsync(DefaultTab);
+            _ = OpenAsync(DailyFindTab);
         }
 
         public static void ToggleBrightSea()
@@ -85,7 +86,8 @@ namespace Shenxiao.Module.Core.Daily
             _ = OpenAsync(BrightSeaTab);
         }
 
-        public static void Open() => _ = OpenAsync(DefaultTab);
+        /// <summary>按老端 DailyView 无参数打开路径进入每日任务；HUD 的 dailyfind 入口仍由 Toggle 进入资源找回。</summary>
+        public static void Open() => _ = OpenAsync(DailyTaskTab);
 
         public static void Close()
         {

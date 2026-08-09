@@ -1,3 +1,5 @@
+using System;
+
 namespace Shenxiao.Module.Core.Medal
 {
     /// <summary>13400 错误、13401 勋章与13405称号独立原始状态；不驱动角色战力、UI、红点或操作协议。</summary>
@@ -14,6 +16,8 @@ namespace Shenxiao.Module.Core.Medal
         public static readonly MedalModel Instance = new MedalModel();
         private readonly System.Collections.Generic.List<TitleEntry> _titles = new System.Collections.Generic.List<TitleEntry>();
         private MedalModel() { }
+        public event Action Changed;
+        public event Action<uint> ErrorReceived;
         public uint Id { get; private set; }
         public uint StrengthenLevel { get; private set; }
         public uint StrengthenExp { get; private set; }
@@ -35,6 +39,15 @@ namespace Shenxiao.Module.Core.Medal
             Power = power;
             PassLayers = passLayers;
             HasData = true;
+            Changed?.Invoke();
+        }
+        /// <summary>13402 只替换回包携带的 id/honour，其余强化与副本快照字段保持不变。</summary>
+        public void ApplyUpgrade(uint id, ulong honour)
+        {
+            Id = id;
+            Honour = honour;
+            HasData = true;
+            Changed?.Invoke();
         }
         public void ReplaceTitles(System.Collections.Generic.List<TitleEntry> titles)
         {
@@ -46,6 +59,7 @@ namespace Shenxiao.Module.Core.Medal
         {
             LastErrorCode = code;
             HasError = true;
+            ErrorReceived?.Invoke(code);
         }
 
         public void Reset()

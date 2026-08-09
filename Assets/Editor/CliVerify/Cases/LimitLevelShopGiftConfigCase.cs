@@ -18,7 +18,10 @@ namespace Shenxiao.EditorTools
             var c=LimitLevelShopController.Instance; var m=LimitLevelShopModel.Instance; bool oi=c.IsInitialized;
             var map=(Dictionary<(ushort,ushort),LimitLevelShopModel.GiftConfigSnapshot>)typeof(LimitLevelShopModel).GetField("_giftConfigs",IF).GetValue(m); var om=new Dictionary<(ushort,ushort),LimitLevelShopModel.GiftConfigSnapshot>(map);
             var gifts=new List<LimitLevelShopModel.GiftEntry>(m.Gifts);
-            var sentinelGifts=new List<LimitLevelShopModel.GiftEntry>{new LimitLevelShopModel.GiftEntry(32000,32001,123456)};
+            var sentinelGifts=new List<LimitLevelShopModel.GiftEntry>{new LimitLevelShopModel.GiftEntry(
+                32000,32001,123456,
+                Array.Empty<LimitLevelShopModel.GradeState>(),Array.Empty<LimitLevelShopModel.GradeState>(),
+                "",0,LimitLevelShopModel.ICON_TYPE)};
             var fi=typeof(LimitLevelShopController).GetField("s_giftConfigOutboundIntercept",SF); object old=fi.GetValue(null);
             var hs=typeof(NetManager).GetField("_handlers",SF).GetValue(null) as IDictionary; bool he=hs.Contains(Proto.LIMITLEVELSHOP_GIFT_CONFIG); object oh=he?hs[Proto.LIMITLEVELSHOP_GIFT_CONFIG]:null; bool pass=false,restored=false;
             try{
@@ -29,7 +32,10 @@ namespace Shenxiao.EditorTools
                 Check(ref pass,"multi bounds duplicate raw order/read-tail",Feed(on,c,0,1,many)&&Snap(m,0,1,many)); var multi=Get(m,0,1);
                 var one=new[]{new W{G=3,A="",B="",C="",E="",F="",H="",R=4,D=5}}; Check(ref pass,"same bucket multi-to-single",Feed(on,c,0,1,one)&&Snap(m,0,1,one)&&!ReferenceEquals(Get(m,0,1),multi));
                 var other=new[]{new W{G=9,A="a",B="b",C="c",E="d",F="e",H="f",R=1,D=2}}; Check(ref pass,"different subtype isolated",Feed(on,c,0,2,other)&&Snap(m,0,2,other)&&Snap(m,0,1,one)); var before=Get(m,0,1);
-                var otherSnapshot=Get(m,0,2); m.SetGiftList(new List<LimitLevelShopModel.GiftEntry>{new LimitLevelShopModel.GiftEntry(9,10,11)}); Check(ref pass,"61200 model write leaves 61203 snapshot",ReferenceEquals(Get(m,0,2),otherSnapshot)); m.SetGiftList(sentinelGifts);
+                var otherSnapshot=Get(m,0,2); m.SetGiftList(new List<LimitLevelShopModel.GiftEntry>{new LimitLevelShopModel.GiftEntry(
+                    9,10,11,
+                    Array.Empty<LimitLevelShopModel.GradeState>(),Array.Empty<LimitLevelShopModel.GradeState>(),
+                    "",0,LimitLevelShopModel.ICON_TYPE)}); Check(ref pass,"61200 model write leaves 61203 snapshot",ReferenceEquals(Get(m,0,2),otherSnapshot)); m.SetGiftList(sentinelGifts);
                 Check(ref pass,"single-to-empty new loaded snapshot",Feed(on,c,0,1,Array.Empty<W>())&&Get(m,0,1).Loaded&&Get(m,0,1).Entries.Count==0&&!ReferenceEquals(Get(m,0,1),before));
                 var readonlyEntries=Get(m,0,2).Entries; bool addThrows=false; try { ((IList<LimitLevelShopModel.GiftConfigEntry>)readonlyEntries).Add(null); } catch (NotSupportedException) { addThrows=true; }
                 Check(ref pass,"entries truly read-only",addThrows);

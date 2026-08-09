@@ -40,7 +40,7 @@ namespace Shenxiao.Module.Core.Shop
             GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(vo.GoodsId);
             if (goodsname != null) goodsname.text = basic != null ? basic.Name : ("物品" + vo.GoodsId);
 
-            int nowPrice = vo.Price * vo.Discount / 100;
+            int nowPrice = UnityEngine.Mathf.RoundToInt(vo.Price * vo.Discount / 100f);
             if (price != null) price.text = nowPrice.ToString();
 
             bool hasLimit = vo.QuotaNum > 0;
@@ -90,7 +90,10 @@ namespace Shenxiao.Module.Core.Shop
         private void OnBuyClick()
         {
             if (_vo == null) return;
-            ShopController.Instance.BuyGoods(_vo.KeyId, 1);
+            bool canChooseCount = (_vo.QuotaNum == 0 || _vo.SoldOut < _vo.QuotaNum)
+                                  && _vo.ShopType != ShopModel.TYPE_OUTWARD;
+            if (canChooseCount) ShopFlow.OpenBulkPurchase(_vo);
+            else ShopController.Instance.BuyGoods(_vo.KeyId, 1);
         }
     }
 }

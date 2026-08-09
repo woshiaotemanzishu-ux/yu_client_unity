@@ -111,6 +111,7 @@ namespace Shenxiao.Module.Core.MainUI
                 if (slot == null) continue;
 
                 item.gameObject.SetActive(true);
+                item.Show();
                 item.SetData(skills[i]);
                 PlaceIconInSlot(item, slot);
                 slot.gameObject.SetActive(true);

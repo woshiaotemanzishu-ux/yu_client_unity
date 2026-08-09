@@ -649,6 +649,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 976575675621404244}
+  - component: {fileID: 900000000000000101}
+  - component: {fileID: 900000000000000102}
   m_Layer: 0
   m_Name: Content
   m_TagString: Untagged
@@ -675,6 +677,46 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &900000000000000101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1006970756235086781}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.VerticalLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 0
+  m_Spacing: 6
+  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 1
+  m_ChildScaleHeight: 1
+  m_ReverseArrangement: 0
+--- !u!114 &900000000000000102
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1006970756235086781}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
+  m_HorizontalFit: 0
+  m_VerticalFit: 2
 --- !u!1 &1010474019743147599
 GameObject:
   m_ObjectHideFlags: 0
@@ -1723,9 +1765,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 2033331376879901763}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0d59443a6c84962478136f04f5e74471, type: 3}
+  m_Script: {fileID: 11500000, guid: 4aa8b490a2ef47f3aef4ba0c0d5b0107, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Activity.ConRechargeViewBind
+  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Activity.ConRechargeView
   bg: {fileID: 1002537667374232223}
   bg1: {fileID: 714749365714630307}
   _img_bg: {fileID: 5760329154420984747}
@@ -1989,9 +2031,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 2434690375890956654}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 086e91468f2c13842965070aa4df8cf5, type: 3}
+  m_Script: {fileID: 11500000, guid: 4aa8b490a2ef47f3aef4ba0c0d5b0109, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Activity.ConRechargeGradeItemBind
+  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Activity.ConRechargeGradeItem
   _img_bg: {fileID: 2288328550964608087}
   _Image111: {fileID: 5454003141787119702}
   _img_over: {fileID: 2259429619967756570}
@@ -3252,9 +3294,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 3688297390906449336}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 63ac1bd1f72f6b84c9a900bd6f5c053f, type: 3}
+  m_Script: {fileID: 11500000, guid: 4aa8b490a2ef47f3aef4ba0c0d5b0103, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Activity.AccumRechargeViewBind
+  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Activity.AccumRechargeView
   _img_bg: {fileID: 3565706123759466100}
   _img_title: {fileID: 4075460500567143111}
   _titleBg: {fileID: 8044786646969756608}
@@ -3961,9 +4003,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 4255269464688373351}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 35fc0909074250b4badf14b9b8e7ca4d, type: 3}
+  m_Script: {fileID: 11500000, guid: 4aa8b490a2ef47f3aef4ba0c0d5b0105, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Activity.DailySupplyViewBind
+  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Activity.DailySupplyView
   _img_bg: {fileID: 277670788373330956}
   _img_bg2: {fileID: 5466840978314387989}
   _gp_time: {fileID: 1749027608865536128}
@@ -4775,6 +4817,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3875368649005740967}
+  - component: {fileID: 900000000000000103}
+  - component: {fileID: 900000000000000104}
   m_Layer: 0
   m_Name: Content
   m_TagString: Untagged
@@ -4801,6 +4845,46 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &900000000000000103
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4984374235256502659}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.VerticalLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 0
+  m_Spacing: 6
+  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 1
+  m_ChildScaleHeight: 1
+  m_ReverseArrangement: 0
+--- !u!114 &900000000000000104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4984374235256502659}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
+  m_HorizontalFit: 0
+  m_VerticalFit: 2
 --- !u!1 &5131829710812802254
 GameObject:
   m_ObjectHideFlags: 0
@@ -5594,6 +5678,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6367746537137828001}
+  - component: {fileID: 900000000000000105}
+  - component: {fileID: 900000000000000106}
   m_Layer: 0
   m_Name: Content
   m_TagString: Untagged
@@ -5620,6 +5706,46 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &900000000000000105
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6475365292175250557}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.VerticalLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 0
+  m_Spacing: 6
+  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 1
+  m_ChildScaleHeight: 1
+  m_ReverseArrangement: 0
+--- !u!114 &900000000000000106
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6475365292175250557}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
+  m_HorizontalFit: 0
+  m_VerticalFit: 2
 --- !u!1 &6555974169957101341
 GameObject:
   m_ObjectHideFlags: 0
@@ -5923,9 +6049,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 6702278923995898672}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 25579dfe022431941897655438c0a689, type: 3}
+  m_Script: {fileID: 11500000, guid: 4aa8b490a2ef47f3aef4ba0c0d5b0108, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Activity.ConRechargeItemBind
+  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Activity.ConRechargeItem
   _img_bg: {fileID: 6541633484936370610}
   _Image111: {fileID: 8162935810805826215}
   _img_over: {fileID: 7558692173855681805}
@@ -6148,9 +6274,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 7010941195399144867}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9e33fecd7f4f0c340988bf3c57f52927, type: 3}
+  m_Script: {fileID: 11500000, guid: 4aa8b490a2ef47f3aef4ba0c0d5b0110, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Activity.CreatRoleGiftViewBind
+  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Activity.CreatRoleGiftView
   _img_tips: {fileID: 8734066183699447632}
   _group_item: {fileID: 8940969194090733607}
   _lb_time2: {fileID: 1327800719720560801}
@@ -7591,9 +7717,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 7843167248417985262}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c54ce68135d61be498231c34a7133f5e, type: 3}
+  m_Script: {fileID: 11500000, guid: 4aa8b490a2ef47f3aef4ba0c0d5b0111, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Activity.RechargeReturnViewBind
+  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Activity.RechargeReturnView
   _img_1: {fileID: 1489564954260750780}
   _img_2: {fileID: 8040872315937481888}
   _gp_btn: {fileID: 3165283876220511699}

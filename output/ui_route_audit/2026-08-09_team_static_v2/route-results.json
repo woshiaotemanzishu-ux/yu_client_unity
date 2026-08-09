@@ -1,0 +1,515 @@
+{
+  "nodes": [
+    {
+      "id": "mainui.team.view.close",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.small-desc.content",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.small-desc.geometry",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.small-desc.close",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.change-target.close",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.change-target.confirm",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.view.create",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.view.hall.query",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.hall.scroll",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.hall.row-render",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "TeamHallItem 已静态接管 24012 大厅快照的纯展示字段，并保持申请按钮和头像菜单无新增写事务绑定；仍缺真实列表宿主、Prefab GraphicRaycaster、异步头像、field-scene 附近语义、列表复用、两档 viewport，以及老 H5/Unity Web 同账号同路径复验。",
+      "note": "静态只读展示增量已落地；无点击发包绑定。"
+    },
+    {
+      "id": "mainui.team.view.hall.apply",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.view.hall.avatar-menu-dead",
+      "status": "blocked",
+      "blocked_reason": "24011 是已证实的死客户端流：老端 ShowPlayerMenu 为空/队员头像点击未绑定，当前服务端领队事务虽存活也不得从 Unity 新增入口；保持 killlist 负约束。"
+    },
+    {
+      "id": "mainui.team.view.members.row-render",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.members.quit",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.view.members.kick",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.view.members.avatar-menu-dead",
+      "status": "blocked",
+      "blocked_reason": "24011 是已证实的死客户端流：老端 ShowPlayerMenu 为空/队员头像点击未绑定，当前服务端领队事务虽存活也不得从 Unity 新增入口；保持 killlist 负约束。"
+    },
+    {
+      "id": "mainui.team.view.members.scroll",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.close",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.query",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.scroll",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.empty",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.send",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.view.invite.friend.query",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.friend.scroll",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.friend.empty",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.friend.send",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.view.invite.guild.query",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.guild.scroll",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.guild.empty",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.guild.send",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.view.world-shout",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.view.apply.close",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.apply.auto-accept",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.view.apply.clear",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.view.apply.list.scroll",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.apply.list.row-render",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.apply.list.accept",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.view.apply.list.refuse",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.view.apply.list.shield",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.view.apply.empty",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.apply-red-dot",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.empty-state",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.be-invited.close",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.be-invited.list.scroll",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.be-invited.list.row-render",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.be-invited.list.accept",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.be-invited.list.refuse",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.be-invited.auto-close",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.match.cancel",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.match.timer",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.match.timeout-cancel",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.vote.members",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.vote.timer",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.vote.agree",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.vote.refuse",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.vote.duplicate-guard",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.vote.result-close",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.vote.close-graphic",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.vote.tutorial",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.dead-24011",
+      "status": "blocked",
+      "blocked_reason": "24011 是已证实的死客户端流：老端 ShowPlayerMenu 为空/队员头像点击未绑定，当前服务端领队事务虽存活也不得从 Unity 新增入口；保持 killlist 负约束。"
+    },
+    {
+      "id": "mainui.team.dead-24042",
+      "status": "blocked",
+      "blocked_reason": "24042 是已证实的死客户端读流：服务端查询存在，但老端无发送点且回包仅解码丢弃；不得以协议存在为由新增 Unity 入口。"
+    },
+    {
+      "id": "mainui.team.sound",
+      "status": "blocked",
+      "blocked_reason": "老端 Team 路线未形成可由当前缺页静态验证的页面专属声音消费闭包；禁止用通用点击音或资源存在伪装完成，需页面落地后的真实运行时触发/关闭复验。"
+    },
+    {
+      "id": "mainui.team.prefab-resource-closure",
+      "status": "blocked",
+      "blocked_reason": "Team 页面级 Prefab 全部缺失，Unity team 资源闭包仅有 atlas 与 3 张纹理，不足以静态完成 15 个老端页面/列表项；本轮文件岛也不允许补写资源或启动 Unity 转换。"
+    },
+    {
+      "id": "mainui.team.view.initial-query-24010",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.background-close",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.target-summary",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.button-groups.with-team",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.button-groups.without-team",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.non-leader-prompts.target",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.non-leader-prompts.world-shout",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.non-leader-prompts.apply-list",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.auto-create-on-open",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.view.world-shout-state.countdown-text",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.world-shout-state.cooldown-click",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.world-shout-state.expiry-reset",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.members.action-visibility",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.tab-strip.row-render",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.tab-strip.selected-state",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.row-render",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.friend.row-render",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.invite.guild.row-render",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.apply.open-query-24047",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.apply.join-type-check-state",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.be-invited.reset-list",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.view.change-target.list.role-level-filter",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.change-target.list.scroll",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.change-target.list.row-render",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.change-target.list.selected-state",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.change-target.down-level-click",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.change-target.up-level-click",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.open-event",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.value-change",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.close-callback",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.validation.min-below-config",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.validation.min-above-config-or-current-max",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.validation.max-above-config",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.validation.max-below-config-or-current-min",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.match.sentient-alert.open",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    },
+    {
+      "id": "mainui.team.match.sentient-alert.auto-cancel-match",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.match.sentient-alert.confirm.find-way",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.match.sentient-alert.confirm.request-24108",
+      "status": "blocked",
+      "blocked_reason": "该叶会改变组队/匹配/申请/邀请/投票、筛选输入或外部导航状态；用户要求真实写事务只枚举，本轮无账号写授权且页面 Prefab 缺失，因此未新增可执行点击绑定、未发协议。"
+    },
+    {
+      "id": "mainui.team.match.sentient-alert.cancel",
+      "status": "blocked",
+      "blocked_reason": "对应 Team 页面级 Prefab 尚不存在；convert-module 需要 Unity 落地与老端/Unity 运行快照，而本轮明确禁止启动 Unity、浏览器和前台程序，故只能保留静态枚举，不能冒充真实 Web 通过。"
+    }
+  ]
+}

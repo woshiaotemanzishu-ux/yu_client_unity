@@ -5,11 +5,11 @@
 
 ## BaseWindowSkin 自适应背景与单窗口语义（2026-08-08）
 
-老端 `BaseView1` 在移动端为 `BaseWindowComponent` 创建独立的 `full_screen_bg1.jpg` 背景：背景按 16:9 覆盖舞台，超出部分裁切；720 宽的业务窗体继续居中并保持原坐标。老端 `PopManager.popViewOpen` 同时只记录一个当前大窗，新窗打开时会直接关闭旧窗，关闭新窗后不会恢复更早的窗口。
+老端 `BaseView1` 在移动端为 `BaseWindowComponent` 创建独立的 16:9 全屏背景：背景覆盖舞台，超出部分裁切；720 宽的业务窗体继续居中并保持原坐标。老端 `PopManager.popViewOpen` 同时只记录一个当前大窗，新窗打开时会直接关闭旧窗，关闭新窗后不会恢复更早的窗口。
 
 Unity 的对应实现统一落在共享根，不允许业务页各自复制：
 
-- `BaseWindowSkin.prefab` 根节点铺满所属 Window 层；第一子节点 `AdaptiveBackground` 直接持有 `resource/game/login/other/full_screen_bg1.jpg`，使用 `AspectRatioFitter.EnvelopeParent` 和图片原始 16:9 比例覆盖父容器，并拦截两侧空白区点击。
+- `BaseWindowSkin.prefab` 根节点铺满所属 Window 层；第一子节点 `AdaptiveBackground` 直接持有统一资源 `resource/game/login/other/full_screen_bg.png`，使用 `AspectRatioFitter.EnvelopeParent` 和图片原始 16:9 比例覆盖父容器，并拦截两侧空白区点击。登录舞台、选服/选角/创角 Creator 和预加载清单也必须指向这一资源，不再保留数字后缀变体。老 H5 的 `cdn/index.html`、`LayerManager`、`BaseView1`、预加载表与打包闭包同步使用同一 PNG，Unity 从老端同步配置时不再会回写历史变体。
 - `_root_gp` 仍保持 870×1280 并居中，`_img_bg` 仍是各业务页 720×1222 的内容背景。不得为适配宽屏改写它们的内部坐标，也不得在运行时代码重新创建视觉树。
 - `BaseWindowManager` 由 `BaseWindowSkinView.OnShow/OnHide/OnDestroy` 统一驱动。任一共享大窗 `Show()` 时先隐藏旧的当前大窗；隐藏或销毁当前大窗时清空记录，不回退到历史窗口。业务 Flow 不需要、也不应互相感知或逐一关闭其他模块。
 - 回归至少覆盖 720×1280 与宽屏两种 viewport，并顺序复走“背包→角色→关闭”和“角色→背包→关闭”：任一时刻只能有一个 `BaseWindowSkinView.IsShown`，背景完整覆盖可见区，业务主体不拉伸，最后只需关闭一次即可回到主场景。
@@ -255,6 +255,10 @@ Laya 的 `centerX/left/right/top/bottom` 与 Unity 的 `anchorMin/anchorMax/offs
   否则天赋页、好友私聊窗、骸珀镶嵌页缺业务组件。
 - prefab 重写会让内部子对象 fileID 变动,可能连坐 Addressables 分组。重烤后跑一次
   内存与首包体积对账,与 `Docs/打包发布手册.md` 的基线(内存 800、首包 24.7MB、冷访 66s)比对。
+
+### 复杂页签与标签不走“分辨率补偿”
+
+弧形/放射/折叠页签、竖排文字和 Laya `width/height=0` 的自动尺寸标签如果只在某些状态错位，先按 [UI 复杂页签与标签定位](UI复杂页签与标签定位.md) 比较页面根矩形、参考角、pivot 和运行时 bounds，不得先增加分辨率缩放补偿。成就页已验证：65×70 页签的固定半宽/半高偏移来自 pivot 语义，竖排文字来自运行时自动高度，属性行来自固定模板宽度；三者都不是 CanvasScaler 问题。
 
 ---
 

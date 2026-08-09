@@ -26,7 +26,7 @@ namespace Shenxiao.Module.Core.MainUI
     ///     视觉等价);僵直不显遮罩、CD 结束无闪光(老端 ActiveSkill 为空实现)——同老端。
     ///   · 点击:仅服务端 13017 托管态提示并拦截；普通 AutoFight 仍允许手动释放；CD 中不发
     ///     (对标老端 cd_mask 挡点)；否则发 EVT_SKILL_SHORTCUT_CLICK。
-    /// 克隆件不经 Show→OnInit 不自动跑,Bind 字段序列化即就绪 → 点击绑定在 SetData 内幂等兜底。
+    /// 动态克隆件由父 View 显式 Show，保证 EnsureBound/OnInit 生命周期完整；SetData 仍保留点击幂等兜底。
     /// </summary>
     public sealed class MainUISkillItem : MainUISkillItemBind
     {
@@ -37,7 +37,7 @@ namespace Shenxiao.Module.Core.MainUI
         private static TMP_FontAsset _cdFont;
         private static Material _cdFontMat;
 
-        /// <summary>由父 MainUISkillView 克隆后调用,填真实技能数据(对标 SetData → UpdateItem)。</summary>
+        /// <summary>父 MainUISkillView 对克隆项调用 Show 完成绑定后，再填真实技能数据(对标 SetData → UpdateItem)。</summary>
         public void SetData(SkillVo vo)
         {
             _vo = vo;

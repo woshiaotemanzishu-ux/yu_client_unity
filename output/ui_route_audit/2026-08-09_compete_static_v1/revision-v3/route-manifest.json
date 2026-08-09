@@ -1,0 +1,181 @@
+{
+  "route": "mainui.compete.338",
+  "baseline": {
+    "audit_kind": "static-three-way-reconciliation",
+    "legacy_root": "E:/GitProject/yu_client/h5/src/competelist/CompetelistView.ts",
+    "unity_prefab": "Assets/Prefabs/UI/Competelist/CompetelistModule.prefab",
+    "unity_code": "Assets/Scripts/Module/Core/Compete",
+    "server_protocol": "E:/GitProject/yu_server/src/pt/pt_338.erl",
+    "runtime_authority": "not collected by explicit instruction"
+  },
+  "nodes": [
+    {
+      "id": "compete.route",
+      "parent": null,
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {"id": "activity_icon_338_type_subtype", "kind": "conditional-entry", "child": "compete.entry"},
+        {"id": "title_time_model_skill", "kind": "state-group", "child": "compete.presentation"},
+        {"id": "rank_summary_and_list", "kind": "state-and-list", "child": "compete.rank"},
+        {"id": "one_and_ten_draw", "kind": "transaction-group", "child": "compete.draw"},
+        {"id": "score_progress_and_stage_rewards", "kind": "state-and-transaction-group", "child": "compete.stage"},
+        {"id": "_img_all", "kind": "popup-navigation", "child": "compete.all_rewards"},
+        {"id": "base_window_close_back", "kind": "return", "child": "compete.return"},
+        {"id": "protocol_state_sync", "kind": "protocol-family", "child": "compete.protocol"},
+        {"id": "component_dependencies", "kind": "dependency-matrix", "child": "compete.dependencies"}
+      ]
+    },
+    {
+      "id": "compete.entry",
+      "parent": "compete.route",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {"id": "visible_condition", "kind": "conditional-state", "child": "compete.entry.condition"},
+        {"id": "dynamic_type_subtype_tabs", "kind": "tab-list", "child": "compete.entry.tabs"},
+        {"id": "red_dot", "kind": "conditional-state", "child": "compete.entry.red_dot"},
+        {"id": "click_icon", "kind": "navigation", "child": "compete.entry.open"}
+      ]
+    },
+    {"id": "compete.entry.condition", "parent": "compete.entry", "type": "read", "risk": "read-only", "note": "active 33800 item, configured function icon, and legacy minimum level 150"},
+    {"id": "compete.entry.tabs", "parent": "compete.entry", "type": "tab", "risk": "read-only", "note": "one tab per active type/subtype; selected/unselected state, tab-local red dot and same-session switch"},
+    {"id": "compete.entry.red_dot", "parent": "compete.entry", "type": "read", "risk": "read-only", "note": "legacy: any stage got_type=1 or enough one-draw cost"},
+    {"id": "compete.entry.open", "parent": "compete.entry", "type": "navigation", "risk": "read-only", "note": "338@type@subtype opens the matching Compete page"},
+
+    {
+      "id": "compete.presentation",
+      "parent": "compete.route",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {"id": "_img_title", "kind": "config-image", "child": "compete.presentation.title"},
+        {"id": "_lb_time_and_lb_end_time", "kind": "countdown-state", "child": "compete.presentation.countdown"},
+        {"id": "_model_group_or_img", "kind": "model-or-image-state", "child": "compete.presentation.reward_display"},
+        {"id": "_gp_skill_and_skill_fields", "kind": "conditional-skill-state", "child": "compete.presentation.skill"},
+        {"id": "resource_ready_sequence", "kind": "lifecycle", "child": "compete.presentation.ready_lifecycle"}
+      ]
+    },
+    {"id": "compete.presentation.title", "parent": "compete.presentation", "type": "read", "risk": "read-only", "note": "title sprite varies by race type"},
+    {"id": "compete.presentation.countdown", "parent": "compete.presentation", "type": "read", "risk": "read-only", "note": "count down to buy_end_time, then show ended state"},
+    {"id": "compete.presentation.reward_display", "parent": "compete.presentation", "type": "read", "risk": "read-only", "note": "ClientConfigRaceActRewardShow selects static image or model presentation"},
+    {"id": "compete.presentation.skill", "parent": "compete.presentation", "type": "read", "risk": "read-only", "note": "race info others.skill joins ClientCompetelistSkill"},
+    {"id": "compete.presentation.ready_lifecycle", "parent": "compete.presentation", "type": "read", "risk": "read-only", "note": "350ms, 1000ms, ready, close, warm reopen"},
+
+    {
+      "id": "compete.rank",
+      "parent": "compete.route",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {"id": "_lb_rank_and_lb_integral", "kind": "state", "child": "compete.rank.summary"},
+        {"id": "_Scroller1_rank", "kind": "dynamic-scroll-list", "child": "compete.rank.scroll"},
+        {"id": "CompetelistRankItem", "kind": "list-item-state", "child": "compete.rank.row"},
+        {"id": "rank_row_reward_items", "kind": "shared-item-navigation", "child": "compete.rank.reward_detail"}
+      ]
+    },
+    {"id": "compete.rank.summary", "parent": "compete.rank", "type": "read", "risk": "read-only", "note": "current rank and score from 33801"},
+    {"id": "compete.rank.scroll", "parent": "compete.rank", "type": "read", "risk": "read-only", "note": "vertical rank list; drag, clipping, last row, inertia reset"},
+    {"id": "compete.rank.row", "parent": "compete.rank", "type": "read", "risk": "read-only", "note": "top-three icon or numeric rank, name masking, score, reward row"},
+    {"id": "compete.rank.reward_detail", "parent": "compete.rank", "type": "navigation", "risk": "read-only", "note": "each reward item must open the correct item detail and return to rank"},
+
+    {
+      "id": "compete.draw",
+      "parent": "compete.route",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {"id": "_img_one_lb_one_img_ten_lb_ten_discount", "kind": "cost-state", "child": "compete.draw.cost"},
+        {"id": "_btn_one", "kind": "transaction", "child": "compete.draw.one"},
+        {"id": "_btn_ten", "kind": "transaction", "child": "compete.draw.ten"},
+        {"id": "insufficient_currency_confirmation", "kind": "confirmation-transaction", "child": "compete.draw.insufficient"}
+      ]
+    },
+    {"id": "compete.draw.cost", "parent": "compete.draw", "type": "read", "risk": "read-only", "note": "one/ten cost item, count and discount state"},
+    {"id": "compete.draw.one", "parent": "compete.draw", "type": "transaction", "risk": "destructive-write", "note": "33803 times=1; authoritative result, reward popup, immediate refresh and reopen"},
+    {"id": "compete.draw.ten", "parent": "compete.draw", "type": "transaction", "risk": "destructive-write", "note": "33803 times=10; authoritative result, reward popup, immediate refresh and reopen"},
+    {"id": "compete.draw.insufficient", "parent": "compete.draw", "type": "transaction", "risk": "destructive-write", "note": "insufficient item/currency confirmation and recharge or conversion branch"},
+
+    {
+      "id": "compete.stage",
+      "parent": "compete.route",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {"id": "today_score", "kind": "state", "child": "compete.stage.today_score"},
+        {"id": "progress_bg_progress", "kind": "progress-state", "child": "compete.stage.progress"},
+        {"id": "_Scroller2_Content2_gp_reward", "kind": "dynamic-scroll-list", "child": "compete.stage.scroll"},
+        {"id": "CompetelistIntegralItem_state", "kind": "state-matrix", "child": "compete.stage.item_state"},
+        {"id": "not_reached_reward_preview", "kind": "navigation", "child": "compete.stage.preview"},
+        {"id": "claimable_stage_reward", "kind": "transaction", "child": "compete.stage.claim"}
+      ]
+    },
+    {"id": "compete.stage.today_score", "parent": "compete.stage", "type": "read", "risk": "read-only", "note": "today score from 33801"},
+    {"id": "compete.stage.progress", "parent": "compete.stage", "type": "read", "risk": "read-only", "note": "score progress against stage thresholds"},
+    {"id": "compete.stage.scroll", "parent": "compete.stage", "type": "read", "risk": "read-only", "note": "horizontal stage list; drag, clipping, last item and reopening position"},
+    {"id": "compete.stage.item_state", "parent": "compete.stage", "type": "read", "risk": "read-only", "note": "got_type 1 claimable, 2 claimed, 3 not reached; red dot and claimed overlay"},
+    {"id": "compete.stage.preview", "parent": "compete.stage", "type": "navigation", "risk": "read-only", "note": "not-reached state opens reward preview/detail without claiming"},
+    {"id": "compete.stage.claim", "parent": "compete.stage", "type": "transaction", "risk": "destructive-write", "note": "33804 reward_id; authoritative result, reward popup, red-dot/state immediate refresh and reopen"},
+
+    {
+      "id": "compete.all_rewards",
+      "parent": "compete.route",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {"id": "_btn_close_and_backdrop", "kind": "return", "child": "compete.all_rewards.close"},
+        {"id": "_Scroller1_reward_grid", "kind": "dynamic-scroll-list", "child": "compete.all_rewards.scroll"},
+        {"id": "CompetelistRewaedItem", "kind": "list-item-state", "child": "compete.all_rewards.row"},
+        {"id": "reward_item_each", "kind": "shared-item-navigation", "child": "compete.all_rewards.detail"}
+      ]
+    },
+    {"id": "compete.all_rewards.close", "parent": "compete.all_rewards", "type": "return", "risk": "read-only", "note": "close button and popup backdrop return to Compete page"},
+    {"id": "compete.all_rewards.scroll", "parent": "compete.all_rewards", "type": "read", "risk": "read-only", "note": "all-reward list/grid; drag, clipping, last item"},
+    {"id": "compete.all_rewards.row", "parent": "compete.all_rewards", "type": "read", "risk": "read-only", "note": "one config reward entry with all mapped goods"},
+    {"id": "compete.all_rewards.detail", "parent": "compete.all_rewards", "type": "navigation", "risk": "read-only", "note": "each visible reward item opens the correct detail and returns to popup"},
+
+    {"id": "compete.return", "parent": "compete.route", "type": "return", "risk": "read-only", "note": "BaseWindow shell close/back, cleanup, re-entry and prior-page return chain"},
+
+    {
+      "id": "compete.protocol",
+      "parent": "compete.route",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {"id": "33800", "kind": "read-protocol", "child": "compete.protocol.33800"},
+        {"id": "33801", "kind": "read-protocol", "child": "compete.protocol.33801"},
+        {"id": "33802", "kind": "read-protocol", "child": "compete.protocol.33802"},
+        {"id": "33803", "kind": "transaction-protocol", "child": "compete.protocol.33803"},
+        {"id": "33804", "kind": "transaction-protocol", "child": "compete.protocol.33804"},
+        {"id": "33805", "kind": "unreachable-legacy-read-protocol", "child": "compete.protocol.33805"},
+        {"id": "33806", "kind": "unreachable-legacy-transaction-protocol", "child": "compete.protocol.33806"},
+        {"id": "33807", "kind": "unreachable-legacy-protocol", "child": "compete.protocol.33807"}
+      ]
+    },
+    {"id": "compete.protocol.33800", "parent": "compete.protocol", "type": "read", "risk": "read-only", "note": "active activity list"},
+    {"id": "compete.protocol.33801", "parent": "compete.protocol", "type": "read", "risk": "read-only", "note": "view info by type/subtype"},
+    {"id": "compete.protocol.33802", "parent": "compete.protocol", "type": "read", "risk": "read-only", "note": "rank info by type/subtype"},
+    {"id": "compete.protocol.33803", "parent": "compete.protocol", "type": "transaction", "risk": "destructive-write", "note": "draw by type/subtype/times"},
+    {"id": "compete.protocol.33804", "parent": "compete.protocol", "type": "transaction", "risk": "destructive-write", "note": "claim stage reward by type/subtype/reward_id"},
+    {"id": "compete.protocol.33805", "parent": "compete.protocol", "type": "read", "risk": "read-only", "note": "legacy wish view info codec exists; current server handler is commented and this Compete page has no matching control"},
+    {"id": "compete.protocol.33806", "parent": "compete.protocol", "type": "transaction", "risk": "destructive-write", "note": "legacy wish draw codec exists; current server handler is commented and this Compete page has no matching control"},
+    {"id": "compete.protocol.33807", "parent": "compete.protocol", "type": "read", "risk": "read-only", "note": "codec exists but current server handler is commented out"},
+
+    {
+      "id": "compete.dependencies",
+      "parent": "compete.route",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {"id": "prefab_and_generated_binds", "kind": "component-identity", "child": "compete.dependencies.prefab_bind"},
+        {"id": "shared_reward_item", "kind": "shared-component", "child": "compete.dependencies.reward_item"},
+        {"id": "model_and_effect_presenter", "kind": "shared-component", "child": "compete.dependencies.presenter"},
+        {"id": "race_act_config_closure", "kind": "config-closure", "child": "compete.dependencies.config"}
+      ]
+    },
+    {"id": "compete.dependencies.prefab_bind", "parent": "compete.dependencies", "type": "read", "risk": "read-only", "note": "existing module prefab and five Generated Bind components"},
+    {"id": "compete.dependencies.reward_item", "parent": "compete.dependencies", "type": "read", "risk": "read-only", "note": "legacy BaseAwardItem/shared item detail identity and state matrix"},
+    {"id": "compete.dependencies.presenter", "parent": "compete.dependencies", "type": "read", "risk": "read-only", "note": "legacy CustomActivityModel model/image presentation, render-ready and cleanup"},
+    {"id": "compete.dependencies.config", "parent": "compete.dependencies", "type": "read", "risk": "read-only", "note": "four server race-act configs plus ClientConfigRaceActRewardShow and ClientCompetelistSkill"}
+  ]
+}

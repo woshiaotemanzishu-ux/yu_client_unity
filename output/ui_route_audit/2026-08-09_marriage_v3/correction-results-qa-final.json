@@ -1,0 +1,30 @@
+[
+  {
+    "id": "marriage.main.mate.ask",
+    "status": "blocked",
+    "blocked_reason": "权威婚姻态驱动的求婚按钮显隐尚未实现；当前只能静态打开目标页，不能把缺条件分支标为可运行验证。",
+    "runtime_gap": null,
+    "note": "QA final correction: missing authoritative marriage-state visibility is an implementation blocker."
+  },
+  {
+    "id": "marriage.main.mate.again",
+    "status": "blocked",
+    "blocked_reason": "权威婚姻态显隐尚未实现，且再续入口没有传入伴侣身份参数；目标语义不完整。",
+    "runtime_gap": null,
+    "note": "QA final correction: missing marriage-state visibility and mate argument are implementation blockers."
+  },
+  {
+    "id": "marriage.main.mate.break",
+    "status": "blocked",
+    "blocked_reason": "权威婚姻态显隐尚未实现，且解除入口没有传入伴侣身份参数；目标语义不完整。",
+    "runtime_gap": null,
+    "note": "QA final correction: missing marriage-state visibility and mate argument are implementation blockers."
+  },
+  {
+    "id": "marriage.main.mate.flow",
+    "status": "blocked",
+    "blocked_reason": "权威婚姻态驱动的花房按钮显隐尚未实现；当前静态导航绑定不能替代条件分支实现。",
+    "runtime_gap": null,
+    "note": "QA final correction: missing authoritative marriage-state visibility is an implementation blocker."
+  }
+]

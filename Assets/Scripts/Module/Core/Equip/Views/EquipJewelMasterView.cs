@@ -1,3 +1,4 @@
+using Shenxiao.Common.Tips;
 using Shenxiao.Generated.UI.Jewel;
 using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
@@ -56,8 +57,9 @@ namespace Shenxiao.Module.Core.Equip
         {
             BindClick(btn_active, () =>
             {
-                GameLog.Info("Equip", "点击[激活](宝石全身) → ActivateWhole(type={0})", JewelWholeType);
-                EquipStrenController.Instance.ActivateWhole(JewelWholeType);
+                TipsManager.Toast("镶嵌大师条件配置未就绪");
+                GameLog.Warn("Equip", "点击[激活](type={0})被阻止：当前/下一阶条件与属性列表尚未形成可验证展示",
+                    JewelWholeType);
             });
             BindClick(btn_close, () =>
             {

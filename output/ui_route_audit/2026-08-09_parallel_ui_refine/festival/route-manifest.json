@@ -1,0 +1,140 @@
+{
+  "route": "mainui.festival",
+  "baseline": {
+    "legacy_runtime": "not-collected-this-run: browser and account operations explicitly prohibited",
+    "legacy_source": "E:/GitProject/yu_client/h5/src/festival plus commonModel/FestivalModel.ts and commonController/FestivalController.ts",
+    "unity_source": "Assets/Scripts/Module/Core/Festival plus Assets/Prefabs/UI/Festival and read-only Generated/UI/Festival binds",
+    "state_recipe_id": "none-no-account-mutation-authorized"
+  },
+  "nodes": [
+    {
+      "id": "mainui.festival",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "entry-223", "kind": "conditional-button", "child": "mainui.festival.open" }
+      ]
+    },
+    {
+      "id": "mainui.festival.open",
+      "parent": "mainui.festival",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.festival.open.async-lifecycle",
+      "parent": "mainui.festival.open",
+      "type": "read",
+      "risk": "read-only",
+      "note": "Festival-private async open/close/reset stale-completion guard"
+    },
+    {
+      "id": "mainui.festival.open.first-check",
+      "parent": "mainui.festival.open",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "goto-advance", "kind": "button", "child": "mainui.festival.open.first-check.goto-advance" },
+        { "id": "background-dismiss", "kind": "dismiss", "child": "mainui.festival.open.first-check.dismiss" }
+      ]
+    },
+    { "id": "mainui.festival.open.first-check.goto-advance", "parent": "mainui.festival.open.first-check", "type": "navigation", "risk": "read-only" },
+    { "id": "mainui.festival.open.first-check.dismiss", "parent": "mainui.festival.open.first-check", "type": "return", "risk": "read-only" },
+    {
+      "id": "mainui.festival.window",
+      "parent": "mainui.festival.open",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "tab-task", "kind": "tab", "child": "mainui.festival.window.task" },
+        { "id": "tab-award", "kind": "tab", "child": "mainui.festival.window.award" },
+        { "id": "tab-advance", "kind": "tab", "child": "mainui.festival.window.advance" },
+        { "id": "close", "kind": "button", "child": "mainui.festival.window.close" }
+      ]
+    },
+    {
+      "id": "mainui.festival.window.task",
+      "parent": "mainui.festival.window",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "task-tab-day", "kind": "tab", "child": "mainui.festival.window.task.day" },
+        { "id": "task-tab-week", "kind": "tab", "child": "mainui.festival.window.task.week" },
+        { "id": "task-tab-season", "kind": "tab", "child": "mainui.festival.window.task.season" },
+        { "id": "task-list", "kind": "list", "child": "mainui.festival.window.task.list" },
+        { "id": "task-item-jump", "kind": "conditional-button", "child": "mainui.festival.window.task.item-jump" },
+        { "id": "task-item-claim", "kind": "conditional-button", "child": "mainui.festival.window.task.item-claim" },
+        { "id": "claim-all", "kind": "conditional-button", "child": "mainui.festival.window.task.claim-all" },
+        { "id": "level-up", "kind": "button", "child": "mainui.festival.window.task.level-up" },
+        { "id": "advance", "kind": "button", "child": "mainui.festival.window.task.advance" },
+        { "id": "countdown", "kind": "conditional-state", "child": "mainui.festival.window.task.countdown" },
+        { "id": "red-dots", "kind": "conditional-state", "child": "mainui.festival.window.task.red-dots" }
+      ]
+    },
+    { "id": "mainui.festival.window.task.day", "parent": "mainui.festival.window.task", "type": "tab", "risk": "read-only" },
+    { "id": "mainui.festival.window.task.week", "parent": "mainui.festival.window.task", "type": "tab", "risk": "read-only" },
+    { "id": "mainui.festival.window.task.season", "parent": "mainui.festival.window.task", "type": "tab", "risk": "read-only" },
+    { "id": "mainui.festival.window.task.list", "parent": "mainui.festival.window.task", "type": "read", "risk": "read-only" },
+    { "id": "mainui.festival.window.task.item-jump", "parent": "mainui.festival.window.task", "type": "navigation", "risk": "read-only" },
+    { "id": "mainui.festival.window.task.item-claim", "parent": "mainui.festival.window.task", "type": "transaction", "risk": "destructive-write" },
+    { "id": "mainui.festival.window.task.claim-all", "parent": "mainui.festival.window.task", "type": "transaction", "risk": "destructive-write" },
+    {
+      "id": "mainui.festival.window.task.level-up",
+      "parent": "mainui.festival.window.task",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        { "id": "slider", "kind": "slider", "child": "mainui.festival.window.task.level-up.slider" },
+        { "id": "buy", "kind": "button", "child": "mainui.festival.window.task.level-up.buy" },
+        { "id": "cancel", "kind": "button", "child": "mainui.festival.window.task.level-up.cancel" },
+        { "id": "close", "kind": "button", "child": "mainui.festival.window.task.level-up.close" }
+      ]
+    },
+    { "id": "mainui.festival.window.task.level-up.slider", "parent": "mainui.festival.window.task.level-up", "type": "reversible-write", "risk": "reversible-write" },
+    { "id": "mainui.festival.window.task.level-up.buy", "parent": "mainui.festival.window.task.level-up", "type": "transaction", "risk": "destructive-write" },
+    { "id": "mainui.festival.window.task.level-up.cancel", "parent": "mainui.festival.window.task.level-up", "type": "return", "risk": "read-only" },
+    { "id": "mainui.festival.window.task.level-up.close", "parent": "mainui.festival.window.task.level-up", "type": "return", "risk": "read-only" },
+    { "id": "mainui.festival.window.task.advance", "parent": "mainui.festival.window.task", "type": "navigation", "risk": "read-only" },
+    { "id": "mainui.festival.window.task.countdown", "parent": "mainui.festival.window.task", "type": "read", "risk": "read-only" },
+    { "id": "mainui.festival.window.task.red-dots", "parent": "mainui.festival.window.task", "type": "read", "risk": "read-only" },
+    {
+      "id": "mainui.festival.window.award",
+      "parent": "mainui.festival.window",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        { "id": "level-list", "kind": "list", "child": "mainui.festival.window.award.list" },
+        { "id": "claim-one", "kind": "conditional-button", "child": "mainui.festival.window.award.claim-one" },
+        { "id": "claim-all", "kind": "conditional-button", "child": "mainui.festival.window.award.claim-all" },
+        { "id": "level-up", "kind": "button", "child": "mainui.festival.window.award.level-up" },
+        { "id": "advance", "kind": "button", "child": "mainui.festival.window.award.advance" },
+        { "id": "red-dots", "kind": "conditional-state", "child": "mainui.festival.window.award.red-dots" }
+      ]
+    },
+    { "id": "mainui.festival.window.award.list", "parent": "mainui.festival.window.award", "type": "read", "risk": "read-only" },
+    { "id": "mainui.festival.window.award.claim-one", "parent": "mainui.festival.window.award", "type": "transaction", "risk": "destructive-write" },
+    { "id": "mainui.festival.window.award.claim-all", "parent": "mainui.festival.window.award", "type": "transaction", "risk": "destructive-write" },
+    { "id": "mainui.festival.window.award.level-up", "parent": "mainui.festival.window.award", "type": "navigation", "risk": "read-only" },
+    { "id": "mainui.festival.window.award.advance", "parent": "mainui.festival.window.award", "type": "navigation", "risk": "read-only" },
+    { "id": "mainui.festival.window.award.red-dots", "parent": "mainui.festival.window.award", "type": "read", "risk": "read-only" },
+    {
+      "id": "mainui.festival.window.advance",
+      "parent": "mainui.festival.window",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        { "id": "luxury-info", "kind": "item", "child": "mainui.festival.window.advance.luxury-info" },
+        { "id": "supreme-info", "kind": "item", "child": "mainui.festival.window.advance.supreme-info" },
+        { "id": "luxury-purchase", "kind": "button", "child": "mainui.festival.window.advance.luxury-purchase" },
+        { "id": "supreme-purchase", "kind": "button", "child": "mainui.festival.window.advance.supreme-purchase" },
+        { "id": "reward-list", "kind": "list", "child": "mainui.festival.window.advance.reward-list" }
+      ]
+    },
+    { "id": "mainui.festival.window.advance.luxury-info", "parent": "mainui.festival.window.advance", "type": "navigation", "risk": "read-only" },
+    { "id": "mainui.festival.window.advance.supreme-info", "parent": "mainui.festival.window.advance", "type": "navigation", "risk": "read-only" },
+    { "id": "mainui.festival.window.advance.luxury-purchase", "parent": "mainui.festival.window.advance", "type": "transaction", "risk": "destructive-write" },
+    { "id": "mainui.festival.window.advance.supreme-purchase", "parent": "mainui.festival.window.advance", "type": "transaction", "risk": "destructive-write" },
+    { "id": "mainui.festival.window.advance.reward-list", "parent": "mainui.festival.window.advance", "type": "read", "risk": "read-only" },
+    { "id": "mainui.festival.window.close", "parent": "mainui.festival.window", "type": "return", "risk": "read-only" }
+  ]
+}

@@ -1,0 +1,169 @@
+{
+  "//": "九霄冥饰首次落地清单。当前老端 EquipmentView 虽保留 OpenFun 113 代码和 _Group6 节点，但现行布局把该入口序列化为 visible=false；可达路径需由真实开放态或冥饰物品的 OpenFun 195 重新采证。目标容器仍是 SecretTreasureMainView 的 Unreal 页签，实际内容为 UnrealBagView。",
+  "module": "unreal",
+  "source_prefab": "Assets/Prefabs/UI/Unreal/UnrealModule.prefab",
+  "item_policy": "背包格、穿戴槽、强化槽、材料、属性和返还奖励都是 unreal 模块私有模板；外窗复用 BaseWindowSkin，通用物品详情复用 Common/UnrealToolTips，不复制共享节点树。",
+  "prefabs": [
+    {
+      "name": "UnrealBagView",
+      "kind": "window-content",
+      "label": "九霄冥饰背包与穿戴",
+      "view_roots": [
+        "UnrealBagView"
+      ],
+      "source": "unreal/UnrealBagView.json",
+      "open": "现行人物页 _Group6 为隐藏状态，不能作为当前可达入口冒充通过；代码保留 OpenFun 113，冥饰物品的前往穿戴保留 OpenFun 195，两者目标均为 SecretTreasureMainView 的 Unreal 页签，实际内容类是 UnrealBagView。",
+      "owns_items": [
+        "UnrealBagItem",
+        "UnrealEquipItem"
+      ],
+      "references": [
+        "SecretTreasureMainView",
+        "UnrealEnterView",
+        "UnrealDecomposeView",
+        "CompositeUnrealView",
+        "CrossServerEnterView",
+        "UnrealToolTips"
+      ],
+      "rationale": "页面包含六个穿戴槽、5 列可滚动背包、容量、总评分、强化/分解/合成/获取四个入口、空态、红点和条件礼包图标；列表和穿戴状态来自真实 GoodsModel 的 unreal/wear_unreal 数据，禁止把测试账号物品烤进 Prefab。",
+      "flags": [
+        "现有 RuneFlow 只把 SecretTreasureMainView 的默认 RuneMainUIView 拆成独立页面，尚未实现包含五个页签的秘宝容器；Unreal 可达路径恢复时必须核对真实页签/标题/返回语义，不能用一个无页签的 Unreal 独立窗冒充。",
+        "_gp_stren 打开 UnrealEnterView；_gp_decompose 打开 UnrealDecomposeView；_gp_composite 打开 CompositeUnrealView；_gp_get 跳 CrossServerEnterView 的 Domain_Boss。",
+        "穿戴、卸下和背包变化依赖 GoodsModel 150xx 链，不属于 149xx 控制器的单页读侧快照。"
+      ]
+    },
+    {
+      "name": "UnrealStrengthenView",
+      "kind": "window-content",
+      "label": "九霄冥饰强化",
+      "view_roots": [
+        "UnrealStrengthenView"
+      ],
+      "source": "unreal/UnrealStrengthenView.json",
+      "open": "UnrealBagView 的强化入口打开 UnrealEnterView；外窗当前只有一个九霄冥饰强化页签，内容类为 UnrealStrengthenView，关闭后返回 SecretTreasureMainView 的 Unreal 页签。",
+      "owns_items": [
+        "UnrealEquipStrenItem",
+        "UnrealStrenCostItem",
+        "UnrealNextAttrItem"
+      ],
+      "references": [
+        "UnrealEnterView",
+        "SecretTreasureMainView"
+      ],
+      "rationale": "页面包含六个部位、当前装备、强化等级、当前/下级属性滚动区、材料横列、强化/升阶按钮、满级/未穿戴/下一阶段提示、成功特效和条件礼包图标。",
+      "flags": [
+        "14904/14906 是只读信息与升阶预览；14903 升阶、14905 强化是资源消耗写事务。可实现发送链，但没有专用账号和明确事务授权时不得在真实账号执行。",
+        "旧端 UnrealEquipStrenItem 复用 UnrealEquipItem.json 结构但行为不同；Unity 应复用同一共享 Prefab 身份并注入强化状态，禁止复制两棵视觉节点树。",
+        "强化页需要 config_decoration_attr/level/level_max/stage/stage_max、config_dec_unlock_cell 和 GoodsSubtype；这些配置当前尚未进入 Unity 配置闭包。"
+      ]
+    },
+    {
+      "name": "UnrealDecomposeView",
+      "kind": "modal",
+      "label": "九霄冥饰批量分解",
+      "view_roots": [
+        "UnrealDecomposeView"
+      ],
+      "source": "unreal/UnrealDecomposeView.json",
+      "open": "UnrealBagView 的分解入口打开 Activity 等价层模态；普通遮罩、右上关闭和完成后的继续获取返回链都属于本页。",
+      "owns_items": [
+        "UnrealDecomposeItem",
+        "UnrealRewardItem"
+      ],
+      "references": [
+        "CrossServerEnterView"
+      ],
+      "rationale": "页面包含可滚动待分解背包、多选钩、三档筛选、分解奖励横列、确认按钮、空态、继续获取、提示和成功演出。",
+      "flags": [
+        "实际分解通过 GoodsModel.RESOLVE_GOODS 提交真实物品列表，是不可恢复写事务；必须冻结选中 goods_id/num、预览、背包指纹并等待权威回包和即时刷新。",
+        "配置闭包还需要 config_goods_decompose、config_soul_attr_num、config_decoration_attr、config_decoration_kv。"
+      ]
+    },
+    {
+      "name": "UnrealDismantleView",
+      "kind": "modal",
+      "label": "单件九霄冥饰拆解确认",
+      "view_roots": [
+        "UnrealDismantleView"
+      ],
+      "source": "unreal/UnrealDismantleView.json",
+      "open": "Common/UnrealToolTips 或 PlayerMessageUnrealTips 对单件已穿戴/可拆解冥饰发起；Activity 等价层，普通遮罩、关闭、取消和确认链完整保留。",
+      "owns_items": [
+        "UnrealRewardItem"
+      ],
+      "references": [
+        "UnrealToolTips"
+      ],
+      "rationale": "展示单件拆解可返还材料、取消、确认和红点；旧端现行类使用 UnrealDismantleView.json，UnreakDismantleViewSkin.json 是未被当前类引用的历史皮肤，不作为转换事实源。",
+      "flags": [
+        "确认同样走 GoodsModel.RESOLVE_GOODS，是不可恢复写事务；真实执行前需要专用账号和明确授权。"
+      ]
+    }
+  ],
+  "shared_external": [
+    {
+      "name": "BaseWindowSkin",
+      "kind": "window-shell(shared)",
+      "owner": "Common",
+      "used_by": [
+        "UnrealBagView",
+        "UnrealStrengthenView"
+      ],
+      "rationale": "SecretTreasureMainView 和 UnrealEnterView 都是 BaseWindowComponent 外窗；Unity 只复用现役 BaseWindowSkin/Manager，不为九霄冥饰复制背景、货币栏、页签或关闭链。"
+    },
+    {
+      "name": "UnrealToolTips",
+      "kind": "detail(shared)",
+      "owner": "Common",
+      "used_by": [
+        "UnrealBagView",
+        "UnrealDismantleView"
+      ],
+      "rationale": "CommonModule.prefab 已有 UnrealToolTips 绑定；装备详情、拆解入口和遮罩层级必须复用该共享详情，不在 unreal 模块复制。"
+    },
+    {
+      "name": "CompositeUnrealView",
+      "kind": "window-content(shared-route)",
+      "owner": "Composite",
+      "used_by": [
+        "UnrealBagView"
+      ],
+      "rationale": "合成是 CompositeModule 现有页面，九霄冥饰只负责路由过去；不得把 CompositeUnrealView 节点树搬进 UnrealModule。"
+    }
+  ],
+  "required_configs": [
+    "config_decoration_kv",
+    "config_decoration_attr",
+    "config_decoration_level_max",
+    "config_decoration_level",
+    "config_decoration_stage",
+    "config_decoration_stage_max",
+    "config_dec_unlock_cell",
+    "config_goods_decompose",
+    "config_soul_attr_num",
+    "GoodsSubtype"
+  ],
+  "protocols": {
+    "read": [
+      14904,
+      14906,
+      14907,
+      14908,
+      15010
+    ],
+    "write_requires_runtime_authorization": [
+      14901,
+      14902,
+      14903,
+      14905
+    ],
+    "error": [
+      14900
+    ]
+  },
+  "open_questions": [
+    "当前 Unity 缺 SecretTreasureMainView 五页签共享容器。最快正确实现是扩展现有 Rune 外窗为共享秘宝容器，还是先为当前已落地的 Rune/GodBeast/Unreal 建统一壳，需要在不破坏 Rune 现有人工 Prefab 的前提下核对其引用关系。",
+    "14901/14902 的穿戴/卸下与 GoodsModel 150xx 快照的即时刷新合同需要对照当前服务端路由确认；不得只按旧端 sender 猜测回包格式。",
+    "当前 Unity 配置目录缺 required_configs 全部条目；首次转换只做 UI 骨架不能把配置缺失伪装为完成。"
+  ]
+}

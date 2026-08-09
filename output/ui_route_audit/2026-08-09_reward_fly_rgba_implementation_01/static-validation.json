@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "observedAt": "2026-08-09T12:53:16+08:00",
+  "scope": "achievement reward fly ui_bangyu_1/ui_bangyu_2 legacy RGBA replay",
+  "source": {
+    "gitHead": "92b3f5578a90befb85a6255157f08e482214aa1a",
+    "dirtyFingerprintSha256": "d7f34b525600c9cb547bb28498413188e388ef3cef828fad91510a8593c5daeb",
+    "rewardFlyServiceSha256": "3a358dc2ec5b56e4435a0761093efb2713b424a1307dad7c41d99d9a70084f99",
+    "captureToolSha256": "fe422d0b942c732a4f8c5a3529172a76c878f196cbb3f0bde7d7db8309f7dc95"
+  },
+  "legacyCapture": {
+    "manifest": "output/ui_route_audit/2026-08-09_reward_fly_rgba_capture_03/legacy_rgba/capture-manifest.json",
+    "manifestSha256": "30158b52feda7370055b164dd1bdd198c0803c05b6b6da24af2826f90d6fb005",
+    "frameSize": [100, 100],
+    "frameCountPerEffect": 120,
+    "timelineFps": 60,
+    "atlasSize": [1248, 1040],
+    "atlasLayout": "12x10 cells, 2px duplicate gutter",
+    "exactFrameChecks": [0, 1, 30, 60, 90, 119],
+    "coordinateTransform": "bottom-left RGBA to top-left PNG vertical flip only",
+    "effects": {
+      "ui_bangyu_1": {
+        "rawRgbaSha256": "4babc63855e7ed965c5c54fee662aec3417e5e57c897e2f23953ae0726031b5b",
+        "atlasPngSha256": "6e595023d30c3cb0aefb0635aeadb54a67233fea6f59d48ec860a5a403cbfd73"
+      },
+      "ui_bangyu_2": {
+        "rawRgbaSha256": "21b2965607f5bf58316714d6094bc1aa84af6e564349918e585d302b3763eba7",
+        "atlasPngSha256": "d823b4d6b5e5c36f5e313e38b7834bcc91dfd7750209351ee8dd493d67abd4e3"
+      }
+    }
+  },
+  "unityAssets": {
+    "ui_bangyu_1": "Assets/GameRes/effect/legacy_rgba/reward_fly/ui_bangyu_1_atlas.png",
+    "ui_bangyu_2": "Assets/GameRes/effect/legacy_rgba/reward_fly/ui_bangyu_2_atlas.png",
+    "addressableEntriesUnique": true,
+    "uncompressedDefaultStandaloneWebGL": true,
+    "mipmapsDisabled": true,
+    "transparentRgbPreserved": true
+  },
+  "implementation": {
+    "topology": "one shared sequence clock per reward batch to N RawImage presenters",
+    "composition": "default UGUI alpha using captured RT alpha",
+    "outerTransform": "scatter, cubic in-out move, linear scale to 0.4",
+    "innerTransform": "random scale 0.7..1.2 and random rotation",
+    "globalUiEffectShaderChanged": false
+  },
+  "checks": {
+    "nodeSyntax": "pass",
+    "dotnetBuild": {
+      "command": "dotnet build Shenxiao.Module.Core.csproj --no-restore -v:minimal",
+      "errors": 0,
+      "warnings": 84
+    },
+    "atlasDimensions": "pass",
+    "atlasSha256": "pass",
+    "sampledFramesExact": "pass",
+    "addressableGuidAndAddressUniqueness": "pass"
+  },
+  "gmState": {
+    "evidence": "output/ui_route_audit/2026-08-09_achievement_gm_ready_01/achievement-gm-ready.json",
+    "sha256": "13549bfe26a3a592ea30cf285de2f42ea9f7528af14fe49ba800d9e0a7aa8102",
+    "account": "111111",
+    "command": "completeachv_1",
+    "before": {"category": 1, "id": 3, "status": 0, "progress": 3650},
+    "after": {"category": 1, "id": 3, "status": 1, "progress": 5000},
+    "claimProtocolSent": false,
+    "resetUsed": false
+  },
+  "runtimeBoundary": {
+    "unityEditorCanvasVerified": false,
+    "webglCanvasVerified": false,
+    "closeDuringFlightCleanupVerified": false,
+    "status": "needs-runtime-verify"
+  }
+}

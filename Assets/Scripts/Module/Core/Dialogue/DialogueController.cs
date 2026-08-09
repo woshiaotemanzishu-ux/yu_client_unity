@@ -33,21 +33,31 @@ namespace Shenxiao.Module.Core.Dialogue
             RegisterProtocal(Proto.CC_NPC_TASK_LIST, On12101);
             RegisterProtocal(Proto.CC_NPC_TASK_TALK, On12102);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
+            EventDispatcher.On(GlobalEvent.EVT_SCENE_OBJECTS_CLEARED, OnSceneObjectsCleared);
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
+            EventDispatcher.Off(GlobalEvent.EVT_SCENE_OBJECTS_CLEARED, OnSceneObjectsCleared);
             CloseDialogueView();
             base.Dispose();
+        }
+
+        private void OnSceneObjectsCleared()
+        {
+            // 对标老端切场景先置 change_scene_close，再拒绝迟到的 12102 并关闭当前对话。
+            Model.ChangeSceneClose = true;
+            CloseDialogueView();
         }
 
         private async void OnGameStart()
         {
             // 对话依赖 config_npc(身份/默认对话 id)+ config_talk(对话文字),进游戏后预载(对标 TaskController.OnGameStart)。
+            // 先清状态再等待资源；否则等待期间发生的切场景关闭会被迟到的 Reset 反向覆盖。
+            Model.Reset();
             await NpcConfigs.EnsureLoaded();
             await TalkConfigs.EnsureLoaded();
-            Model.Reset();
             GameLog.Info("Dialogue", "对话子系统就绪: config_npc={0} config_talk={1}", NpcConfigs.IsLoaded, TalkConfigs.IsLoaded);
         }
 
@@ -72,6 +82,11 @@ namespace Shenxiao.Module.Core.Dialogue
                     npcId, NpcConfigs.IsLoaded, TalkConfigs.IsLoaded);
                 await NpcConfigs.EnsureLoaded();
                 await TalkConfigs.EnsureLoaded();
+            }
+            if (Model.ChangeSceneClose)
+            {
+                GameLog.Info("Dialogue", "ShowTask({0}) cancelled because the scene changed while configs were loading", npcId);
+                return;
             }
             SendShowTaskNow(npcId);
         }

@@ -1,0 +1,183 @@
+{
+  "updated_at": "2026-08-09T00:00:00+08:00",
+  "summary_details": {
+    "mode": "static-only",
+    "legacy_runtime": "not executed by explicit user boundary",
+    "unity_runtime": "not executed by explicit user boundary",
+    "safe_fix": "RedPacketMainView now binds record/function tabs, opens instruction 339, requests 33901 on show, and pairs event subscription lifecycle.",
+    "unresolved": "Dynamic packet/record/function items and Ctrl/Detail business views remain generated-only or hidden."
+  },
+  "nodes": [
+    {
+      "id": "mainui.redpacket.entry",
+      "status": "blocked",
+      "blocked_reason": "本轮禁止修改/操作 MainUI，且禁止启动浏览器或 Unity；只能静态确认 MainUIRouter redpacket 注册链。",
+      "note": "RedPacketBootstrap registers redpacket -> RedPacketFlow.Toggle; real HUD raycast and cold/warm target identity remain unverified."
+    },
+    {
+      "id": "mainui.redpacket.initial-request",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "已在 RedPacketMainView.OnShow 增量补回老端 33901 空包请求及 EVT_REDPACKET_UPDATE 生命周期；本轮禁止 Unity/Web/协议运行复验。",
+      "note": "Static source reconciliation fix."
+    },
+    {
+      "id": "mainui.redpacket.packet-list.layout",
+      "status": "defect",
+      "note": "RedPacketMainView still hides _tpl_RedPacketMainItem and never clones/renders model.List; ScrollRect structure and real drag also lack runtime evidence."
+    },
+    {
+      "id": "mainui.redpacket.packet-list.open.detail.recipients",
+      "status": "defect",
+      "note": "RedPacketDetailViewBind and RedPacketDetailItemBind exist in the prefab, but no RedPacket business view renders LastOpenDetail.RecipientList or best-recipient state."
+    },
+    {
+      "id": "mainui.redpacket.packet-list.open.detail.summary",
+      "status": "defect",
+      "note": "Generated detail bind is not consumed by a module business view; role header, counts and currency summary are not populated."
+    },
+    {
+      "id": "mainui.redpacket.packet-list.open.detail.receive-state",
+      "status": "defect",
+      "note": "Generated detail bind has received/not-received nodes, but no Unity business code applies receive_money visibility or currency state."
+    },
+    {
+      "id": "mainui.redpacket.packet-list.open.detail.close",
+      "status": "defect",
+      "note": "Old detail view closes through Activity background; Unity generated-only subview has no proven mask/background close owner in RedPacketFlow."
+    },
+    {
+      "id": "mainui.redpacket.packet-list.send.form.subtract",
+      "status": "defect",
+      "note": "RedPacketCtrlViewBind exists but no business view binds _btn_sub or enforces configured minimum."
+    },
+    {
+      "id": "mainui.redpacket.packet-list.send.form.add",
+      "status": "defect",
+      "note": "RedPacketCtrlViewBind exists but no business view binds _btn_add or guild-capacity maximum."
+    },
+    {
+      "id": "mainui.redpacket.packet-list.send.form.count-calculator",
+      "status": "defect",
+      "note": "No Unity business binding opens the shared calculator or validates count on return."
+    },
+    {
+      "id": "mainui.redpacket.packet-list.send.form.money-calculator",
+      "status": "defect",
+      "note": "VIP money calculator and amount constraints are not implemented in the RedPacket module."
+    },
+    {
+      "id": "mainui.redpacket.packet-list.send.form.blessing",
+      "status": "defect",
+      "note": "TMP input bind exists but no business code applies max length, default blessing or character counter."
+    },
+    {
+      "id": "mainui.redpacket.packet-list.send.form.submit",
+      "status": "defect",
+      "note": "Controller request methods 33904/33906 exist, but no player-visible CtrlView business binding can submit or close/refresh on result."
+    },
+    {
+      "id": "mainui.redpacket.packet-list.send.form.close",
+      "status": "defect",
+      "note": "Old CtrlView closes through Activity background; Unity generated-only subview has no proven close owner."
+    },
+    {
+      "id": "mainui.redpacket.packet-list.look.detail.recipients",
+      "status": "defect",
+      "note": "Same shared generated detail component as the open branch; no business renderer exists."
+    },
+    {
+      "id": "mainui.redpacket.packet-list.look.detail.summary",
+      "status": "defect",
+      "note": "Same shared generated detail component as the open branch; no summary renderer exists."
+    },
+    {
+      "id": "mainui.redpacket.packet-list.look.detail.receive-state",
+      "status": "defect",
+      "note": "Same shared generated detail component as the open branch; conditional receive state is not applied."
+    },
+    {
+      "id": "mainui.redpacket.packet-list.look.detail.close",
+      "status": "defect",
+      "note": "Same generated-only detail close-chain gap as the open branch."
+    },
+    {
+      "id": "mainui.redpacket.packet-list.other",
+      "status": "defect",
+      "note": "No RedPacketMainItem business renderer applies the Other state or _lb_other visibility."
+    },
+    {
+      "id": "mainui.redpacket.packet-list.empty",
+      "status": "defect",
+      "note": "Unity main view has no explicit empty-state renderer and leaves the list blank because all templates stay hidden."
+    },
+    {
+      "id": "mainui.redpacket.record-tab.click",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "已把 _btn_record 从日志占位改为切换 _Group2/_Group3；未运行 GraphicRaycaster、选中态图片/文字、重开及两 viewport 复验。",
+      "note": "Static source reconciliation fix; selected sprite/color remains a visual runtime gate."
+    },
+    {
+      "id": "mainui.redpacket.record-tab.panel.list",
+      "status": "defect",
+      "note": "RedPacketRecordItemBind exists but RedPacketMainView hides its template and never renders model.Records or config description/time text."
+    },
+    {
+      "id": "mainui.redpacket.record-tab.panel.empty",
+      "status": "defect",
+      "note": "No explicit empty-record state is implemented; runtime behavior cannot match old client until list rendering is connected."
+    },
+    {
+      "id": "mainui.redpacket.func-tab.click",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "已把 _btn_func 从日志占位改为切换 _Group2/_Group3；未运行 GraphicRaycaster、选中态图片/文字、重开及两 viewport 复验。",
+      "note": "Static source reconciliation fix; selected sprite/color remains a visual runtime gate."
+    },
+    {
+      "id": "mainui.redpacket.func-tab.panel.open-108",
+      "status": "defect",
+      "note": "Old source lists vip4 label with open_id=108, while RedPacketFuncItem special-cases 104; Unity renders no function rows and must not guess the mapping."
+    },
+    {
+      "id": "mainui.redpacket.func-tab.panel.open-23",
+      "status": "defect",
+      "note": "VIP upgrade row is not rendered or routed in Unity."
+    },
+    {
+      "id": "mainui.redpacket.func-tab.panel.open-21",
+      "status": "defect",
+      "note": "Daily accumulated recharge row is not rendered or routed in Unity."
+    },
+    {
+      "id": "mainui.redpacket.func-tab.panel.open-72",
+      "status": "defect",
+      "note": "Daily first recharge row is not rendered or routed in Unity."
+    },
+    {
+      "id": "mainui.redpacket.func-tab.panel.open-61",
+      "status": "defect",
+      "note": "Monthly card investment row and close-before-navigation behavior are not implemented in Unity."
+    },
+    {
+      "id": "mainui.redpacket.func-tab.panel.open-62",
+      "status": "defect",
+      "note": "Level investment row and close-before-navigation behavior are not implemented in Unity."
+    },
+    {
+      "id": "mainui.redpacket.func-tab.panel.notice-50",
+      "status": "defect",
+      "note": "Guild feast row should show the old-client notice instead of navigation; Unity renders no function rows."
+    },
+    {
+      "id": "mainui.redpacket.help",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "已把说明按钮从日志占位改为复用 InstructionFlow.Show(339)；本轮未运行目标弹窗身份、主底图、滚动、关闭链和 cold/warm。",
+      "note": "Static source reconciliation fix using existing shared instruction service without modifying Common."
+    },
+    {
+      "id": "mainui.redpacket.close",
+      "status": "blocked",
+      "blocked_reason": "关闭绑定静态存在，但本轮禁止 Unity/Web，无法验证 GraphicRaycaster、层级拦截、返回 HUD、隐藏后重开和零残留。",
+      "note": "No completion claim."
+    }
+  ]
+}

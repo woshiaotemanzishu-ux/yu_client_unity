@@ -26,6 +26,13 @@ namespace Shenxiao.Module.Core.MainUI
 
         private int _moneyType = -1;
 
+        /// <summary>通用奖励飞行动画定位顶部货币槽时使用。</summary>
+        public int MoneyType => _moneyType;
+
+        /// <summary>飞行动画的落点使用真实货币图标，而不是整个数值条。</summary>
+        public UnityEngine.RectTransform RewardFlyTarget =>
+            _img_icon != null ? _img_icon.rectTransform : transform as UnityEngine.RectTransform;
+
         /// <summary>设置货币类型:换图标 + 刷新数值(对标 SetMoneyType→RefreshType)。</summary>
         public void SetMoneyType(int type)
         {

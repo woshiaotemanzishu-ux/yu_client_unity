@@ -1,0 +1,138 @@
+{
+  "route": "mainui.boss.main-entry-and-fight",
+  "nodes": [
+    {
+      "id": "mainui.boss.main-entry-and-fight",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        { "id": "boss-main-entry", "kind": "window-entry", "child": "mainui.boss.main-entry-and-fight.entry" },
+        { "id": "boss-fight-scene-hud", "kind": "scene-runtime-panel", "child": "mainui.boss.main-entry-and-fight.fight" }
+      ]
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.entry",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight",
+      "control_inventory": [
+        { "id": "open", "kind": "button", "child": "mainui.boss.main-entry-and-fight.entry.open" },
+        { "id": "tab-field", "kind": "tab", "child": "mainui.boss.main-entry-and-fight.entry.tab-field" },
+        { "id": "tab-domain", "kind": "tab", "child": "mainui.boss.main-entry-and-fight.entry.tab-domain" },
+        { "id": "tab-personal", "kind": "tab", "child": "mainui.boss.main-entry-and-fight.entry.tab-personal" },
+        { "id": "tab-mystery", "kind": "tab", "child": "mainui.boss.main-entry-and-fight.entry.tab-mystery" },
+        { "id": "drop-record", "kind": "button-popup", "child": "mainui.boss.main-entry-and-fight.entry.drop-record" },
+        { "id": "instruction", "kind": "button-popup", "child": "mainui.boss.main-entry-and-fight.entry.instruction" },
+        { "id": "close", "kind": "button", "child": "mainui.boss.main-entry-and-fight.entry.close" }
+      ]
+    },
+    { "id": "mainui.boss.main-entry-and-fight.entry.open", "type": "navigation", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.entry" },
+    { "id": "mainui.boss.main-entry-and-fight.entry.tab-field", "type": "tab", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.entry" },
+    { "id": "mainui.boss.main-entry-and-fight.entry.tab-domain", "type": "tab", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.entry" },
+    { "id": "mainui.boss.main-entry-and-fight.entry.tab-personal", "type": "tab", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.entry" },
+    { "id": "mainui.boss.main-entry-and-fight.entry.tab-mystery", "type": "tab", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.entry" },
+    { "id": "mainui.boss.main-entry-and-fight.entry.drop-record", "type": "navigation", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.entry" },
+    { "id": "mainui.boss.main-entry-and-fight.entry.instruction", "type": "navigation", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.entry" },
+    { "id": "mainui.boss.main-entry-and-fight.entry.close", "type": "return", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.entry" },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight",
+      "control_inventory": [
+        { "id": "damage-rank", "kind": "button-panel", "child": "mainui.boss.main-entry-and-fight.fight.damage" },
+        { "id": "wayfinding", "kind": "conditional-panel", "child": "mainui.boss.main-entry-and-fight.fight.wayfinding" },
+        { "id": "collect-ordinary", "kind": "conditional-button", "child": "mainui.boss.main-entry-and-fight.fight.collect-ordinary" },
+        { "id": "collect-rare", "kind": "conditional-button", "child": "mainui.boss.main-entry-and-fight.fight.collect-rare" },
+        { "id": "collect-crystal", "kind": "conditional-button", "child": "mainui.boss.main-entry-and-fight.fight.collect-crystal" },
+        { "id": "mystery-box", "kind": "conditional-button", "child": "mainui.boss.main-entry-and-fight.fight.mystery-box" },
+        { "id": "mystery-super-box", "kind": "conditional-button", "child": "mainui.boss.main-entry-and-fight.fight.mystery-super-box" },
+        { "id": "target-list", "kind": "conditional-list", "child": "mainui.boss.main-entry-and-fight.fight.target" },
+        { "id": "state", "kind": "conditional-state", "child": "mainui.boss.main-entry-and-fight.fight.state" },
+        { "id": "holy-counters", "kind": "conditional-state-group", "child": "mainui.boss.main-entry-and-fight.fight.holy" },
+        { "id": "cross", "kind": "conditional-button", "child": "mainui.boss.main-entry-and-fight.fight.cross" },
+        { "id": "kai", "kind": "conditional-button", "child": "mainui.boss.main-entry-and-fight.fight.kai" },
+        { "id": "guard", "kind": "conditional-button", "child": "mainui.boss.main-entry-and-fight.fight.guard" },
+        { "id": "exit", "kind": "button-confirm", "child": "mainui.boss.main-entry-and-fight.fight.exit" },
+        { "id": "special-boss", "kind": "conditional-button", "child": "mainui.boss.main-entry-and-fight.fight.special-boss" },
+        { "id": "war-free", "kind": "conditional-button-countdown", "child": "mainui.boss.main-entry-and-fight.fight.war-free" },
+        { "id": "reborn", "kind": "conditional-button-popup", "child": "mainui.boss.main-entry-and-fight.fight.reborn" },
+        { "id": "assist", "kind": "conditional-panel", "child": "mainui.boss.main-entry-and-fight.fight.assist" },
+        { "id": "boss-hp", "kind": "scene-runtime-state", "child": "mainui.boss.main-entry-and-fight.fight.boss-hp" }
+      ]
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.damage",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "control_inventory": [
+        { "id": "open-close", "kind": "toggle-button", "child": "mainui.boss.main-entry-and-fight.fight.damage.open-close" },
+        { "id": "top3-list", "kind": "list", "child": "mainui.boss.main-entry-and-fight.fight.damage.top3-list" },
+        { "id": "self-row", "kind": "conditional-state", "child": "mainui.boss.main-entry-and-fight.fight.damage.self-row" },
+        { "id": "intro", "kind": "conditional-button-popup", "child": "mainui.boss.main-entry-and-fight.fight.damage.intro" },
+        { "id": "guild-help", "kind": "conditional-button-transaction", "child": "mainui.boss.main-entry-and-fight.fight.damage.guild-help" }
+      ]
+    },
+    { "id": "mainui.boss.main-entry-and-fight.fight.damage.open-close", "type": "read", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.fight.damage" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.damage.top3-list", "type": "read", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.fight.damage" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.damage.self-row", "type": "read", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.fight.damage" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.damage.intro", "type": "navigation", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.fight.damage" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.damage.guild-help", "type": "reversible-write", "risk": "reversible-write", "parent": "mainui.boss.main-entry-and-fight.fight.damage" },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.wayfinding",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "control_inventory": [
+        { "id": "boss-tab", "kind": "tab", "child": "mainui.boss.main-entry-and-fight.fight.wayfinding.boss-tab" },
+        { "id": "task-tab", "kind": "tab", "child": "mainui.boss.main-entry-and-fight.fight.wayfinding.task-tab" },
+        { "id": "boss-scroll-select", "kind": "list-action", "child": "mainui.boss.main-entry-and-fight.fight.wayfinding.boss-scroll-select" },
+        { "id": "task-scroll-select", "kind": "list-action", "child": "mainui.boss.main-entry-and-fight.fight.wayfinding.task-scroll-select" },
+        { "id": "instruction", "kind": "button-popup", "child": "mainui.boss.main-entry-and-fight.fight.wayfinding.instruction" },
+        { "id": "vit-add", "kind": "button-popup", "child": "mainui.boss.main-entry-and-fight.fight.wayfinding.vit-add" },
+        { "id": "vit-progress", "kind": "state", "child": "mainui.boss.main-entry-and-fight.fight.wayfinding.vit-progress" }
+      ]
+    },
+    { "id": "mainui.boss.main-entry-and-fight.fight.wayfinding.boss-tab", "type": "tab", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.fight.wayfinding" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.wayfinding.task-tab", "type": "tab", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.fight.wayfinding" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.wayfinding.boss-scroll-select", "type": "reversible-write", "risk": "reversible-write", "parent": "mainui.boss.main-entry-and-fight.fight.wayfinding" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.wayfinding.task-scroll-select", "type": "reversible-write", "risk": "reversible-write", "parent": "mainui.boss.main-entry-and-fight.fight.wayfinding" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.wayfinding.instruction", "type": "navigation", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.fight.wayfinding" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.wayfinding.vit-add", "type": "reversible-write", "risk": "reversible-write", "parent": "mainui.boss.main-entry-and-fight.fight.wayfinding" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.wayfinding.vit-progress", "type": "read", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.fight.wayfinding" },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.target",
+      "type": "page",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "control_inventory": [
+        { "id": "scroll", "kind": "list-scroll", "child": "mainui.boss.main-entry-and-fight.fight.target.scroll" },
+        { "id": "select-target", "kind": "list-item-action", "child": "mainui.boss.main-entry-and-fight.fight.target.select-target" },
+        { "id": "attribution", "kind": "conditional-state", "child": "mainui.boss.main-entry-and-fight.fight.target.attribution" },
+        { "id": "attack-suffer-effects", "kind": "dynamic-effect", "child": "mainui.boss.main-entry-and-fight.fight.target.effects" }
+      ]
+    },
+    { "id": "mainui.boss.main-entry-and-fight.fight.target.scroll", "type": "read", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.fight.target" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.target.select-target", "type": "reversible-write", "risk": "reversible-write", "parent": "mainui.boss.main-entry-and-fight.fight.target" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.target.attribution", "type": "read", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.fight.target" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.target.effects", "type": "read", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.fight.target" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.collect-ordinary", "type": "reversible-write", "risk": "reversible-write", "parent": "mainui.boss.main-entry-and-fight.fight" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.collect-rare", "type": "reversible-write", "risk": "reversible-write", "parent": "mainui.boss.main-entry-and-fight.fight" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.collect-crystal", "type": "reversible-write", "risk": "reversible-write", "parent": "mainui.boss.main-entry-and-fight.fight" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.mystery-box", "type": "reversible-write", "risk": "reversible-write", "parent": "mainui.boss.main-entry-and-fight.fight" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.mystery-super-box", "type": "reversible-write", "risk": "reversible-write", "parent": "mainui.boss.main-entry-and-fight.fight" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.state", "type": "read", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.fight" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.holy", "type": "read", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.fight" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.cross", "type": "navigation", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.fight" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.kai", "type": "navigation", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.fight" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.guard", "type": "navigation", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.fight" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.exit", "type": "reversible-write", "risk": "reversible-write", "parent": "mainui.boss.main-entry-and-fight.fight" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.special-boss", "type": "reversible-write", "risk": "reversible-write", "parent": "mainui.boss.main-entry-and-fight.fight" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.war-free", "type": "reversible-write", "risk": "reversible-write", "parent": "mainui.boss.main-entry-and-fight.fight" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.reborn", "type": "reversible-write", "risk": "reversible-write", "parent": "mainui.boss.main-entry-and-fight.fight" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.assist", "type": "reversible-write", "risk": "reversible-write", "parent": "mainui.boss.main-entry-and-fight.fight" },
+    { "id": "mainui.boss.main-entry-and-fight.fight.boss-hp", "type": "read", "risk": "read-only", "parent": "mainui.boss.main-entry-and-fight.fight" }
+  ]
+}

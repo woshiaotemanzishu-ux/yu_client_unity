@@ -14,10 +14,9 @@ namespace Shenxiao.Module.Core.Marriage
     /// 示爱(_btn_ask → 校验对象/戒指/货币后发 17231 求婚协议)+ 说明(_btn_help → OPEN_INSTRUCTION_VIEW 172)+
     /// 关闭(_btn_close → 关闭返回主面板)。
     ///
-    /// 降级:MarriageModel(GetCanMarriageFriendList/GetAskDataList/_mate_info)、FriendModel(好友数据)、
-    /// GoodsModel/DressModel/RoleManager、config_propose_cfg 配置、求婚/示爱协议(17231/17232)、
-    /// CustomHeadItem 头像、DownDropBtn 下拉、MarriageAskItem/MarriageDropBtn 列表项与各 MarriageEvent 均未移植 →
-    /// 无红点字段(本界面无红点);_tpl_* 模板隐藏;按钮点击打日志「待对接」;OnShow 列表空/默认降级。
+    /// 当前:MarriageController/MarriageModel 已具备 17232 查询/收包地基；Friend/Goods/Dress/Role 数据消费、
+    /// config_propose_cfg、CustomHeadItem 头像、DownDropBtn 下拉、MarriageAskItem/MarriageDropBtn 列表项与事件表现尚未接线。
+    /// 17231 求婚属于未授权写事务，继续保持 blocked；_tpl_* 模板隐藏，OnShow 仅恢复权威只读快照请求。
     /// _btn_close 关闭返回主面板(Hide)。Null-guard 每处访问。
     /// </summary>
     public sealed class MarriageAskView : MarriageAskViewBind
@@ -32,8 +31,9 @@ namespace Shenxiao.Module.Core.Marriage
         protected override void OnShow(object args)
         {
             // 老端 Local_Open/open_callback → LoadSuccess/UpdateFriendBtnData/UpdateView:
-            // 渲染双方头像 + 好友下拉 + 戒指列表 + 名字/提示。MarriageModel/FriendModel/协议/配置/头像均未移植 → 列表空、默认降级。
-            GameLog.Info("Marriage", "MarriageAskView 打开 → 待对接 MarriageModel(列表空/默认降级)");
+            // 渲染双方头像 + 好友下拉 + 戒指列表 + 名字/提示。查询/收包地基已在，候选、配置与头像表现尚未接线。
+            MarriageController.Instance.RequestMyMate();
+            GameLog.Info("Marriage", "MarriageAskView 打开 → 已请求17232权威快照,候选/戒指表现接线待运行态验证");
         }
 
         /// <summary>红点:本界面 Bind 无红点字段,留空(占位以对齐其他视图结构)。</summary>

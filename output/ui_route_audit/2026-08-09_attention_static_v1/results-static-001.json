@@ -1,0 +1,40 @@
+{
+  "updated_at": "2026-08-09T18:35:00+08:00",
+  "summary_details": {
+    "mode": "static-only",
+    "initial_dirty": "Attention module and Attention prefab closure were clean before this route",
+    "implemented": "No code or prefab mutation: missing business views depend on prohibited MainUI/SDK/CustomActivity/Common ownership and cannot be safely completed inside the Attention island",
+    "known_gap": "AttentionModule.prefab contains generated Bind components for two views, but Assets/Scripts/Module/Core/Attention contains only Model/Controller icon-state code and no business View; no runtime opening consumer was found",
+    "runtime": "not executed by explicit user boundary"
+  },
+  "nodes": [
+    {"id":"mainui.attention.startup","status":"blocked","blocked_reason":"老端启动链会查询 SDK enabled、检查关注状态并消费 CustomActivity(70,1)；Unity 仅重置本地字段并以 null 复评图标，真实 SDK/活动态调用方属于禁止修改的共享平台与活动域。"},
+
+    {"id":"mainui.attention.generic.gates","status":"blocked","blocked_reason":"113 入口依赖 MainUI ActivityIcon、ClientConfig.attention_open 注入、plat_name 对应 ClientAttention 配置、开服天与等级；AttentionOpen 当前无写入者，跨模块入口/配置注入禁止修改。"},
+    {"id":"mainui.attention.generic.background","status":"defect"},
+    {"id":"mainui.attention.generic.title","status":"defect"},
+    {"id":"mainui.attention.generic.qr","status":"defect"},
+    {"id":"mainui.attention.generic.description","status":"defect"},
+    {"id":"mainui.attention.generic.rewards.list","status":"defect"},
+    {"id":"mainui.attention.generic.rewards.item","status":"defect"},
+    {"id":"mainui.attention.generic.copy","status":"defect"},
+    {"id":"mainui.attention.generic.close","status":"defect"},
+    {"id":"mainui.attention.generic.resource-ready","status":"blocked","blocked_reason":"老端 QR/描述/奖励由 ClientAttention 渠道配置动态决定；Unity 只有生成配置访问器和 com_empty 骨架，实际配置资产/Addressables 与点击前资源闭包未在本模块内证明，且禁止触碰 Addressables。"},
+
+    {"id":"mainui.attention.sdk.gates","status":"blocked","blocked_reason":"113113 入口依赖爱疯平台判定、native subscribe enabled、CustomActivity(70,1)奖励态及 MainUI 图标；四者均跨越本轮唯一写者范围。"},
+    {"id":"mainui.attention.sdk.background","status":"needs-runtime-verify","runtime_gap":"Prefab 静态背景 Sprite 已绑定，但页面无可达业务 View，且本轮禁止 Unity/Web 视觉、遮罩、页面根坐标和 ready 复验。"},
+    {"id":"mainui.attention.sdk.rewards.list","status":"defect"},
+    {"id":"mainui.attention.sdk.rewards.item","status":"defect"},
+    {"id":"mainui.attention.sdk.action.label","status":"defect"},
+    {"id":"mainui.attention.sdk.action.throttle","status":"defect"},
+    {"id":"mainui.attention.sdk.action.ask-show","status":"blocked","blocked_reason":"未关注分支会调用平台 subscribe(apiType=askShow)，属于真实外部 SDK 操作且无 Unity 桥/本轮授权；禁止伪回调。"},
+    {"id":"mainui.attention.sdk.action.subscribe-callback","status":"blocked","blocked_reason":"关注成功依赖 native isSubscribe/askShow 回调并更新 sdk_attention_state/red；共享平台桥不存在且禁止越界实现。"},
+    {"id":"mainui.attention.sdk.action.claim-33105","status":"blocked","blocked_reason":"已关注未领奖分支通过 CustomActivity 发 33105(base_type=70,sub_type=1,id=1)领取真实奖励；本轮禁止账号写事务，且 CustomActivity/协议所有权属于禁止共享域。"},
+    {"id":"mainui.attention.sdk.action.claimed","status":"defect"},
+    {"id":"mainui.attention.sdk.action.post-claim","status":"blocked","blocked_reason":"老端权威回包后刷新奖励、红点、按钮并关闭页面/删除入口；需要 CustomActivity 即时刷新、重开与真实账号证据，本轮均禁止。"},
+    {"id":"mainui.attention.sdk.red-dot","status":"defect"},
+    {"id":"mainui.attention.sdk.background-close","status":"defect"},
+    {"id":"mainui.attention.sdk.scene-close","status":"defect"},
+    {"id":"mainui.attention.sdk.resource-ready","status":"blocked","blocked_reason":"奖励物品格依赖 Common EquipmentItem/GoodsModel 和活动奖励配置；共享组件身份、资源闭包及真实 ready 均无法在 Attention 文件岛独立证明。"}
+  ]
+}

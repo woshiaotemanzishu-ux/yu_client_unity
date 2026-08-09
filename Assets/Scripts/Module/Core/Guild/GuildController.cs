@@ -198,24 +198,8 @@ namespace Shenxiao.Module.Core.Guild
         public async void RequestGuildIdol()
         {
             await GuildConfigs.EnsureLoaded();
-            if (!IsGuildIdolOpen()) return;
+            if (!GuildModel.IsGuildIdolOpen()) return;
             RequestGodList();
-        }
-
-        /// <summary>对标老端 GuildIdolIsOpen(GuildModel.ts:1103-1115):config_guild_god_kv 表缺失(未加载)
-        /// 时直接 false(老端 !cfg 早退);否则 open_day&gt;=limit_day 且 role_lv&gt;=limit_lv 双达标才 true。</summary>
-        private static bool IsGuildIdolOpen()
-        {
-            Newtonsoft.Json.Linq.JObject openDayRow = GuildConfigs.GetGodKv("open_day");
-            Newtonsoft.Json.Linq.JObject lvLimitRow = GuildConfigs.GetGodKv("lv_limit");
-            if (openDayRow == null || lvLimitRow == null) return false;
-            if (!int.TryParse(openDayRow["value"]?.ToString(), out int limitDay)) return false;
-            if (!int.TryParse(lvLimitRow["value"]?.ToString(), out int limitLv)) return false;
-
-            int openDay = Shenxiao.Module.Core.Game.ServerTimeModel.GetOpenServerDay();
-            int roleLv = Shenxiao.Module.Core.Role.RoleModel.Instance.HasBaseInfo
-                ? Shenxiao.Module.Core.Role.RoleModel.Instance.Level : 0;
-            return openDay >= limitDay && roleLv >= limitLv;
         }
 
         private static void ShowError(int errorCode) => TipsManager.Toast("错误(" + errorCode + ")"); // 错误码表未移植,显码降级
@@ -1278,6 +1262,9 @@ namespace Shenxiao.Module.Core.Guild
         }
 
         public void RequestAssistCount() => SendFmt(Proto.GUILD_ASSIST_COUNT);
+
+        /// <summary>GuildHelpView 打开时拉取当日善缘进度(对标老端 LoadSuccess 发 40031)。</summary>
+        public void RequestPrestigeDaily() => SendFmt(Proto.GUILD_PRESTIGE_DAILY);
 
         /// <summary>**Guard**:无公会时服务端 pp_guild_assist.erl:62-69 回 `send_to_sid(Sid, pt_404, 40405, [])`——
         /// 空实参列表匹配不上 pt_404.erl:81 `write(40405,[AssistList])` 的单元素模式,落到同文件 catch-all

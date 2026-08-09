@@ -1,0 +1,59 @@
+{
+  "route": "customactivity.redpacket-rain",
+  "baseline": {
+    "scope": "RedPacketRain static three-way reconciliation: legacy embedded activity panel, MainUI falling overlay and Top grab popup",
+    "ownership": "Unity has shared CustomActivity protocol/model slices and a MainUI placeholder, but no editable RedPacketRain prefab, bind or independently owned module",
+    "runtime_policy": "static only; no Unity, browser, build, GM or account writes",
+    "conversion_policy": "blocked because the editable resource closure and module ownership cannot be proved; no conversion or shared-file edit"
+  },
+  "nodes": [
+    {"id":"customactivity.redpacket-rain","type":"page","risk":"read-only","control_inventory":[{"id":"activity-entry","kind":"navigation","child":"customactivity.redpacket-rain.entry"},{"id":"panel-query","kind":"lifecycle","child":"customactivity.redpacket-rain.initial-query"},{"id":"activation-state","kind":"conditional-block","child":"customactivity.redpacket-rain.activation"},{"id":"wave-grid","kind":"dynamic-list","child":"customactivity.redpacket-rain.waves"},{"id":"go-button","kind":"conditional-button","child":"customactivity.redpacket-rain.go"},{"id":"falling-overlay","kind":"conditional-block","child":"customactivity.redpacket-rain.overlay"},{"id":"grab-popup","kind":"popup","child":"customactivity.redpacket-rain.grab-popup"},{"id":"refresh-lifecycle","kind":"state-block","child":"customactivity.redpacket-rain.refresh"},{"id":"host-return-chain","kind":"return","child":"customactivity.redpacket-rain.return"}]},
+    {"id":"customactivity.redpacket-rain.entry","parent":"customactivity.redpacket-rain","type":"navigation","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.initial-query","parent":"customactivity.redpacket-rain","type":"read","risk":"read-only"},
+
+    {"id":"customactivity.redpacket-rain.activation","parent":"customactivity.redpacket-rain","type":"page","risk":"read-only","control_inventory":[{"id":"progress-value","kind":"state-block","child":"customactivity.redpacket-rain.activation.progress"},{"id":"condition-copy","kind":"conditional-label","child":"customactivity.redpacket-rain.activation.condition-copy"},{"id":"not-started","kind":"conditional-block","child":"customactivity.redpacket-rain.activation.not-started"},{"id":"open-countdown","kind":"conditional-block","child":"customactivity.redpacket-rain.activation.open-countdown"},{"id":"end-countdown","kind":"conditional-block","child":"customactivity.redpacket-rain.activation.end-countdown"}]},
+    {"id":"customactivity.redpacket-rain.activation.progress","parent":"customactivity.redpacket-rain.activation","type":"read","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.activation.condition-copy","parent":"customactivity.redpacket-rain.activation","type":"read","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.activation.not-started","parent":"customactivity.redpacket-rain.activation","type":"read","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.activation.open-countdown","parent":"customactivity.redpacket-rain.activation","type":"read","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.activation.end-countdown","parent":"customactivity.redpacket-rain.activation","type":"read","risk":"read-only"},
+
+    {"id":"customactivity.redpacket-rain.waves","parent":"customactivity.redpacket-rain","type":"page","risk":"read-only","control_inventory":[{"id":"five-slot-layout","kind":"dynamic-list","child":"customactivity.redpacket-rain.waves.layout"},{"id":"not-started-state","kind":"conditional-block","child":"customactivity.redpacket-rain.waves.not-started"},{"id":"waiting-state","kind":"conditional-block","child":"customactivity.redpacket-rain.waves.waiting"},{"id":"running-state","kind":"conditional-block","child":"customactivity.redpacket-rain.waves.running"},{"id":"ended-state","kind":"conditional-block","child":"customactivity.redpacket-rain.waves.ended"},{"id":"reward-preview","kind":"list-button","child":"customactivity.redpacket-rain.waves.preview"},{"id":"received-reward","kind":"state-block","child":"customactivity.redpacket-rain.waves.received"}]},
+    {"id":"customactivity.redpacket-rain.waves.layout","parent":"customactivity.redpacket-rain.waves","type":"read","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.waves.not-started","parent":"customactivity.redpacket-rain.waves","type":"read","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.waves.waiting","parent":"customactivity.redpacket-rain.waves","type":"read","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.waves.running","parent":"customactivity.redpacket-rain.waves","type":"read","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.waves.ended","parent":"customactivity.redpacket-rain.waves","type":"read","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.waves.preview","parent":"customactivity.redpacket-rain.waves","type":"navigation","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.waves.received","parent":"customactivity.redpacket-rain.waves","type":"read","risk":"read-only"},
+
+    {"id":"customactivity.redpacket-rain.go","parent":"customactivity.redpacket-rain","type":"page","risk":"read-only","control_inventory":[{"id":"recharge-condition","kind":"conditional-button","child":"customactivity.redpacket-rain.go.recharge"},{"id":"activity-condition","kind":"conditional-button","child":"customactivity.redpacket-rain.go.activity"}]},
+    {"id":"customactivity.redpacket-rain.go.recharge","parent":"customactivity.redpacket-rain.go","type":"navigation","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.go.activity","parent":"customactivity.redpacket-rain.go","type":"navigation","risk":"read-only"},
+
+    {"id":"customactivity.redpacket-rain.overlay","parent":"customactivity.redpacket-rain","type":"page","risk":"read-only","control_inventory":[{"id":"wave-visibility","kind":"conditional-block","child":"customactivity.redpacket-rain.overlay.visibility"},{"id":"fourteen-anchors","kind":"dynamic-list","child":"customactivity.redpacket-rain.overlay.anchors"},{"id":"fall-motion","kind":"state-block","child":"customactivity.redpacket-rain.overlay.motion"},{"id":"packet-click","kind":"list-button","child":"customactivity.redpacket-rain.overlay.packet-click"},{"id":"stop-and-clear","kind":"lifecycle","child":"customactivity.redpacket-rain.overlay.clear"}]},
+    {"id":"customactivity.redpacket-rain.overlay.visibility","parent":"customactivity.redpacket-rain.overlay","type":"read","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.overlay.anchors","parent":"customactivity.redpacket-rain.overlay","type":"read","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.overlay.motion","parent":"customactivity.redpacket-rain.overlay","type":"read","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.overlay.packet-click","parent":"customactivity.redpacket-rain.overlay","type":"navigation","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.overlay.clear","parent":"customactivity.redpacket-rain.overlay","type":"read","risk":"read-only"},
+
+    {"id":"customactivity.redpacket-rain.grab-popup","parent":"customactivity.redpacket-rain","type":"page","risk":"destructive-write","control_inventory":[{"id":"initial-wave-state","kind":"conditional-block","child":"customactivity.redpacket-rain.grab-popup.initial"},{"id":"grab-button","kind":"button","child":"customactivity.redpacket-rain.grab-popup.grab"},{"id":"success-state","kind":"conditional-block","child":"customactivity.redpacket-rain.grab-popup.success"},{"id":"sold-out-state","kind":"conditional-block","child":"customactivity.redpacket-rain.grab-popup.sold-out"},{"id":"error-state","kind":"conditional-block","child":"customactivity.redpacket-rain.grab-popup.error"},{"id":"background-close","kind":"return","child":"customactivity.redpacket-rain.grab-popup.close"}]},
+    {"id":"customactivity.redpacket-rain.grab-popup.initial","parent":"customactivity.redpacket-rain.grab-popup","type":"read","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.grab-popup.grab","parent":"customactivity.redpacket-rain.grab-popup","type":"transaction","risk":"destructive-write"},
+    {"id":"customactivity.redpacket-rain.grab-popup.success","parent":"customactivity.redpacket-rain.grab-popup","type":"page","risk":"read-only","control_inventory":[{"id":"reward-item","kind":"state-block","child":"customactivity.redpacket-rain.grab-popup.success.reward"},{"id":"result-close-button","kind":"button","child":"customactivity.redpacket-rain.grab-popup.success.close"}]},
+    {"id":"customactivity.redpacket-rain.grab-popup.success.reward","parent":"customactivity.redpacket-rain.grab-popup.success","type":"read","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.grab-popup.success.close","parent":"customactivity.redpacket-rain.grab-popup.success","type":"return","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.grab-popup.sold-out","parent":"customactivity.redpacket-rain.grab-popup","type":"read","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.grab-popup.error","parent":"customactivity.redpacket-rain.grab-popup","type":"read","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.grab-popup.close","parent":"customactivity.redpacket-rain.grab-popup","type":"return","risk":"read-only"},
+
+    {"id":"customactivity.redpacket-rain.refresh","parent":"customactivity.redpacket-rain","type":"page","risk":"read-only","control_inventory":[{"id":"wave-push-33158","kind":"state-block","child":"customactivity.redpacket-rain.refresh.wave-push"},{"id":"grab-result-33157","kind":"state-block","child":"customactivity.redpacket-rain.refresh.grab-result"},{"id":"recharge-success","kind":"state-block","child":"customactivity.redpacket-rain.refresh.recharge"},{"id":"countdown-zero","kind":"lifecycle","child":"customactivity.redpacket-rain.refresh.countdown-zero"}]},
+    {"id":"customactivity.redpacket-rain.refresh.wave-push","parent":"customactivity.redpacket-rain.refresh","type":"read","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.refresh.grab-result","parent":"customactivity.redpacket-rain.refresh","type":"read","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.refresh.recharge","parent":"customactivity.redpacket-rain.refresh","type":"read","risk":"read-only"},
+    {"id":"customactivity.redpacket-rain.refresh.countdown-zero","parent":"customactivity.redpacket-rain.refresh","type":"read","risk":"read-only"},
+
+    {"id":"customactivity.redpacket-rain.return","parent":"customactivity.redpacket-rain","type":"return","risk":"read-only"}
+  ]
+}

@@ -224,12 +224,11 @@ namespace Shenxiao.Module.Core.Equip
                 TipsManager.Toast("穿戴装备才能进行雕刻");   // 对标老端 !now_select_type_id_ 分支
                 return;
             }
-            // 「X阶以上可以雕刻」(config_equip_stone_refine_limit + 装备阶数 config_equip_attr,均未移植)与
-            // 「材料不足」(材料选择器/材料 type_id 未移植)两段前端拦截本轮跳过,固定发 material_type_id=0,
-            // 交服务端 15211 guard(err152_stone_refine_limit/err150_type_err)兜底,对标规格 §0 末条策略。
-            GameLog.Info("Equip", "点击[{0}] → Crave(equip_pos={1},material=0,oneKey={2})(阶数/材料门槛跳过,服务端兜底)",
-                oneKey ? "一键雕刻" : "雕刻", _selectedEquipType, oneKey);
-            EquipJewelController.Instance.Crave(_selectedEquipType, 0, oneKey);
+            // 老端必须先从材料列表选出有效 material_type_id；当前两张雕刻材料配置尚未落地。
+            // 固定发送 0 会把一个不可操作的降级页面变成真实写协议入口，因此在配置/选择链完整前明确阻断。
+            TipsManager.Toast("雕刻材料配置未就绪");
+            GameLog.Warn("Equip", "点击[{0}]被阻止：config_equip_stone_refine/config_equip_stone_refine_goods 缺失",
+                oneKey ? "一键雕刻" : "雕刻");
         }
 
         private static void HideNode(Component c)

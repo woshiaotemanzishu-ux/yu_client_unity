@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <OutputPath>artifacts/bin/</OutputPath>
+    <IntermediateOutputPath>artifacts/obj/</IntermediateOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../../../Assets/Scripts/Module/Core/Dungeon/DungeonRuneShellView.cs" Link="DungeonRuneShellView.cs" />
+    <Compile Include="../../../../Assets/Scripts/Module/Core/Dungeon/Views/DungeonRune/DungeonRuneEnterView.cs" Link="DungeonRuneEnterView.cs" />
+    <Compile Include="../../../../Assets/Scripts/Module/Core/Dungeon/Views/DungeonRune/DungeonRuneEnterItem.cs" Link="DungeonRuneEnterItem.cs" />
+    <Compile Include="../../../../Assets/Scripts/Module/Core/Dungeon/Views/DungeonRune/DungeonRuneTargetView.cs" Link="DungeonRuneTargetView.cs" />
+    <Compile Include="../../../../Assets/Scripts/Module/Core/Dungeon/Views/DungeonRune/DungeonRuneTargetItem.cs" Link="DungeonRuneTargetItem.cs" />
+    <Compile Include="../../../../Assets/Scripts/Module/Core/Dungeon/Views/DungeonRune/DungeonRuneDailyRewardView.cs" Link="DungeonRuneDailyRewardView.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Shenxiao.Common"><HintPath>../../../../Library/ScriptAssemblies/Shenxiao.Common.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Shenxiao.Framework"><HintPath>../../../../Library/ScriptAssemblies/Shenxiao.Framework.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Shenxiao.Generated"><HintPath>../../../../Library/ScriptAssemblies/Shenxiao.Generated.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Shenxiao.Module.Core"><HintPath>../../../../Library/ScriptAssemblies/Shenxiao.Module.Core.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine"><HintPath>C:/Program Files/Unity/Hub/Editor/6000.3.17f1/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>C:/Program Files/Unity/Hub/Editor/6000.3.17f1/Editor/Data/Managed/UnityEngine/UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.UI"><HintPath>../../../../Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.TextMeshPro"><HintPath>../../../../Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>

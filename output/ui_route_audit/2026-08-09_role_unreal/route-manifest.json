@@ -1,0 +1,196 @@
+{
+  "route": "mainui.role.unreal",
+  "baseline": {
+    "authority": "Current old H5 under the same account, state and viewport is final authority. The 2026-08-09 read-only run proves the current Role entry hidden; it does not prove Unreal content runtime completion.",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/role/EquipmentView.ts",
+      "E:/GitProject/yu_client/h5/src/common/OpenFun.ts",
+      "E:/GitProject/yu_client/h5/src/unreal/UnrealBagView.ts",
+      "E:/GitProject/yu_client/h5/src/unreal/UnrealStrengthenView.ts",
+      "E:/GitProject/yu_client/h5/src/unreal/UnrealDecomposeView.ts",
+      "E:/GitProject/yu_client/h5/src/unreal/UnrealDismantleView.ts"
+    ],
+    "unity_sources": [
+      "Tools/ModuleManifest/unreal.manifest.json",
+      "Assets/Prefabs/UI/Role/RoleModule.prefab",
+      "Assets/Scripts/Module/Core/Role/RoleFlow.cs",
+      "Assets/Scripts/Module/Core/Rune/RuneFlow.cs"
+    ],
+    "protocol_inventory": {
+      "reads": ["14904", "14906", "14907", "14908", "15010"],
+      "writes": ["14901", "14902", "14903", "14905", "GoodsModel.RESOLVE_GOODS"],
+      "note": "No write transaction was executed during this topology and blocked-entry pass."
+    }
+  },
+  "nodes": [
+    {
+      "id": "mainui.role.unreal",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        { "id": "role-entry", "kind": "conditional-button", "child": "mainui.role.unreal.entry" },
+        { "id": "secret-treasure-shell", "kind": "shared-window", "child": "mainui.role.unreal.shell" },
+        { "id": "unreal-bag", "kind": "tab-content", "child": "mainui.role.unreal.bag" },
+        { "id": "strengthen", "kind": "window-content", "child": "mainui.role.unreal.strengthen" },
+        { "id": "decompose", "kind": "modal", "child": "mainui.role.unreal.decompose" },
+        { "id": "dismantle", "kind": "modal", "child": "mainui.role.unreal.dismantle" }
+      ]
+    },
+    {
+      "id": "mainui.role.unreal.entry",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal",
+      "control_inventory": [
+        { "id": "group6-visible", "kind": "conditional-state", "child": "mainui.role.unreal.entry.visible" },
+        { "id": "openfun113", "kind": "conditional-navigation", "child": "mainui.role.unreal.entry.openfun113" },
+        { "id": "item-openfun195", "kind": "conditional-navigation", "child": "mainui.role.unreal.entry.openfun195" },
+        { "id": "level-condition", "kind": "state", "child": "mainui.role.unreal.entry.level-condition" }
+      ]
+    },
+    { "id": "mainui.role.unreal.entry.visible", "type": "read", "risk": "read-only", "parent": "mainui.role.unreal.entry" },
+    { "id": "mainui.role.unreal.entry.openfun113", "type": "navigation", "risk": "read-only", "parent": "mainui.role.unreal.entry" },
+    { "id": "mainui.role.unreal.entry.openfun195", "type": "navigation", "risk": "read-only", "parent": "mainui.role.unreal.entry" },
+    { "id": "mainui.role.unreal.entry.level-condition", "type": "read", "risk": "read-only", "parent": "mainui.role.unreal.entry" },
+    {
+      "id": "mainui.role.unreal.shell",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal",
+      "control_inventory": [
+        { "id": "title", "kind": "state", "child": "mainui.role.unreal.shell.title" },
+        { "id": "close", "kind": "return", "child": "mainui.role.unreal.shell.close" },
+        { "id": "currency", "kind": "shared-state", "child": "mainui.role.unreal.shell.currency" },
+        { "id": "rune-tab", "kind": "tab", "child": "mainui.role.unreal.shell.tab-rune" },
+        { "id": "monbook-tab", "kind": "conditional-tab", "child": "mainui.role.unreal.shell.tab-monbook" },
+        { "id": "lung-tab", "kind": "conditional-tab", "child": "mainui.role.unreal.shell.tab-lung" },
+        { "id": "unreal-tab", "kind": "conditional-tab", "child": "mainui.role.unreal.shell.tab-unreal" },
+        { "id": "godbeast-tab", "kind": "conditional-tab", "child": "mainui.role.unreal.shell.tab-godbeast" }
+      ]
+    },
+    { "id": "mainui.role.unreal.shell.title", "type": "read", "risk": "read-only", "parent": "mainui.role.unreal.shell" },
+    { "id": "mainui.role.unreal.shell.close", "type": "return", "risk": "read-only", "parent": "mainui.role.unreal.shell" },
+    { "id": "mainui.role.unreal.shell.currency", "type": "read", "risk": "read-only", "parent": "mainui.role.unreal.shell" },
+    { "id": "mainui.role.unreal.shell.tab-rune", "type": "tab", "risk": "read-only", "parent": "mainui.role.unreal.shell" },
+    { "id": "mainui.role.unreal.shell.tab-monbook", "type": "tab", "risk": "read-only", "parent": "mainui.role.unreal.shell" },
+    { "id": "mainui.role.unreal.shell.tab-lung", "type": "tab", "risk": "read-only", "parent": "mainui.role.unreal.shell" },
+    { "id": "mainui.role.unreal.shell.tab-unreal", "type": "tab", "risk": "read-only", "parent": "mainui.role.unreal.shell" },
+    { "id": "mainui.role.unreal.shell.tab-godbeast", "type": "tab", "risk": "read-only", "parent": "mainui.role.unreal.shell" },
+    {
+      "id": "mainui.role.unreal.bag",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal",
+      "control_inventory": [
+        { "id": "equipped-slots", "kind": "six-slot-group", "child": "mainui.role.unreal.bag.equipped" },
+        { "id": "bag-list", "kind": "scroll-list", "child": "mainui.role.unreal.bag.list" },
+        { "id": "bag-item", "kind": "list-item-button", "child": "mainui.role.unreal.bag.item-detail" },
+        { "id": "capacity", "kind": "state", "child": "mainui.role.unreal.bag.capacity" },
+        { "id": "score", "kind": "state", "child": "mainui.role.unreal.bag.score" },
+        { "id": "empty", "kind": "conditional-state", "child": "mainui.role.unreal.bag.empty" },
+        { "id": "strengthen", "kind": "button", "child": "mainui.role.unreal.bag.open-strengthen" },
+        { "id": "decompose", "kind": "button", "child": "mainui.role.unreal.bag.open-decompose" },
+        { "id": "composite", "kind": "button", "child": "mainui.role.unreal.bag.open-composite" },
+        { "id": "get", "kind": "button", "child": "mainui.role.unreal.bag.open-get" },
+        { "id": "gift", "kind": "conditional-button", "child": "mainui.role.unreal.bag.gift" }
+      ]
+    },
+    {
+      "id": "mainui.role.unreal.bag.equipped",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal.bag",
+      "control_inventory": [
+        { "id": "pos1", "kind": "slot", "child": "mainui.role.unreal.bag.equipped.pos1" },
+        { "id": "pos2", "kind": "slot", "child": "mainui.role.unreal.bag.equipped.pos2" },
+        { "id": "pos3", "kind": "slot", "child": "mainui.role.unreal.bag.equipped.pos3" },
+        { "id": "pos4", "kind": "slot", "child": "mainui.role.unreal.bag.equipped.pos4" },
+        { "id": "pos5", "kind": "slot", "child": "mainui.role.unreal.bag.equipped.pos5" },
+        { "id": "pos6", "kind": "slot", "child": "mainui.role.unreal.bag.equipped.pos6" }
+      ]
+    },
+    { "id": "mainui.role.unreal.bag.equipped.pos1", "type": "navigation", "risk": "read-only", "parent": "mainui.role.unreal.bag.equipped" },
+    { "id": "mainui.role.unreal.bag.equipped.pos2", "type": "navigation", "risk": "read-only", "parent": "mainui.role.unreal.bag.equipped" },
+    { "id": "mainui.role.unreal.bag.equipped.pos3", "type": "navigation", "risk": "read-only", "parent": "mainui.role.unreal.bag.equipped" },
+    { "id": "mainui.role.unreal.bag.equipped.pos4", "type": "navigation", "risk": "read-only", "parent": "mainui.role.unreal.bag.equipped" },
+    { "id": "mainui.role.unreal.bag.equipped.pos5", "type": "navigation", "risk": "read-only", "parent": "mainui.role.unreal.bag.equipped" },
+    { "id": "mainui.role.unreal.bag.equipped.pos6", "type": "navigation", "risk": "read-only", "parent": "mainui.role.unreal.bag.equipped" },
+    { "id": "mainui.role.unreal.bag.list", "type": "read", "risk": "read-only", "parent": "mainui.role.unreal.bag" },
+    { "id": "mainui.role.unreal.bag.item-detail", "type": "navigation", "risk": "read-only", "parent": "mainui.role.unreal.bag" },
+    { "id": "mainui.role.unreal.bag.capacity", "type": "read", "risk": "read-only", "parent": "mainui.role.unreal.bag" },
+    { "id": "mainui.role.unreal.bag.score", "type": "read", "risk": "read-only", "parent": "mainui.role.unreal.bag" },
+    { "id": "mainui.role.unreal.bag.empty", "type": "read", "risk": "read-only", "parent": "mainui.role.unreal.bag" },
+    { "id": "mainui.role.unreal.bag.open-strengthen", "type": "navigation", "risk": "read-only", "parent": "mainui.role.unreal.bag" },
+    { "id": "mainui.role.unreal.bag.open-decompose", "type": "navigation", "risk": "read-only", "parent": "mainui.role.unreal.bag" },
+    { "id": "mainui.role.unreal.bag.open-composite", "type": "navigation", "risk": "read-only", "parent": "mainui.role.unreal.bag" },
+    { "id": "mainui.role.unreal.bag.open-get", "type": "navigation", "risk": "read-only", "parent": "mainui.role.unreal.bag" },
+    { "id": "mainui.role.unreal.bag.gift", "type": "navigation", "risk": "read-only", "parent": "mainui.role.unreal.bag" },
+    {
+      "id": "mainui.role.unreal.strengthen",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal",
+      "control_inventory": [
+        { "id": "six-position-tabs", "kind": "slot-list", "child": "mainui.role.unreal.strengthen.positions" },
+        { "id": "current-next-attrs", "kind": "scroll-list", "child": "mainui.role.unreal.strengthen.attrs" },
+        { "id": "cost-list", "kind": "item-list", "child": "mainui.role.unreal.strengthen.costs" },
+        { "id": "strengthen", "kind": "button", "child": "mainui.role.unreal.strengthen.level-up" },
+        { "id": "stage", "kind": "conditional-button", "child": "mainui.role.unreal.strengthen.stage-up" },
+        { "id": "empty", "kind": "conditional-state", "child": "mainui.role.unreal.strengthen.empty" },
+        { "id": "max", "kind": "conditional-state", "child": "mainui.role.unreal.strengthen.max" },
+        { "id": "success-effect", "kind": "conditional-effect", "child": "mainui.role.unreal.strengthen.effect" },
+        { "id": "return", "kind": "return", "child": "mainui.role.unreal.strengthen.return" }
+      ]
+    },
+    { "id": "mainui.role.unreal.strengthen.positions", "type": "tab", "risk": "read-only", "parent": "mainui.role.unreal.strengthen" },
+    { "id": "mainui.role.unreal.strengthen.attrs", "type": "read", "risk": "read-only", "parent": "mainui.role.unreal.strengthen" },
+    { "id": "mainui.role.unreal.strengthen.costs", "type": "read", "risk": "read-only", "parent": "mainui.role.unreal.strengthen" },
+    { "id": "mainui.role.unreal.strengthen.level-up", "type": "transaction", "risk": "destructive-write", "parent": "mainui.role.unreal.strengthen" },
+    { "id": "mainui.role.unreal.strengthen.stage-up", "type": "transaction", "risk": "destructive-write", "parent": "mainui.role.unreal.strengthen" },
+    { "id": "mainui.role.unreal.strengthen.empty", "type": "read", "risk": "read-only", "parent": "mainui.role.unreal.strengthen" },
+    { "id": "mainui.role.unreal.strengthen.max", "type": "read", "risk": "read-only", "parent": "mainui.role.unreal.strengthen" },
+    { "id": "mainui.role.unreal.strengthen.effect", "type": "read", "risk": "read-only", "parent": "mainui.role.unreal.strengthen" },
+    { "id": "mainui.role.unreal.strengthen.return", "type": "return", "risk": "read-only", "parent": "mainui.role.unreal.strengthen" },
+    {
+      "id": "mainui.role.unreal.decompose",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal",
+      "control_inventory": [
+        { "id": "close", "kind": "return", "child": "mainui.role.unreal.decompose.close" },
+        { "id": "grade-filters", "kind": "three-toggle-group", "child": "mainui.role.unreal.decompose.filters" },
+        { "id": "item-list", "kind": "scroll-multiselect-list", "child": "mainui.role.unreal.decompose.items" },
+        { "id": "reward-list", "kind": "item-list", "child": "mainui.role.unreal.decompose.rewards" },
+        { "id": "empty", "kind": "conditional-state", "child": "mainui.role.unreal.decompose.empty" },
+        { "id": "confirm", "kind": "button", "child": "mainui.role.unreal.decompose.confirm" },
+        { "id": "continue-get", "kind": "conditional-button", "child": "mainui.role.unreal.decompose.continue-get" },
+        { "id": "success", "kind": "conditional-state", "child": "mainui.role.unreal.decompose.success" }
+      ]
+    },
+    { "id": "mainui.role.unreal.decompose.close", "type": "return", "risk": "read-only", "parent": "mainui.role.unreal.decompose" },
+    { "id": "mainui.role.unreal.decompose.filters", "type": "reversible-write", "risk": "reversible-write", "parent": "mainui.role.unreal.decompose" },
+    { "id": "mainui.role.unreal.decompose.items", "type": "reversible-write", "risk": "reversible-write", "parent": "mainui.role.unreal.decompose" },
+    { "id": "mainui.role.unreal.decompose.rewards", "type": "read", "risk": "read-only", "parent": "mainui.role.unreal.decompose" },
+    { "id": "mainui.role.unreal.decompose.empty", "type": "read", "risk": "read-only", "parent": "mainui.role.unreal.decompose" },
+    { "id": "mainui.role.unreal.decompose.confirm", "type": "transaction", "risk": "destructive-write", "parent": "mainui.role.unreal.decompose" },
+    { "id": "mainui.role.unreal.decompose.continue-get", "type": "navigation", "risk": "read-only", "parent": "mainui.role.unreal.decompose" },
+    { "id": "mainui.role.unreal.decompose.success", "type": "read", "risk": "read-only", "parent": "mainui.role.unreal.decompose" },
+    {
+      "id": "mainui.role.unreal.dismantle",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.unreal",
+      "control_inventory": [
+        { "id": "close", "kind": "return", "child": "mainui.role.unreal.dismantle.close" },
+        { "id": "reward-list", "kind": "item-list", "child": "mainui.role.unreal.dismantle.rewards" },
+        { "id": "cancel", "kind": "button", "child": "mainui.role.unreal.dismantle.cancel" },
+        { "id": "confirm", "kind": "button", "child": "mainui.role.unreal.dismantle.confirm" }
+      ]
+    },
+    { "id": "mainui.role.unreal.dismantle.close", "type": "return", "risk": "read-only", "parent": "mainui.role.unreal.dismantle" },
+    { "id": "mainui.role.unreal.dismantle.rewards", "type": "read", "risk": "read-only", "parent": "mainui.role.unreal.dismantle" },
+    { "id": "mainui.role.unreal.dismantle.cancel", "type": "return", "risk": "read-only", "parent": "mainui.role.unreal.dismantle" },
+    { "id": "mainui.role.unreal.dismantle.confirm", "type": "transaction", "risk": "destructive-write", "parent": "mainui.role.unreal.dismantle" }
+  ]
+}

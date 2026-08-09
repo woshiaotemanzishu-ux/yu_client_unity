@@ -14,8 +14,8 @@ namespace Shenxiao.Module.Core.Equip
     /// 与 未开启(close_group + 开启按钮 _gp_btn_close + 钻石消耗 diamond_img/diamond_label + 红点 red_dot)。
     ///
     /// 协议(自动循环 轮4 队列#4)已接线:_gp_btn_close → EquipWashController.OpenSlot(15212,equip_type 由
-    /// <see cref="SetEquipType"/> 设置);等级门槛先查 EquipConfigs.TryGetWashUnlockLv,缺表(本轮实际状态)则不拦截、
-    /// 直接发送、log 记录(对标规格 §0 末条)。_gp_lock → EquipWashModel.ToggleLock 本地切换锁定态(老端同样纯本地
+    /// <see cref="SetEquipType"/> 设置);等级门槛先查 EquipConfigs.TryGetWashUnlockLv，缺表时明确阻断，
+    /// 禁止以服务端兜底代替页面条件展示。_gp_lock → EquipWashModel.ToggleLock 本地切换锁定态(老端同样纯本地
     /// 状态、不发协议,15213 发送时才读取)。
     /// 降级:EquipModel(洗魄属性/解锁配置完整表)、RoleManager 货币、ResManager 图集均未移植 → 红点隐藏;
     /// SetData 仅按「是否已开启」切换 open_group/close_group 显隐 + 属性文本占位,属性区间/进度/钻石消耗刷新待接。
@@ -33,7 +33,7 @@ namespace Shenxiao.Module.Core.Equip
             // 红点依赖 EquipModel 解锁/可开启判断(未移植)→ 先隐藏。
             if (red_dot != null) red_dot.gameObject.SetActive(false);
 
-            // _gp_btn_close → 15212 开启洗魄槽:先查等级门槛(缺表则不拦截,直接发)。
+            // _gp_btn_close → 15212 开启洗魄槽:先查等级门槛，缺表时阻断。
             BindBtn(_gp_btn_close, () =>
             {
                 if (_equipType == 0)
@@ -52,7 +52,9 @@ namespace Shenxiao.Module.Core.Equip
                 }
                 else
                 {
-                    GameLog.Info("Equip", "config_equip_wash_unlock_lv 缺表,不拦截,直接发送(服务端兜底)");
+                    TipsManager.Toast("洗魄槽配置未就绪");
+                    GameLog.Warn("Equip", "开启洗魄槽被阻止：config_equip_wash_unlock_lv 缺失");
+                    return;
                 }
                 EquipWashController.Instance.OpenSlot(_equipType, _index);
             });

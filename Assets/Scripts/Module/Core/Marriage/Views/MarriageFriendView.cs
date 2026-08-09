@@ -14,10 +14,8 @@ namespace Shenxiao.Module.Core.Marriage
     /// _btn_com_self 我的表白 → MarriageRecordComView(Self) / _btn_com_other 对方表白 → MarriageRecordComView(Other) /
     /// _btn_issue 发布心愿 → MarriageIssueView)。group1/group2/group3 为布局容器,imgN/labelN 为按钮内图标与文案。
     ///
-    /// 降级:MarriageModel(GetFriendInfo / REQUEST_PROTO 17200 / UPDATE_FRIEND_INFO 事件)、
-    /// MarriageRecordType、MarriageFriendItem 列表项、LoopScrowViewMgr 循环列表、各子窗
-    /// (MarriageIssueView/MarriageRecordFlowerView/MarriageRecordComView)与翻页/排序逻辑均未移植 →
-    /// 列表空、空态默认降级;按钮点击打日志「待对接」;OnShow 走默认降级。Null-guard 每处访问。
+    /// 当前:MarriageController/MarriageModel 已具备 17200 查询/收包地基；MarriageRecordType、MarriageFriendItem、
+    /// LoopScrowViewMgr 等价列表表现、各子窗与翻页/排序消费尚未接线。OnShow 仅恢复第 1 页权威只读请求。
     /// </summary>
     public sealed class MarriageFriendView : MarriageFriendViewBind
     {
@@ -31,8 +29,9 @@ namespace Shenxiao.Module.Core.Marriage
         protected override void OnShow(object args)
         {
             // 老端 LoadSuccess → REQUEST_PROTO 17200 拉取缘分好友 + UPDATE_FRIEND_INFO → UpdateView:
-            // 铺缘分候选列表 + 分页 + 空态。MarriageModel/协议/列表项均未移植 → 列表空/默认降级。
-            GameLog.Info("Marriage", "MarriageFriendView 打开 → 待对接 MarriageModel(列表空/默认降级)");
+            // 铺缘分候选列表 + 分页 + 空态。查询/收包地基已在，列表项、分页消费与空态表现尚未接线。
+            MarriageController.Instance.RequestPersonalsList(1);
+            GameLog.Info("Marriage", "MarriageFriendView 打开 → 已请求17200第1页权威快照,列表接线待运行态验证");
         }
 
         /// <summary>本页 Bind 无红点字段,占位保持与其它页签一致。</summary>

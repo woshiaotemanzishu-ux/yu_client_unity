@@ -1,0 +1,29 @@
+{
+  "evidence_kind": "existing-legacy-runtime-snapshot",
+  "source": "Tools/ModuleManifest/snapshots/mainui/page_snapshot_FirstRechargeBubble_2026-06-26T10-11-39-582Z.json",
+  "legacy_version": "2026-06-09.3",
+  "viewport": {
+    "width": 720,
+    "height": 1280
+  },
+  "observed_surface": "FirstRechargeBubble",
+  "observed": {
+    "open": true,
+    "visible": true,
+    "layer_value": 7,
+    "local_rect": { "x": 0, "y": 470, "width": 260, "height": 129 },
+    "scale": { "x": 0.9, "y": 0.9 },
+    "global_bounds": { "x": 0, "y": 470, "width": 234, "height": 116 },
+    "background": "resource/game/recharge/texture/mainui_ui_56.png",
+    "banner": "resource/game/recharge/texture/mainui_ui_57.png",
+    "copy": "首充领取新服优势",
+    "countdown": "29:48.48",
+    "qipao_visible": false,
+    "qipao_resource": "resource/game/recharge/texture/ui_First_16.png"
+  },
+  "limitations": [
+    "This is an existing old-client snapshot; no browser was launched in this audit.",
+    "It covers only the bubble default state at one time point.",
+    "It does not prove Unity rendering, click behavior, countdown motion, two-frame effect output, cold/warm timing, reopen consistency, or either required viewport."
+  ]
+}

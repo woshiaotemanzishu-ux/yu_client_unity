@@ -41,7 +41,7 @@ namespace Shenxiao.Module.Core.Shop
             if (discount_style != null) discount_style.gameObject.SetActive(haveDiscount);
             if (normal_style != null) normal_style.gameObject.SetActive(!haveDiscount);
 
-            int nowPrice = vo.Price * vo.Discount / 100;
+            int nowPrice = UnityEngine.Mathf.RoundToInt(vo.Price * vo.Discount / 100f);
             if (price != null) price.text = nowPrice.ToString();
             if (orignal_price != null) orignal_price.text = vo.Price.ToString();
             if (normal_price != null) normal_price.text = nowPrice.ToString();
@@ -108,7 +108,11 @@ namespace Shenxiao.Module.Core.Shop
         private void OnBuyClick()
         {
             if (_vo == null) return;
-            ShopController.Instance.BuyGoods(_vo.KeyId, 1);
+            bool canChooseCount = (_vo.QuotaNum > 10 || _vo.QuotaNum == 0)
+                                  && _vo.ShopType != ShopModel.TYPE_OUTWARD
+                                  && _vo.ShopType != ShopModel.TYPE_LUCKY;
+            if (canChooseCount) ShopFlow.OpenBulkPurchase(_vo);
+            else ShopController.Instance.BuyGoods(_vo.KeyId, 1);
         }
 
         private static void BindClick(UnityEngine.Component target, System.Action onClick)

@@ -43,6 +43,10 @@ namespace Shenxiao.Module.Core.MainUI
         // 经验条闪光特效(对标 MainUIDownView.ts:395 AddUIEffect("ui_expbar", _box_exp_effect, null, 15, null))。
         private UIEffectStage.Handle _expEffect;
         private bool _expEffectAdding;
+        private int _expPulseVersion;
+        private long _lastExp = long.MinValue;
+        private long _lastExpLim = long.MinValue;
+        private int _lastLevel = int.MinValue;
 
         protected override void OnInit()
         {
@@ -51,7 +55,6 @@ namespace Shenxiao.Module.Core.MainUI
             HideUnbackedIndicators();
             HideTemplates();
             ClearDesignTimeSampleIcons();
-            _ = AddExpEffectAsync();
 
             // 翻面按钮点击(对标 _gp_turn 的 turn_btn_fun);_gp_turn 是 Box 无 Graphic,点在可见的 _img_turn 上。
             if (_img_turn != null)
@@ -66,14 +69,14 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.On(GlobalEvent.EVT_BASE_WINDOW_OPENED, OnBaseWindowOpened);
             EventDispatcher.On(GlobalEvent.EVT_BASE_WINDOW_CLOSED, OnBaseWindowClosed);
 
-            RefreshExp();
+            RefreshExp(true);
             _ = RefreshFuncIconsAsync();
         }
 
         protected override void OnShow(object args)
         {
             // open_callback → RefreshExpWithoutLevelUp()
-            RefreshExp();
+            RefreshExp(true);
         }
 
         protected override void OnDispose()
@@ -94,6 +97,8 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.Off(GlobalEvent.EVT_BASE_WINDOW_OPENED, OnBaseWindowOpened);
             EventDispatcher.Off(GlobalEvent.EVT_BASE_WINDOW_CLOSED, OnBaseWindowClosed);
             MainUIGuideManager.Instance.HideMainUiFinger(this);
+            _expPulseVersion++;
+            if (_box_exp_effect != null) _box_exp_effect.gameObject.SetActive(false);
             if (_expEffect != null)
             {
                 _expEffect.Dispose();
@@ -195,11 +200,17 @@ namespace Shenxiao.Module.Core.MainUI
         /// 对标 RefreshExpWithoutLevelUp + PlayAnim 的终值:按 Exp/ExpLim 算比例,刷经验条宽度与文案。
         /// 去掉补间动画(无源补间器移植),直接落到目标态;升级/特效闪光等动画态待 MainUIModel 移植后补。
         /// </summary>
-        private void RefreshExp()
+        private void RefreshExp(bool forceEffect = false)
         {
             RoleModel m = RoleModel.Instance;
             long exp = m.Exp;
             long expLim = m.ExpLim;
+            int level = m.Level;
+            bool changed = exp != _lastExp || expLim != _lastExpLim || level != _lastLevel;
+            _lastExp = exp;
+            _lastExpLim = expLim;
+            _lastLevel = level;
+            if (changed || forceEffect) _ = PulseExpEffectAsync();
 
             // 对标 RefreshExpWithoutLevelUp: exp 截顶到 exp_lim;exp_lim==0 → persent=0
             if (expLim <= 0)
@@ -263,6 +274,20 @@ namespace Shenxiao.Module.Core.MainUI
             _expEffectAdding = false;
             if (this == null || _box_exp_effect == null) { handle?.Dispose(); return; }
             _expEffect = handle;
+        }
+
+        /// <summary>
+        /// 对标老端 PlayAnim：经验刷新时显示 ui_expbar，完成后约 1 秒隐藏；Handle 复用，不重复创建特效源。
+        /// </summary>
+        private async Task PulseExpEffectAsync()
+        {
+            int version = ++_expPulseVersion;
+            await AddExpEffectAsync();
+            if (this == null || _box_exp_effect == null || version != _expPulseVersion) return;
+            _box_exp_effect.gameObject.SetActive(true);
+            await Task.Delay(1000);
+            if (this == null || _box_exp_effect == null || version != _expPulseVersion) return;
+            _box_exp_effect.gameObject.SetActive(false);
         }
 
         private void HideTemplates()

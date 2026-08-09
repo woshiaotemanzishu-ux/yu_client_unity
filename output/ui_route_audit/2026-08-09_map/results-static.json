@@ -1,0 +1,266 @@
+{
+  "nodes": [
+    {
+      "id": "mainui.map.shell.identity",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "MapModule root and the two direct child views are statically present; the actual Window layer, active child and player-visible result require runtime evidence.",
+      "note": "Static identity is present; runtime layer and visibility remain unverified.",
+      "applicable_gates": ["runtime_state"],
+      "gates": {"runtime_state": false},
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.shell.default-tab",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "MapFlow statically defaults to AreaMapView, but cold-open player evidence has not been captured.",
+      "note": "Default-area implementation is static only.",
+      "applicable_gates": ["runtime_state", "reopen"],
+      "gates": {"runtime_state": false, "reopen": false},
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.shell.tabs",
+      "status": "blocked",
+      "blocked_reason": "MapModule.prefab has no editable visible MapEnterView area/world tab controls; MapFlow exposes switching APIs but no player-visible tabs can be clicked.",
+      "note": "Visible area/world tabs are absent from the editable Map prefab.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.shell.close",
+      "status": "blocked",
+      "blocked_reason": "MapFlow.Close/Toggle exists, but MapModule.prefab has no old-client-equivalent visible close button or outer BaseWindow shell.",
+      "note": "Visible close control is absent.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.area.background.asset",
+      "status": "blocked",
+      "blocked_reason": "The current scene resource/game/map/area_map_img/{sceneId}.jpg assets are not in the Unity resource/Addressables closure.",
+      "note": "Area map sprite load code exists, but the authoritative assets are missing.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.area.background.ready",
+      "status": "blocked",
+      "blocked_reason": "Area map assets are missing, so 350ms/1000ms/ready player-visible evidence cannot be produced.",
+      "note": "Ready timing cannot be verified without the mapped resource and a matching Web build.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.area.map-scroll.structure",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Prefab now has a two-axis ScrollRect with viewport/content, but real layout geometry and content extent require runtime evidence.",
+      "note": "Static two-axis structure is fixed.",
+      "applicable_gates": ["layout_structure", "runtime_state"],
+      "gates": {"layout_structure": false, "runtime_state": false},
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.area.map-scroll.drag",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "GraphicRaycaster drag, edge reachability, movement and clipping were not executed without Unity/Web runtime authorization.",
+      "note": "Scroll axes are static; drag behavior remains runtime-only.",
+      "applicable_gates": ["scroll_interaction", "runtime_state"],
+      "gates": {"scroll_interaction": false, "runtime_state": false},
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.area.current-marker.position",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "SceneMapData/RoleModel coordinate conversion is implemented, but same-account page-space coordinates and pixels were not observed.",
+      "note": "Coordinate conversion is static only.",
+      "applicable_gates": ["runtime_state", "page_space_geometry"],
+      "gates": {"runtime_state": false, "page_space_geometry": false},
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.area.current-marker.name",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "RoleModel.Name is wired to role_name, but same-account text and font pixels were not captured.",
+      "note": "Authoritative model binding is static only.",
+      "applicable_gates": ["runtime_state", "visual_match"],
+      "gates": {"runtime_state": false, "visual_match": false},
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.area.points.data",
+      "status": "blocked",
+      "blocked_reason": "ClientMapConfig.json is not in the Unity resource closure; no current-scene point_list can be loaded without fabricating data.",
+      "note": "Parser is implemented; authoritative input is missing.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.area.points.placement",
+      "status": "blocked",
+      "blocked_reason": "Point conversion and old -42/-63 offsets are implemented, but ClientMapConfig plus real runtime geometry are unavailable.",
+      "note": "Placement cannot be completed without authoritative points and runtime pixels.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.area.monster-strip.items",
+      "status": "blocked",
+      "blocked_reason": "ClientMapConfig is missing and current MonsterConfigs/NpcConfigs do not provide a verified Map icon mapping/resource closure; item rows cannot match the old client.",
+      "note": "Shared template cloning/name/level wiring exists; data and icon closure are incomplete.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.area.monster-strip.scroll",
+      "status": "blocked",
+      "blocked_reason": "The horizontal ScrollRect axis is fixed, but missing ClientMapConfig leaves no authoritative item count to verify last-item reachability and clipping.",
+      "note": "Runtime list interaction is blocked by missing input assets.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.area.monster-strip.selected",
+      "status": "blocked",
+      "blocked_reason": "No authoritative selection-state consumer is currently wired to switch the old uidu_009/uidu_009b visual states.",
+      "note": "Selected/unselected behavior remains unimplemented.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.area.waypoints.path",
+      "status": "blocked",
+      "blocked_reason": "No read-only Scene path-result pipeline is connected to AreaMapView; intermediate route nodes cannot be rendered or cleared authoritatively.",
+      "note": "Waypoint item state API exists, but path production/consumption is missing.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.area.waypoints.destination",
+      "status": "blocked",
+      "blocked_reason": "AreaMapWayPonitItem can display end_pos, but AreaMapView has no authorized path destination/result consumer.",
+      "note": "Destination visual API is not yet reachable.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.area.map-click",
+      "status": "blocked",
+      "blocked_reason": "Real map click is a player movement write (12001). This pass had no account/runtime write authorization, so the transaction is intentionally not wired or executed.",
+      "note": "Requires authorized UI click, formal protocol, success result, immediate state and reopen verification.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.area.monster-click",
+      "status": "blocked",
+      "blocked_reason": "Monster destination click is a player movement write (12001), including blocked-coordinate checks. No account/runtime write was authorized.",
+      "note": "Requires authorized formal transaction verification.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.world.background.asset",
+      "status": "blocked",
+      "blocked_reason": "resource/game/map/texture/big_bg.jpg is not in the Unity resource/Addressables closure.",
+      "note": "World background load path is implemented; asset is missing.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.world.background.layers",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "map_bg/scene_con/frame_bg/map_cloud are statically bound, but final draw order, cloud visibility and clipping require player pixels.",
+      "note": "Layer bindings exist; render result is unverified.",
+      "applicable_gates": ["render_completion", "visual_match"],
+      "gates": {"render_completion": false, "visual_match": false},
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.world.map-scroll.structure",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Prefab is horizontal-only with viewport/content, but actual edge reachability and clipping require runtime interaction.",
+      "note": "Static horizontal structure is fixed.",
+      "applicable_gates": ["layout_structure", "scroll_interaction"],
+      "gates": {"layout_structure": false, "scroll_interaction": false},
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.world.map-scroll.initial",
+      "status": "blocked",
+      "blocked_reason": "Current-scene root_pos positioning is implemented, but ClientWorldMapConfig is absent so no authoritative current root can be resolved.",
+      "note": "Initial horizontal position is blocked by missing config and runtime evidence.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.world.cities.items",
+      "status": "blocked",
+      "blocked_reason": "ClientWorldMapConfig and resource/game/map/world_map_img assets are absent from the Unity resource closure.",
+      "note": "Shared item cloning is implemented; authoritative inputs are missing.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.world.cities.open-state",
+      "status": "blocked",
+      "blocked_reason": "Open-state rendering code exists, but ClientWorldMapConfig is missing and unavailable cities cannot be compared or clicked in runtime.",
+      "note": "Config-driven state cannot be completed without the config.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.world.cities.level",
+      "status": "blocked",
+      "blocked_reason": "Lv/神劫 formatting is implemented, but authoritative scene_lv rows and final font pixels are unavailable.",
+      "note": "Formatting implementation has no current runtime/config evidence.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.world.current-location.marker",
+      "status": "blocked",
+      "blocked_reason": "Current-scene locate_pos requires ClientWorldMapConfig, and the old current-role head mapping/resource is not wired in the Map closure.",
+      "note": "Location placement code exists; authoritative config and head image are missing.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.world.current-location.motion",
+      "status": "blocked",
+      "blocked_reason": "Ping-pong lifecycle code exists, but the current-location marker cannot be authoritatively instantiated without ClientWorldMapConfig/head resources, so two-timepoint evidence is impossible.",
+      "note": "Motion code is static; visible dynamic proof is blocked by missing inputs.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.world.city-click",
+      "status": "blocked",
+      "blocked_reason": "Open non-current city selection is a scene-change write (12005). This pass had no account/runtime write authorization and intentionally injects no click callback.",
+      "note": "Requires authorized formal scene-change transaction verification.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.route-state.open-close",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "MapFlow statically tracks one current page and hides it on close; cold/toggle/reopen behavior was not executed in Unity/Web.",
+      "note": "Lifecycle implementation is static only.",
+      "applicable_gates": ["runtime_state", "reopen"],
+      "gates": {"runtime_state": false, "reopen": false},
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.route-state.tab-switch",
+      "status": "blocked",
+      "blocked_reason": "Exclusive Show/Hide exists in MapFlow, but the player-visible area/world tab controls are absent from MapModule.prefab.",
+      "note": "Programmatic switch is not a substitute for real tab interaction.",
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.route-state.warm-reopen",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Clone reuse, async epoch invalidation, resource release and refresh are implemented; duplicate/stale-state evidence requires runtime warm reopen.",
+      "note": "Warm lifecycle code is static only.",
+      "applicable_gates": ["runtime_state", "reopen", "cleanup"],
+      "gates": {"runtime_state": false, "reopen": false, "cleanup": false},
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.route-state.viewports",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "No matching Player/catalog real-Web run was authorized; old-vs-Unity comparison at 720x1280 and 1920x1080 is pending.",
+      "note": "Real-Web visual gates remain open.",
+      "applicable_gates": ["visual_match", "page_space_geometry", "runtime_state"],
+      "gates": {"visual_match": false, "page_space_geometry": false, "runtime_state": false},
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    },
+    {
+      "id": "mainui.map.route-state.performance",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Cold/warm timings, allocation, clone count and cleanup need one matching runtime evidence batch.",
+      "note": "No runtime performance claim is made.",
+      "applicable_gates": ["performance", "cleanup"],
+      "gates": {"performance": false, "cleanup": false},
+      "evidence": ["output/ui_route_audit/2026-08-09_map/static-audit.md"]
+    }
+  ]
+}

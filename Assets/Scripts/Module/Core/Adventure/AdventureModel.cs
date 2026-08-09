@@ -1,3 +1,4 @@
+using System;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Common;
 
@@ -21,6 +22,10 @@ namespace Shenxiao.Module.Core.Adventure
         public const string ICON_TYPE_A = "42701"; // 默认版
         public const string ICON_TYPE_B = "42702"; // 周几切换的另一版(config_adventure_kv[12] 决定)
 
+        // 当前老端 config_adventure_rand 的免费区间为 [1,4]。Unity 尚无该配置的
+        // Addressables 闭包，先固定当前版本的只读展示事实；配置迁移后应改为配置输入。
+        public const int CURRENT_BASE_FREE_THROW_TIMES = 4;
+
         /// <summary>老端 CheckFuncOpenState 的功能视图名(神装打造,活动前置)。</summary>
         public const string FUNC_VIEW = "GodEquipBuildView";
 
@@ -35,9 +40,12 @@ namespace Shenxiao.Module.Core.Adventure
         public ushort ThrowTimes { get; private set; }
         public ushort FreeResetTimes { get; private set; }
         public ushort FreeThrowTimes { get; private set; }
+        public event Action Changed;
+
         public void ReplaceBoardState(ushort circle, ushort location, ushort leftTimes, ushort throwTimes, ushort freeResetTimes, ushort freeThrowTimes)
         {
             Circle = circle; Location = location; LeftTimes = leftTimes; ThrowTimes = throwTimes; FreeResetTimes = freeResetTimes; FreeThrowTimes = freeThrowTimes; HasBoardState = true;
+            Changed?.Invoke();
         }
 
         public void SetTimeInfo(int stage, long startTime, long endTime)
@@ -45,6 +53,7 @@ namespace Shenxiao.Module.Core.Adventure
             Stage = stage;
             StartTime = startTime;
             EndTime = endTime;
+            Changed?.Invoke();
         }
 
         /// <summary>
@@ -70,12 +79,27 @@ namespace Shenxiao.Module.Core.Adventure
             return ICON_TYPE_A;
         }
 
+        public bool IsAtResetPosition => HasBoardState && Location == 30;
+
+        public int GetFreeActionRemaining()
+        {
+            if (!HasBoardState) return 0;
+            if (IsAtResetPosition) return FreeResetTimes;
+            return Math.Max(0, CURRENT_BASE_FREE_THROW_TIMES + FreeThrowTimes - ThrowTimes);
+        }
+
+        public bool HasFreeAction => GetFreeActionRemaining() > 0;
+
+        // 老端 GetRedValue 在终点 location=30 固定返回 false；免费重置不点亮入口红点。
+        public bool HasFreeThrowRed => HasBoardState && !IsAtResetPosition && HasFreeAction;
+
         public void Reset()
         {
             Stage = 0;
             StartTime = 0;
             EndTime = 0;
             HasBoardState = false; Circle = 0; Location = 0; LeftTimes = 0; ThrowTimes = 0; FreeResetTimes = 0; FreeThrowTimes = 0;
+            Changed?.Invoke();
         }
     }
 }

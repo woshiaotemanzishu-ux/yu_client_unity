@@ -1,0 +1,92 @@
+{
+  "updated_at": "2026-08-09T17:10:00+08:00",
+  "summary_details": {
+    "mode": "static-only",
+    "initial_dirty": "Rune module and Rune prefab closure were clean before this route",
+    "implemented": "RuneMainUIView re-requests 16700 on show; RuneFlow.Close hides all shown Rune BaseViews",
+    "known_gap": "Prefab exists, but most converted Views are explicit empty/log placeholders; RuneBag has generated bind/prefab but no business View",
+    "runtime": "not executed by explicit user boundary"
+  },
+  "nodes": [
+    {"id":"mainui.rune.entry","status":"blocked","blocked_reason":"HUD treasure 入口归属禁止修改的 MainUI/共享路由，本轮也禁止 Unity/Web 运行映射验证。"},
+    {"id":"mainui.rune.initial-query","status":"needs-runtime-verify","runtime_gap":"已按老端打开主面板即发 16700 的事实，在 RuneMainUIView.OnShow 增补 RequestInfo；未运行协议、即时渲染与重开门禁。"},
+
+    {"id":"mainui.rune.board.layout","status":"defect"},
+    {"id":"mainui.rune.board.select","status":"defect"},
+    {"id":"mainui.rune.board.locked","status":"defect"},
+    {"id":"mainui.rune.board.empty","status":"defect"},
+    {"id":"mainui.rune.board.equipped","status":"defect"},
+    {"id":"mainui.rune.board.red-effect","status":"defect"},
+    {"id":"mainui.rune.selected.empty","status":"defect"},
+    {"id":"mainui.rune.selected.card","status":"defect"},
+    {"id":"mainui.rune.selected.properties","status":"defect"},
+    {"id":"mainui.rune.selected.fight","status":"defect"},
+    {"id":"mainui.rune.selected.cost","status":"defect"},
+    {"id":"mainui.rune.selected.skill-awaken","status":"defect"},
+
+    {"id":"mainui.rune.convert.list","status":"defect"},
+    {"id":"mainui.rune.convert.cost","status":"defect"},
+    {"id":"mainui.rune.convert.exchange","status":"defect"},
+    {"id":"mainui.rune.convert.obtain","status":"blocked","blocked_reason":"老端跳 RuneTreasureBaseView，目标属于本轮禁止扩展的共享/相邻模块；Rune Convert 当前仅日志占位。"},
+    {"id":"mainui.rune.convert.close","status":"needs-runtime-verify","runtime_gap":"RuneConvertView 已静态绑定关闭按钮，但未运行射线、层级、返回主面板及重开验证。"},
+
+    {"id":"mainui.rune.property.list","status":"defect"},
+    {"id":"mainui.rune.property.empty","status":"defect"},
+    {"id":"mainui.rune.property.close","status":"defect"},
+
+    {"id":"mainui.rune.skill.slots","status":"defect"},
+    {"id":"mainui.rune.skill.select","status":"defect"},
+    {"id":"mainui.rune.skill.locked","status":"defect"},
+    {"id":"mainui.rune.skill.unlocked","status":"defect"},
+    {"id":"mainui.rune.skill.activate","status":"defect"},
+    {"id":"mainui.rune.skill.close","status":"needs-runtime-verify","runtime_gap":"RuneSkillView 已静态绑定关闭按钮，但未运行返回、重开和零残留验证。"},
+
+    {"id":"mainui.rune.awaken.runes","status":"defect"},
+    {"id":"mainui.rune.awaken.select-rune","status":"defect"},
+    {"id":"mainui.rune.awaken.attributes","status":"defect"},
+    {"id":"mainui.rune.awaken.materials","status":"defect"},
+    {"id":"mainui.rune.awaken.select-material","status":"defect"},
+    {"id":"mainui.rune.awaken.select-all","status":"defect"},
+    {"id":"mainui.rune.awaken.help","status":"blocked","blocked_reason":"老端打开 RuneAwake 说明弹窗，Unity 目标属于禁止修改的 Common/共享说明流且当前 Rune View 未接入。"},
+    {"id":"mainui.rune.awaken.submit","status":"defect"},
+    {"id":"mainui.rune.awaken.result","status":"defect"},
+    {"id":"mainui.rune.awaken.close","status":"needs-runtime-verify","runtime_gap":"RuneAwakenView 已静态绑定关闭按钮，但未运行返回、重开、列表清理和特效清理验证。"},
+
+    {"id":"mainui.rune.compose","status":"blocked","blocked_reason":"老端按等级跳共享 Composite 符文页，完整资源/协议闭包跨越禁止的共享模块；本轮不越界实现。"},
+
+    {"id":"mainui.rune.dec.decompose.list","status":"defect"},
+    {"id":"mainui.rune.dec.decompose.select","status":"defect"},
+    {"id":"mainui.rune.dec.decompose.blue","status":"defect"},
+    {"id":"mainui.rune.dec.decompose.purple","status":"defect"},
+    {"id":"mainui.rune.dec.decompose.orange","status":"defect"},
+    {"id":"mainui.rune.dec.decompose.red","status":"defect"},
+    {"id":"mainui.rune.dec.decompose.preview","status":"defect"},
+    {"id":"mainui.rune.dec.decompose.obtain","status":"blocked","blocked_reason":"老端按战力跳 DungeonEnterView 或切相邻挑战页，目标属于禁止修改的共享 Dungeon/路由域。"},
+    {"id":"mainui.rune.dec.decompose.submit","status":"defect"},
+    {"id":"mainui.rune.dec.decompose.result","status":"defect"},
+
+    {"id":"mainui.rune.dec.resolution.list","status":"defect"},
+    {"id":"mainui.rune.dec.resolution.select","status":"defect"},
+    {"id":"mainui.rune.dec.resolution.preview","status":"defect"},
+    {"id":"mainui.rune.dec.resolution.rewards","status":"defect"},
+    {"id":"mainui.rune.dec.resolution.empty","status":"defect"},
+    {"id":"mainui.rune.dec.resolution.submit","status":"defect"},
+    {"id":"mainui.rune.dec.resolution.result","status":"defect"},
+    {"id":"mainui.rune.dec.close","status":"needs-runtime-verify","runtime_gap":"RuneDecMainView 已创建双页签并绑定关闭；未运行页签选中视觉、子页 Show/Hide、返回与重开。"},
+
+    {"id":"mainui.rune.bag-open-insert","status":"defect"},
+    {"id":"mainui.rune.bag-open-replace","status":"defect"},
+    {"id":"mainui.rune.bag.list","status":"defect"},
+    {"id":"mainui.rune.bag.empty","status":"defect"},
+    {"id":"mainui.rune.bag.select","status":"defect"},
+    {"id":"mainui.rune.bag.wear","status":"defect"},
+    {"id":"mainui.rune.bag.obtain","status":"blocked","blocked_reason":"老端跳 RuneTreasureBaseView 或 DungeonEnterView，均跨越本轮禁止的共享/相邻模块。"},
+    {"id":"mainui.rune.bag.close","status":"defect"},
+
+    {"id":"mainui.rune.upgrade","status":"defect"},
+    {"id":"mainui.rune.obtain","status":"blocked","blocked_reason":"老端跳 OpenFun(6) 符文副本，目标属于禁止修改的共享路由/Dungeon 域。"},
+    {"id":"mainui.rune.treasure-tab","status":"blocked","blocked_reason":"老端跳 RuneTreasureBaseView，相邻秘宝模块不在 Rune 唯一写者范围。"},
+    {"id":"mainui.rune.dungeon-tab","status":"blocked","blocked_reason":"老端跳 OpenFun(6) 符文副本，共享路由/Dungeon 不在 Rune 唯一写者范围。"},
+    {"id":"mainui.rune.close","status":"needs-runtime-verify","runtime_gap":"RuneFlow.Close 已从只隐藏主 View 改为隐藏模块内所有已显示 BaseView；未运行 HUD toggle、子窗叠加、重开和零残留验证。"}
+  ]
+}

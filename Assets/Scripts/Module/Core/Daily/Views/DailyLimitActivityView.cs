@@ -63,7 +63,11 @@ namespace Shenxiao.Module.Core.Daily
                 cellGo.SetActive(true);
                 DailyLimitActivityItem item = cellGo.GetComponent<DailyLimitActivityItem>();
                 int? res = DailyModel.Instance.TryGetReservation(vo.Module, vo.ModuleSub, vo.AcSub, out int status) ? status : (int?)null;
-                if (item != null) item.SetData(vo, res);
+                if (item != null)
+                {
+                    item.Show();
+                    item.SetData(vo, res);
+                }
                 _cells.Add(cellGo);
             }
             GameLog.Info("Daily", "限时活动列表刷新 count={0}", data.AcList.Count);

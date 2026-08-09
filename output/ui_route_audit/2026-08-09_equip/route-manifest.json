@@ -1,0 +1,1603 @@
+{
+  "route": "mainui.equip.window",
+  "baseline": {
+    "authority": "当前老客户端同账号同状态真实运行结果；本轮禁止启动 Unity/浏览器，仅完成老端源码、Unity Prefab/Bind/View/Controller/协议静态调和",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/equip/EquipView.ts",
+      "E:/GitProject/yu_client/h5/src/equip/EquipStrenView.ts",
+      "E:/GitProject/yu_client/h5/src/equip/EquipStrenMasterView.ts",
+      "E:/GitProject/yu_client/h5/src/equip/EquipSmeltView.ts",
+      "E:/GitProject/yu_client/h5/src/jewel/EquipJewelView.ts",
+      "E:/GitProject/yu_client/h5/src/jewel/EquipJewelBagView.ts",
+      "E:/GitProject/yu_client/h5/src/jewel/EquipJewelMasterView.ts",
+      "E:/GitProject/yu_client/h5/src/jewel/EquipJewelCraveEnterView.ts",
+      "E:/GitProject/yu_client/h5/src/jewel/EquipJewelCraveView.ts",
+      "E:/GitProject/yu_client/h5/src/equipWash/EquipWashView.ts",
+      "E:/GitProject/yu_client/h5/src/equipWash/EquipWashGoodsView.ts",
+      "E:/GitProject/yu_client/h5/src/equipRefinement/EquipRefinementView.ts",
+      "E:/GitProject/yu_client/h5/src/equipRefinement/EquipRefiUpLvView.ts",
+      "E:/GitProject/yu_client/h5/src/equipArmor/EquipArmorView.ts",
+      "E:/GitProject/yu_client/h5/src/equipArmor/ArmorAttrView.ts",
+      "E:/GitProject/yu_client/h5/src/commonController/EquipController.ts",
+      "E:/GitProject/yu_client/h5/src/commonModel/EquipModel.ts"
+    ],
+    "unity_sources": [
+      "Assets/Prefabs/UI/Equip/EquipModule.prefab",
+      "Assets/Prefabs/UI/Jewel/JewelModule.prefab",
+      "Assets/Prefabs/UI/EquipRefinement/EquipRefinementModule.prefab",
+      "Assets/Prefabs/UI/EquipArmor/EquipArmorModule.prefab",
+      "Assets/Scripts/Generated/UI/Equip",
+      "Assets/Scripts/Generated/UI/Jewel",
+      "Assets/Scripts/Generated/UI/EquipRefinement",
+      "Assets/Scripts/Generated/UI/EquipArmor",
+      "Assets/Scripts/Module/Core/Equip",
+      "Assets/Scripts/Module/Core/Armor"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "mainui.equip.window",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        {
+          "id": "mainui-equip-entry",
+          "kind": "button",
+          "child": "mainui.equip.window.entry-mainui"
+        },
+        {
+          "id": "role-equipment-entry",
+          "kind": "equipment-slot",
+          "child": "mainui.equip.window.entry-role"
+        },
+        {
+          "id": "bag-equipment-entry",
+          "kind": "equipment-slot",
+          "child": "mainui.equip.window.entry-bag"
+        },
+        {
+          "id": "window-close",
+          "kind": "return",
+          "child": "mainui.equip.window.close"
+        },
+        {
+          "id": "tab-strengthen",
+          "kind": "tab",
+          "child": "mainui.equip.window.strengthen"
+        },
+        {
+          "id": "tab-smelt",
+          "kind": "tab",
+          "child": "mainui.equip.window.smelt"
+        },
+        {
+          "id": "tab-jewel",
+          "kind": "tab",
+          "child": "mainui.equip.window.jewel"
+        },
+        {
+          "id": "tab-wash",
+          "kind": "tab",
+          "child": "mainui.equip.window.wash"
+        },
+        {
+          "id": "tab-refinement",
+          "kind": "tab",
+          "child": "mainui.equip.window.refinement"
+        },
+        {
+          "id": "tab-armor",
+          "kind": "tab",
+          "child": "mainui.equip.window.armor"
+        }
+      ]
+    },
+    {
+      "id": "mainui.equip.window.entry-mainui",
+      "parent": "mainui.equip.window",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.entry-role",
+      "parent": "mainui.equip.window",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.entry-bag",
+      "parent": "mainui.equip.window",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.close",
+      "parent": "mainui.equip.window",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.strengthen",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.equip.window",
+      "control_inventory": [
+        {
+          "id": "equipment-slots",
+          "kind": "slot-list",
+          "child": "mainui.equip.window.strengthen.equipment-slots"
+        },
+        {
+          "id": "equipment-select",
+          "kind": "selection",
+          "child": "mainui.equip.window.strengthen.equipment-select"
+        },
+        {
+          "id": "selected-display",
+          "kind": "display",
+          "child": "mainui.equip.window.strengthen.selected-display"
+        },
+        {
+          "id": "fight-power",
+          "kind": "display",
+          "child": "mainui.equip.window.strengthen.fight-power"
+        },
+        {
+          "id": "attributes",
+          "kind": "list",
+          "child": "mainui.equip.window.strengthen.attributes"
+        },
+        {
+          "id": "cost",
+          "kind": "cost",
+          "child": "mainui.equip.window.strengthen.cost"
+        },
+        {
+          "id": "strengthen-one",
+          "kind": "button",
+          "child": "mainui.equip.window.strengthen.strengthen-one"
+        },
+        {
+          "id": "strengthen-all",
+          "kind": "button",
+          "child": "mainui.equip.window.strengthen.strengthen-all"
+        },
+        {
+          "id": "stop-auto",
+          "kind": "button",
+          "child": "mainui.equip.window.strengthen.stop-auto"
+        },
+        {
+          "id": "master",
+          "kind": "button",
+          "child": "mainui.equip.window.strengthen.master"
+        },
+        {
+          "id": "red-states",
+          "kind": "conditional",
+          "child": "mainui.equip.window.strengthen.red-states"
+        },
+        {
+          "id": "effect",
+          "kind": "effect",
+          "child": "mainui.equip.window.strengthen.effect"
+        }
+      ]
+    },
+    {
+      "id": "mainui.equip.window.strengthen.equipment-slots",
+      "parent": "mainui.equip.window.strengthen",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.strengthen.equipment-select",
+      "parent": "mainui.equip.window.strengthen",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.equip.window.strengthen.selected-display",
+      "parent": "mainui.equip.window.strengthen",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.strengthen.fight-power",
+      "parent": "mainui.equip.window.strengthen",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.strengthen.attributes",
+      "parent": "mainui.equip.window.strengthen",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.strengthen.cost",
+      "parent": "mainui.equip.window.strengthen",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.strengthen.strengthen-one",
+      "parent": "mainui.equip.window.strengthen",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.strengthen.strengthen-all",
+      "parent": "mainui.equip.window.strengthen",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.strengthen.stop-auto",
+      "parent": "mainui.equip.window.strengthen",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.equip.window.strengthen.red-states",
+      "parent": "mainui.equip.window.strengthen",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.strengthen.effect",
+      "parent": "mainui.equip.window.strengthen",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.strengthen.master",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.equip.window.strengthen",
+      "control_inventory": [
+        {
+          "id": "current-attributes",
+          "kind": "list",
+          "child": "mainui.equip.window.strengthen.master.current-attributes"
+        },
+        {
+          "id": "next-attributes",
+          "kind": "list",
+          "child": "mainui.equip.window.strengthen.master.next-attributes"
+        },
+        {
+          "id": "progress",
+          "kind": "display",
+          "child": "mainui.equip.window.strengthen.master.progress"
+        },
+        {
+          "id": "activate",
+          "kind": "button",
+          "child": "mainui.equip.window.strengthen.master.activate"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.equip.window.strengthen.master.close"
+        }
+      ]
+    },
+    {
+      "id": "mainui.equip.window.strengthen.master.current-attributes",
+      "parent": "mainui.equip.window.strengthen.master",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.strengthen.master.next-attributes",
+      "parent": "mainui.equip.window.strengthen.master",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.strengthen.master.progress",
+      "parent": "mainui.equip.window.strengthen.master",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.strengthen.master.activate",
+      "parent": "mainui.equip.window.strengthen.master",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.strengthen.master.close",
+      "parent": "mainui.equip.window.strengthen.master",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.smelt",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.equip.window",
+      "control_inventory": [
+        {
+          "id": "equipment-slots",
+          "kind": "slot-list",
+          "child": "mainui.equip.window.smelt.equipment-slots"
+        },
+        {
+          "id": "equipment-select",
+          "kind": "selection",
+          "child": "mainui.equip.window.smelt.equipment-select"
+        },
+        {
+          "id": "selected-display",
+          "kind": "display",
+          "child": "mainui.equip.window.smelt.selected-display"
+        },
+        {
+          "id": "fight-power",
+          "kind": "display",
+          "child": "mainui.equip.window.smelt.fight-power"
+        },
+        {
+          "id": "attributes",
+          "kind": "list",
+          "child": "mainui.equip.window.smelt.attributes"
+        },
+        {
+          "id": "normal-cost",
+          "kind": "cost",
+          "child": "mainui.equip.window.smelt.normal-cost"
+        },
+        {
+          "id": "upper-cost",
+          "kind": "conditional-cost",
+          "child": "mainui.equip.window.smelt.upper-cost"
+        },
+        {
+          "id": "smelt-one",
+          "kind": "button",
+          "child": "mainui.equip.window.smelt.smelt-one"
+        },
+        {
+          "id": "smelt-all",
+          "kind": "button",
+          "child": "mainui.equip.window.smelt.smelt-all"
+        },
+        {
+          "id": "red-states",
+          "kind": "conditional",
+          "child": "mainui.equip.window.smelt.red-states"
+        },
+        {
+          "id": "effect",
+          "kind": "effect",
+          "child": "mainui.equip.window.smelt.effect"
+        }
+      ]
+    },
+    {
+      "id": "mainui.equip.window.smelt.equipment-slots",
+      "parent": "mainui.equip.window.smelt",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.smelt.selected-display",
+      "parent": "mainui.equip.window.smelt",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.smelt.fight-power",
+      "parent": "mainui.equip.window.smelt",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.smelt.attributes",
+      "parent": "mainui.equip.window.smelt",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.smelt.normal-cost",
+      "parent": "mainui.equip.window.smelt",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.smelt.upper-cost",
+      "parent": "mainui.equip.window.smelt",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.smelt.red-states",
+      "parent": "mainui.equip.window.smelt",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.smelt.effect",
+      "parent": "mainui.equip.window.smelt",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.smelt.equipment-select",
+      "parent": "mainui.equip.window.smelt",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.equip.window.smelt.smelt-one",
+      "parent": "mainui.equip.window.smelt",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.smelt.smelt-all",
+      "parent": "mainui.equip.window.smelt",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.jewel",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.equip.window",
+      "control_inventory": [
+        {
+          "id": "equipment-slots",
+          "kind": "slot-list",
+          "child": "mainui.equip.window.jewel.equipment-slots"
+        },
+        {
+          "id": "equipment-select",
+          "kind": "selection",
+          "child": "mainui.equip.window.jewel.equipment-select"
+        },
+        {
+          "id": "fight-power",
+          "kind": "display",
+          "child": "mainui.equip.window.jewel.fight-power"
+        },
+        {
+          "id": "stone-slots",
+          "kind": "slot-group",
+          "child": "mainui.equip.window.jewel.stone-slots"
+        },
+        {
+          "id": "one-key-inlay",
+          "kind": "conditional-button",
+          "child": "mainui.equip.window.jewel.one-key-inlay"
+        },
+        {
+          "id": "one-key-upgrade",
+          "kind": "conditional-button",
+          "child": "mainui.equip.window.jewel.one-key-upgrade"
+        },
+        {
+          "id": "master",
+          "kind": "button",
+          "child": "mainui.equip.window.jewel.master"
+        },
+        {
+          "id": "crave",
+          "kind": "button",
+          "child": "mainui.equip.window.jewel.crave"
+        },
+        {
+          "id": "red-states",
+          "kind": "conditional",
+          "child": "mainui.equip.window.jewel.red-states"
+        },
+        {
+          "id": "stone-bag-popup",
+          "kind": "popup",
+          "child": "mainui.equip.window.jewel.stone-bag"
+        }
+      ]
+    },
+    {
+      "id": "mainui.equip.window.jewel.equipment-slots",
+      "parent": "mainui.equip.window.jewel",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.jewel.equipment-select",
+      "parent": "mainui.equip.window.jewel",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.equip.window.jewel.fight-power",
+      "parent": "mainui.equip.window.jewel",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.jewel.one-key-inlay",
+      "parent": "mainui.equip.window.jewel",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.jewel.one-key-upgrade",
+      "parent": "mainui.equip.window.jewel",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.jewel.red-states",
+      "parent": "mainui.equip.window.jewel",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.jewel.stone-slots",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.equip.window.jewel",
+      "control_inventory": [
+        {
+          "id": "stone-slot-1",
+          "kind": "slot",
+          "child": "mainui.equip.window.jewel.stone-slots.slot-1"
+        },
+        {
+          "id": "stone-slot-2",
+          "kind": "slot",
+          "child": "mainui.equip.window.jewel.stone-slots.slot-2"
+        },
+        {
+          "id": "stone-slot-3",
+          "kind": "slot",
+          "child": "mainui.equip.window.jewel.stone-slots.slot-3"
+        },
+        {
+          "id": "stone-slot-4",
+          "kind": "slot",
+          "child": "mainui.equip.window.jewel.stone-slots.slot-4"
+        },
+        {
+          "id": "stone-slot-5",
+          "kind": "slot",
+          "child": "mainui.equip.window.jewel.stone-slots.slot-5"
+        },
+        {
+          "id": "stone-slot-6",
+          "kind": "slot",
+          "child": "mainui.equip.window.jewel.stone-slots.slot-6"
+        }
+      ]
+    },
+    {
+      "id": "mainui.equip.window.jewel.stone-slots.slot-1",
+      "parent": "mainui.equip.window.jewel.stone-slots",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.jewel.stone-slots.slot-2",
+      "parent": "mainui.equip.window.jewel.stone-slots",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.jewel.stone-slots.slot-3",
+      "parent": "mainui.equip.window.jewel.stone-slots",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.jewel.stone-slots.slot-4",
+      "parent": "mainui.equip.window.jewel.stone-slots",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.jewel.stone-slots.slot-5",
+      "parent": "mainui.equip.window.jewel.stone-slots",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.jewel.stone-slots.slot-6",
+      "parent": "mainui.equip.window.jewel.stone-slots",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.jewel.master",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.equip.window.jewel",
+      "control_inventory": [
+        {
+          "id": "current-attributes",
+          "kind": "list",
+          "child": "mainui.equip.window.jewel.master.current-attributes"
+        },
+        {
+          "id": "next-attributes",
+          "kind": "list",
+          "child": "mainui.equip.window.jewel.master.next-attributes"
+        },
+        {
+          "id": "progress",
+          "kind": "display",
+          "child": "mainui.equip.window.jewel.master.progress"
+        },
+        {
+          "id": "activate",
+          "kind": "button",
+          "child": "mainui.equip.window.jewel.master.activate"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.equip.window.jewel.master.close"
+        }
+      ]
+    },
+    {
+      "id": "mainui.equip.window.jewel.master.current-attributes",
+      "parent": "mainui.equip.window.jewel.master",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.jewel.master.next-attributes",
+      "parent": "mainui.equip.window.jewel.master",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.jewel.master.progress",
+      "parent": "mainui.equip.window.jewel.master",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.jewel.master.activate",
+      "parent": "mainui.equip.window.jewel.master",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.jewel.master.close",
+      "parent": "mainui.equip.window.jewel.master",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.jewel.crave",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.equip.window.jewel",
+      "control_inventory": [
+        {
+          "id": "equipment-list",
+          "kind": "list",
+          "child": "mainui.equip.window.jewel.crave.equipment-list"
+        },
+        {
+          "id": "equipment-select",
+          "kind": "selection",
+          "child": "mainui.equip.window.jewel.crave.equipment-select"
+        },
+        {
+          "id": "selected-equipment",
+          "kind": "display",
+          "child": "mainui.equip.window.jewel.crave.selected-equipment"
+        },
+        {
+          "id": "jewel-preview",
+          "kind": "slot-group",
+          "child": "mainui.equip.window.jewel.crave.jewel-preview"
+        },
+        {
+          "id": "attribute-list",
+          "kind": "list",
+          "child": "mainui.equip.window.jewel.crave.attribute-list"
+        },
+        {
+          "id": "material-list",
+          "kind": "list",
+          "child": "mainui.equip.window.jewel.crave.material-list"
+        },
+        {
+          "id": "material-select",
+          "kind": "selection",
+          "child": "mainui.equip.window.jewel.crave.material-select"
+        },
+        {
+          "id": "carve",
+          "kind": "button",
+          "child": "mainui.equip.window.jewel.crave.carve"
+        },
+        {
+          "id": "carve-all",
+          "kind": "button",
+          "child": "mainui.equip.window.jewel.crave.carve-all"
+        },
+        {
+          "id": "return-chain",
+          "kind": "return",
+          "child": "mainui.equip.window.jewel.crave.return-chain"
+        }
+      ]
+    },
+    {
+      "id": "mainui.equip.window.jewel.crave.equipment-list",
+      "parent": "mainui.equip.window.jewel.crave",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.jewel.crave.selected-equipment",
+      "parent": "mainui.equip.window.jewel.crave",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.jewel.crave.jewel-preview",
+      "parent": "mainui.equip.window.jewel.crave",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.jewel.crave.attribute-list",
+      "parent": "mainui.equip.window.jewel.crave",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.jewel.crave.material-list",
+      "parent": "mainui.equip.window.jewel.crave",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.jewel.crave.equipment-select",
+      "parent": "mainui.equip.window.jewel.crave",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.equip.window.jewel.crave.material-select",
+      "parent": "mainui.equip.window.jewel.crave",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.equip.window.jewel.crave.carve",
+      "parent": "mainui.equip.window.jewel.crave",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.jewel.crave.carve-all",
+      "parent": "mainui.equip.window.jewel.crave",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.jewel.crave.return-chain",
+      "parent": "mainui.equip.window.jewel.crave",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.jewel.stone-bag",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.equip.window.jewel",
+      "control_inventory": [
+        {
+          "id": "list-scroll",
+          "kind": "list",
+          "child": "mainui.equip.window.jewel.stone-bag.list-scroll"
+        },
+        {
+          "id": "regular-stone",
+          "kind": "list-item",
+          "child": "mainui.equip.window.jewel.stone-bag.regular-stone"
+        },
+        {
+          "id": "upgrade-current",
+          "kind": "button",
+          "child": "mainui.equip.window.jewel.stone-bag.upgrade-current"
+        },
+        {
+          "id": "unset-current",
+          "kind": "button",
+          "child": "mainui.equip.window.jewel.stone-bag.unset-current"
+        },
+        {
+          "id": "direct-up-item",
+          "kind": "conditional-item",
+          "child": "mainui.equip.window.jewel.stone-bag.direct-up-item"
+        },
+        {
+          "id": "direct-up-confirm",
+          "kind": "confirm",
+          "child": "mainui.equip.window.jewel.stone-bag.direct-up-confirm"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.equip.window.jewel.stone-bag.close"
+        }
+      ]
+    },
+    {
+      "id": "mainui.equip.window.jewel.stone-bag.list-scroll",
+      "parent": "mainui.equip.window.jewel.stone-bag",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.jewel.stone-bag.regular-stone",
+      "parent": "mainui.equip.window.jewel.stone-bag",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.jewel.stone-bag.upgrade-current",
+      "parent": "mainui.equip.window.jewel.stone-bag",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.jewel.stone-bag.unset-current",
+      "parent": "mainui.equip.window.jewel.stone-bag",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.jewel.stone-bag.direct-up-item",
+      "parent": "mainui.equip.window.jewel.stone-bag",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.jewel.stone-bag.direct-up-confirm",
+      "parent": "mainui.equip.window.jewel.stone-bag",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.jewel.stone-bag.close",
+      "parent": "mainui.equip.window.jewel.stone-bag",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.wash",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.equip.window",
+      "control_inventory": [
+        {
+          "id": "equipment-scroll",
+          "kind": "scroll",
+          "child": "mainui.equip.window.wash.equipment-scroll"
+        },
+        {
+          "id": "equipment-select",
+          "kind": "selection",
+          "child": "mainui.equip.window.wash.equipment-select"
+        },
+        {
+          "id": "current-equipment-detail",
+          "kind": "display",
+          "child": "mainui.equip.window.wash.current-equipment-detail"
+        },
+        {
+          "id": "property-slots",
+          "kind": "slot-group",
+          "child": "mainui.equip.window.wash.property-slots"
+        },
+        {
+          "id": "wash-stone",
+          "kind": "cost",
+          "child": "mainui.equip.window.wash.wash-stone"
+        },
+        {
+          "id": "purple-guarantee",
+          "kind": "toggle",
+          "child": "mainui.equip.window.wash.purple-guarantee"
+        },
+        {
+          "id": "extra-material",
+          "kind": "conditional",
+          "child": "mainui.equip.window.wash.extra-material"
+        },
+        {
+          "id": "division-conditions",
+          "kind": "conditional",
+          "child": "mainui.equip.window.wash.division-conditions"
+        },
+        {
+          "id": "wash-or-division",
+          "kind": "button",
+          "child": "mainui.equip.window.wash.wash-or-division"
+        },
+        {
+          "id": "goods-popup",
+          "kind": "button",
+          "child": "mainui.equip.window.wash.goods-popup"
+        },
+        {
+          "id": "gift-entry",
+          "kind": "conditional-button",
+          "child": "mainui.equip.window.wash.gift-entry"
+        },
+        {
+          "id": "red-states",
+          "kind": "conditional",
+          "child": "mainui.equip.window.wash.red-states"
+        },
+        {
+          "id": "effects",
+          "kind": "effect",
+          "child": "mainui.equip.window.wash.effects"
+        }
+      ]
+    },
+    {
+      "id": "mainui.equip.window.wash.equipment-scroll",
+      "parent": "mainui.equip.window.wash",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.wash.current-equipment-detail",
+      "parent": "mainui.equip.window.wash",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.wash.wash-stone",
+      "parent": "mainui.equip.window.wash",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.wash.extra-material",
+      "parent": "mainui.equip.window.wash",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.wash.division-conditions",
+      "parent": "mainui.equip.window.wash",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.wash.red-states",
+      "parent": "mainui.equip.window.wash",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.wash.effects",
+      "parent": "mainui.equip.window.wash",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.wash.equipment-select",
+      "parent": "mainui.equip.window.wash",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.equip.window.wash.purple-guarantee",
+      "parent": "mainui.equip.window.wash",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.equip.window.wash.wash-or-division",
+      "parent": "mainui.equip.window.wash",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.wash.gift-entry",
+      "parent": "mainui.equip.window.wash",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.wash.property-slots",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.equip.window.wash",
+      "control_inventory": [
+        {
+          "id": "property-slot-1",
+          "kind": "slot",
+          "child": "mainui.equip.window.wash.property-slots.slot-1"
+        },
+        {
+          "id": "property-slot-2",
+          "kind": "slot",
+          "child": "mainui.equip.window.wash.property-slots.slot-2"
+        },
+        {
+          "id": "property-slot-3",
+          "kind": "slot",
+          "child": "mainui.equip.window.wash.property-slots.slot-3"
+        },
+        {
+          "id": "property-slot-4",
+          "kind": "slot",
+          "child": "mainui.equip.window.wash.property-slots.slot-4"
+        }
+      ]
+    },
+    {
+      "id": "mainui.equip.window.wash.property-slots.slot-1",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.equip.window.wash.property-slots",
+      "control_inventory": [
+        {
+          "id": "open-slot",
+          "kind": "button",
+          "child": "mainui.equip.window.wash.property-slots.slot-1.open"
+        },
+        {
+          "id": "lock-toggle",
+          "kind": "toggle",
+          "child": "mainui.equip.window.wash.property-slots.slot-1.lock"
+        }
+      ]
+    },
+    {
+      "id": "mainui.equip.window.wash.property-slots.slot-1.open",
+      "parent": "mainui.equip.window.wash.property-slots.slot-1",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.wash.property-slots.slot-1.lock",
+      "parent": "mainui.equip.window.wash.property-slots.slot-1",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.equip.window.wash.property-slots.slot-2",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.equip.window.wash.property-slots",
+      "control_inventory": [
+        {
+          "id": "open-slot",
+          "kind": "button",
+          "child": "mainui.equip.window.wash.property-slots.slot-2.open"
+        },
+        {
+          "id": "lock-toggle",
+          "kind": "toggle",
+          "child": "mainui.equip.window.wash.property-slots.slot-2.lock"
+        }
+      ]
+    },
+    {
+      "id": "mainui.equip.window.wash.property-slots.slot-2.open",
+      "parent": "mainui.equip.window.wash.property-slots.slot-2",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.wash.property-slots.slot-2.lock",
+      "parent": "mainui.equip.window.wash.property-slots.slot-2",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.equip.window.wash.property-slots.slot-3",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.equip.window.wash.property-slots",
+      "control_inventory": [
+        {
+          "id": "open-slot",
+          "kind": "button",
+          "child": "mainui.equip.window.wash.property-slots.slot-3.open"
+        },
+        {
+          "id": "lock-toggle",
+          "kind": "toggle",
+          "child": "mainui.equip.window.wash.property-slots.slot-3.lock"
+        }
+      ]
+    },
+    {
+      "id": "mainui.equip.window.wash.property-slots.slot-3.open",
+      "parent": "mainui.equip.window.wash.property-slots.slot-3",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.wash.property-slots.slot-3.lock",
+      "parent": "mainui.equip.window.wash.property-slots.slot-3",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.equip.window.wash.property-slots.slot-4",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.equip.window.wash.property-slots",
+      "control_inventory": [
+        {
+          "id": "open-slot",
+          "kind": "button",
+          "child": "mainui.equip.window.wash.property-slots.slot-4.open"
+        },
+        {
+          "id": "lock-toggle",
+          "kind": "toggle",
+          "child": "mainui.equip.window.wash.property-slots.slot-4.lock"
+        }
+      ]
+    },
+    {
+      "id": "mainui.equip.window.wash.property-slots.slot-4.open",
+      "parent": "mainui.equip.window.wash.property-slots.slot-4",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.wash.property-slots.slot-4.lock",
+      "parent": "mainui.equip.window.wash.property-slots.slot-4",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.equip.window.wash.goods-popup",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.equip.window.wash",
+      "control_inventory": [
+        {
+          "id": "list-scroll",
+          "kind": "list",
+          "child": "mainui.equip.window.wash.goods-popup.list-scroll"
+        },
+        {
+          "id": "item-select",
+          "kind": "selection",
+          "child": "mainui.equip.window.wash.goods-popup.item-select"
+        },
+        {
+          "id": "unload",
+          "kind": "button",
+          "child": "mainui.equip.window.wash.goods-popup.unload"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.equip.window.wash.goods-popup.close"
+        }
+      ]
+    },
+    {
+      "id": "mainui.equip.window.wash.goods-popup.list-scroll",
+      "parent": "mainui.equip.window.wash.goods-popup",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.wash.goods-popup.item-select",
+      "parent": "mainui.equip.window.wash.goods-popup",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.equip.window.wash.goods-popup.unload",
+      "parent": "mainui.equip.window.wash.goods-popup",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.equip.window.wash.goods-popup.close",
+      "parent": "mainui.equip.window.wash.goods-popup",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.refinement",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.equip.window",
+      "control_inventory": [
+        {
+          "id": "equipment-scroll",
+          "kind": "scroll",
+          "child": "mainui.equip.window.refinement.equipment-scroll"
+        },
+        {
+          "id": "equipment-select",
+          "kind": "selection",
+          "child": "mainui.equip.window.refinement.equipment-select"
+        },
+        {
+          "id": "equipment-detail",
+          "kind": "button",
+          "child": "mainui.equip.window.refinement.equipment-detail"
+        },
+        {
+          "id": "current-attributes",
+          "kind": "list",
+          "child": "mainui.equip.window.refinement.current-attributes"
+        },
+        {
+          "id": "next-attributes",
+          "kind": "list",
+          "child": "mainui.equip.window.refinement.next-attributes"
+        },
+        {
+          "id": "extra-attributes",
+          "kind": "list",
+          "child": "mainui.equip.window.refinement.extra-attributes"
+        },
+        {
+          "id": "cost",
+          "kind": "cost",
+          "child": "mainui.equip.window.refinement.cost"
+        },
+        {
+          "id": "refine",
+          "kind": "button",
+          "child": "mainui.equip.window.refinement.refine"
+        },
+        {
+          "id": "instruction",
+          "kind": "button",
+          "child": "mainui.equip.window.refinement.instruction"
+        },
+        {
+          "id": "result",
+          "kind": "popup",
+          "child": "mainui.equip.window.refinement.result"
+        },
+        {
+          "id": "red-states",
+          "kind": "conditional",
+          "child": "mainui.equip.window.refinement.red-states"
+        },
+        {
+          "id": "effects",
+          "kind": "effect",
+          "child": "mainui.equip.window.refinement.effects"
+        }
+      ]
+    },
+    {
+      "id": "mainui.equip.window.refinement.equipment-scroll",
+      "parent": "mainui.equip.window.refinement",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.refinement.current-attributes",
+      "parent": "mainui.equip.window.refinement",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.refinement.next-attributes",
+      "parent": "mainui.equip.window.refinement",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.refinement.extra-attributes",
+      "parent": "mainui.equip.window.refinement",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.refinement.cost",
+      "parent": "mainui.equip.window.refinement",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.refinement.red-states",
+      "parent": "mainui.equip.window.refinement",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.refinement.effects",
+      "parent": "mainui.equip.window.refinement",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.refinement.equipment-select",
+      "parent": "mainui.equip.window.refinement",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.equip.window.refinement.equipment-detail",
+      "parent": "mainui.equip.window.refinement",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.refinement.refine",
+      "parent": "mainui.equip.window.refinement",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.refinement.instruction",
+      "parent": "mainui.equip.window.refinement",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.refinement.result",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.equip.window.refinement",
+      "control_inventory": [
+        {
+          "id": "equipment",
+          "kind": "display",
+          "child": "mainui.equip.window.refinement.result.equipment"
+        },
+        {
+          "id": "attribute-gain",
+          "kind": "list",
+          "child": "mainui.equip.window.refinement.result.attribute-gain"
+        },
+        {
+          "id": "effect",
+          "kind": "effect",
+          "child": "mainui.equip.window.refinement.result.effect"
+        },
+        {
+          "id": "close-lifecycle",
+          "kind": "return",
+          "child": "mainui.equip.window.refinement.result.close-lifecycle"
+        }
+      ]
+    },
+    {
+      "id": "mainui.equip.window.refinement.result.equipment",
+      "parent": "mainui.equip.window.refinement.result",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.refinement.result.attribute-gain",
+      "parent": "mainui.equip.window.refinement.result",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.refinement.result.effect",
+      "parent": "mainui.equip.window.refinement.result",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.refinement.result.close-lifecycle",
+      "parent": "mainui.equip.window.refinement.result",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.armor",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.equip.window",
+      "control_inventory": [
+        {
+          "id": "stage-list",
+          "kind": "list",
+          "child": "mainui.equip.window.armor.stage-list"
+        },
+        {
+          "id": "stage-select",
+          "kind": "selection",
+          "child": "mainui.equip.window.armor.stage-select"
+        },
+        {
+          "id": "type-left",
+          "kind": "toggle",
+          "child": "mainui.equip.window.armor.type-left"
+        },
+        {
+          "id": "type-right",
+          "kind": "toggle",
+          "child": "mainui.equip.window.armor.type-right"
+        },
+        {
+          "id": "position-list",
+          "kind": "list",
+          "child": "mainui.equip.window.armor.position-list"
+        },
+        {
+          "id": "position-select",
+          "kind": "selection",
+          "child": "mainui.equip.window.armor.position-select"
+        },
+        {
+          "id": "attributes",
+          "kind": "list",
+          "child": "mainui.equip.window.armor.attributes"
+        },
+        {
+          "id": "current-equipment",
+          "kind": "display",
+          "child": "mainui.equip.window.armor.current-equipment"
+        },
+        {
+          "id": "materials",
+          "kind": "list",
+          "child": "mainui.equip.window.armor.materials"
+        },
+        {
+          "id": "all-attributes",
+          "kind": "button",
+          "child": "mainui.equip.window.armor.all-attributes"
+        },
+        {
+          "id": "make",
+          "kind": "button",
+          "child": "mainui.equip.window.armor.make"
+        },
+        {
+          "id": "confirm",
+          "kind": "confirm",
+          "child": "mainui.equip.window.armor.confirm"
+        },
+        {
+          "id": "red-states",
+          "kind": "conditional",
+          "child": "mainui.equip.window.armor.red-states"
+        },
+        {
+          "id": "result-effect",
+          "kind": "effect",
+          "child": "mainui.equip.window.armor.result-effect"
+        }
+      ]
+    },
+    {
+      "id": "mainui.equip.window.armor.stage-list",
+      "parent": "mainui.equip.window.armor",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.armor.position-list",
+      "parent": "mainui.equip.window.armor",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.armor.attributes",
+      "parent": "mainui.equip.window.armor",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.armor.current-equipment",
+      "parent": "mainui.equip.window.armor",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.armor.materials",
+      "parent": "mainui.equip.window.armor",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.armor.red-states",
+      "parent": "mainui.equip.window.armor",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.armor.result-effect",
+      "parent": "mainui.equip.window.armor",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.armor.stage-select",
+      "parent": "mainui.equip.window.armor",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.equip.window.armor.type-left",
+      "parent": "mainui.equip.window.armor",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.equip.window.armor.type-right",
+      "parent": "mainui.equip.window.armor",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.equip.window.armor.position-select",
+      "parent": "mainui.equip.window.armor",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.equip.window.armor.make",
+      "parent": "mainui.equip.window.armor",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.armor.confirm",
+      "parent": "mainui.equip.window.armor",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.equip.window.armor.all-attributes",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.equip.window.armor",
+      "control_inventory": [
+        {
+          "id": "attribute-scroll",
+          "kind": "scroll",
+          "child": "mainui.equip.window.armor.all-attributes.attribute-scroll"
+        },
+        {
+          "id": "empty-state",
+          "kind": "conditional",
+          "child": "mainui.equip.window.armor.all-attributes.empty-state"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.equip.window.armor.all-attributes.close"
+        }
+      ]
+    },
+    {
+      "id": "mainui.equip.window.armor.all-attributes.attribute-scroll",
+      "parent": "mainui.equip.window.armor.all-attributes",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.armor.all-attributes.empty-state",
+      "parent": "mainui.equip.window.armor.all-attributes",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.equip.window.armor.all-attributes.close",
+      "parent": "mainui.equip.window.armor.all-attributes",
+      "type": "return",
+      "risk": "read-only"
+    }
+  ]
+}

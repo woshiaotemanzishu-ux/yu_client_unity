@@ -40,7 +40,7 @@ namespace Shenxiao.Module.Core.Dialogue
         private bool _layersHidden;
         private bool _actionConsumed;
         private bool _mainLayerWasActive;
-        private bool _windowLayerWasActive;
+        private bool _popupLayerWasActive;
 
         private const float MODEL_BASE_SCALE = 0.675f;
         private const float MODEL_YAW = 175f;
@@ -96,15 +96,20 @@ namespace Shenxiao.Module.Core.Dialogue
         {
             if (_bind != null && _moduleRoot != null) return true;
             if (_loadTask == null) _loadTask = LoadPrefab();
-            return await _loadTask;
+            Task<bool> task = _loadTask;
+            bool loaded = await task;
+            if (!loaded && ReferenceEquals(_loadTask, task)) _loadTask = null;
+            return loaded;
         }
 
         private async Task<bool> LoadPrefab()
         {
-            Transform parent = ViewManager.GetLayer(UILayer.Popup);
+            // 老端位于 Message 层并只隐藏 Main/Activity；Unity 以 Tip 承接 Message，
+            // 这样才能在隐藏 Popup(Activity) 后仍保持对话本身可见。
+            Transform parent = ViewManager.GetLayer(UILayer.Tip);
             if (parent == null)
             {
-                GameLog.Error("Dialogue", "cannot load DialogueModule: Popup layer is missing");
+                GameLog.Error("Dialogue", "cannot load DialogueModule: Tip layer is missing");
                 return false;
             }
 
@@ -124,6 +129,8 @@ namespace Shenxiao.Module.Core.Dialogue
             if (_bind == null)
             {
                 GameLog.Error("Dialogue", "DialogueModule missing DialogueViewBind. Run dialogue LayaUI convert + bind backfill.");
+                ResManager.ReleaseInstance(_moduleRoot);
+                _moduleRoot = null;
                 return false;
             }
             if (_bind._tpl_EquipmentItem != null) _bind._tpl_EquipmentItem.SetActive(false);
@@ -167,7 +174,8 @@ namespace Shenxiao.Module.Core.Dialogue
 
             if (actionNodes.Count > 0)
             {
-                DialogueNodeVo node = actionNodes[0];
+                // 老端逐项覆盖 event_text，最终执行同一内容块里的最后一个动作节点。
+                DialogueNodeVo node = actionNodes[actionNodes.Count - 1];
                 bool useRewardPanel = UseRewardGetPanel(node.Type);
                 if (useRewardPanel && _bind._lb_award != null) _bind._lb_award.text = body;
                 ShowGetButton(ActionDefaultText(node.Type), () =>
@@ -231,28 +239,25 @@ namespace Shenxiao.Module.Core.Dialogue
 
         /// <summary>
         /// 老端把全屏背景、底部面板、继续、领取和跳过都汇总到 OnTaskSelect。
-        /// Unity 只保留一个铺满 Module 根节点的点击面，子 Graphic 仅负责显示，避免同一手势执行两次。
+        /// Unity 复用 Prefab 内已经铺满屏幕的 _img_bg 作为唯一点击面，子 Graphic 仅负责显示，
+        /// 避免同一手势执行两次，也不在运行时给人工 Prefab 根节点追加 Image。
         /// </summary>
         private void ConfigureUniversalClickSurface()
         {
-            if (_moduleRoot == null) return;
+            if (_moduleRoot == null || _bind == null) return;
 
-            _clickSurface = EnsureRootClickSurface(_moduleRoot);
+            _clickSurface = _bind._img_bg;
+            if (_clickSurface == null)
+            {
+                GameLog.Error("Dialogue", "DialogueModule missing full-screen _img_bg click surface");
+                return;
+            }
+            _clickSurface.raycastTarget = true;
             UIUtil.AddClick(_clickSurface, TriggerCurrentClick);
             foreach (Graphic graphic in _moduleRoot.GetComponentsInChildren<Graphic>(true))
             {
                 if (graphic != null && graphic != _clickSurface) graphic.raycastTarget = false;
             }
-        }
-
-        private static Graphic EnsureRootClickSurface(GameObject root)
-        {
-            Graphic graphic = root != null ? root.GetComponent<Graphic>() : null;
-            if (graphic != null) return graphic;
-
-            Image image = root.AddComponent<Image>();
-            image.color = new Color(1f, 1f, 1f, 0f);
-            return image;
         }
 
         private void TriggerCurrentClick()
@@ -442,10 +447,11 @@ namespace Shenxiao.Module.Core.Dialogue
         {
             switch (type)
             {
-                case DialogueTypeConst.TRIGGER:
                 case DialogueTypeConst.TALK_EVENT:
                     return "接取任务";
+                case DialogueTypeConst.TRIGGER:
                 case DialogueTypeConst.FINISH:
+                case DialogueTypeConst.TRIGGER_AND_FINISH:
                 case DialogueTypeConst.FINISH_AND_TRIGGER:
                     return "完成任务";
                 default:
@@ -476,24 +482,24 @@ namespace Shenxiao.Module.Core.Dialogue
         private void SetMainLayersVisible(bool visible)
         {
             Transform main = ViewManager.GetLayer(UILayer.Main);
-            Transform window = ViewManager.GetLayer(UILayer.Window);
+            Transform popup = ViewManager.GetLayer(UILayer.Popup);
             if (!_layersHidden)
             {
                 _mainLayerWasActive = main == null || main.gameObject.activeSelf;
-                _windowLayerWasActive = window == null || window.gameObject.activeSelf;
+                _popupLayerWasActive = popup == null || popup.gameObject.activeSelf;
                 _layersHidden = true;
             }
             if (main != null) main.gameObject.SetActive(visible);
-            if (window != null) window.gameObject.SetActive(visible);
+            if (popup != null) popup.gameObject.SetActive(visible);
         }
 
         private void RestoreMainLayers()
         {
             if (!_layersHidden) return;
             Transform main = ViewManager.GetLayer(UILayer.Main);
-            Transform window = ViewManager.GetLayer(UILayer.Window);
+            Transform popup = ViewManager.GetLayer(UILayer.Popup);
             if (main != null) main.gameObject.SetActive(_mainLayerWasActive);
-            if (window != null) window.gameObject.SetActive(_windowLayerWasActive);
+            if (popup != null) popup.gameObject.SetActive(_popupLayerWasActive);
             _layersHidden = false;
         }
     }

@@ -192,6 +192,7 @@ namespace Shenxiao.Module.Core.MainUI
                     GameLog.Error("MainUI", "货币项缺 MainUIMoneyItem 业务子类,重跑回填");
                     continue;
                 }
+                item.Show();
                 item.SetMoneyType(type);
                 _moneyItems.Add(item);
             }

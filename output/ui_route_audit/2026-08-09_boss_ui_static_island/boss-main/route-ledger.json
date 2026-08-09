@@ -1,0 +1,888 @@
+{
+  "schema": 6,
+  "route": "mainui.boss.main-entry-and-fight",
+  "baseline": {},
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/route-manifest.json",
+    "sha256": "d24c50a22f669bf0a250d9c266a948f4a60783b120a675affbf6cd031f046648"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "mainui.boss.main-entry-and-fight",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        {
+          "id": "boss-main-entry",
+          "kind": "window-entry",
+          "child": "mainui.boss.main-entry-and-fight.entry"
+        },
+        {
+          "id": "boss-fight-scene-hud",
+          "kind": "scene-runtime-panel",
+          "child": "mainui.boss.main-entry-and-fight.fight"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.boss.main-entry-and-fight.entry, mainui.boss.main-entry-and-fight.fight"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.entry",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight",
+      "control_inventory": [
+        {
+          "id": "open",
+          "kind": "button",
+          "child": "mainui.boss.main-entry-and-fight.entry.open"
+        },
+        {
+          "id": "tab-field",
+          "kind": "tab",
+          "child": "mainui.boss.main-entry-and-fight.entry.tab-field"
+        },
+        {
+          "id": "tab-domain",
+          "kind": "tab",
+          "child": "mainui.boss.main-entry-and-fight.entry.tab-domain"
+        },
+        {
+          "id": "tab-personal",
+          "kind": "tab",
+          "child": "mainui.boss.main-entry-and-fight.entry.tab-personal"
+        },
+        {
+          "id": "tab-mystery",
+          "kind": "tab",
+          "child": "mainui.boss.main-entry-and-fight.entry.tab-mystery"
+        },
+        {
+          "id": "drop-record",
+          "kind": "button-popup",
+          "child": "mainui.boss.main-entry-and-fight.entry.drop-record"
+        },
+        {
+          "id": "instruction",
+          "kind": "button-popup",
+          "child": "mainui.boss.main-entry-and-fight.entry.instruction"
+        },
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "mainui.boss.main-entry-and-fight.entry.close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.boss.main-entry-and-fight.entry.open, mainui.boss.main-entry-and-fight.entry.tab-field, mainui.boss.main-entry-and-fight.entry.tab-domain, mainui.boss.main-entry-and-fight.entry.tab-personal, mainui.boss.main-entry-and-fight.entry.tab-mystery, mainui.boss.main-entry-and-fight.entry.drop-record, mainui.boss.main-entry-and-fight.entry.instruction, mainui.boss.main-entry-and-fight.entry.close"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.entry.open",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.entry",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "入口注册与点击宿主属于 MainUI 禁区；本岛只登记依赖，未跨岛改动"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.entry.tab-field",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.entry",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "BossField 独立文件岛，交由对应路线接管"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.entry.tab-domain",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.entry",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "Bossdomain 独立文件岛，交由对应路线接管"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.entry.tab-personal",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.entry",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "BossPersonal 独立文件岛，交由对应路线接管"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.entry.tab-mystery",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.entry",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "BossMystery 独立文件岛，交由对应路线接管"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.entry.drop-record",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.entry",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "Prefab 仅有 Generated Bind，列表物品详情又依赖 Common/Equipment 共享组件禁区；未伪接线"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.entry.instruction",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.entry",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "说明弹窗属于 Common 跨模块依赖，本岛只登记"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.entry.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.entry",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "BossEnterView 主壳尚无对应 Unity 业务 View，且入口宿主属于 MainUI 禁区"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight",
+      "control_inventory": [
+        {
+          "id": "damage-rank",
+          "kind": "button-panel",
+          "child": "mainui.boss.main-entry-and-fight.fight.damage"
+        },
+        {
+          "id": "wayfinding",
+          "kind": "conditional-panel",
+          "child": "mainui.boss.main-entry-and-fight.fight.wayfinding"
+        },
+        {
+          "id": "collect-ordinary",
+          "kind": "conditional-button",
+          "child": "mainui.boss.main-entry-and-fight.fight.collect-ordinary"
+        },
+        {
+          "id": "collect-rare",
+          "kind": "conditional-button",
+          "child": "mainui.boss.main-entry-and-fight.fight.collect-rare"
+        },
+        {
+          "id": "collect-crystal",
+          "kind": "conditional-button",
+          "child": "mainui.boss.main-entry-and-fight.fight.collect-crystal"
+        },
+        {
+          "id": "mystery-box",
+          "kind": "conditional-button",
+          "child": "mainui.boss.main-entry-and-fight.fight.mystery-box"
+        },
+        {
+          "id": "mystery-super-box",
+          "kind": "conditional-button",
+          "child": "mainui.boss.main-entry-and-fight.fight.mystery-super-box"
+        },
+        {
+          "id": "target-list",
+          "kind": "conditional-list",
+          "child": "mainui.boss.main-entry-and-fight.fight.target"
+        },
+        {
+          "id": "state",
+          "kind": "conditional-state",
+          "child": "mainui.boss.main-entry-and-fight.fight.state"
+        },
+        {
+          "id": "holy-counters",
+          "kind": "conditional-state-group",
+          "child": "mainui.boss.main-entry-and-fight.fight.holy"
+        },
+        {
+          "id": "cross",
+          "kind": "conditional-button",
+          "child": "mainui.boss.main-entry-and-fight.fight.cross"
+        },
+        {
+          "id": "kai",
+          "kind": "conditional-button",
+          "child": "mainui.boss.main-entry-and-fight.fight.kai"
+        },
+        {
+          "id": "guard",
+          "kind": "conditional-button",
+          "child": "mainui.boss.main-entry-and-fight.fight.guard"
+        },
+        {
+          "id": "exit",
+          "kind": "button-confirm",
+          "child": "mainui.boss.main-entry-and-fight.fight.exit"
+        },
+        {
+          "id": "special-boss",
+          "kind": "conditional-button",
+          "child": "mainui.boss.main-entry-and-fight.fight.special-boss"
+        },
+        {
+          "id": "war-free",
+          "kind": "conditional-button-countdown",
+          "child": "mainui.boss.main-entry-and-fight.fight.war-free"
+        },
+        {
+          "id": "reborn",
+          "kind": "conditional-button-popup",
+          "child": "mainui.boss.main-entry-and-fight.fight.reborn"
+        },
+        {
+          "id": "assist",
+          "kind": "conditional-panel",
+          "child": "mainui.boss.main-entry-and-fight.fight.assist"
+        },
+        {
+          "id": "boss-hp",
+          "kind": "scene-runtime-state",
+          "child": "mainui.boss.main-entry-and-fight.fight.boss-hp"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.boss.main-entry-and-fight.fight.damage, mainui.boss.main-entry-and-fight.fight.wayfinding, mainui.boss.main-entry-and-fight.fight.target, mainui.boss.main-entry-and-fight.fight.collect-ordinary, mainui.boss.main-entry-and-fight.fight.collect-rare, mainui.boss.main-entry-and-fight.fight.collect-crystal, mainui.boss.main-entry-and-fight.fight.mystery-box, mainui.boss.main-entry-and-fight.fight.mystery-super-box, mainui.boss.main-entry-and-fight.fight.state, mainui.boss.main-entry-and-fight.fight.holy, mainui.boss.main-entry-and-fight.fight.cross, mainui.boss.main-entry-and-fight.fight.kai, mainui.boss.main-entry-and-fight.fight.guard, mainui.boss.main-entry-and-fight.fight.exit, mainui.boss.main-entry-and-fight.fight.special-boss, mainui.boss.main-entry-and-fight.fight.reborn, mainui.boss.main-entry-and-fight.fight.assist"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.damage",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "control_inventory": [
+        {
+          "id": "open-close",
+          "kind": "toggle-button",
+          "child": "mainui.boss.main-entry-and-fight.fight.damage.open-close"
+        },
+        {
+          "id": "top3-list",
+          "kind": "list",
+          "child": "mainui.boss.main-entry-and-fight.fight.damage.top3-list"
+        },
+        {
+          "id": "self-row",
+          "kind": "conditional-state",
+          "child": "mainui.boss.main-entry-and-fight.fight.damage.self-row"
+        },
+        {
+          "id": "intro",
+          "kind": "conditional-button-popup",
+          "child": "mainui.boss.main-entry-and-fight.fight.damage.intro"
+        },
+        {
+          "id": "guild-help",
+          "kind": "conditional-button-transaction",
+          "child": "mainui.boss.main-entry-and-fight.fight.damage.guild-help"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.boss.main-entry-and-fight.fight.damage.intro, mainui.boss.main-entry-and-fight.fight.damage.guild-help"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.damage.open-close",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.fight.damage",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "runtime_gap": "已由 BossFightSceneView/BossDamageItemView 接管，但未启动 Unity/Web，缺真实 PointerClick、显隐生命周期与老端像素对比"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.damage.top3-list",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.fight.damage",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "runtime_gap": "已消费 46019 的 DamageTop3 并复用模板；仍缺真实协议状态、ScrollRect 裁切/末项和老端伤害口径核对"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.damage.self-row",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.fight.damage",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "runtime_gap": "已消费 46022 DamageSelf；前三名奖牌 Sprite、绝对伤害/百分比最终文案须以真实老端状态校准"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.damage.intro",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.fight.damage",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "说明弹窗属于 Common 跨模块依赖，且开放条件来自 Guild/场景运行态"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.damage.guild-help",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.main-entry-and-fight.fight.damage",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "40401/40403 是账号写事务且依赖 BossSceneManager instance_id；本轮禁止账号写与跨模块改动"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.wayfinding",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "control_inventory": [
+        {
+          "id": "boss-tab",
+          "kind": "tab",
+          "child": "mainui.boss.main-entry-and-fight.fight.wayfinding.boss-tab"
+        },
+        {
+          "id": "task-tab",
+          "kind": "tab",
+          "child": "mainui.boss.main-entry-and-fight.fight.wayfinding.task-tab"
+        },
+        {
+          "id": "boss-scroll-select",
+          "kind": "list-action",
+          "child": "mainui.boss.main-entry-and-fight.fight.wayfinding.boss-scroll-select"
+        },
+        {
+          "id": "task-scroll-select",
+          "kind": "list-action",
+          "child": "mainui.boss.main-entry-and-fight.fight.wayfinding.task-scroll-select"
+        },
+        {
+          "id": "instruction",
+          "kind": "button-popup",
+          "child": "mainui.boss.main-entry-and-fight.fight.wayfinding.instruction"
+        },
+        {
+          "id": "vit-add",
+          "kind": "button-popup",
+          "child": "mainui.boss.main-entry-and-fight.fight.wayfinding.vit-add"
+        },
+        {
+          "id": "vit-progress",
+          "kind": "state",
+          "child": "mainui.boss.main-entry-and-fight.fight.wayfinding.vit-progress"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.boss.main-entry-and-fight.fight.wayfinding.boss-tab, mainui.boss.main-entry-and-fight.fight.wayfinding.task-tab, mainui.boss.main-entry-and-fight.fight.wayfinding.boss-scroll-select, mainui.boss.main-entry-and-fight.fight.wayfinding.task-scroll-select, mainui.boss.main-entry-and-fight.fight.wayfinding.instruction, mainui.boss.main-entry-and-fight.fight.wayfinding.vit-add, mainui.boss.main-entry-and-fight.fight.wayfinding.vit-progress"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.wayfinding.boss-tab",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.fight.wayfinding",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "BossWayFindingItem 仍为 Generated Bind，缺场景 Manager 与业务 View"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.wayfinding.task-tab",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.fight.wayfinding",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "BossWayFindingItem 仍为 Generated Bind，任务数据消费者未迁移"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.wayfinding.boss-scroll-select",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.main-entry-and-fight.fight.wayfinding",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "选择目标/寻路依赖真实场景实体、坐标和导航系统，本岛无等价运行时"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.wayfinding.task-scroll-select",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.main-entry-and-fight.fight.wayfinding",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "任务跳转/寻路是跨 Task 与场景系统依赖，本岛不伪造"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.wayfinding.instruction",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.fight.wayfinding",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "说明弹窗属于 Common 跨模块依赖"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.wayfinding.vit-add",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.main-entry-and-fight.fight.wayfinding",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "体力购买/使用属于账号写事务且相关弹窗消费者未迁移"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.wayfinding.vit-progress",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.fight.wayfinding",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "46044 模型已有但 BossWayFindingItem 业务 View 尚未接管"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.target",
+      "type": "page",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "control_inventory": [
+        {
+          "id": "scroll",
+          "kind": "list-scroll",
+          "child": "mainui.boss.main-entry-and-fight.fight.target.scroll"
+        },
+        {
+          "id": "select-target",
+          "kind": "list-item-action",
+          "child": "mainui.boss.main-entry-and-fight.fight.target.select-target"
+        },
+        {
+          "id": "attribution",
+          "kind": "conditional-state",
+          "child": "mainui.boss.main-entry-and-fight.fight.target.attribution"
+        },
+        {
+          "id": "attack-suffer-effects",
+          "kind": "dynamic-effect",
+          "child": "mainui.boss.main-entry-and-fight.fight.target.effects"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.boss.main-entry-and-fight.fight.target.scroll, mainui.boss.main-entry-and-fight.fight.target.select-target, mainui.boss.main-entry-and-fight.fight.target.attribution, mainui.boss.main-entry-and-fight.fight.target.effects"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.target.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.fight.target",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "目标列表由场景实时实体驱动；Prefab/Generated Bind 存在但缺消费者"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.target.select-target",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.main-entry-and-fight.fight.target",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "攻击/选怪依赖场景实体与战斗状态，禁止用静态点击假冒"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.target.attribution",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.fight.target",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "归属公会/玩家来自场景实时态，当前无等价数据链"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.target.effects",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.fight.target",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "攻/受击动态特效缺场景事件、双时点像素与离屏合成证据"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.collect-ordinary",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "采集依赖真实宝箱实体、坐标、寻路和场景事务"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.collect-rare",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "采集依赖真实宝箱实体、坐标、寻路和场景事务"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.collect-crystal",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "采集依赖真实宝箱实体、坐标、寻路和场景事务"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.mystery-box",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "Mystery 场景箱子与坐标由 BossMystery/场景运行时提供"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.mystery-super-box",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "Mystery 场景秘宝与坐标由 BossMystery/场景运行时提供"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "状态图语义由实时战斗/采集状态驱动，当前仅有静态绑定"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.holy",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "HolyTerritory 跨模块计数和状态消费者不在本岛"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.cross",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "跨服 Boss 跳转属于 KfBoss/其他模块依赖，本岛只登记"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.kai",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "跨模块功能入口，无本岛授权消费者"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.guard",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "跨模块功能入口，无本岛授权消费者"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.exit",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "46004 离场必须经过 Common 确认弹窗并按场景类型分流；本岛不直发协议绕过确认"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.special-boss",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "特殊 Boss 定位/选怪依赖场景实时实体与 BossSceneManager"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.war-free",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "runtime_gap": "20201/20203 只读拉取与倒计时显示已接；点击打开 BossWarFreeView 仍属跨模块 blocker，且缺真实倒计时/重进复验"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.reborn",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "老端需附近死亡 Boss 的实例/坐标判断并打开未转换 BossRebornView；当前只有 BossRebornTipsViewBind"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.assist",
+      "type": "reversible-write",
+      "risk": "reversible-write",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "blocked_reason": "面板显隐已有 BossHelpPanelView，但伤害列表与求助目标依赖场景 instance_id；真实求助是账号写事务"
+    },
+    {
+      "id": "mainui.boss.main-entry-and-fight.fight.boss-hp",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.boss.main-entry-and-fight.fight",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_boss_ui_static_island/boss-main/audit-summary.md"
+      ],
+      "runtime_gap": "已按老端 5 秒节奏发送 46040 查询；Boss 大血条 hiter_vo 消费链与玩家可见像素仍缺场景运行态证据"
+    }
+  ],
+  "summary": {
+    "total": 46,
+    "status_counts": {
+      "blocked": 41,
+      "needs-runtime-verify": 5
+    }
+  }
+}

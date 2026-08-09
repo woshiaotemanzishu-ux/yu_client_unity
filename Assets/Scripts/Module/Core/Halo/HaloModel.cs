@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Util;
 
@@ -21,6 +22,12 @@ namespace Shenxiao.Module.Core.Halo
         private readonly List<(int Id, int State)> _rewards = new List<(int Id, int State)>();
         public IReadOnlyList<(int Id, int State)> Rewards => _rewards;
 
+        public int GetRewardState(int id)
+        {
+            int index = _rewards.FindIndex(entry => entry.Id == id);
+            return index >= 0 ? _rewards[index].State : 0;
+        }
+
         /// <summary>51400 SettingList[u16×item_to_bin_1{HaloId:16,Type:16,State:8}] 命名错位存档
         /// (pt_514.erl:84-94):老端 HaloController.ts:80-85 用 v.halo_id 当业务"特权类型"(HaloPrivilegeType 枚举,
         /// 如 ArenaSweep=3/DungeonSweep=5),v.type 是子域(如 DUN_TYPE.Equip/Dragon);wire 字段名 "Type" 反而
@@ -34,6 +41,7 @@ namespace Shenxiao.Module.Core.Halo
             EndTime = endTime;
             _rewards.Clear();
             if (rewards != null) _rewards.AddRange(rewards);
+            _settingData.Clear();
             if (settingList != null)
             {
                 foreach ((int haloId, int type, int state) in settingList) SetSetting(haloId, type, state);
@@ -89,10 +97,31 @@ namespace Shenxiao.Module.Core.Halo
     /// </summary>
     public static class HaloConfigs
     {
+        public sealed class Reward
+        {
+            public int Type;
+            public int TypeId;
+            public int Count;
+        }
+
+        public sealed class Entry
+        {
+            public int Id;
+            public string Picture = "";
+            public string Description = "";
+            public string SupplementDescription = "";
+            public int Weight;
+            public string ConditionType = "";
+            public int ConditionValue;
+            public readonly List<Reward> Rewards = new List<Reward>();
+        }
+
         private static JObject _cfg;
+        private static readonly List<Entry> _entries = new List<Entry>();
 
         public static bool IsLoaded => _cfg != null;
         public static int Count => _cfg?.Count ?? 0;
+        public static IReadOnlyList<Entry> Entries => _entries;
 
         public static async Task EnsureLoaded()
         {
@@ -107,9 +136,60 @@ namespace Shenxiao.Module.Core.Halo
             }
             _cfg = JObject.Parse(asset.text);
             ResManager.Release(asset);
+            ParseEntries();
             GameLog.Info("Halo", "config_hero_halo={0}", _cfg.Count);
         }
 
         public static JObject Get(int id) => _cfg?[id.ToString()] as JObject;
+
+        private static void ParseEntries()
+        {
+            _entries.Clear();
+            if (_cfg == null) return;
+            foreach (JProperty property in _cfg.Properties())
+            {
+                if (!(property.Value is JObject row)) continue;
+                var entry = new Entry
+                {
+                    Id = row.Value<int?>("id") ?? 0,
+                    Picture = row.Value<string>("picture") ?? "",
+                    Description = row.Value<string>("desc") ?? "",
+                    SupplementDescription = row.Value<string>("supplement_desc") ?? "",
+                    Weight = row.Value<int?>("weight") ?? 0
+                };
+                ParseCondition(row.Value<string>("condition"), entry);
+                ParseRewards(row.Value<string>("reward"), entry.Rewards);
+                if (entry.Id > 0) _entries.Add(entry);
+            }
+            _entries.Sort((left, right) => right.Weight.CompareTo(left.Weight));
+        }
+
+        private static void ParseCondition(string raw, Entry entry)
+        {
+            ErlangTerm root = ErlangParser.Parse(raw ?? "[]");
+            IReadOnlyList<ErlangTerm> list = root?.Items;
+            ErlangTerm tuple = list != null && list.Count > 0 ? list[0] : null;
+            if (tuple?.Items == null || tuple.Items.Count < 2) return;
+            entry.ConditionType = tuple.Get<string>(0) ?? "";
+            entry.ConditionValue = tuple.Get<int>(1);
+        }
+
+        private static void ParseRewards(string raw, List<Reward> target)
+        {
+            ErlangTerm root = ErlangParser.Parse(raw ?? "[]");
+            IReadOnlyList<ErlangTerm> list = root?.Items;
+            if (list == null) return;
+            for (int i = 0; i < list.Count; i++)
+            {
+                ErlangTerm tuple = list[i];
+                if (tuple?.Items == null || tuple.Items.Count < 3) continue;
+                target.Add(new Reward
+                {
+                    Type = tuple.Get<int>(0),
+                    TypeId = tuple.Get<int>(1),
+                    Count = tuple.Get<int>(2)
+                });
+            }
+        }
     }
 }

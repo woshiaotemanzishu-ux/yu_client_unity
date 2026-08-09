@@ -1,0 +1,324 @@
+{
+  "schema": 6,
+  "route": "mainui.addvipservice",
+  "baseline": {
+    "audit_kind": "static-only",
+    "legacy_root": "E:/GitProject/yu_client/h5/src/addVipService/AddVipServiceView.ts",
+    "unity_prefab": "Assets/Prefabs/UI/AddVipService/AddVipServiceModule.prefab",
+    "runtime_authority": "not collected"
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_addvipservice_static_v1/route-manifest.json",
+    "sha256": "871a6897823260ad6834ebf06964e57beb0f4a8320373ff7d4daf099714c7bd7"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "addvip.route",
+      "parent": null,
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "icon_114_condition",
+          "kind": "conditional-entry",
+          "child": "addvip.entry_condition"
+        },
+        {
+          "id": "icon_114_click",
+          "kind": "navigation",
+          "child": "addvip.entry_open"
+        },
+        {
+          "id": "channel_config",
+          "kind": "conditional-state",
+          "child": "addvip.config_selection"
+        },
+        {
+          "id": "_img_bg",
+          "kind": "image",
+          "child": "addvip.image.background"
+        },
+        {
+          "id": "_img_title",
+          "kind": "config-image",
+          "child": "addvip.image.title"
+        },
+        {
+          "id": "_img_link",
+          "kind": "config-image",
+          "child": "addvip.image.link"
+        },
+        {
+          "id": "_img_bg1",
+          "kind": "image",
+          "child": "addvip.image.bg1"
+        },
+        {
+          "id": "bg3",
+          "kind": "image",
+          "child": "addvip.image.bg3"
+        },
+        {
+          "id": "_img_bg2",
+          "kind": "image",
+          "child": "addvip.image.divider"
+        },
+        {
+          "id": "_lab_title",
+          "kind": "config-text",
+          "child": "addvip.text.title"
+        },
+        {
+          "id": "des",
+          "kind": "config-text",
+          "child": "addvip.text.description"
+        },
+        {
+          "id": "Content",
+          "kind": "dynamic-list",
+          "child": "addvip.rewards"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "addvip.close"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: addvip.entry_condition, addvip.entry_open, addvip.config_selection, addvip.image.background, addvip.image.title, addvip.image.link, addvip.image.bg1, addvip.image.bg3, addvip.image.divider, addvip.text.title, addvip.text.description, addvip.rewards, addvip.close"
+    },
+    {
+      "id": "addvip.entry_condition",
+      "parent": "addvip.route",
+      "type": "read",
+      "risk": "read-only",
+      "note": "!is_alpha && 15908 is_buy flag && plat_name in ClientAddVipService.tem",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "ClientAddVipService 未迁移且 ChannelWhitelist 为空，图标 114 保守恒隐藏；配置/主界面链在禁止修改范围"
+    },
+    {
+      "id": "addvip.entry_open",
+      "parent": "addvip.route",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "icon 114 opens AddVipServiceView",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "入口恒隐藏且没有消费 AddVipServiceViewBind 的业务 View，无法真实打开页面"
+    },
+    {
+      "id": "addvip.config_selection",
+      "parent": "addvip.route",
+      "type": "read",
+      "risk": "read-only",
+      "note": "select channel row by tem; unmatched row renders no dynamic content",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "必需的 ClientAddVipService 渠道配置及 Unity 消费链缺失，本轮禁止修改 ClientConfigSync"
+    },
+    {
+      "id": "addvip.image.background",
+      "parent": "addvip.route",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Prefab 节点存在但业务 View 缺失，运行时资源赋值链不可达"
+    },
+    {
+      "id": "addvip.image.title",
+      "parent": "addvip.route",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "配置 title 与业务 View 消费链缺失，无法确定当前渠道资源"
+    },
+    {
+      "id": "addvip.image.link",
+      "parent": "addvip.route",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "配置 code 与业务 View 消费链缺失，无法确定当前渠道二维码/联系资源"
+    },
+    {
+      "id": "addvip.image.bg1",
+      "parent": "addvip.route",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "页面业务 View/入口链缺失，不能取得真实运行态像素证据"
+    },
+    {
+      "id": "addvip.image.bg3",
+      "parent": "addvip.route",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "页面业务 View/入口链缺失，不能取得真实运行态像素证据"
+    },
+    {
+      "id": "addvip.image.divider",
+      "parent": "addvip.route",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "业务 View 缺失，common2/com_line_5 的运行时赋值与像素不可验证"
+    },
+    {
+      "id": "addvip.text.title",
+      "parent": "addvip.route",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "配置 des1 与 HTML/居中业务布局链缺失"
+    },
+    {
+      "id": "addvip.text.description",
+      "parent": "addvip.route",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "配置 des 与 HTML/自动高度业务布局链缺失"
+    },
+    {
+      "id": "addvip.rewards",
+      "parent": "addvip.route",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "reward_config_each",
+          "kind": "state-matrix",
+          "child": "addvip.rewards.data"
+        },
+        {
+          "id": "reward_layout",
+          "kind": "layout",
+          "child": "addvip.rewards.layout"
+        },
+        {
+          "id": "equipment_item_each",
+          "kind": "shared-item-navigation",
+          "child": "addvip.rewards.item_detail"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: addvip.rewards.data, addvip.rewards.layout, addvip.rewards.item_detail"
+    },
+    {
+      "id": "addvip.rewards.data",
+      "parent": "addvip.rewards",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "配置 reward 与 GoodsModel 映射消费链缺失，不能猜测奖励集合"
+    },
+    {
+      "id": "addvip.rewards.layout",
+      "parent": "addvip.rewards",
+      "type": "read",
+      "risk": "read-only",
+      "note": "85x85 items in HBox Content",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "Prefab 有 Content/模板，但业务克隆链缺失，无法核对 1/2/3 项居中与溢出"
+    },
+    {
+      "id": "addvip.rewards.item_detail",
+      "parent": "addvip.rewards",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "业务克隆与数据链缺失，无法逐格核对 EquipmentItem 详情身份及返回"
+    },
+    {
+      "id": "addvip.close",
+      "parent": "addvip.route",
+      "type": "return",
+      "risk": "read-only",
+      "note": "explicit close button and generic click sound",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "没有消费 Bind 的业务 View，close 未绑定；无法验证关闭、遮罩穿透与通用点击声音"
+    }
+  ],
+  "summary": {
+    "total": 17,
+    "status_counts": {
+      "blocked": 17
+    },
+    "details": {
+      "completion_level": "static inventory only",
+      "prefab": "existing and preserved",
+      "blocker": "business View and ClientAddVipService consumption chain are missing; required integration leaves the permitted file island",
+      "runtime": "not run by instruction",
+      "transactions": "page has no recharge/claim/purchase controls"
+    }
+  },
+  "updated_at": "2026-08-09T15:29:00+08:00"
+}

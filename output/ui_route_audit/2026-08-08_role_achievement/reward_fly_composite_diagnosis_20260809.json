@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "observed_at": "2026-08-09T12:05:29+08:00",
+  "status": "defect",
+  "implemented": false,
+  "supersedes": {
+    "path": "output/ui_route_audit/2026-08-08_role_achievement/reward_fly_diagnosis_20260809.json",
+    "scope": "current visible root-cause conclusion only; legacy cache/source topology remains a secondary phase and composition check"
+  },
+  "user_observation": {
+    "quantity": "matches closely",
+    "size": "matches closely",
+    "direction": "matches closely",
+    "representation": "wrong: transparent green jade/glow regions become opaque gray discs or blocks",
+    "web": "user reports the top UI icon effect becomes worse in WebGL"
+  },
+  "evidence": [
+    {
+      "path": "output/ui_route_audit/2026-08-08_role_achievement/user_runtime_20260809_reward_composite_attribute.png",
+      "sha256": "55c792f989d1c35141afec050a00ce0721e2c978dc8de7f6b8a887ef66bb14c8"
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-08_role_achievement/user_runtime_20260809_reward_composite_achievement.png",
+      "sha256": "b2ec0945ef08ea99da86f2d6017cdc9661325345fc9ef1d7102de60ac9f03e4a"
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-08_role_achievement/user_runtime_20260809_mainui_effect_controls.png",
+      "sha256": "59d487a3f3a77c752113853fba1684725df3ee6107d258da0973958f78d445c5"
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-08_role_achievement/old_reward_fly_baseline_20260809/_shots/60_reward_fly_080ms.png",
+      "sha256": "39b28315643a8be7068a431716ee10619cc368208347da3b0996103b8867e9c4"
+    },
+    {
+      "path": "output/ui_route_audit/2026-08-08_role_achievement/old_reward_fly_baseline_20260809/_shots/60_reward_fly_250ms.png",
+      "sha256": "58f013b33bdc2ddece867a9941e9d6cdf0d4c5d420935483974918d3319ad70a"
+    }
+  ],
+  "pipeline": [
+    "ui_bangyu_1/ui_bangyu_2 source textures and mixed particle materials",
+    "LayaParticleUnlit renders into UIEffectStage ARGB32 RenderTexture",
+    "all UIEffectStage channels use the same UIEffectAdditive RawImage material",
+    "UIEffectAdditive discards RenderTexture alpha and returns alpha=max(rgb)",
+    "Blend One OneMinusSrcAlpha composites the synthetic coverage into Canvas"
+  ],
+  "deterministic_texture_probe": {
+    "path": "Assets/GameRes/effect/textures/glow/lyz_glow_134.png",
+    "sha256": "6592ef3d34d3556791d296171f24f9661ea7b7948de253b2de1c71b096c8ca14",
+    "size": [128, 128],
+    "alpha_zero_pixels": 8255,
+    "alpha_zero_pixels_with_nonzero_rgb": 8255,
+    "corner_rgba": [78, 77, 78, 0]
+  },
+  "code_evidence": [
+    {
+      "path": "Assets/Shaders/UIEffectAdditive.shader",
+      "sha256": "956520b7d8f8ab15544cf478640ded49608646c6dc2e22dd2fd93a602958b85c",
+      "fact": "fragment output alpha is saturate(max(rgb)); sampled RenderTexture alpha is ignored"
+    },
+    {
+      "path": "Assets/Scripts/Common/UI3D/UIEffectStage.cs",
+      "sha256": "93ac63cf9ad10d64b5e926115b38d0e34fa5e6a606c71dc04d0c6d732e60f657",
+      "fact": "all channel RawImages receive the same UIEffectAdditive material; channel RT is ARGB32"
+    },
+    {
+      "path": "Assets/Shaders/LayaParticleUnlit.shader",
+      "sha256": "750b612aab11ac139f6c041f034520b7bd8554ff6ce30ccceafb4f308dfdec1f",
+      "fact": "source materials retain different RGB blend modes, while final UI composite applies one global interpretation"
+    }
+  ],
+  "root_cause": "The final UI composite conflates RGB luminance with pixel coverage. Transparent pixels with retained gray RGB are converted into nonzero alpha and become visible gray discs. This is independent of the already-correct quantity, size and direction.",
+  "controls": {
+    "same_pipeline_affected": "main UI top ui_zhujiemianzhuanquan also uses UIEffectStage and shares the same composite risk",
+    "same_pipeline_currently_acceptable": "bottom-right FightingUp/变强 is a control showing that some assets happen to tolerate the luminance-alpha heuristic",
+    "different_pipeline_healthy": "scene upgrade, running and skill effects do not use the final UIEffectStage RawImage composite and remain healthy"
+  },
+  "web_boundary": "The shared composite defect is confirmed. The exact WebGL amplification mechanism is not yet confirmed; capture raw RT RGBA and final Canvas at matched Editor/WebGL timepoints before attributing it to color space or shader precision.",
+  "next_fix_boundary": "Do not change particle count, size, direction or global LayaParticleUnlit. Introduce verified per-composite-mode rendering that preserves actual RT alpha/premultiplication or additive semantics; split channels/intermediate surfaces when different modes cannot share one already-composited RT."
+}

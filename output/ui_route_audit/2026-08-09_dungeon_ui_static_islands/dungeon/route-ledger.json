@@ -1,0 +1,1641 @@
+{
+  "schema": 6,
+  "route": "core.dungeon",
+  "baseline": {
+    "audit_mode": "static-no-runtime",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/dungeon",
+      "E:/GitProject/yu_client/h5/src/dungeonRune"
+    ],
+    "unity_sources": [
+      "Assets/Prefabs/UI/DungeonCommon/DungeonCommonModule.prefab",
+      "Assets/Prefabs/UI/DungeonRune/DungeonRuneModule.prefab",
+      "Assets/Scripts/Module/Core/Dungeon"
+    ]
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_dungeon_ui_static_islands/dungeon/route-manifest.json",
+    "sha256": "5e476b624f8edf729508270349b698278ce7bf67c728ee73ce6d30f7f2d0de6b"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "core.dungeon",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "control-1",
+          "kind": "module",
+          "child": "core.dungeon.common"
+        },
+        {
+          "id": "control-2",
+          "kind": "module",
+          "child": "core.dungeon.rune"
+        }
+      ],
+      "parent": null,
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: core.dungeon.common, core.dungeon.rune"
+    },
+    {
+      "id": "core.dungeon.common",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "control-1",
+          "kind": "popup",
+          "child": "core.dungeon.common.buy"
+        },
+        {
+          "id": "control-2",
+          "kind": "popup",
+          "child": "core.dungeon.common.victory"
+        },
+        {
+          "id": "control-3",
+          "kind": "popup",
+          "child": "core.dungeon.common.failure"
+        },
+        {
+          "id": "control-4",
+          "kind": "panel",
+          "child": "core.dungeon.common.fight"
+        },
+        {
+          "id": "control-5",
+          "kind": "panel",
+          "child": "core.dungeon.common.fight-mask"
+        },
+        {
+          "id": "control-6",
+          "kind": "list-item",
+          "child": "core.dungeon.common.guild-help"
+        },
+        {
+          "id": "control-7",
+          "kind": "effect",
+          "child": "core.dungeon.common.result-effect"
+        },
+        {
+          "id": "control-8",
+          "kind": "list-item",
+          "child": "core.dungeon.common.award-item"
+        }
+      ],
+      "parent": "core.dungeon",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: core.dungeon.common.buy, core.dungeon.common.victory, core.dungeon.common.failure, core.dungeon.common.fight, core.dungeon.common.fight-mask, core.dungeon.common.guild-help, core.dungeon.common.result-effect, core.dungeon.common.award-item"
+    },
+    {
+      "id": "core.dungeon.rune",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "control-1",
+          "kind": "page",
+          "child": "core.dungeon.rune.enter"
+        },
+        {
+          "id": "control-2",
+          "kind": "popup",
+          "child": "core.dungeon.rune.daily"
+        },
+        {
+          "id": "control-3",
+          "kind": "popup",
+          "child": "core.dungeon.rune.first"
+        },
+        {
+          "id": "control-4",
+          "kind": "popup",
+          "child": "core.dungeon.rune.unlock"
+        },
+        {
+          "id": "control-5",
+          "kind": "popup",
+          "child": "core.dungeon.rune.target"
+        }
+      ],
+      "parent": "core.dungeon",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: core.dungeon.rune.enter, core.dungeon.rune.daily, core.dungeon.rune.first, core.dungeon.rune.unlock, core.dungeon.rune.target"
+    },
+    {
+      "id": "core.dungeon.common.buy",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "control-1",
+          "kind": "read",
+          "child": "core.dungeon.common.buy.content"
+        },
+        {
+          "id": "control-2",
+          "kind": "return",
+          "child": "core.dungeon.common.buy.close"
+        },
+        {
+          "id": "control-3",
+          "kind": "return",
+          "child": "core.dungeon.common.buy.cancel"
+        },
+        {
+          "id": "control-4",
+          "kind": "transaction",
+          "child": "core.dungeon.common.buy.confirm"
+        },
+        {
+          "id": "control-5",
+          "kind": "navigation",
+          "child": "core.dungeon.common.buy.vip-add"
+        }
+      ],
+      "parent": "core.dungeon.common",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: core.dungeon.common.buy.confirm, core.dungeon.common.buy.vip-add"
+    },
+    {
+      "id": "core.dungeon.common.buy.content",
+      "parent": "core.dungeon.common.buy",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "代码/Prefab 静态链已落位；按本轮约束未启动 Unity/真实 Web，仍需同账号运行态验证点击、数据、布局、滚动、关闭重开与即时刷新。"
+    },
+    {
+      "id": "core.dungeon.common.buy.close",
+      "parent": "core.dungeon.common.buy",
+      "type": "return",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "代码/Prefab 静态链已落位；按本轮约束未启动 Unity/真实 Web，仍需同账号运行态验证点击、数据、布局、滚动、关闭重开与即时刷新。"
+    },
+    {
+      "id": "core.dungeon.common.buy.cancel",
+      "parent": "core.dungeon.common.buy",
+      "type": "return",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "代码/Prefab 静态链已落位；按本轮约束未启动 Unity/真实 Web，仍需同账号运行态验证点击、数据、布局、滚动、关闭重开与即时刷新。"
+    },
+    {
+      "id": "core.dungeon.common.buy.confirm",
+      "parent": "core.dungeon.common.buy",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "该叶为正式协议/领取/挑战/退出写事务；本轮禁止账号写，且需成功回包、即时刷新与重开证据。"
+    },
+    {
+      "id": "core.dungeon.common.buy.vip-add",
+      "parent": "core.dungeon.common.buy",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖 VIP/分享/Activity/强化/推送礼包等禁区或跨模块入口，仅登记 blocker。"
+    },
+    {
+      "id": "core.dungeon.common.victory",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "control-1",
+          "kind": "return",
+          "child": "core.dungeon.common.victory.background-close"
+        },
+        {
+          "id": "control-2",
+          "kind": "read",
+          "child": "core.dungeon.common.victory.stars"
+        },
+        {
+          "id": "control-3",
+          "kind": "read",
+          "child": "core.dungeon.common.victory.reward-list"
+        },
+        {
+          "id": "control-4",
+          "kind": "read",
+          "child": "core.dungeon.common.victory.exp"
+        },
+        {
+          "id": "control-5",
+          "kind": "read",
+          "child": "core.dungeon.common.victory.layer"
+        },
+        {
+          "id": "control-6",
+          "kind": "read",
+          "child": "core.dungeon.common.victory.equip-reward"
+        },
+        {
+          "id": "control-7",
+          "kind": "read",
+          "child": "core.dungeon.common.victory.kill"
+        },
+        {
+          "id": "control-8",
+          "kind": "read",
+          "child": "core.dungeon.common.victory.copper"
+        },
+        {
+          "id": "control-9",
+          "kind": "read",
+          "child": "core.dungeon.common.victory.treasure-effect"
+        },
+        {
+          "id": "control-10",
+          "kind": "read",
+          "child": "core.dungeon.common.victory.timer"
+        },
+        {
+          "id": "control-11",
+          "kind": "transaction",
+          "child": "core.dungeon.common.victory.left-action"
+        },
+        {
+          "id": "control-12",
+          "kind": "transaction",
+          "child": "core.dungeon.common.victory.right-action"
+        },
+        {
+          "id": "control-13",
+          "kind": "navigation",
+          "child": "core.dungeon.common.victory.share"
+        }
+      ],
+      "parent": "core.dungeon.common",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: core.dungeon.common.victory.exp, core.dungeon.common.victory.layer, core.dungeon.common.victory.equip-reward, core.dungeon.common.victory.kill, core.dungeon.common.victory.copper, core.dungeon.common.victory.treasure-effect, core.dungeon.common.victory.timer, core.dungeon.common.victory.left-action, core.dungeon.common.victory.right-action, core.dungeon.common.victory.share"
+    },
+    {
+      "id": "core.dungeon.common.victory.background-close",
+      "parent": "core.dungeon.common.victory",
+      "type": "return",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "代码/Prefab 静态链已落位；按本轮约束未启动 Unity/真实 Web，仍需同账号运行态验证点击、数据、布局、滚动、关闭重开与即时刷新。"
+    },
+    {
+      "id": "core.dungeon.common.victory.stars",
+      "parent": "core.dungeon.common.victory",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "代码/Prefab 静态链已落位；按本轮约束未启动 Unity/真实 Web，仍需同账号运行态验证点击、数据、布局、滚动、关闭重开与即时刷新。"
+    },
+    {
+      "id": "core.dungeon.common.victory.reward-list",
+      "parent": "core.dungeon.common.victory",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "代码/Prefab 静态链已落位；按本轮约束未启动 Unity/真实 Web，仍需同账号运行态验证点击、数据、布局、滚动、关闭重开与即时刷新。"
+    },
+    {
+      "id": "core.dungeon.common.victory.exp",
+      "parent": "core.dungeon.common.victory",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "缺真实 Unity/Web 同路运行证据，当前静态审计不能替代玩家可见表现。"
+    },
+    {
+      "id": "core.dungeon.common.victory.layer",
+      "parent": "core.dungeon.common.victory",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "缺真实 Unity/Web 同路运行证据，当前静态审计不能替代玩家可见表现。"
+    },
+    {
+      "id": "core.dungeon.common.victory.equip-reward",
+      "parent": "core.dungeon.common.victory",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "奖励内容/领取需要专属配置与 61112/61114 回包；本轮只接只读 61113/61115 原始状态，不伪造奖励。"
+    },
+    {
+      "id": "core.dungeon.common.victory.kill",
+      "parent": "core.dungeon.common.victory",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "缺真实 Unity/Web 同路运行证据，当前静态审计不能替代玩家可见表现。"
+    },
+    {
+      "id": "core.dungeon.common.victory.copper",
+      "parent": "core.dungeon.common.victory",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "缺真实 Unity/Web 同路运行证据，当前静态审计不能替代玩家可见表现。"
+    },
+    {
+      "id": "core.dungeon.common.victory.treasure-effect",
+      "parent": "core.dungeon.common.victory",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "缺真实 Unity/Web 同路运行证据，当前静态审计不能替代玩家可见表现。"
+    },
+    {
+      "id": "core.dungeon.common.victory.timer",
+      "parent": "core.dungeon.common.victory",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "缺真实 Unity/Web 同路运行证据，当前静态审计不能替代玩家可见表现。"
+    },
+    {
+      "id": "core.dungeon.common.victory.left-action",
+      "parent": "core.dungeon.common.victory",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "该叶为正式协议/领取/挑战/退出写事务；本轮禁止账号写，且需成功回包、即时刷新与重开证据。"
+    },
+    {
+      "id": "core.dungeon.common.victory.right-action",
+      "parent": "core.dungeon.common.victory",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "该叶为正式协议/领取/挑战/退出写事务；本轮禁止账号写，且需成功回包、即时刷新与重开证据。"
+    },
+    {
+      "id": "core.dungeon.common.victory.share",
+      "parent": "core.dungeon.common.victory",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖 VIP/分享/Activity/强化/推送礼包等禁区或跨模块入口，仅登记 blocker。"
+    },
+    {
+      "id": "core.dungeon.common.failure",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "control-1",
+          "kind": "return",
+          "child": "core.dungeon.common.failure.background-close"
+        },
+        {
+          "id": "control-2",
+          "kind": "return",
+          "child": "core.dungeon.common.failure.close"
+        },
+        {
+          "id": "control-3",
+          "kind": "navigation",
+          "child": "core.dungeon.common.failure.go"
+        },
+        {
+          "id": "control-4",
+          "kind": "read",
+          "child": "core.dungeon.common.failure.goods-list"
+        },
+        {
+          "id": "control-5",
+          "kind": "navigation",
+          "child": "core.dungeon.common.failure.strength-list"
+        },
+        {
+          "id": "control-6",
+          "kind": "navigation",
+          "child": "core.dungeon.common.failure.activity"
+        }
+      ],
+      "parent": "core.dungeon.common",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: core.dungeon.common.failure.go, core.dungeon.common.failure.goods-list, core.dungeon.common.failure.strength-list, core.dungeon.common.failure.activity"
+    },
+    {
+      "id": "core.dungeon.common.failure.background-close",
+      "parent": "core.dungeon.common.failure",
+      "type": "return",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "代码/Prefab 静态链已落位；按本轮约束未启动 Unity/真实 Web，仍需同账号运行态验证点击、数据、布局、滚动、关闭重开与即时刷新。"
+    },
+    {
+      "id": "core.dungeon.common.failure.close",
+      "parent": "core.dungeon.common.failure",
+      "type": "return",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "代码/Prefab 静态链已落位；按本轮约束未启动 Unity/真实 Web，仍需同账号运行态验证点击、数据、布局、滚动、关闭重开与即时刷新。"
+    },
+    {
+      "id": "core.dungeon.common.failure.go",
+      "parent": "core.dungeon.common.failure",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "缺真实 Unity/Web 同路运行证据，当前静态审计不能替代玩家可见表现。"
+    },
+    {
+      "id": "core.dungeon.common.failure.goods-list",
+      "parent": "core.dungeon.common.failure",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "缺真实 Unity/Web 同路运行证据，当前静态审计不能替代玩家可见表现。"
+    },
+    {
+      "id": "core.dungeon.common.failure.strength-list",
+      "parent": "core.dungeon.common.failure",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖 VIP/分享/Activity/强化/推送礼包等禁区或跨模块入口，仅登记 blocker。"
+    },
+    {
+      "id": "core.dungeon.common.failure.activity",
+      "parent": "core.dungeon.common.failure",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖 VIP/分享/Activity/强化/推送礼包等禁区或跨模块入口，仅登记 blocker。"
+    },
+    {
+      "id": "core.dungeon.common.fight",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "control-1",
+          "kind": "transaction",
+          "child": "core.dungeon.common.fight.leave"
+        },
+        {
+          "id": "control-2",
+          "kind": "read",
+          "child": "core.dungeon.common.fight.countdown"
+        },
+        {
+          "id": "control-3",
+          "kind": "read",
+          "child": "core.dungeon.common.fight.start-countdown"
+        },
+        {
+          "id": "control-4",
+          "kind": "read",
+          "child": "core.dungeon.common.fight.floor"
+        },
+        {
+          "id": "control-5",
+          "kind": "read",
+          "child": "core.dungeon.common.fight.exit-countdown"
+        },
+        {
+          "id": "control-6",
+          "kind": "read",
+          "child": "core.dungeon.common.fight.guard"
+        },
+        {
+          "id": "control-7",
+          "kind": "read",
+          "child": "core.dungeon.common.fight.guild-help"
+        },
+        {
+          "id": "control-8",
+          "kind": "read",
+          "child": "core.dungeon.common.fight.score"
+        },
+        {
+          "id": "control-9",
+          "kind": "read",
+          "child": "core.dungeon.common.fight.mainline-subview"
+        },
+        {
+          "id": "control-10",
+          "kind": "read",
+          "child": "core.dungeon.common.fight.marriage-subview"
+        },
+        {
+          "id": "control-11",
+          "kind": "read",
+          "child": "core.dungeon.common.fight.heart-subview"
+        },
+        {
+          "id": "control-12",
+          "kind": "read",
+          "child": "core.dungeon.common.fight.copper-subview"
+        },
+        {
+          "id": "control-13",
+          "kind": "read",
+          "child": "core.dungeon.common.fight.rein-subview"
+        },
+        {
+          "id": "control-14",
+          "kind": "read",
+          "child": "core.dungeon.common.fight.kf-subview"
+        },
+        {
+          "id": "control-15",
+          "kind": "read",
+          "child": "core.dungeon.common.fight.dragon-subview"
+        },
+        {
+          "id": "control-16",
+          "kind": "read",
+          "child": "core.dungeon.common.fight.exp-subview"
+        }
+      ],
+      "parent": "core.dungeon.common",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: core.dungeon.common.fight.leave, core.dungeon.common.fight.countdown, core.dungeon.common.fight.start-countdown, core.dungeon.common.fight.floor, core.dungeon.common.fight.exit-countdown, core.dungeon.common.fight.guard, core.dungeon.common.fight.guild-help, core.dungeon.common.fight.score, core.dungeon.common.fight.mainline-subview, core.dungeon.common.fight.marriage-subview, core.dungeon.common.fight.heart-subview, core.dungeon.common.fight.copper-subview, core.dungeon.common.fight.rein-subview, core.dungeon.common.fight.kf-subview, core.dungeon.common.fight.dragon-subview, core.dungeon.common.fight.exp-subview"
+    },
+    {
+      "id": "core.dungeon.common.fight.leave",
+      "parent": "core.dungeon.common.fight",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "该叶为正式协议/领取/挑战/退出写事务；本轮禁止账号写，且需成功回包、即时刷新与重开证据。"
+    },
+    {
+      "id": "core.dungeon.common.fight.countdown",
+      "parent": "core.dungeon.common.fight",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖战斗场景、场景管理、计时/波次/模型或跨岛子面板；均不在本文件岛授权范围。"
+    },
+    {
+      "id": "core.dungeon.common.fight.start-countdown",
+      "parent": "core.dungeon.common.fight",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖战斗场景、场景管理、计时/波次/模型或跨岛子面板；均不在本文件岛授权范围。"
+    },
+    {
+      "id": "core.dungeon.common.fight.floor",
+      "parent": "core.dungeon.common.fight",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖战斗场景、场景管理、计时/波次/模型或跨岛子面板；均不在本文件岛授权范围。"
+    },
+    {
+      "id": "core.dungeon.common.fight.exit-countdown",
+      "parent": "core.dungeon.common.fight",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖战斗场景、场景管理、计时/波次/模型或跨岛子面板；均不在本文件岛授权范围。"
+    },
+    {
+      "id": "core.dungeon.common.fight.guard",
+      "parent": "core.dungeon.common.fight",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖战斗场景、场景管理、计时/波次/模型或跨岛子面板；均不在本文件岛授权范围。"
+    },
+    {
+      "id": "core.dungeon.common.fight.guild-help",
+      "parent": "core.dungeon.common.fight",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖战斗场景、场景管理、计时/波次/模型或跨岛子面板；均不在本文件岛授权范围。"
+    },
+    {
+      "id": "core.dungeon.common.fight.score",
+      "parent": "core.dungeon.common.fight",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖战斗场景、场景管理、计时/波次/模型或跨岛子面板；均不在本文件岛授权范围。"
+    },
+    {
+      "id": "core.dungeon.common.fight.mainline-subview",
+      "parent": "core.dungeon.common.fight",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖战斗场景、场景管理、计时/波次/模型或跨岛子面板；均不在本文件岛授权范围。"
+    },
+    {
+      "id": "core.dungeon.common.fight.marriage-subview",
+      "parent": "core.dungeon.common.fight",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖战斗场景、场景管理、计时/波次/模型或跨岛子面板；均不在本文件岛授权范围。"
+    },
+    {
+      "id": "core.dungeon.common.fight.heart-subview",
+      "parent": "core.dungeon.common.fight",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖战斗场景、场景管理、计时/波次/模型或跨岛子面板；均不在本文件岛授权范围。"
+    },
+    {
+      "id": "core.dungeon.common.fight.copper-subview",
+      "parent": "core.dungeon.common.fight",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖战斗场景、场景管理、计时/波次/模型或跨岛子面板；均不在本文件岛授权范围。"
+    },
+    {
+      "id": "core.dungeon.common.fight.rein-subview",
+      "parent": "core.dungeon.common.fight",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖战斗场景、场景管理、计时/波次/模型或跨岛子面板；均不在本文件岛授权范围。"
+    },
+    {
+      "id": "core.dungeon.common.fight.kf-subview",
+      "parent": "core.dungeon.common.fight",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖战斗场景、场景管理、计时/波次/模型或跨岛子面板；均不在本文件岛授权范围。"
+    },
+    {
+      "id": "core.dungeon.common.fight.dragon-subview",
+      "parent": "core.dungeon.common.fight",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖战斗场景、场景管理、计时/波次/模型或跨岛子面板；均不在本文件岛授权范围。"
+    },
+    {
+      "id": "core.dungeon.common.fight.exp-subview",
+      "parent": "core.dungeon.common.fight",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖战斗场景、场景管理、计时/波次/模型或跨岛子面板；均不在本文件岛授权范围。"
+    },
+    {
+      "id": "core.dungeon.common.fight-mask",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "control-1",
+          "kind": "read",
+          "child": "core.dungeon.common.fight-mask.born-effect"
+        },
+        {
+          "id": "control-2",
+          "kind": "read",
+          "child": "core.dungeon.common.fight-mask.top-bottom-mask"
+        }
+      ],
+      "parent": "core.dungeon.common",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: core.dungeon.common.fight-mask.born-effect, core.dungeon.common.fight-mask.top-bottom-mask"
+    },
+    {
+      "id": "core.dungeon.common.fight-mask.born-effect",
+      "parent": "core.dungeon.common.fight-mask",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖战斗场景、场景管理、计时/波次/模型或跨岛子面板；均不在本文件岛授权范围。"
+    },
+    {
+      "id": "core.dungeon.common.fight-mask.top-bottom-mask",
+      "parent": "core.dungeon.common.fight-mask",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖战斗场景、场景管理、计时/波次/模型或跨岛子面板；均不在本文件岛授权范围。"
+    },
+    {
+      "id": "core.dungeon.common.guild-help",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "control-1",
+          "kind": "read",
+          "child": "core.dungeon.common.guild-help.head"
+        },
+        {
+          "id": "control-2",
+          "kind": "read",
+          "child": "core.dungeon.common.guild-help.name-title"
+        }
+      ],
+      "parent": "core.dungeon.common",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: core.dungeon.common.guild-help.head, core.dungeon.common.guild-help.name-title"
+    },
+    {
+      "id": "core.dungeon.common.guild-help.head",
+      "parent": "core.dungeon.common.guild-help",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "缺真实 Unity/Web 同路运行证据，当前静态审计不能替代玩家可见表现。"
+    },
+    {
+      "id": "core.dungeon.common.guild-help.name-title",
+      "parent": "core.dungeon.common.guild-help",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "缺真实 Unity/Web 同路运行证据，当前静态审计不能替代玩家可见表现。"
+    },
+    {
+      "id": "core.dungeon.common.result-effect",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "control-1",
+          "kind": "read",
+          "child": "core.dungeon.common.result-effect.effect"
+        }
+      ],
+      "parent": "core.dungeon.common",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: core.dungeon.common.result-effect.effect"
+    },
+    {
+      "id": "core.dungeon.common.result-effect.effect",
+      "parent": "core.dungeon.common.result-effect",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "缺真实 Unity/Web 同路运行证据，当前静态审计不能替代玩家可见表现。"
+    },
+    {
+      "id": "core.dungeon.common.award-item",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "control-1",
+          "kind": "read",
+          "child": "core.dungeon.common.award-item.award-content"
+        }
+      ],
+      "parent": "core.dungeon.common",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: core.dungeon.common.award-item.award-content"
+    },
+    {
+      "id": "core.dungeon.common.award-item.award-content",
+      "parent": "core.dungeon.common.award-item",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "缺真实 Unity/Web 同路运行证据，当前静态审计不能替代玩家可见表现。"
+    },
+    {
+      "id": "core.dungeon.rune.enter",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "control-1",
+          "kind": "read",
+          "child": "core.dungeon.rune.enter.floor-list"
+        },
+        {
+          "id": "control-2",
+          "kind": "read",
+          "child": "core.dungeon.rune.enter.floor-item-state"
+        },
+        {
+          "id": "control-3",
+          "kind": "read",
+          "child": "core.dungeon.rune.enter.background-list"
+        },
+        {
+          "id": "control-4",
+          "kind": "read",
+          "child": "core.dungeon.rune.enter.line-list"
+        },
+        {
+          "id": "control-5",
+          "kind": "navigation",
+          "child": "core.dungeon.rune.enter.unlock"
+        },
+        {
+          "id": "control-6",
+          "kind": "transaction",
+          "child": "core.dungeon.rune.enter.challenge"
+        },
+        {
+          "id": "control-7",
+          "kind": "navigation",
+          "child": "core.dungeon.rune.enter.daily-open"
+        },
+        {
+          "id": "control-8",
+          "kind": "navigation",
+          "child": "core.dungeon.rune.enter.first-open"
+        },
+        {
+          "id": "control-9",
+          "kind": "navigation",
+          "child": "core.dungeon.rune.enter.target-open"
+        },
+        {
+          "id": "control-10",
+          "kind": "read",
+          "child": "core.dungeon.rune.enter.reward-preview"
+        },
+        {
+          "id": "control-11",
+          "kind": "navigation",
+          "child": "core.dungeon.rune.enter.gift"
+        },
+        {
+          "id": "control-12",
+          "kind": "read",
+          "child": "core.dungeon.rune.enter.red-state"
+        },
+        {
+          "id": "control-13",
+          "kind": "return",
+          "child": "core.dungeon.rune.enter.return-chain"
+        }
+      ],
+      "parent": "core.dungeon.rune",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: core.dungeon.rune.enter.background-list, core.dungeon.rune.enter.line-list, core.dungeon.rune.enter.unlock, core.dungeon.rune.enter.challenge, core.dungeon.rune.enter.daily-open, core.dungeon.rune.enter.first-open, core.dungeon.rune.enter.reward-preview, core.dungeon.rune.enter.gift, core.dungeon.rune.enter.red-state, core.dungeon.rune.enter.return-chain"
+    },
+    {
+      "id": "core.dungeon.rune.enter.floor-list",
+      "parent": "core.dungeon.rune.enter",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "代码/Prefab 静态链已落位；按本轮约束未启动 Unity/真实 Web，仍需同账号运行态验证点击、数据、布局、滚动、关闭重开与即时刷新。"
+    },
+    {
+      "id": "core.dungeon.rune.enter.floor-item-state",
+      "parent": "core.dungeon.rune.enter",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "代码/Prefab 静态链已落位；按本轮约束未启动 Unity/真实 Web，仍需同账号运行态验证点击、数据、布局、滚动、关闭重开与即时刷新。"
+    },
+    {
+      "id": "core.dungeon.rune.enter.background-list",
+      "parent": "core.dungeon.rune.enter",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "缺真实 Unity/Web 同路运行证据，当前静态审计不能替代玩家可见表现。"
+    },
+    {
+      "id": "core.dungeon.rune.enter.line-list",
+      "parent": "core.dungeon.rune.enter",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "缺真实 Unity/Web 同路运行证据，当前静态审计不能替代玩家可见表现。"
+    },
+    {
+      "id": "core.dungeon.rune.enter.unlock",
+      "parent": "core.dungeon.rune.enter",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖 config_dungeon_rune_lv_data、解锁配置/特效和 61116 写事务；当前闭包不完整。"
+    },
+    {
+      "id": "core.dungeon.rune.enter.challenge",
+      "parent": "core.dungeon.rune.enter",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "该叶为正式协议/领取/挑战/退出写事务；本轮禁止账号写，且需成功回包、即时刷新与重开证据。"
+    },
+    {
+      "id": "core.dungeon.rune.enter.daily-open",
+      "parent": "core.dungeon.rune.enter",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "代码/Prefab 静态链已落位；按本轮约束未启动 Unity/真实 Web，仍需同账号运行态验证点击、数据、布局、滚动、关闭重开与即时刷新。",
+      "blocked_reason": "已按 61115 daily_status 静态接入 0/1/2 分支，但弹窗内当前 floor、推荐战力、奖励内容与领取事务仍缺权威闭包，不能标静态完成。"
+    },
+    {
+      "id": "core.dungeon.rune.enter.first-open",
+      "parent": "core.dungeon.rune.enter",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖 FirstBlood 模块、首杀配置与回包，属于跨岛依赖，本岛不猜映射。"
+    },
+    {
+      "id": "core.dungeon.rune.enter.target-open",
+      "parent": "core.dungeon.rune.enter",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "代码/Prefab 静态链已落位；按本轮约束未启动 Unity/真实 Web，仍需同账号运行态验证点击、数据、布局、滚动、关闭重开与即时刷新。"
+    },
+    {
+      "id": "core.dungeon.rune.enter.reward-preview",
+      "parent": "core.dungeon.rune.enter",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "奖励内容/领取需要专属配置与 61112/61114 回包；本轮只接只读 61113/61115 原始状态，不伪造奖励。"
+    },
+    {
+      "id": "core.dungeon.rune.enter.gift",
+      "parent": "core.dungeon.rune.enter",
+      "type": "navigation",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖 VIP/分享/Activity/强化/推送礼包等禁区或跨模块入口，仅登记 blocker。"
+    },
+    {
+      "id": "core.dungeon.rune.enter.red-state",
+      "parent": "core.dungeon.rune.enter",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "缺真实 Unity/Web 同路运行证据，当前静态审计不能替代玩家可见表现。"
+    },
+    {
+      "id": "core.dungeon.rune.enter.return-chain",
+      "parent": "core.dungeon.rune.enter",
+      "type": "return",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "缺真实 Unity/Web 同路运行证据，当前静态审计不能替代玩家可见表现。"
+    },
+    {
+      "id": "core.dungeon.rune.daily",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "control-1",
+          "kind": "return",
+          "child": "core.dungeon.rune.daily.close"
+        },
+        {
+          "id": "control-2",
+          "kind": "transaction",
+          "child": "core.dungeon.rune.daily.continue"
+        },
+        {
+          "id": "control-3",
+          "kind": "transaction",
+          "child": "core.dungeon.rune.daily.claim"
+        },
+        {
+          "id": "control-4",
+          "kind": "read",
+          "child": "core.dungeon.rune.daily.reward-list"
+        },
+        {
+          "id": "control-5",
+          "kind": "read",
+          "child": "core.dungeon.rune.daily.status"
+        }
+      ],
+      "parent": "core.dungeon.rune",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: core.dungeon.rune.daily.continue, core.dungeon.rune.daily.claim, core.dungeon.rune.daily.reward-list, core.dungeon.rune.daily.status"
+    },
+    {
+      "id": "core.dungeon.rune.daily.close",
+      "parent": "core.dungeon.rune.daily",
+      "type": "return",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "代码/Prefab 静态链已落位；按本轮约束未启动 Unity/真实 Web，仍需同账号运行态验证点击、数据、布局、滚动、关闭重开与即时刷新。"
+    },
+    {
+      "id": "core.dungeon.rune.daily.continue",
+      "parent": "core.dungeon.rune.daily",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "该叶为正式协议/领取/挑战/退出写事务；本轮禁止账号写，且需成功回包、即时刷新与重开证据。"
+    },
+    {
+      "id": "core.dungeon.rune.daily.claim",
+      "parent": "core.dungeon.rune.daily",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "该叶为正式协议/领取/挑战/退出写事务；本轮禁止账号写，且需成功回包、即时刷新与重开证据。"
+    },
+    {
+      "id": "core.dungeon.rune.daily.reward-list",
+      "parent": "core.dungeon.rune.daily",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "奖励内容/领取需要专属配置与 61112/61114 回包；本轮只接只读 61113/61115 原始状态，不伪造奖励。"
+    },
+    {
+      "id": "core.dungeon.rune.daily.status",
+      "parent": "core.dungeon.rune.daily",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "代码/Prefab 静态链已落位；按本轮约束未启动 Unity/真实 Web，仍需同账号运行态验证点击、数据、布局、滚动、关闭重开与即时刷新。",
+      "blocked_reason": "61115 unlock_level 不是老端弹窗当前 floor；推荐战力比较与 floor 权威字段缺失，相关控件已安全隐藏。"
+    },
+    {
+      "id": "core.dungeon.rune.first",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "control-1",
+          "kind": "return",
+          "child": "core.dungeon.rune.first.close"
+        },
+        {
+          "id": "control-2",
+          "kind": "tab",
+          "child": "core.dungeon.rune.first.tabs"
+        },
+        {
+          "id": "control-3",
+          "kind": "read",
+          "child": "core.dungeon.rune.first.rank-list"
+        },
+        {
+          "id": "control-4",
+          "kind": "read",
+          "child": "core.dungeon.rune.first.reward-list"
+        },
+        {
+          "id": "control-5",
+          "kind": "transaction",
+          "child": "core.dungeon.rune.first.claim"
+        }
+      ],
+      "parent": "core.dungeon.rune",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: core.dungeon.rune.first.close, core.dungeon.rune.first.tabs, core.dungeon.rune.first.rank-list, core.dungeon.rune.first.reward-list, core.dungeon.rune.first.claim"
+    },
+    {
+      "id": "core.dungeon.rune.first.close",
+      "parent": "core.dungeon.rune.first",
+      "type": "return",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖 FirstBlood 模块、首杀配置与回包，属于跨岛依赖，本岛不猜映射。"
+    },
+    {
+      "id": "core.dungeon.rune.first.tabs",
+      "parent": "core.dungeon.rune.first",
+      "type": "tab",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖 FirstBlood 模块、首杀配置与回包，属于跨岛依赖，本岛不猜映射。"
+    },
+    {
+      "id": "core.dungeon.rune.first.rank-list",
+      "parent": "core.dungeon.rune.first",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖 FirstBlood 模块、首杀配置与回包，属于跨岛依赖，本岛不猜映射。"
+    },
+    {
+      "id": "core.dungeon.rune.first.reward-list",
+      "parent": "core.dungeon.rune.first",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖 FirstBlood 模块、首杀配置与回包，属于跨岛依赖，本岛不猜映射。"
+    },
+    {
+      "id": "core.dungeon.rune.first.claim",
+      "parent": "core.dungeon.rune.first",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "该叶为正式协议/领取/挑战/退出写事务；本轮禁止账号写，且需成功回包、即时刷新与重开证据。"
+    },
+    {
+      "id": "core.dungeon.rune.unlock",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "control-1",
+          "kind": "return",
+          "child": "core.dungeon.rune.unlock.close"
+        },
+        {
+          "id": "control-2",
+          "kind": "read",
+          "child": "core.dungeon.rune.unlock.rune-icon"
+        },
+        {
+          "id": "control-3",
+          "kind": "read",
+          "child": "core.dungeon.rune.unlock.name-tips"
+        }
+      ],
+      "parent": "core.dungeon.rune",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: core.dungeon.rune.unlock.close, core.dungeon.rune.unlock.rune-icon, core.dungeon.rune.unlock.name-tips"
+    },
+    {
+      "id": "core.dungeon.rune.unlock.close",
+      "parent": "core.dungeon.rune.unlock",
+      "type": "return",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖 config_dungeon_rune_lv_data、解锁配置/特效和 61116 写事务；当前闭包不完整。"
+    },
+    {
+      "id": "core.dungeon.rune.unlock.rune-icon",
+      "parent": "core.dungeon.rune.unlock",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖 config_dungeon_rune_lv_data、解锁配置/特效和 61116 写事务；当前闭包不完整。"
+    },
+    {
+      "id": "core.dungeon.rune.unlock.name-tips",
+      "parent": "core.dungeon.rune.unlock",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "依赖 config_dungeon_rune_lv_data、解锁配置/特效和 61116 写事务；当前闭包不完整。"
+    },
+    {
+      "id": "core.dungeon.rune.target",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "control-1",
+          "kind": "return",
+          "child": "core.dungeon.rune.target.close"
+        },
+        {
+          "id": "control-2",
+          "kind": "transaction",
+          "child": "core.dungeon.rune.target.one-key-claim"
+        },
+        {
+          "id": "control-3",
+          "kind": "read",
+          "child": "core.dungeon.rune.target.target-list"
+        },
+        {
+          "id": "control-4",
+          "kind": "read",
+          "child": "core.dungeon.rune.target.target-item-state"
+        },
+        {
+          "id": "control-5",
+          "kind": "transaction",
+          "child": "core.dungeon.rune.target.item-claim"
+        }
+      ],
+      "parent": "core.dungeon.rune",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: core.dungeon.rune.target.one-key-claim, core.dungeon.rune.target.target-item-state, core.dungeon.rune.target.item-claim"
+    },
+    {
+      "id": "core.dungeon.rune.target.close",
+      "parent": "core.dungeon.rune.target",
+      "type": "return",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "代码/Prefab 静态链已落位；按本轮约束未启动 Unity/真实 Web，仍需同账号运行态验证点击、数据、布局、滚动、关闭重开与即时刷新。"
+    },
+    {
+      "id": "core.dungeon.rune.target.one-key-claim",
+      "parent": "core.dungeon.rune.target",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "该叶为正式协议/领取/挑战/退出写事务；本轮禁止账号写，且需成功回包、即时刷新与重开证据。"
+    },
+    {
+      "id": "core.dungeon.rune.target.target-list",
+      "parent": "core.dungeon.rune.target",
+      "type": "read",
+      "risk": "read-only",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "代码/Prefab 静态链已落位；按本轮约束未启动 Unity/真实 Web，仍需同账号运行态验证点击、数据、布局、滚动、关闭重开与即时刷新。"
+    },
+    {
+      "id": "core.dungeon.rune.target.target-item-state",
+      "parent": "core.dungeon.rune.target",
+      "type": "read",
+      "risk": "read-only",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "代码/Prefab 静态链已落位；按本轮约束未启动 Unity/真实 Web，仍需同账号运行态验证点击、数据、布局、滚动、关闭重开与即时刷新。",
+      "blocked_reason": "61113 只有 dun_id/reward_type/reward_status；缺老端专属配置 desc 与奖励内容，不能用协议原始值拼玩家文案。"
+    },
+    {
+      "id": "core.dungeon.rune.target.item-claim",
+      "parent": "core.dungeon.rune.target",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "该叶为正式协议/领取/挑战/退出写事务；本轮禁止账号写，且需成功回包、即时刷新与重开证据。"
+    }
+  ],
+  "summary": {
+    "total": 93,
+    "status_counts": {
+      "blocked": 79,
+      "needs-runtime-verify": 14
+    }
+  }
+}

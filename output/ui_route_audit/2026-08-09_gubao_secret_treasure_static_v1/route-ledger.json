@@ -1,0 +1,1176 @@
+{
+  "schema": 6,
+  "route": "mainui.treasure.secret-treasure.static-v1",
+  "baseline": {
+    "observed_at": "2026-08-09T00:00:00+08:00",
+    "evidence_level": "static-three-way-reconciliation-only",
+    "requested_label": "GuBao/秘宝",
+    "legacy_entry": "MainUIModel.ts:124-126 defines res=treasure; MainUIModel.ts:301-302 opens SecretTreasureMainView",
+    "legacy_container": "SecretTreasureMainView",
+    "legacy_tabs": [
+      "九霄劫魄",
+      "山海物华阁",
+      "苍龙神章",
+      "荒祖遗骸",
+      "九霄冥饰"
+    ],
+    "legacy_gubao_identity": "MonsterMainView is an AutoBrushBaseView child and task-tip 89 target; it is not MainFunc.Treasure",
+    "unity_entry": "RuneBootstrap registers treasure to RuneFlow.Toggle; RuneFlow opens only RuneMainUIView because SecretTreasureMainView is absent",
+    "scope_boundary": "Implementation belongs to Rune/MonBook/Lung/GodBeast/Unreal and a shared SecretTreasure container, all outside the GuBao file island",
+    "runtime_boundary": "Unity, browser, real account, GM, WebGL and build were prohibited for this batch; runtime inventory reconciliation remains blocked"
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_gubao_secret_treasure_static_v1/route-manifest.json",
+    "sha256": "f9980dc1b36dd49e00f044af44654a9a1df1c943818c7e08c3101026f284afe1"
+  },
+  "verification_runs": {
+    "static-20260809-gubao-secret-treasure": {
+      "recorded_at": "2026-08-09T15:33:25+08:00",
+      "environment": "static",
+      "git_commit": "92b3f5578a90befb85a6255157f08e482214aa1a",
+      "dirty_fingerprint": "e85d559d987b8efdacb7f8409398409f5d7d5ee9ab926028145e50b6a7695400",
+      "report": {
+        "path": "output/ui_route_audit/2026-08-09_gubao_secret_treasure_static_v1/static-reconciliation.md",
+        "sha256": "cc01b1eef9ac32dce57a27b496626e99d5aadde6cf28ef776698adc4c3de9b94"
+      }
+    }
+  },
+  "nodes": [
+    {
+      "id": "mainui.treasure",
+      "type": "page",
+      "risk": "read-only",
+      "note": "Bottom HUD treasure route; old client opens SecretTreasureMainView, not GuBao/MonsterMainView.",
+      "control_inventory": [
+        {
+          "id": "tab-rune",
+          "kind": "tab",
+          "child": "mainui.treasure.rune"
+        },
+        {
+          "id": "tab-monbook",
+          "kind": "tab",
+          "child": "mainui.treasure.monbook"
+        },
+        {
+          "id": "tab-lung",
+          "kind": "tab",
+          "child": "mainui.treasure.lung"
+        },
+        {
+          "id": "tab-godbeast",
+          "kind": "tab",
+          "child": "mainui.treasure.godbeast"
+        },
+        {
+          "id": "tab-unreal",
+          "kind": "tab",
+          "child": "mainui.treasure.unreal"
+        },
+        {
+          "id": "return",
+          "kind": "button",
+          "child": "mainui.treasure.return"
+        }
+      ],
+      "parent": null,
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.treasure.rune, mainui.treasure.monbook, mainui.treasure.lung, mainui.treasure.godbeast, mainui.treasure.unreal, mainui.treasure.return"
+    },
+    {
+      "id": "mainui.treasure.rune",
+      "parent": "mainui.treasure",
+      "type": "page",
+      "risk": "read-only",
+      "note": "SecretTreasure index 0, 九霄劫魄; old RuneMainUIView; Unity currently exposes this page directly and omits the container.",
+      "control_inventory": [
+        {
+          "id": "rune-slot-list",
+          "kind": "list",
+          "child": "mainui.treasure.rune.slot-list"
+        },
+        {
+          "id": "look",
+          "kind": "button",
+          "child": "mainui.treasure.rune.look"
+        },
+        {
+          "id": "resolve",
+          "kind": "button",
+          "child": "mainui.treasure.rune.resolve"
+        },
+        {
+          "id": "challenge",
+          "kind": "button",
+          "child": "mainui.treasure.rune.challenge"
+        },
+        {
+          "id": "normal-treasure",
+          "kind": "button",
+          "child": "mainui.treasure.rune.normal-treasure"
+        },
+        {
+          "id": "rare-treasure",
+          "kind": "button",
+          "child": "mainui.treasure.rune.rare-treasure"
+        },
+        {
+          "id": "compose",
+          "kind": "button",
+          "child": "mainui.treasure.rune.compose"
+        },
+        {
+          "id": "convert",
+          "kind": "button",
+          "child": "mainui.treasure.rune.convert"
+        },
+        {
+          "id": "insert",
+          "kind": "button",
+          "child": "mainui.treasure.rune.insert"
+        },
+        {
+          "id": "replace",
+          "kind": "button",
+          "child": "mainui.treasure.rune.replace"
+        },
+        {
+          "id": "go",
+          "kind": "button",
+          "child": "mainui.treasure.rune.go"
+        },
+        {
+          "id": "upgrade",
+          "kind": "button",
+          "child": "mainui.treasure.rune.upgrade"
+        },
+        {
+          "id": "awake",
+          "kind": "button",
+          "child": "mainui.treasure.rune.awake"
+        },
+        {
+          "id": "skill",
+          "kind": "button",
+          "child": "mainui.treasure.rune.skill"
+        },
+        {
+          "id": "conditional-state",
+          "kind": "conditional",
+          "child": "mainui.treasure.rune.conditional-state"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.treasure.rune.slot-list, mainui.treasure.rune.look, mainui.treasure.rune.resolve, mainui.treasure.rune.challenge, mainui.treasure.rune.normal-treasure, mainui.treasure.rune.rare-treasure, mainui.treasure.rune.compose, mainui.treasure.rune.convert, mainui.treasure.rune.insert, mainui.treasure.rune.replace, mainui.treasure.rune.go, mainui.treasure.rune.upgrade, mainui.treasure.rune.awake, mainui.treasure.rune.skill, mainui.treasure.rune.conditional-state"
+    },
+    {
+      "id": "mainui.treasure.rune.slot-list",
+      "parent": "mainui.treasure.rune",
+      "type": "tab",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.rune.look",
+      "parent": "mainui.treasure.rune",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.rune.resolve",
+      "parent": "mainui.treasure.rune",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.rune.challenge",
+      "parent": "mainui.treasure.rune",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.rune.normal-treasure",
+      "parent": "mainui.treasure.rune",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.rune.rare-treasure",
+      "parent": "mainui.treasure.rune",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.rune.compose",
+      "parent": "mainui.treasure.rune",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.rune.convert",
+      "parent": "mainui.treasure.rune",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.rune.insert",
+      "parent": "mainui.treasure.rune",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.rune.replace",
+      "parent": "mainui.treasure.rune",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.rune.go",
+      "parent": "mainui.treasure.rune",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.rune.upgrade",
+      "parent": "mainui.treasure.rune",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "真实写事务、资产消耗或持久状态变更在本轮被禁止；实现又位于 GuBao 文件岛外，缺本轮授权与运行复验。"
+    },
+    {
+      "id": "mainui.treasure.rune.awake",
+      "parent": "mainui.treasure.rune",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.rune.skill",
+      "parent": "mainui.treasure.rune",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.rune.conditional-state",
+      "parent": "mainui.treasure.rune",
+      "type": "read",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.monbook",
+      "parent": "mainui.treasure",
+      "type": "page",
+      "risk": "read-only",
+      "note": "SecretTreasure index 1, 山海物华阁; old MonBookMainView; Unity has model/controller only and no editable page Prefab.",
+      "control_inventory": [
+        {
+          "id": "category-tabs",
+          "kind": "tab-list",
+          "child": "mainui.treasure.monbook.category-tabs"
+        },
+        {
+          "id": "card-list",
+          "kind": "list",
+          "child": "mainui.treasure.monbook.card-list"
+        },
+        {
+          "id": "group",
+          "kind": "button",
+          "child": "mainui.treasure.monbook.group"
+        },
+        {
+          "id": "attributes",
+          "kind": "button",
+          "child": "mainui.treasure.monbook.attributes"
+        },
+        {
+          "id": "level-up",
+          "kind": "button",
+          "child": "mainui.treasure.monbook.level-up"
+        },
+        {
+          "id": "decompose",
+          "kind": "button",
+          "child": "mainui.treasure.monbook.decompose"
+        },
+        {
+          "id": "gift",
+          "kind": "conditional-button",
+          "child": "mainui.treasure.monbook.gift"
+        },
+        {
+          "id": "conditional-state",
+          "kind": "conditional",
+          "child": "mainui.treasure.monbook.conditional-state"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.treasure.monbook.category-tabs, mainui.treasure.monbook.card-list, mainui.treasure.monbook.group, mainui.treasure.monbook.attributes, mainui.treasure.monbook.level-up, mainui.treasure.monbook.decompose, mainui.treasure.monbook.gift, mainui.treasure.monbook.conditional-state"
+    },
+    {
+      "id": "mainui.treasure.monbook.category-tabs",
+      "parent": "mainui.treasure.monbook",
+      "type": "tab",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.monbook.card-list",
+      "parent": "mainui.treasure.monbook",
+      "type": "tab",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.monbook.group",
+      "parent": "mainui.treasure.monbook",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.monbook.attributes",
+      "parent": "mainui.treasure.monbook",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.monbook.level-up",
+      "parent": "mainui.treasure.monbook",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "真实写事务、资产消耗或持久状态变更在本轮被禁止；实现又位于 GuBao 文件岛外，缺本轮授权与运行复验。"
+    },
+    {
+      "id": "mainui.treasure.monbook.decompose",
+      "parent": "mainui.treasure.monbook",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.monbook.gift",
+      "parent": "mainui.treasure.monbook",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.monbook.conditional-state",
+      "parent": "mainui.treasure.monbook",
+      "type": "read",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.lung",
+      "parent": "mainui.treasure",
+      "type": "page",
+      "risk": "read-only",
+      "note": "SecretTreasure index 2, 苍龙神章; old LungMainView; Unity has model/controller only and no editable page Prefab.",
+      "control_inventory": [
+        {
+          "id": "grid",
+          "kind": "slot-list",
+          "child": "mainui.treasure.lung.grid"
+        },
+        {
+          "id": "bag",
+          "kind": "button",
+          "child": "mainui.treasure.lung.bag"
+        },
+        {
+          "id": "stove",
+          "kind": "button",
+          "child": "mainui.treasure.lung.stove"
+        },
+        {
+          "id": "detail-scrolls",
+          "kind": "scroll-list",
+          "child": "mainui.treasure.lung.detail-scrolls"
+        },
+        {
+          "id": "detail-return",
+          "kind": "button",
+          "child": "mainui.treasure.lung.detail-return"
+        },
+        {
+          "id": "take-off",
+          "kind": "button",
+          "child": "mainui.treasure.lung.take-off"
+        },
+        {
+          "id": "replace",
+          "kind": "button",
+          "child": "mainui.treasure.lung.replace"
+        },
+        {
+          "id": "upgrade",
+          "kind": "button",
+          "child": "mainui.treasure.lung.upgrade"
+        },
+        {
+          "id": "conditional-state",
+          "kind": "conditional",
+          "child": "mainui.treasure.lung.conditional-state"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.treasure.lung.grid, mainui.treasure.lung.bag, mainui.treasure.lung.stove, mainui.treasure.lung.detail-scrolls, mainui.treasure.lung.detail-return, mainui.treasure.lung.take-off, mainui.treasure.lung.replace, mainui.treasure.lung.upgrade, mainui.treasure.lung.conditional-state"
+    },
+    {
+      "id": "mainui.treasure.lung.grid",
+      "parent": "mainui.treasure.lung",
+      "type": "tab",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.lung.bag",
+      "parent": "mainui.treasure.lung",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.lung.stove",
+      "parent": "mainui.treasure.lung",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.lung.detail-scrolls",
+      "parent": "mainui.treasure.lung",
+      "type": "read",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.lung.detail-return",
+      "parent": "mainui.treasure.lung",
+      "type": "return",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.lung.take-off",
+      "parent": "mainui.treasure.lung",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "真实写事务、资产消耗或持久状态变更在本轮被禁止；实现又位于 GuBao 文件岛外，缺本轮授权与运行复验。"
+    },
+    {
+      "id": "mainui.treasure.lung.replace",
+      "parent": "mainui.treasure.lung",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.lung.upgrade",
+      "parent": "mainui.treasure.lung",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "真实写事务、资产消耗或持久状态变更在本轮被禁止；实现又位于 GuBao 文件岛外，缺本轮授权与运行复验。"
+    },
+    {
+      "id": "mainui.treasure.lung.conditional-state",
+      "parent": "mainui.treasure.lung",
+      "type": "read",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.godbeast",
+      "parent": "mainui.treasure",
+      "type": "page",
+      "risk": "read-only",
+      "note": "SecretTreasure index 3, 荒祖遗骸; Unity has GodBeastModule.prefab but no business GodBeastView consumer under the allowed GuBao island.",
+      "control_inventory": [
+        {
+          "id": "beast-list",
+          "kind": "list",
+          "child": "mainui.treasure.godbeast.beast-list"
+        },
+        {
+          "id": "detail-groups",
+          "kind": "conditional",
+          "child": "mainui.treasure.godbeast.detail-groups"
+        },
+        {
+          "id": "add-position",
+          "kind": "button",
+          "child": "mainui.treasure.godbeast.add-position"
+        },
+        {
+          "id": "disboard",
+          "kind": "button",
+          "child": "mainui.treasure.godbeast.disboard"
+        },
+        {
+          "id": "bag",
+          "kind": "button",
+          "child": "mainui.treasure.godbeast.bag"
+        },
+        {
+          "id": "callback",
+          "kind": "button",
+          "child": "mainui.treasure.godbeast.callback"
+        },
+        {
+          "id": "fight",
+          "kind": "button",
+          "child": "mainui.treasure.godbeast.fight"
+        },
+        {
+          "id": "locked-fight",
+          "kind": "conditional-button",
+          "child": "mainui.treasure.godbeast.locked-fight"
+        },
+        {
+          "id": "quick-equip",
+          "kind": "button",
+          "child": "mainui.treasure.godbeast.quick-equip"
+        },
+        {
+          "id": "strengthen",
+          "kind": "button",
+          "child": "mainui.treasure.godbeast.strengthen"
+        },
+        {
+          "id": "gift",
+          "kind": "conditional-button",
+          "child": "mainui.treasure.godbeast.gift"
+        },
+        {
+          "id": "red-dots",
+          "kind": "conditional",
+          "child": "mainui.treasure.godbeast.red-dots"
+        },
+        {
+          "id": "model-effect",
+          "kind": "dynamic-render",
+          "child": "mainui.treasure.godbeast.model-effect"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.treasure.godbeast.beast-list, mainui.treasure.godbeast.detail-groups, mainui.treasure.godbeast.add-position, mainui.treasure.godbeast.disboard, mainui.treasure.godbeast.bag, mainui.treasure.godbeast.callback, mainui.treasure.godbeast.fight, mainui.treasure.godbeast.locked-fight, mainui.treasure.godbeast.quick-equip, mainui.treasure.godbeast.strengthen, mainui.treasure.godbeast.gift, mainui.treasure.godbeast.red-dots, mainui.treasure.godbeast.model-effect"
+    },
+    {
+      "id": "mainui.treasure.godbeast.beast-list",
+      "parent": "mainui.treasure.godbeast",
+      "type": "tab",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.godbeast.detail-groups",
+      "parent": "mainui.treasure.godbeast",
+      "type": "read",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.godbeast.add-position",
+      "parent": "mainui.treasure.godbeast",
+      "type": "navigation",
+      "risk": "destructive-write",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "真实写事务、资产消耗或持久状态变更在本轮被禁止；实现又位于 GuBao 文件岛外，缺本轮授权与运行复验。"
+    },
+    {
+      "id": "mainui.treasure.godbeast.disboard",
+      "parent": "mainui.treasure.godbeast",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "真实写事务、资产消耗或持久状态变更在本轮被禁止；实现又位于 GuBao 文件岛外，缺本轮授权与运行复验。"
+    },
+    {
+      "id": "mainui.treasure.godbeast.bag",
+      "parent": "mainui.treasure.godbeast",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.godbeast.callback",
+      "parent": "mainui.treasure.godbeast",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "真实写事务、资产消耗或持久状态变更在本轮被禁止；实现又位于 GuBao 文件岛外，缺本轮授权与运行复验。"
+    },
+    {
+      "id": "mainui.treasure.godbeast.fight",
+      "parent": "mainui.treasure.godbeast",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "真实写事务、资产消耗或持久状态变更在本轮被禁止；实现又位于 GuBao 文件岛外，缺本轮授权与运行复验。"
+    },
+    {
+      "id": "mainui.treasure.godbeast.locked-fight",
+      "parent": "mainui.treasure.godbeast",
+      "type": "read",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.godbeast.quick-equip",
+      "parent": "mainui.treasure.godbeast",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "真实写事务、资产消耗或持久状态变更在本轮被禁止；实现又位于 GuBao 文件岛外，缺本轮授权与运行复验。"
+    },
+    {
+      "id": "mainui.treasure.godbeast.strengthen",
+      "parent": "mainui.treasure.godbeast",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.godbeast.gift",
+      "parent": "mainui.treasure.godbeast",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.godbeast.red-dots",
+      "parent": "mainui.treasure.godbeast",
+      "type": "read",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.godbeast.model-effect",
+      "parent": "mainui.treasure.godbeast",
+      "type": "read",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.unreal",
+      "parent": "mainui.treasure",
+      "type": "page",
+      "risk": "read-only",
+      "note": "SecretTreasure index 4, 九霄冥饰; Unity has model/controller and an initially dirty untracked UnrealConfigs.cs, but no editable page Prefab.",
+      "control_inventory": [
+        {
+          "id": "equip-slots",
+          "kind": "slot-list",
+          "child": "mainui.treasure.unreal.equip-slots"
+        },
+        {
+          "id": "bag-list",
+          "kind": "scroll-list",
+          "child": "mainui.treasure.unreal.bag-list"
+        },
+        {
+          "id": "position-filter",
+          "kind": "dropdown",
+          "child": "mainui.treasure.unreal.position-filter"
+        },
+        {
+          "id": "color-filter",
+          "kind": "dropdown",
+          "child": "mainui.treasure.unreal.color-filter"
+        },
+        {
+          "id": "strengthen",
+          "kind": "button",
+          "child": "mainui.treasure.unreal.strengthen"
+        },
+        {
+          "id": "get",
+          "kind": "button",
+          "child": "mainui.treasure.unreal.get"
+        },
+        {
+          "id": "composite",
+          "kind": "button",
+          "child": "mainui.treasure.unreal.composite"
+        },
+        {
+          "id": "decompose",
+          "kind": "button",
+          "child": "mainui.treasure.unreal.decompose"
+        },
+        {
+          "id": "gift",
+          "kind": "conditional-button",
+          "child": "mainui.treasure.unreal.gift"
+        },
+        {
+          "id": "conditional-state",
+          "kind": "conditional",
+          "child": "mainui.treasure.unreal.conditional-state"
+        }
+      ],
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.treasure.unreal.equip-slots, mainui.treasure.unreal.bag-list, mainui.treasure.unreal.position-filter, mainui.treasure.unreal.color-filter, mainui.treasure.unreal.strengthen, mainui.treasure.unreal.get, mainui.treasure.unreal.composite, mainui.treasure.unreal.decompose, mainui.treasure.unreal.gift, mainui.treasure.unreal.conditional-state"
+    },
+    {
+      "id": "mainui.treasure.unreal.equip-slots",
+      "parent": "mainui.treasure.unreal",
+      "type": "tab",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.unreal.bag-list",
+      "parent": "mainui.treasure.unreal",
+      "type": "tab",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.unreal.position-filter",
+      "parent": "mainui.treasure.unreal",
+      "type": "tab",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.unreal.color-filter",
+      "parent": "mainui.treasure.unreal",
+      "type": "tab",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.unreal.strengthen",
+      "parent": "mainui.treasure.unreal",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.unreal.get",
+      "parent": "mainui.treasure.unreal",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.unreal.composite",
+      "parent": "mainui.treasure.unreal",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.unreal.decompose",
+      "parent": "mainui.treasure.unreal",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.unreal.gift",
+      "parent": "mainui.treasure.unreal",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.unreal.conditional-state",
+      "parent": "mainui.treasure.unreal",
+      "type": "read",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    },
+    {
+      "id": "mainui.treasure.return",
+      "parent": "mainui.treasure",
+      "type": "return",
+      "risk": "read-only",
+      "note": "已完成老端源码/Laya scene/Unity 静态调和；未执行点击、协议、即时刷新、重开、视觉、滚动、模型特效或性能门禁。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "本轮禁止 Unity、浏览器和真实 Web；该控件的实际实现位于 GuBao 文件岛外或依赖缺失的 SecretTreasure 共享容器，无法在当前范围完成运行复验。"
+    }
+  ],
+  "summary": {
+    "total": 62,
+    "status_counts": {
+      "blocked": 62
+    },
+    "details": {
+      "reconciliation": "static-only",
+      "target_identity": "bottom treasure equals SecretTreasureMainView; GuBao MonsterMainView is a different AutoBrush/task route",
+      "implementation_scope": "blocked by strict GuBao file island",
+      "runtime": "not run by explicit batch prohibition"
+    }
+  },
+  "updated_at": "2026-08-09T15:33:25+08:00"
+}

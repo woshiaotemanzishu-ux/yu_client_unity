@@ -1,3 +1,4 @@
+using Shenxiao.Common.Tips;
 using Shenxiao.Generated.UI.EquipRefinement;
 using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
@@ -13,16 +14,14 @@ namespace Shenxiao.Module.Core.Equip
     /// 提示(_gp_notice/lb_notice)+ 说明(insBtn)+ 红点(_img_red)/满级(_img_max)。
     ///
     /// 神炼协议(15255,经 EquipRefinementController,自动循环 轮4 队列#4)已接线:_btn_refi → Refine(goods_id)。
-    /// TODO:无选中态(装备列表未铺格),借 EquipAutoWear.GetWorn 固定武器槽当"当前装备"取真实 goods_id(不可像
-    /// equip_type 那样随便固定一个假值,15255 的参数是装备实例 id),同 EquipStrenView 既有先例思路。
+    /// 当前装备列表尚未铺格，因此保持无选中态并阻断 15255，禁止退化为固定武器槽或猜测实例 id。
     /// 降级:EquipRefinementModel/属性/消耗/材料列表项均未移植 → 红点/满级/模板隐藏、列表空;insBtn 说明打日志降级
     /// (通用说明浮层组件不在本轮范围)。无独立关闭按钮(装备窗框统一关闭)→ 作 EquipView 标签4 内容由 EquipFlow
     /// reparent 进窗框内容区。事件驱动,不进 FirstPass。
     /// </summary>
     public sealed class EquipRefinementView : EquipRefinementViewBind
     {
-        /// <summary>TODO:无当前槽位数据源,暂固定武器槽(equip_type=1),同 EquipStrenView.BindStren 既有先例。</summary>
-        private const int CurrentEquipType = 1;
+        private long _selectedGoodsId;
 
         protected override void OnInit()
         {
@@ -37,13 +36,19 @@ namespace Shenxiao.Module.Core.Equip
 
         protected override void OnShow(object args)
         {
+            _selectedGoodsId = 0;
             // 老端 open → 读 EquipRefinementModel 铺属性/消耗/材料。数据未移植 → 默认降级。
             GameLog.Info("Equip", "神屠九炼页打开 → 待对接 EquipRefinementModel(默认降级)");
         }
 
-        /// <summary>_btn_refi → EquipRefinementController.Refine(真实 goods_id)。取自当前(占位)穿戴装备
-        /// (EquipAutoWear.GetWorn),武器槽未穿戴则跳过并日志,不发协议(避免拿假 goods_id 打服务端,
-        /// 15255 已知有 case_clause 崩溃风险,见控制器注释)。</summary>
+        /// <summary>由真实装备列表点击建立选择；未建立选择时禁止默认操作武器槽。</summary>
+        public void SelectEquipment(long goodsId)
+        {
+            _selectedGoodsId = goodsId > 0 ? goodsId : 0;
+        }
+
+        /// <summary>_btn_refi → EquipRefinementController.Refine(真实 goods_id)。只有装备列表点击建立选择后才可发送；
+        /// 15255 已知有 case_clause 风险，禁止拿固定槽位或假 goods_id 请求。</summary>
         private void BindRefine(Component target, string label)
         {
             if (target == null) return;
@@ -53,14 +58,14 @@ namespace Shenxiao.Module.Core.Equip
             img.raycastTarget = true;
             UIUtil.AddClick(img, () =>
             {
-                BagGoods worn = EquipAutoWear.GetWorn(CurrentEquipType);
-                if (worn == null)
+                if (_selectedGoodsId <= 0)
                 {
-                    GameLog.Info("Equip", "点击[{0}] → 武器槽未穿戴装备,跳过", label);
+                    TipsManager.Toast("请先选择已穿戴装备");
+                    GameLog.Warn("Equip", "点击[{0}]被阻止：装备列表尚未建立真实选中态", label);
                     return;
                 }
-                GameLog.Info("Equip", "点击[{0}] → Refine(goods_id={1})", label, worn.GoodsId);
-                EquipRefinementController.Instance.Refine(worn.GoodsId);
+                GameLog.Info("Equip", "点击[{0}] → Refine(goods_id={1})", label, _selectedGoodsId);
+                EquipRefinementController.Instance.Refine(_selectedGoodsId);
             });
         }
 

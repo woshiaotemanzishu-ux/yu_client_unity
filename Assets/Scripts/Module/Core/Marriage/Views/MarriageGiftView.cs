@@ -14,10 +14,9 @@ namespace Shenxiao.Module.Core.Marriage
     /// 倒计时(_lb_time)/剩余天数(_lb_day)/每日可领提示(txt2)/未购买提示(_lb_tips)+
     /// 请Ta赠送入口(_lb_give,协议 17240)+ 真爱礼包购买(_btn_buy,Alert 确认 → 协议 17237)+ 每日礼包格子列表(_group_item 克隆 BaseAwardItem)。
     ///
-    /// 降级:MarriageModel(GetGiftInfo/GetMateInfo/GetGiftDataByType/IsCanGet/GetConstantData/CheckRedStatus 等)、
-    /// GoodsModel(GetMappingTypeId/GetGoodsName)、RoleManager(GetMainRoleVo)、ResManager 伴侣模型、
-    /// 协议(17237/17238/17239/17240/17232)、BaseAwardItem 礼包格、Alert 二次确认、红点(MARRIAGE_GIFT)均未移植 →
-    /// 红点先隐藏;按钮点击打日志「待对接」;OnShow 礼包信息空/模型默认降级。Null-guard 每处访问。
+    /// 当前:MarriageController/MarriageModel 已具备 17238/17232 查询/收包地基；Goods/Role 数据消费、伴侣模型、
+    /// BaseAwardItem、确认弹窗和红点表现尚未接线。17237/17239/17240 属于未授权写事务，继续保持 blocked。
+    /// OnShow 仅恢复权威只读快照请求。
     /// </summary>
     public sealed class MarriageGiftView : MarriageGiftViewBind
     {
@@ -30,11 +29,12 @@ namespace Shenxiao.Module.Core.Marriage
         protected override void OnShow(object args)
         {
             // 老端 load_callback/LoadSuccess/UpdateView:请求礼包信息(17238/17232) + 渲染伴侣模型 + 刷购买/每日领取态/倒计时/格子列表。
-            // MarriageModel/协议/配置/模型均未移植 → 列表空、模型/默认降级。
-            GameLog.Info("Marriage", "MarriageGiftView 打开 → 待对接 MarriageModel(列表空/默认降级)");
+            MarriageController.Instance.RequestGiftInfo();
+            MarriageController.Instance.RequestMyMate();
+            GameLog.Info("Marriage", "MarriageGiftView 打开 → 已请求17238/17232权威快照,表现接线待运行态验证");
         }
 
-        /// <summary>红点:购买返还红点 _red_get、每日领取红点 _red_get_day(CheckRedStatus(MARRIAGE_GIFT)),数据未移植先隐藏。</summary>
+        /// <summary>红点:购买返还 _red_get、每日领取 _red_get_day；状态消费尚未接线，先隐藏。</summary>
         private void HideReds()
         {
             HideNode(_red_get);

@@ -252,6 +252,7 @@ namespace Shenxiao.Module.Core.Daily
         public static int GetStrongDayLimit(int id) => ReadInt(GetToBeStrong(id), "day_limit");
         public static int GetStrongJumpId(int id) => ReadInt(GetToBeStrong(id), "jump_id");
         public static int GetStrongIconId(int id) => ReadInt(GetToBeStrong(id), "icon_id");
+        public static int GetStrongType(int id) => ReadInt(GetToBeStrong(id), "type");
 
         // ---------- 活跃度形象(config_liveness_active,15710 成功后 UseNewImage 自动换装用) ----------
 

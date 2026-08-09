@@ -1,0 +1,107 @@
+{
+  "route": "mainui.activity.direct-pages",
+  "baseline": {
+    "authority": "Current old H5 under the same account, state and viewport is final authority. This manifest freezes ActivityModule direct-page topology only and claims no runtime gate.",
+    "legacy_sources": [
+      "E:/GitProject/yu_client/h5/src/activity/AccumRechargeView.ts",
+      "E:/GitProject/yu_client/h5/src/activity/AccumRechargeItem.ts",
+      "E:/GitProject/yu_client/h5/src/activity/ConRechargeView.ts",
+      "E:/GitProject/yu_client/h5/src/activity/ConRechargeItem.ts",
+      "E:/GitProject/yu_client/h5/src/activity/ConRechargeGradeItem.ts",
+      "E:/GitProject/yu_client/h5/src/activity/DailySupplyView.ts",
+      "E:/GitProject/yu_client/h5/src/activity/DailySupplyItem.ts",
+      "E:/GitProject/yu_client/h5/src/activity/CreatRoleGiftView.ts",
+      "E:/GitProject/yu_client/h5/src/activity/rechargeReturnView.ts"
+    ],
+    "unity_sources": [
+      "Assets/Prefabs/UI/Activity/ActivityModule.prefab",
+      "Assets/Prefabs/UI/Activity/AccumRechargeItem.prefab",
+      "Assets/Prefabs/UI/Activity/DailySupplyItem.prefab",
+      "Assets/Scripts/Module/Core/Activity/ActivityFlow.cs",
+      "Assets/Scripts/Module/Core/Activity/ActivityBootstrap.cs",
+      "Assets/Scripts/Module/Core/Activity/AccumRechargeView.cs",
+      "Assets/Scripts/Module/Core/Activity/ConRechargeView.cs",
+      "Assets/Scripts/Module/Core/Activity/DailySupplyView.cs",
+      "Assets/Scripts/Module/Core/Activity/CreatRoleGiftView.cs",
+      "Assets/Scripts/Module/Core/Activity/RechargeReturnView.cs"
+    ],
+    "protocol_inventory": {
+      "reads": ["33104", "33209", "15960"],
+      "writes": ["33105"],
+      "note": "This pass performed no claim, recharge, purchase or other account write."
+    },
+    "component_dependencies": [
+      {"component":"windowscomponent/BaseWindowSkinView","consumers":["all Activity direct pages"],"scope":"outer container and close chain; report only"},
+      {"component":"CommonRewardItem/EquipmentItem/BaseAwardItem","consumers":["AccumRechargeItem","DailySupplyItem","ConRechargeItem","ConRechargeGradeItem","CreatRoleGiftView"],"scope":"shared reward identity and detail; report only"},
+      {"component":"CongratulationObtainView","consumers":["33105 successful claims"],"scope":"shared success popup; report only"},
+      {"component":"Recharge route","consumers":["AccumRechargeItem","ConRechargeItem","ConRechargeGradeItem","RechargeReturnView"],"scope":"cross-module navigation; report only"},
+      {"component":"DailyTaskView route","consumers":["DailySupplyItem"],"scope":"cross-module navigation; report only"}
+    ]
+  },
+  "nodes": [
+    {"id":"mainui.activity.direct-pages","type":"page","risk":"read-only","parent":null,"control_inventory":[{"id":"shell","kind":"route-shell","child":"mainui.activity.shell"},{"id":"accum","kind":"page","child":"mainui.activity.accum"},{"id":"con","kind":"page","child":"mainui.activity.con"},{"id":"daily","kind":"page","child":"mainui.activity.daily"},{"id":"create","kind":"page","child":"mainui.activity.create"},{"id":"return","kind":"page","child":"mainui.activity.return"},{"id":"shared","kind":"dependency","child":"mainui.activity.shared"},{"id":"lifecycle","kind":"route-lifecycle","child":"mainui.activity.lifecycle"}]},
+
+    {"id":"mainui.activity.shell","type":"page","risk":"read-only","parent":"mainui.activity.direct-pages","control_inventory":[{"id":"routes","kind":"navigation","child":"mainui.activity.shell.routes"},{"id":"entry","kind":"state","child":"mainui.activity.shell.entry"},{"id":"exclusive","kind":"lifecycle","child":"mainui.activity.shell.exclusive"},{"id":"close","kind":"return","child":"mainui.activity.shell.close"}]},
+    {"id":"mainui.activity.shell.routes","type":"navigation","risk":"read-only","parent":"mainui.activity.shell","note":"Registers five direct view names and safe single-page windowscomponent key 331@109."},
+    {"id":"mainui.activity.shell.entry","type":"read","risk":"read-only","parent":"mainui.activity.shell","note":"Selects current ActEntry by authoritative base type and sub type."},
+    {"id":"mainui.activity.shell.exclusive","type":"read","risk":"read-only","parent":"mainui.activity.shell","note":"Only one direct child BaseView remains shown; cloned views use Show/Hide."},
+    {"id":"mainui.activity.shell.close","type":"return","risk":"read-only","parent":"mainui.activity.shell","note":"Outer windowscomponent/BaseWindow close and icon-container return chain."},
+
+    {"id":"mainui.activity.accum","type":"page","risk":"read-only","parent":"mainui.activity.direct-pages","control_inventory":[{"id":"visual","kind":"visual","child":"mainui.activity.accum.visual"},{"id":"detail","kind":"protocol-read","child":"mainui.activity.accum.detail"},{"id":"list","kind":"scroll-list","child":"mainui.activity.accum.list"},{"id":"text","kind":"state","child":"mainui.activity.accum.text"},{"id":"rewards","kind":"shared-items","child":"mainui.activity.accum.rewards"},{"id":"status","kind":"state","child":"mainui.activity.accum.status"},{"id":"recharge","kind":"navigation","child":"mainui.activity.accum.recharge"},{"id":"claim","kind":"transaction","child":"mainui.activity.accum.claim"}]},
+    {"id":"mainui.activity.accum.visual","type":"read","risk":"read-only","parent":"mainui.activity.accum","note":"Background, title, tips and time region."},
+    {"id":"mainui.activity.accum.detail","type":"read","risk":"read-only","parent":"mainui.activity.accum","note":"33104 detail request and filtered detail/result refresh."},
+    {"id":"mainui.activity.accum.list","type":"read","risk":"read-only","parent":"mainui.activity.accum","note":"Status-first list, BaseView clones, vertical layout, clipping, reset-to-top and cleanup."},
+    {"id":"mainui.activity.accum.text","type":"read","risk":"read-only","parent":"mainui.activity.accum","note":"Description, item title, progress and receive-times text."},
+    {"id":"mainui.activity.accum.rewards","type":"read","risk":"read-only","parent":"mainui.activity.accum","note":"CommonRewardItem/EquipmentItem identity, icon, quantity, quality and detail."},
+    {"id":"mainui.activity.accum.status","type":"read","risk":"read-only","parent":"mainui.activity.accum","note":"status 0 recharge, 1 claim+red dot, 2 received."},
+    {"id":"mainui.activity.accum.recharge","type":"navigation","risk":"read-only","parent":"mainui.activity.accum","note":"Cross-module recharge route."},
+    {"id":"mainui.activity.accum.claim","type":"transaction","risk":"destructive-write","parent":"mainui.activity.accum","note":"33105 claim, result, immediate refresh, success popup and reopen."},
+
+    {"id":"mainui.activity.con","type":"page","risk":"read-only","parent":"mainui.activity.direct-pages","control_inventory":[{"id":"visual","kind":"visual","child":"mainui.activity.con.visual"},{"id":"detail","kind":"protocol-read","child":"mainui.activity.con.detail"},{"id":"history","kind":"protocol-read","child":"mainui.activity.con.history"},{"id":"tabs","kind":"navigation","child":"mainui.activity.con.tabs"},{"id":"grade","kind":"featured-item","child":"mainui.activity.con.grade"},{"id":"list","kind":"scroll-list","child":"mainui.activity.con.list"},{"id":"rewards","kind":"shared-items","child":"mainui.activity.con.rewards"},{"id":"status","kind":"state","child":"mainui.activity.con.status"},{"id":"recharge","kind":"navigation","child":"mainui.activity.con.recharge"},{"id":"claim","kind":"transaction","child":"mainui.activity.con.claim"}]},
+    {"id":"mainui.activity.con.visual","type":"read","risk":"read-only","parent":"mainui.activity.con","note":"Background/title/tips/time and selected-tier visual variants."},
+    {"id":"mainui.activity.con.detail","type":"read","risk":"read-only","parent":"mainui.activity.con","note":"33104 detail request and filtered refresh."},
+    {"id":"mainui.activity.con.history","type":"read","risk":"read-only","parent":"mainui.activity.con","note":"15960 per-day recharge history and authoritative achieved-day calculation."},
+    {"id":"mainui.activity.con.tabs","type":"navigation","risk":"read-only","parent":"mainui.activity.con","note":"Tier 1/2/3 conditional tabs, amount labels, claim red dots and status-first default tier."},
+    {"id":"mainui.activity.con.grade","type":"read","risk":"read-only","parent":"mainui.activity.con","note":"grade=1 featured reward, achieved day progress, tomorrow/today state and effect."},
+    {"id":"mainui.activity.con.list","type":"read","risk":"read-only","parent":"mainui.activity.con","note":"Tier-filtered list, BaseView clones, vertical layout, clipping and reset-to-top."},
+    {"id":"mainui.activity.con.rewards","type":"read","risk":"read-only","parent":"mainui.activity.con","note":"BaseAwardItem and reward item identity/detail."},
+    {"id":"mainui.activity.con.status","type":"read","risk":"read-only","parent":"mainui.activity.con","note":"Recharge/claim/received/red-dot states for normal and featured items."},
+    {"id":"mainui.activity.con.recharge","type":"navigation","risk":"read-only","parent":"mainui.activity.con","note":"Cross-module recharge route."},
+    {"id":"mainui.activity.con.claim","type":"transaction","risk":"destructive-write","parent":"mainui.activity.con","note":"33105 normal/featured claim and authoritative result refresh."},
+
+    {"id":"mainui.activity.daily","type":"page","risk":"read-only","parent":"mainui.activity.direct-pages","control_inventory":[{"id":"visual","kind":"visual","child":"mainui.activity.daily.visual"},{"id":"detail","kind":"protocol-read","child":"mainui.activity.daily.detail"},{"id":"liveness","kind":"protocol-read","child":"mainui.activity.daily.liveness"},{"id":"list","kind":"scroll-list","child":"mainui.activity.daily.list"},{"id":"rewards","kind":"shared-items","child":"mainui.activity.daily.rewards"},{"id":"status","kind":"state","child":"mainui.activity.daily.status"},{"id":"go","kind":"navigation","child":"mainui.activity.daily.go"},{"id":"claim","kind":"transaction","child":"mainui.activity.daily.claim"}]},
+    {"id":"mainui.activity.daily.visual","type":"read","risk":"read-only","parent":"mainui.activity.daily","note":"Background/time/liveness/tips visual region."},
+    {"id":"mainui.activity.daily.detail","type":"read","risk":"read-only","parent":"mainui.activity.daily","note":"33104 detail request and refresh."},
+    {"id":"mainui.activity.daily.liveness","type":"read","risk":"read-only","parent":"mainui.activity.daily","note":"33209 daily liveness request/model/visible value."},
+    {"id":"mainui.activity.daily.list","type":"read","risk":"read-only","parent":"mainui.activity.daily","note":"Status-first list, BaseView clones, vertical layout, clipping and reset-to-top."},
+    {"id":"mainui.activity.daily.rewards","type":"read","risk":"read-only","parent":"mainui.activity.daily","note":"EquipmentItem reward identity/detail."},
+    {"id":"mainui.activity.daily.status","type":"read","risk":"read-only","parent":"mainui.activity.daily","note":"Go/claim/received/unfinished/red-dot states."},
+    {"id":"mainui.activity.daily.go","type":"navigation","risk":"read-only","parent":"mainui.activity.daily","note":"Function 82 DailyTaskView navigation."},
+    {"id":"mainui.activity.daily.claim","type":"transaction","risk":"destructive-write","parent":"mainui.activity.daily","note":"33105 claim, liveness/detail refresh and reopen."},
+
+    {"id":"mainui.activity.create","type":"page","risk":"read-only","parent":"mainui.activity.direct-pages","control_inventory":[{"id":"visual","kind":"visual","child":"mainui.activity.create.visual"},{"id":"detail","kind":"protocol-read","child":"mainui.activity.create.detail"},{"id":"countdown","kind":"timer","child":"mainui.activity.create.countdown"},{"id":"rewards","kind":"shared-items","child":"mainui.activity.create.rewards"},{"id":"status","kind":"state","child":"mainui.activity.create.status"},{"id":"claim","kind":"transaction","child":"mainui.activity.create.claim"}]},
+    {"id":"mainui.activity.create.visual","type":"read","risk":"read-only","parent":"mainui.activity.create","note":"Tips, button, red dot, effect host and claimed image."},
+    {"id":"mainui.activity.create.detail","type":"read","risk":"read-only","parent":"mainui.activity.create","note":"33104 first reward detail and filtered result refresh."},
+    {"id":"mainui.activity.create.countdown","type":"read","risk":"read-only","parent":"mainui.activity.create","note":"Condition end timestamp countdown using server time."},
+    {"id":"mainui.activity.create.rewards","type":"read","risk":"read-only","parent":"mainui.activity.create","note":"CommonRewardItem list identity/detail."},
+    {"id":"mainui.activity.create.status","type":"read","risk":"read-only","parent":"mainui.activity.create","note":"Waiting/claimable/claimed button, red dot and effect lifecycle."},
+    {"id":"mainui.activity.create.claim","type":"transaction","risk":"destructive-write","parent":"mainui.activity.create","note":"33105 claim and success result."},
+
+    {"id":"mainui.activity.return","type":"page","risk":"read-only","parent":"mainui.activity.direct-pages","control_inventory":[{"id":"images","kind":"visual","child":"mainui.activity.return.images"},{"id":"button","kind":"state","child":"mainui.activity.return.button"},{"id":"recharge","kind":"navigation","child":"mainui.activity.return.recharge"},{"id":"seven","kind":"navigation","child":"mainui.activity.return.seven"}]},
+    {"id":"mainui.activity.return.images","type":"read","risk":"read-only","parent":"mainui.activity.return","note":"ShowId/config-driven foreground and background assets."},
+    {"id":"mainui.activity.return.button","type":"read","risk":"read-only","parent":"mainui.activity.return","note":"ShowId-dependent label and click identity."},
+    {"id":"mainui.activity.return.recharge","type":"navigation","risk":"read-only","parent":"mainui.activity.return","note":"Recharge navigation for base74/base86 show1."},
+    {"id":"mainui.activity.return.seven","type":"navigation","risk":"read-only","parent":"mainui.activity.return","note":"Seven-day group navigation for base86 show2."},
+
+    {"id":"mainui.activity.shared","type":"page","risk":"read-only","parent":"mainui.activity.direct-pages","control_inventory":[{"id":"identity","kind":"shared-component","child":"mainui.activity.shared.identity"},{"id":"matrix","kind":"state-matrix","child":"mainui.activity.shared.matrix"},{"id":"success","kind":"popup","child":"mainui.activity.shared.success"}]},
+    {"id":"mainui.activity.shared.identity","type":"read","risk":"read-only","parent":"mainui.activity.shared","note":"Reward cells remain shared Common/Equipment/BaseAward components, never copied privately."},
+    {"id":"mainui.activity.shared.matrix","type":"read","risk":"read-only","parent":"mainui.activity.shared","note":"Empty/data, quality/effect, 1/2/3 items, detail and viewport representative consumers."},
+    {"id":"mainui.activity.shared.success","type":"read","risk":"read-only","parent":"mainui.activity.shared","note":"CongratulationObtainView on successful claim."},
+
+    {"id":"mainui.activity.lifecycle","type":"page","risk":"read-only","parent":"mainui.activity.direct-pages","control_inventory":[{"id":"cold","kind":"lifecycle","child":"mainui.activity.lifecycle.cold"},{"id":"warm","kind":"lifecycle","child":"mainui.activity.lifecycle.warm"},{"id":"viewports","kind":"visual","child":"mainui.activity.lifecycle.viewports"},{"id":"performance","kind":"performance","child":"mainui.activity.lifecycle.performance"}]},
+    {"id":"mainui.activity.lifecycle.cold","type":"read","risk":"read-only","parent":"mainui.activity.lifecycle","note":"Cold load, read protocol, resource-ready and close chain."},
+    {"id":"mainui.activity.lifecycle.warm","type":"read","risk":"read-only","parent":"mainui.activity.lifecycle","note":"Warm reopen without duplicate callbacks/clones or stale state."},
+    {"id":"mainui.activity.lifecycle.viewports","type":"read","risk":"read-only","parent":"mainui.activity.lifecycle","note":"720x1280 and 1920x1080 real old-H5/Unity Web comparison."},
+    {"id":"mainui.activity.lifecycle.performance","type":"read","risk":"read-only","parent":"mainui.activity.lifecycle","note":"Cold/warm timing, list allocation, timer and cleanup."}
+  ]
+}

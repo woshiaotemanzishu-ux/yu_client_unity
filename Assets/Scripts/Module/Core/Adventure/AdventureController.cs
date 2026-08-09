@@ -82,7 +82,9 @@ namespace Shenxiao.Module.Core.Adventure
 
         private void On42701(NetReader reader)
         {
-            AdventureModel.Instance.ReplaceBoardState(reader.ReadU16(), reader.ReadU16(), reader.ReadU16(), reader.ReadU16(), reader.ReadU16(), reader.ReadU16());
+            AdventureModel model = AdventureModel.Instance;
+            model.ReplaceBoardState(reader.ReadU16(), reader.ReadU16(), reader.ReadU16(), reader.ReadU16(), reader.ReadU16(), reader.ReadU16());
+            ActivityIconManager.Instance.SetIconRedDot(model.GetCurIconType(), model.HasFreeThrowRed);
         }
 
         // 对标老端 SetTimeInfo:先删两个图标,开启时只加当天那一个(默认 42701)。
@@ -101,9 +103,12 @@ namespace Shenxiao.Module.Core.Adventure
                     : AdventureModel.ICON_TYPE_A;
                 ActivityIconManager.Instance.DeleteIcon(other);
                 await ActivityIconManager.Instance.AddIconAsync(cur);
+                ActivityIconManager.Instance.SetIconRedDot(cur, m.HasFreeThrowRed);
             }
             else
             {
+                ActivityIconManager.Instance.SetIconRedDot(AdventureModel.ICON_TYPE_A, false);
+                ActivityIconManager.Instance.SetIconRedDot(AdventureModel.ICON_TYPE_B, false);
                 ActivityIconManager.Instance.DeleteIcon(AdventureModel.ICON_TYPE_A);
                 ActivityIconManager.Instance.DeleteIcon(AdventureModel.ICON_TYPE_B);
             }

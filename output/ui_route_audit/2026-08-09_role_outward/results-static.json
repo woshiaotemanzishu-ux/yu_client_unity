@@ -1,0 +1,2290 @@
+{
+  "nodes": [
+    {
+      "id": "mainui.role.outward.shared.identity",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Static implementation/audit is present; real lifecycle and representative runtime evidence are still required.",
+      "note": "Static implementation/audit is present; real lifecycle and representative runtime evidence are still required.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.shared.type-matrix",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Static implementation/audit is present; real lifecycle and representative runtime evidence are still required.",
+      "note": "Static implementation/audit is present; real lifecycle and representative runtime evidence are still required.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.shared.protocol-read",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Static implementation/audit is present; real lifecycle and representative runtime evidence are still required.",
+      "note": "Static implementation/audit is present; real lifecycle and representative runtime evidence are still required.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.shared.material-config",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Static implementation/audit is present; real lifecycle and representative runtime evidence are still required.",
+      "note": "Static implementation/audit is present; real lifecycle and representative runtime evidence are still required.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.shared.shared-lifecycle",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Static implementation/audit is present; real lifecycle and representative runtime evidence are still required.",
+      "note": "Static implementation/audit is present; real lifecycle and representative runtime evidence are still required.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.shared.prefab-bind",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Static implementation/audit is present; real lifecycle and representative runtime evidence are still required.",
+      "note": "Static implementation/audit is present; real lifecycle and representative runtime evidence are still required.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.shared.consumer-sample",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Static implementation/audit is present; real lifecycle and representative runtime evidence are still required.",
+      "note": "Static implementation/audit is present; real lifecycle and representative runtime evidence are still required.",
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "gates": {
+        "runtime_state": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.shared.missing-subviews",
+      "status": "blocked",
+      "blocked_reason": "PetModule.prefab has no editable IllusionBaseView, OutwardLvSystem or PetProptityView instance; generated Bind files alone are not a page implementation.",
+      "note": "PetModule.prefab has no editable IllusionBaseView, OutwardLvSystem or PetProptityView instance; generated Bind files alone are not a page implementation.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.header.name-stage",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "note": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.header.combat",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "note": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.header.role-visibility",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "note": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.model.asset",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "note": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "applicable_gates": [
+        "model_render",
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "model_render": false,
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.model.placement",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "note": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "applicable_gates": [
+        "model_render",
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "model_render": false,
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.model.effect",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "note": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "applicable_gates": [
+        "model_render",
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "model_render": false,
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.model.dynamic",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "note": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "applicable_gates": [
+        "model_render",
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "model_render": false,
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.model.lifecycle",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "note": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "applicable_gates": [
+        "model_render",
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "model_render": false,
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.property.open",
+      "status": "blocked",
+      "blocked_reason": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "note": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.property.content",
+      "status": "blocked",
+      "blocked_reason": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "note": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.property.close",
+      "status": "blocked",
+      "blocked_reason": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "note": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.skills.display",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Current skill list/icon rendering exists; current-account old-vs-Unity state and pixels remain pending.",
+      "note": "Current skill list/icon rendering exists; current-account old-vs-Unity state and pixels remain pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.skills.detail",
+      "status": "blocked",
+      "blocked_reason": "Skill detail interaction is not wired in the current shared View.",
+      "note": "Skill detail interaction is not wired in the current shared View.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.crystal.display",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Crystal config and 16011 counter rendering is implemented; current-account state/pixels remain pending.",
+      "note": "Crystal config and 16011 counter rendering is implemented; current-account state/pixels remain pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.crystal.detail",
+      "status": "blocked",
+      "blocked_reason": "PetCrystalView detail interaction is not present in the editable PetModule prefab.",
+      "note": "PetCrystalView detail interaction is not present in the editable PetModule prefab.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.crystal.use",
+      "status": "blocked",
+      "blocked_reason": "16010 UI action is not wired and no destructive-write authorization was granted.",
+      "note": "16010 UI action is not wired and no destructive-write authorization was granted.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.materials.display",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Training goods now use config_mount_prop type=1; current-account bag state/pixels remain pending.",
+      "note": "Training goods now use config_mount_prop type=1; current-account bag state/pixels remain pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.materials.detail",
+      "status": "blocked",
+      "blocked_reason": "Material item detail interaction is not wired in the current shared View.",
+      "note": "Material item detail interaction is not wired in the current shared View.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.base-appearance.state",
+      "status": "blocked",
+      "blocked_reason": "using/unuse state is not yet rendered by the shared View.",
+      "note": "using/unuse state is not yet rendered by the shared View.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.base-appearance.toggle",
+      "status": "blocked",
+      "blocked_reason": "Base appearance 16003 toggle is not wired and no write authorization was granted.",
+      "note": "Base appearance 16003 toggle is not wired and no write authorization was granted.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.illusion.open",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.illusion.list-scroll",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.illusion.select-model",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.illusion.wear",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.illusion.activate",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.illusion.stage-up",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.illusion.star-up",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.illusion.close",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.level-system.open",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.level-system.summary",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.level-system.skills",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.level-system.level-up",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.level-system.skill-up",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.level-system.return",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.one-key-up.present",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared one-key button label/visibility and existing 16005 sender are static-complete; runtime state is pending.",
+      "note": "Shared one-key button label/visibility and existing 16005 sender are static-complete; runtime state is pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.one-key-up.submit",
+      "status": "blocked",
+      "blocked_reason": "16005 changes account materials/blessing/star; no write transaction was authorized or executed.",
+      "note": "16005 changes account materials/blessing/star; no write transaction was authorized or executed.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.fairy-wish.visibility",
+      "status": "blocked",
+      "blocked_reason": "FairyWish is outside this exclusive closure and its existing page is degraded; report as a cross-island dependency.",
+      "note": "FairyWish is outside this exclusive closure and its existing page is degraded; report as a cross-island dependency.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.fairy-wish.open",
+      "status": "blocked",
+      "blocked_reason": "FairyWish is outside this exclusive closure and its existing page is degraded; report as a cross-island dependency.",
+      "note": "FairyWish is outside this exclusive closure and its existing page is degraded; report as a cross-island dependency.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.route-state.open-ready",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "note": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.route-state.close",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "note": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.route-state.warm-reopen",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "note": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.route-state.viewports",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "note": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.wing.route-state.performance",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "note": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.header.name-stage",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "note": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.header.combat",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "note": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.header.role-visibility",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "note": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.model.asset",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "note": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "applicable_gates": [
+        "model_render",
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "model_render": false,
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.model.placement",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "note": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "applicable_gates": [
+        "model_render",
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "model_render": false,
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.model.effect",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "note": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "applicable_gates": [
+        "model_render",
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "model_render": false,
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.model.dynamic",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "note": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "applicable_gates": [
+        "model_render",
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "model_render": false,
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.model.lifecycle",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "note": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "applicable_gates": [
+        "model_render",
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "model_render": false,
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.property.open",
+      "status": "blocked",
+      "blocked_reason": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "note": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.property.content",
+      "status": "blocked",
+      "blocked_reason": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "note": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.property.close",
+      "status": "blocked",
+      "blocked_reason": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "note": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.skills.display",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Current skill list/icon rendering exists; current-account old-vs-Unity state and pixels remain pending.",
+      "note": "Current skill list/icon rendering exists; current-account old-vs-Unity state and pixels remain pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.skills.detail",
+      "status": "blocked",
+      "blocked_reason": "Skill detail interaction is not wired in the current shared View.",
+      "note": "Skill detail interaction is not wired in the current shared View.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.crystal.display",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Crystal config and 16011 counter rendering is implemented; current-account state/pixels remain pending.",
+      "note": "Crystal config and 16011 counter rendering is implemented; current-account state/pixels remain pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.crystal.detail",
+      "status": "blocked",
+      "blocked_reason": "PetCrystalView detail interaction is not present in the editable PetModule prefab.",
+      "note": "PetCrystalView detail interaction is not present in the editable PetModule prefab.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.crystal.use",
+      "status": "blocked",
+      "blocked_reason": "16010 UI action is not wired and no destructive-write authorization was granted.",
+      "note": "16010 UI action is not wired and no destructive-write authorization was granted.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.materials.display",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Training goods now use config_mount_prop type=1; current-account bag state/pixels remain pending.",
+      "note": "Training goods now use config_mount_prop type=1; current-account bag state/pixels remain pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.materials.detail",
+      "status": "blocked",
+      "blocked_reason": "Material item detail interaction is not wired in the current shared View.",
+      "note": "Material item detail interaction is not wired in the current shared View.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.base-appearance.state",
+      "status": "blocked",
+      "blocked_reason": "using/unuse state is not yet rendered by the shared View.",
+      "note": "using/unuse state is not yet rendered by the shared View.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.base-appearance.toggle",
+      "status": "blocked",
+      "blocked_reason": "Base appearance 16003 toggle is not wired and no write authorization was granted.",
+      "note": "Base appearance 16003 toggle is not wired and no write authorization was granted.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.illusion.open",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.illusion.list-scroll",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.illusion.select-model",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.illusion.wear",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.illusion.activate",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.illusion.stage-up",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.illusion.star-up",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.illusion.close",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.level-system.open",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.level-system.summary",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.level-system.skills",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.level-system.level-up",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.level-system.skill-up",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.level-system.return",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.one-key-up.present",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared one-key button label/visibility and existing 16005 sender are static-complete; runtime state is pending.",
+      "note": "Shared one-key button label/visibility and existing 16005 sender are static-complete; runtime state is pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.one-key-up.submit",
+      "status": "blocked",
+      "blocked_reason": "16005 changes account materials/blessing/star; no write transaction was authorized or executed.",
+      "note": "16005 changes account materials/blessing/star; no write transaction was authorized or executed.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.fairy-wish.visibility",
+      "status": "blocked",
+      "blocked_reason": "FairyWish is outside this exclusive closure and its existing page is degraded; report as a cross-island dependency.",
+      "note": "FairyWish is outside this exclusive closure and its existing page is degraded; report as a cross-island dependency.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.fairy-wish.open",
+      "status": "blocked",
+      "blocked_reason": "FairyWish is outside this exclusive closure and its existing page is degraded; report as a cross-island dependency.",
+      "note": "FairyWish is outside this exclusive closure and its existing page is degraded; report as a cross-island dependency.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.route-state.open-ready",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "note": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.route-state.close",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "note": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.route-state.warm-reopen",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "note": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.route-state.viewports",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "note": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.artifact.route-state.performance",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "note": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.header.name-stage",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "note": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.header.combat",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "note": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.header.role-visibility",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "note": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.model.asset",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "note": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "applicable_gates": [
+        "model_render",
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "model_render": false,
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.model.placement",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "note": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "applicable_gates": [
+        "model_render",
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "model_render": false,
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.model.effect",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "note": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "applicable_gates": [
+        "model_render",
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "model_render": false,
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.model.dynamic",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "note": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "applicable_gates": [
+        "model_render",
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "model_render": false,
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.model.lifecycle",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "note": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "applicable_gates": [
+        "model_render",
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "model_render": false,
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.property.open",
+      "status": "blocked",
+      "blocked_reason": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "note": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.property.content",
+      "status": "blocked",
+      "blocked_reason": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "note": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.property.close",
+      "status": "blocked",
+      "blocked_reason": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "note": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.skills.display",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Current skill list/icon rendering exists; current-account old-vs-Unity state and pixels remain pending.",
+      "note": "Current skill list/icon rendering exists; current-account old-vs-Unity state and pixels remain pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.skills.detail",
+      "status": "blocked",
+      "blocked_reason": "Skill detail interaction is not wired in the current shared View.",
+      "note": "Skill detail interaction is not wired in the current shared View.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.crystal.display",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Crystal config and 16011 counter rendering is implemented; current-account state/pixels remain pending.",
+      "note": "Crystal config and 16011 counter rendering is implemented; current-account state/pixels remain pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.crystal.detail",
+      "status": "blocked",
+      "blocked_reason": "PetCrystalView detail interaction is not present in the editable PetModule prefab.",
+      "note": "PetCrystalView detail interaction is not present in the editable PetModule prefab.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.crystal.use",
+      "status": "blocked",
+      "blocked_reason": "16010 UI action is not wired and no destructive-write authorization was granted.",
+      "note": "16010 UI action is not wired and no destructive-write authorization was granted.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.materials.display",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Training goods now use config_mount_prop type=1; current-account bag state/pixels remain pending.",
+      "note": "Training goods now use config_mount_prop type=1; current-account bag state/pixels remain pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.materials.detail",
+      "status": "blocked",
+      "blocked_reason": "Material item detail interaction is not wired in the current shared View.",
+      "note": "Material item detail interaction is not wired in the current shared View.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.base-appearance.state",
+      "status": "blocked",
+      "blocked_reason": "using/unuse state is not yet rendered by the shared View.",
+      "note": "using/unuse state is not yet rendered by the shared View.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.base-appearance.toggle",
+      "status": "blocked",
+      "blocked_reason": "Base appearance 16003 toggle is not wired and no write authorization was granted.",
+      "note": "Base appearance 16003 toggle is not wired and no write authorization was granted.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.illusion.open",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.illusion.list-scroll",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.illusion.select-model",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.illusion.wear",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.illusion.activate",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.illusion.stage-up",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.illusion.star-up",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.illusion.close",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.level-system.open",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.level-system.summary",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.level-system.skills",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.level-system.level-up",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.level-system.skill-up",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.level-system.return",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.one-key-up.present",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared one-key button label/visibility and existing 16005 sender are static-complete; runtime state is pending.",
+      "note": "Shared one-key button label/visibility and existing 16005 sender are static-complete; runtime state is pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.one-key-up.submit",
+      "status": "blocked",
+      "blocked_reason": "16005 changes account materials/blessing/star; no write transaction was authorized or executed.",
+      "note": "16005 changes account materials/blessing/star; no write transaction was authorized or executed.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.fairy-wish.visibility",
+      "status": "blocked",
+      "blocked_reason": "FairyWish is outside this exclusive closure and its existing page is degraded; report as a cross-island dependency.",
+      "note": "FairyWish is outside this exclusive closure and its existing page is degraded; report as a cross-island dependency.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.fairy-wish.open",
+      "status": "blocked",
+      "blocked_reason": "FairyWish is outside this exclusive closure and its existing page is degraded; report as a cross-island dependency.",
+      "note": "FairyWish is outside this exclusive closure and its existing page is degraded; report as a cross-island dependency.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.route-state.open-ready",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "note": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.route-state.close",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "note": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.route-state.warm-reopen",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "note": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.route-state.viewports",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "note": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.weapon.route-state.performance",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "note": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.header.name-stage",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "note": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.header.combat",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "note": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.header.role-visibility",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "note": "Shared role-outward semantics are implemented; old-vs-Unity pixels/current-account state are pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.model.asset",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "note": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "applicable_gates": [
+        "model_render",
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "model_render": false,
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.model.placement",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "note": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "applicable_gates": [
+        "model_render",
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "model_render": false,
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.model.effect",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "note": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "applicable_gates": [
+        "model_render",
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "model_render": false,
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.model.dynamic",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "note": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "applicable_gates": [
+        "model_render",
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "model_render": false,
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.model.lifecycle",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "note": "Shared model loading/lifecycle is implemented; RT pixels, two-timepoint motion/effect ownership and cleanup need runtime evidence.",
+      "applicable_gates": [
+        "model_render",
+        "runtime_state",
+        "reopen"
+      ],
+      "gates": {
+        "model_render": false,
+        "runtime_state": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.property.open",
+      "status": "blocked",
+      "blocked_reason": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "note": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.property.content",
+      "status": "blocked",
+      "blocked_reason": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "note": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.property.close",
+      "status": "blocked",
+      "blocked_reason": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "note": "PetProptityView Bind exists but no editable instance is baked into PetModule.prefab.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.skills.display",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Current skill list/icon rendering exists; current-account old-vs-Unity state and pixels remain pending.",
+      "note": "Current skill list/icon rendering exists; current-account old-vs-Unity state and pixels remain pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.skills.detail",
+      "status": "blocked",
+      "blocked_reason": "Skill detail interaction is not wired in the current shared View.",
+      "note": "Skill detail interaction is not wired in the current shared View.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.crystal.display",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Crystal config and 16011 counter rendering is implemented; current-account state/pixels remain pending.",
+      "note": "Crystal config and 16011 counter rendering is implemented; current-account state/pixels remain pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.crystal.detail",
+      "status": "blocked",
+      "blocked_reason": "PetCrystalView detail interaction is not present in the editable PetModule prefab.",
+      "note": "PetCrystalView detail interaction is not present in the editable PetModule prefab.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.crystal.use",
+      "status": "blocked",
+      "blocked_reason": "16010 UI action is not wired and no destructive-write authorization was granted.",
+      "note": "16010 UI action is not wired and no destructive-write authorization was granted.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.materials.display",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Training goods now use config_mount_prop type=1; current-account bag state/pixels remain pending.",
+      "note": "Training goods now use config_mount_prop type=1; current-account bag state/pixels remain pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.materials.detail",
+      "status": "blocked",
+      "blocked_reason": "Material item detail interaction is not wired in the current shared View.",
+      "note": "Material item detail interaction is not wired in the current shared View.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.base-appearance.state",
+      "status": "blocked",
+      "blocked_reason": "using/unuse state is not yet rendered by the shared View.",
+      "note": "using/unuse state is not yet rendered by the shared View.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.base-appearance.toggle",
+      "status": "blocked",
+      "blocked_reason": "Base appearance 16003 toggle is not wired and no write authorization was granted.",
+      "note": "Base appearance 16003 toggle is not wired and no write authorization was granted.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.illusion.open",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.illusion.list-scroll",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.illusion.select-model",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.illusion.wear",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.illusion.activate",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.illusion.stage-up",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.illusion.star-up",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.illusion.close",
+      "status": "blocked",
+      "blocked_reason": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "IllusionBaseView has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.level-system.open",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.level-system.summary",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.level-system.skills",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.level-system.level-up",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.level-system.skill-up",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.level-system.return",
+      "status": "blocked",
+      "blocked_reason": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "note": "OutwardLvSystem has generated Bind code and controller protocols, but no editable Prefab instance/page implementation; write leaves additionally require authorization.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.one-key-up.present",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Shared one-key button label/visibility and existing 16005 sender are static-complete; runtime state is pending.",
+      "note": "Shared one-key button label/visibility and existing 16005 sender are static-complete; runtime state is pending.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.one-key-up.submit",
+      "status": "blocked",
+      "blocked_reason": "16005 changes account materials/blessing/star; no write transaction was authorized or executed.",
+      "note": "16005 changes account materials/blessing/star; no write transaction was authorized or executed.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.fairy-wish.visibility",
+      "status": "blocked",
+      "blocked_reason": "FairyWish is outside this exclusive closure and its existing page is degraded; report as a cross-island dependency.",
+      "note": "FairyWish is outside this exclusive closure and its existing page is degraded; report as a cross-island dependency.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.fairy-wish.open",
+      "status": "blocked",
+      "blocked_reason": "FairyWish is outside this exclusive closure and its existing page is degraded; report as a cross-island dependency.",
+      "note": "FairyWish is outside this exclusive closure and its existing page is degraded; report as a cross-island dependency.",
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.route-state.open-ready",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "note": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.route-state.close",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "note": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.route-state.warm-reopen",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "note": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.route-state.viewports",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "note": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    },
+    {
+      "id": "mainui.role.outward.back.route-state.performance",
+      "status": "needs-runtime-verify",
+      "runtime_gap": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "note": "Requires a current matching real-Web sequential run; no Unity/browser was operated in this pass.",
+      "applicable_gates": [
+        "runtime_state",
+        "visual_match",
+        "reopen"
+      ],
+      "gates": {
+        "runtime_state": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-09_role_outward/static-audit.md"
+      ]
+    }
+  ]
+}

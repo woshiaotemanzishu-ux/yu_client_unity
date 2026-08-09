@@ -1,0 +1,27 @@
+[
+  {
+    "id": "mainui.setting.profile.rename.confirm",
+    "status": "blocked",
+    "blocked_reason": "Rename is a Role-owned account write; the Setting-only file island may verify target identity but may not execute or modify Role in this batch."
+  },
+  {
+    "id": "mainui.setting.bottom.change-role.execute",
+    "status": "blocked",
+    "blocked_reason": "Executing this leaf disconnects the active session and switches to role selection; no destructive-session authorization was granted."
+  },
+  {
+    "id": "mainui.setting.bottom.return-login.execute",
+    "status": "blocked",
+    "blocked_reason": "Executing this leaf disconnects the active session and returns to account login; no destructive-session authorization was granted."
+  },
+  {
+    "id": "mainui.setting.bottom.flee.execute",
+    "status": "blocked",
+    "blocked_reason": "Executing protocol 10210 relocates the player scene and may alter session state; this batch is static/no-browser and may only verify the confirmation route."
+  },
+  {
+    "id": "mainui.setting.bottom.repair.execute",
+    "status": "blocked",
+    "blocked_reason": "Executing repair disconnects/reconnects the game session; this destructive runtime action is outside the granted batch."
+  }
+]

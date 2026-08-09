@@ -1,0 +1,1513 @@
+{
+  "route": "mainui.team",
+  "baseline": {
+    "captured_at": "2026-08-09T00:00:00+08:00",
+    "mode": "static-only-no-unity-no-browser-no-account-write",
+    "legacy_root": "E:/GitProject/yu_client/h5/src/team",
+    "unity_root": "Assets/Scripts/Module/Core/Team",
+    "notes": "老端源码、Laya JSON、Unity Prefab/Bind、Generated wire 与服务端只读交叉盘点；v3 补齐附近邀请的场景变化定时刷新、24053 重拉和销毁清理生命周期，并把更改目标确认拆为已有队伍 24017 与无队伍本地成功回调两条互斥叶；未启动 Unity/浏览器，未执行账号写事务。",
+    "topology_revision": 3
+  },
+  "nodes": [
+    {
+      "id": "mainui.team",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "team-entry",
+          "kind": "navigation",
+          "child": "mainui.team.view"
+        },
+        {
+          "id": "invite-notification",
+          "kind": "conditional-popup",
+          "child": "mainui.team.be-invited"
+        },
+        {
+          "id": "match-push",
+          "kind": "conditional-popup",
+          "child": "mainui.team.match"
+        },
+        {
+          "id": "vote-push",
+          "kind": "conditional-popup",
+          "child": "mainui.team.vote"
+        },
+        {
+          "id": "dead-24011",
+          "kind": "protocol-boundary",
+          "child": "mainui.team.dead-24011"
+        },
+        {
+          "id": "dead-24042",
+          "kind": "protocol-boundary",
+          "child": "mainui.team.dead-24042"
+        },
+        {
+          "id": "sound",
+          "kind": "sound",
+          "child": "mainui.team.sound"
+        },
+        {
+          "id": "prefab-resource-closure",
+          "kind": "resource",
+          "child": "mainui.team.prefab-resource-closure"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.view",
+      "parent": "mainui.team",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "initial-query-24010",
+          "kind": "query",
+          "child": "mainui.team.view.initial-query-24010"
+        },
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "mainui.team.view.close"
+        },
+        {
+          "id": "background-close",
+          "kind": "background",
+          "child": "mainui.team.view.background-close"
+        },
+        {
+          "id": "tips-btn",
+          "kind": "button",
+          "child": "mainui.team.view.small-desc"
+        },
+        {
+          "id": "target-btn",
+          "kind": "button",
+          "child": "mainui.team.view.change-target"
+        },
+        {
+          "id": "target-summary",
+          "kind": "dynamic-text",
+          "child": "mainui.team.view.target-summary"
+        },
+        {
+          "id": "team-no-team-button-groups",
+          "kind": "conditional-state",
+          "child": "mainui.team.view.button-groups"
+        },
+        {
+          "id": "non-leader-prompts",
+          "kind": "conditional-state",
+          "child": "mainui.team.view.non-leader-prompts"
+        },
+        {
+          "id": "create-btn",
+          "kind": "button",
+          "child": "mainui.team.view.create"
+        },
+        {
+          "id": "auto-create-on-open",
+          "kind": "conditional-transaction",
+          "child": "mainui.team.view.auto-create-on-open"
+        },
+        {
+          "id": "hall-scroll",
+          "kind": "list",
+          "child": "mainui.team.view.hall"
+        },
+        {
+          "id": "team-scroll",
+          "kind": "list",
+          "child": "mainui.team.view.members"
+        },
+        {
+          "id": "invite-btn",
+          "kind": "button",
+          "child": "mainui.team.view.invite"
+        },
+        {
+          "id": "world-btn",
+          "kind": "button",
+          "child": "mainui.team.view.world-shout"
+        },
+        {
+          "id": "world-shout-state",
+          "kind": "dynamic-state",
+          "child": "mainui.team.view.world-shout-state"
+        },
+        {
+          "id": "apply-list-btn",
+          "kind": "button",
+          "child": "mainui.team.view.apply"
+        },
+        {
+          "id": "apply-red-dot",
+          "kind": "conditional-state",
+          "child": "mainui.team.view.apply-red-dot"
+        },
+        {
+          "id": "empty-state",
+          "kind": "conditional-state",
+          "child": "mainui.team.view.empty-state"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.view.close",
+      "parent": "mainui.team.view",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.small-desc",
+      "parent": "mainui.team.view",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "dynamic-desc",
+          "kind": "text",
+          "child": "mainui.team.view.small-desc.content"
+        },
+        {
+          "id": "adaptive-position",
+          "kind": "geometry",
+          "child": "mainui.team.view.small-desc.geometry"
+        },
+        {
+          "id": "background-close",
+          "kind": "button",
+          "child": "mainui.team.view.small-desc.close"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.view.small-desc.content",
+      "parent": "mainui.team.view.small-desc",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.small-desc.geometry",
+      "parent": "mainui.team.view.small-desc",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.small-desc.close",
+      "parent": "mainui.team.view.small-desc",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.change-target",
+      "parent": "mainui.team.view",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "mainui.team.view.change-target.close"
+        },
+        {
+          "id": "target-list",
+          "kind": "list",
+          "child": "mainui.team.view.change-target.list"
+        },
+        {
+          "id": "down-level",
+          "kind": "button",
+          "child": "mainui.team.view.change-target.down-level-click"
+        },
+        {
+          "id": "up-level",
+          "kind": "button",
+          "child": "mainui.team.view.change-target.up-level-click"
+        },
+        {
+          "id": "calculator-popup",
+          "kind": "popup",
+          "child": "mainui.team.view.change-target.calculator"
+        },
+        {
+          "id": "confirm",
+          "kind": "button",
+          "child": "mainui.team.view.change-target.confirm"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.view.change-target.close",
+      "parent": "mainui.team.view.change-target",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.change-target.confirm",
+      "parent": "mainui.team.view.change-target",
+      "type": "page",
+      "risk": "destructive-write",
+      "control_inventory": [
+        {
+          "id": "existing-team-request-24017",
+          "kind": "conditional-transaction",
+          "child": "mainui.team.view.change-target.confirm.existing-team-24017"
+        },
+        {
+          "id": "no-team-local-success",
+          "kind": "conditional-transaction",
+          "child": "mainui.team.view.change-target.confirm.no-team-change-target-success"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.view.create",
+      "parent": "mainui.team.view",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.view.hall",
+      "parent": "mainui.team.view",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "request-24012",
+          "kind": "query",
+          "child": "mainui.team.view.hall.query"
+        },
+        {
+          "id": "scroll",
+          "kind": "scroll",
+          "child": "mainui.team.view.hall.scroll"
+        },
+        {
+          "id": "row-render",
+          "kind": "list-item",
+          "child": "mainui.team.view.hall.row-render"
+        },
+        {
+          "id": "row-apply",
+          "kind": "button",
+          "child": "mainui.team.view.hall.apply"
+        },
+        {
+          "id": "row-avatar-menu",
+          "kind": "button",
+          "child": "mainui.team.view.hall.avatar-menu-dead"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.view.hall.query",
+      "parent": "mainui.team.view.hall",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.hall.scroll",
+      "parent": "mainui.team.view.hall",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.hall.row-render",
+      "parent": "mainui.team.view.hall",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.hall.apply",
+      "parent": "mainui.team.view.hall",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.view.hall.avatar-menu-dead",
+      "parent": "mainui.team.view.hall",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.members",
+      "parent": "mainui.team.view",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "row-render",
+          "kind": "list-item",
+          "child": "mainui.team.view.members.row-render"
+        },
+        {
+          "id": "quit",
+          "kind": "button",
+          "child": "mainui.team.view.members.quit"
+        },
+        {
+          "id": "kick",
+          "kind": "button",
+          "child": "mainui.team.view.members.kick"
+        },
+        {
+          "id": "avatar-menu",
+          "kind": "button",
+          "child": "mainui.team.view.members.avatar-menu-dead"
+        },
+        {
+          "id": "scroll",
+          "kind": "scroll",
+          "child": "mainui.team.view.members.scroll"
+        },
+        {
+          "id": "row-action-visibility",
+          "kind": "conditional-state",
+          "child": "mainui.team.view.members.action-visibility"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.view.members.row-render",
+      "parent": "mainui.team.view.members",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.members.quit",
+      "parent": "mainui.team.view.members",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.view.members.kick",
+      "parent": "mainui.team.view.members",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.view.members.avatar-menu-dead",
+      "parent": "mainui.team.view.members",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.members.scroll",
+      "parent": "mainui.team.view.members",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.invite",
+      "parent": "mainui.team.view",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "mainui.team.view.invite.close"
+        },
+        {
+          "id": "tab-strip",
+          "kind": "list",
+          "child": "mainui.team.view.invite.tab-strip"
+        },
+        {
+          "id": "nearby-tab",
+          "kind": "tab",
+          "child": "mainui.team.view.invite.nearby"
+        },
+        {
+          "id": "friend-tab",
+          "kind": "tab",
+          "child": "mainui.team.view.invite.friend"
+        },
+        {
+          "id": "guild-tab",
+          "kind": "tab",
+          "child": "mainui.team.view.invite.guild"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.view.invite.close",
+      "parent": "mainui.team.view.invite",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby",
+      "parent": "mainui.team.view.invite",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "scene-refresh-lifecycle",
+          "kind": "lifecycle-query",
+          "child": "mainui.team.view.invite.nearby.query"
+        },
+        {
+          "id": "list-scroll",
+          "kind": "scroll",
+          "child": "mainui.team.view.invite.nearby.scroll"
+        },
+        {
+          "id": "row-render",
+          "kind": "list-item",
+          "child": "mainui.team.view.invite.nearby.row-render"
+        },
+        {
+          "id": "empty-state",
+          "kind": "conditional-state",
+          "child": "mainui.team.view.invite.nearby.empty"
+        },
+        {
+          "id": "invite-row",
+          "kind": "button",
+          "child": "mainui.team.view.invite.nearby.send"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.query",
+      "parent": "mainui.team.view.invite.nearby",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "scene-change-timer",
+          "kind": "lifecycle-state",
+          "child": "mainui.team.view.invite.nearby.query.scene-change-timer"
+        },
+        {
+          "id": "request-24053",
+          "kind": "query",
+          "child": "mainui.team.view.invite.nearby.query.request-24053"
+        },
+        {
+          "id": "destroy-clear-timer",
+          "kind": "lifecycle-state",
+          "child": "mainui.team.view.invite.nearby.query.destroy-clear-timer"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.scroll",
+      "parent": "mainui.team.view.invite.nearby",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.empty",
+      "parent": "mainui.team.view.invite.nearby",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.send",
+      "parent": "mainui.team.view.invite.nearby",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.view.invite.friend",
+      "parent": "mainui.team.view.invite",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "query-24061-type3",
+          "kind": "query",
+          "child": "mainui.team.view.invite.friend.query"
+        },
+        {
+          "id": "list-scroll",
+          "kind": "scroll",
+          "child": "mainui.team.view.invite.friend.scroll"
+        },
+        {
+          "id": "row-render",
+          "kind": "list-item",
+          "child": "mainui.team.view.invite.friend.row-render"
+        },
+        {
+          "id": "empty-state",
+          "kind": "conditional-state",
+          "child": "mainui.team.view.invite.friend.empty"
+        },
+        {
+          "id": "invite-row",
+          "kind": "button",
+          "child": "mainui.team.view.invite.friend.send"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.view.invite.friend.query",
+      "parent": "mainui.team.view.invite.friend",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.invite.friend.scroll",
+      "parent": "mainui.team.view.invite.friend",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.invite.friend.empty",
+      "parent": "mainui.team.view.invite.friend",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.invite.friend.send",
+      "parent": "mainui.team.view.invite.friend",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.view.invite.guild",
+      "parent": "mainui.team.view.invite",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "query-24061-type2",
+          "kind": "query",
+          "child": "mainui.team.view.invite.guild.query"
+        },
+        {
+          "id": "list-scroll",
+          "kind": "scroll",
+          "child": "mainui.team.view.invite.guild.scroll"
+        },
+        {
+          "id": "row-render",
+          "kind": "list-item",
+          "child": "mainui.team.view.invite.guild.row-render"
+        },
+        {
+          "id": "no-guild-or-empty",
+          "kind": "conditional-state",
+          "child": "mainui.team.view.invite.guild.empty"
+        },
+        {
+          "id": "invite-row",
+          "kind": "button",
+          "child": "mainui.team.view.invite.guild.send"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.view.invite.guild.query",
+      "parent": "mainui.team.view.invite.guild",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.invite.guild.scroll",
+      "parent": "mainui.team.view.invite.guild",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.invite.guild.empty",
+      "parent": "mainui.team.view.invite.guild",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.invite.guild.send",
+      "parent": "mainui.team.view.invite.guild",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.view.world-shout",
+      "parent": "mainui.team.view",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.view.apply",
+      "parent": "mainui.team.view",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "open-query-24047",
+          "kind": "query",
+          "child": "mainui.team.view.apply.open-query-24047"
+        },
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "mainui.team.view.apply.close"
+        },
+        {
+          "id": "auto-accept",
+          "kind": "toggle",
+          "child": "mainui.team.view.apply.auto-accept"
+        },
+        {
+          "id": "join-type-check-state",
+          "kind": "conditional-state",
+          "child": "mainui.team.view.apply.join-type-check-state"
+        },
+        {
+          "id": "clear",
+          "kind": "button",
+          "child": "mainui.team.view.apply.clear"
+        },
+        {
+          "id": "apply-list",
+          "kind": "list",
+          "child": "mainui.team.view.apply.list"
+        },
+        {
+          "id": "empty-state",
+          "kind": "conditional-state",
+          "child": "mainui.team.view.apply.empty"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.view.apply.close",
+      "parent": "mainui.team.view.apply",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.apply.auto-accept",
+      "parent": "mainui.team.view.apply",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.team.view.apply.clear",
+      "parent": "mainui.team.view.apply",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.view.apply.list",
+      "parent": "mainui.team.view.apply",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "scroll",
+          "kind": "scroll",
+          "child": "mainui.team.view.apply.list.scroll"
+        },
+        {
+          "id": "row-render",
+          "kind": "list-item",
+          "child": "mainui.team.view.apply.list.row-render"
+        },
+        {
+          "id": "accept",
+          "kind": "button",
+          "child": "mainui.team.view.apply.list.accept"
+        },
+        {
+          "id": "refuse",
+          "kind": "button",
+          "child": "mainui.team.view.apply.list.refuse"
+        },
+        {
+          "id": "shield",
+          "kind": "button",
+          "child": "mainui.team.view.apply.list.shield"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.view.apply.list.scroll",
+      "parent": "mainui.team.view.apply.list",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.apply.list.row-render",
+      "parent": "mainui.team.view.apply.list",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.apply.list.accept",
+      "parent": "mainui.team.view.apply.list",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.view.apply.list.refuse",
+      "parent": "mainui.team.view.apply.list",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.view.apply.list.shield",
+      "parent": "mainui.team.view.apply.list",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.view.apply.empty",
+      "parent": "mainui.team.view.apply",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.apply-red-dot",
+      "parent": "mainui.team.view",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.empty-state",
+      "parent": "mainui.team.view",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.be-invited",
+      "parent": "mainui.team",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "close",
+          "kind": "button",
+          "child": "mainui.team.be-invited.close"
+        },
+        {
+          "id": "invite-list",
+          "kind": "list",
+          "child": "mainui.team.be-invited.list"
+        },
+        {
+          "id": "team-update-auto-close",
+          "kind": "conditional-state",
+          "child": "mainui.team.be-invited.auto-close"
+        },
+        {
+          "id": "destroy-reset-list",
+          "kind": "lifecycle-state",
+          "child": "mainui.team.be-invited.reset-list"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.be-invited.close",
+      "parent": "mainui.team.be-invited",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.be-invited.list",
+      "parent": "mainui.team.be-invited",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "scroll",
+          "kind": "scroll",
+          "child": "mainui.team.be-invited.list.scroll"
+        },
+        {
+          "id": "row-render",
+          "kind": "list-item",
+          "child": "mainui.team.be-invited.list.row-render"
+        },
+        {
+          "id": "accept",
+          "kind": "button",
+          "child": "mainui.team.be-invited.list.accept"
+        },
+        {
+          "id": "refuse",
+          "kind": "button",
+          "child": "mainui.team.be-invited.list.refuse"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.be-invited.list.scroll",
+      "parent": "mainui.team.be-invited.list",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.be-invited.list.row-render",
+      "parent": "mainui.team.be-invited.list",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.be-invited.list.accept",
+      "parent": "mainui.team.be-invited.list",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.be-invited.list.refuse",
+      "parent": "mainui.team.be-invited.list",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.be-invited.auto-close",
+      "parent": "mainui.team.be-invited",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.match",
+      "parent": "mainui.team",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "cancel",
+          "kind": "button",
+          "child": "mainui.team.match.cancel"
+        },
+        {
+          "id": "timer",
+          "kind": "dynamic-state",
+          "child": "mainui.team.match.timer"
+        },
+        {
+          "id": "timeout-cancel",
+          "kind": "conditional-transaction",
+          "child": "mainui.team.match.timeout-cancel"
+        },
+        {
+          "id": "sentient-full-team-alert",
+          "kind": "conditional-popup",
+          "child": "mainui.team.match.sentient-alert"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.match.cancel",
+      "parent": "mainui.team.match",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.match.timer",
+      "parent": "mainui.team.match",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.match.timeout-cancel",
+      "parent": "mainui.team.match",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.vote",
+      "parent": "mainui.team",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "member-slots",
+          "kind": "dynamic-state",
+          "child": "mainui.team.vote.members"
+        },
+        {
+          "id": "timer-progress",
+          "kind": "dynamic-state",
+          "child": "mainui.team.vote.timer"
+        },
+        {
+          "id": "agree",
+          "kind": "button",
+          "child": "mainui.team.vote.agree"
+        },
+        {
+          "id": "refuse",
+          "kind": "button",
+          "child": "mainui.team.vote.refuse"
+        },
+        {
+          "id": "duplicate-guard",
+          "kind": "conditional-state",
+          "child": "mainui.team.vote.duplicate-guard"
+        },
+        {
+          "id": "result-close",
+          "kind": "conditional-state",
+          "child": "mainui.team.vote.result-close"
+        },
+        {
+          "id": "close-graphic",
+          "kind": "noninteractive-graphic",
+          "child": "mainui.team.vote.close-graphic"
+        },
+        {
+          "id": "tutorial-arrow",
+          "kind": "conditional-effect",
+          "child": "mainui.team.vote.tutorial"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.vote.members",
+      "parent": "mainui.team.vote",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.vote.timer",
+      "parent": "mainui.team.vote",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.vote.agree",
+      "parent": "mainui.team.vote",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.vote.refuse",
+      "parent": "mainui.team.vote",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.vote.duplicate-guard",
+      "parent": "mainui.team.vote",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.vote.result-close",
+      "parent": "mainui.team.vote",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.vote.close-graphic",
+      "parent": "mainui.team.vote",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.vote.tutorial",
+      "parent": "mainui.team.vote",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.dead-24011",
+      "parent": "mainui.team",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.dead-24042",
+      "parent": "mainui.team",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.sound",
+      "parent": "mainui.team",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.prefab-resource-closure",
+      "parent": "mainui.team",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.initial-query-24010",
+      "parent": "mainui.team.view",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.background-close",
+      "parent": "mainui.team.view",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.target-summary",
+      "parent": "mainui.team.view",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.button-groups",
+      "parent": "mainui.team.view",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "with-team",
+          "kind": "conditional-state",
+          "child": "mainui.team.view.button-groups.with-team"
+        },
+        {
+          "id": "without-team",
+          "kind": "conditional-state",
+          "child": "mainui.team.view.button-groups.without-team"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.view.button-groups.with-team",
+      "parent": "mainui.team.view.button-groups",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.button-groups.without-team",
+      "parent": "mainui.team.view.button-groups",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.non-leader-prompts",
+      "parent": "mainui.team.view",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "target",
+          "kind": "conditional-message",
+          "child": "mainui.team.view.non-leader-prompts.target"
+        },
+        {
+          "id": "world-shout",
+          "kind": "conditional-message",
+          "child": "mainui.team.view.non-leader-prompts.world-shout"
+        },
+        {
+          "id": "apply-list",
+          "kind": "conditional-message",
+          "child": "mainui.team.view.non-leader-prompts.apply-list"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.view.non-leader-prompts.target",
+      "parent": "mainui.team.view.non-leader-prompts",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.non-leader-prompts.world-shout",
+      "parent": "mainui.team.view.non-leader-prompts",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.non-leader-prompts.apply-list",
+      "parent": "mainui.team.view.non-leader-prompts",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.auto-create-on-open",
+      "parent": "mainui.team.view",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.view.world-shout-state",
+      "parent": "mainui.team.view",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "countdown-text",
+          "kind": "dynamic-text",
+          "child": "mainui.team.view.world-shout-state.countdown-text"
+        },
+        {
+          "id": "cooldown-click",
+          "kind": "conditional-message",
+          "child": "mainui.team.view.world-shout-state.cooldown-click"
+        },
+        {
+          "id": "expiry-reset",
+          "kind": "conditional-state",
+          "child": "mainui.team.view.world-shout-state.expiry-reset"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.view.world-shout-state.countdown-text",
+      "parent": "mainui.team.view.world-shout-state",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.world-shout-state.cooldown-click",
+      "parent": "mainui.team.view.world-shout-state",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.world-shout-state.expiry-reset",
+      "parent": "mainui.team.view.world-shout-state",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.members.action-visibility",
+      "parent": "mainui.team.view.members",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.invite.tab-strip",
+      "parent": "mainui.team.view.invite",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "row-render",
+          "kind": "list-item",
+          "child": "mainui.team.view.invite.tab-strip.row-render"
+        },
+        {
+          "id": "selected-state",
+          "kind": "conditional-state",
+          "child": "mainui.team.view.invite.tab-strip.selected-state"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.view.invite.tab-strip.row-render",
+      "parent": "mainui.team.view.invite.tab-strip",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.invite.tab-strip.selected-state",
+      "parent": "mainui.team.view.invite.tab-strip",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.row-render",
+      "parent": "mainui.team.view.invite.nearby",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.invite.friend.row-render",
+      "parent": "mainui.team.view.invite.friend",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.invite.guild.row-render",
+      "parent": "mainui.team.view.invite.guild",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.apply.open-query-24047",
+      "parent": "mainui.team.view.apply",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.apply.join-type-check-state",
+      "parent": "mainui.team.view.apply",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.be-invited.reset-list",
+      "parent": "mainui.team.be-invited",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.team.view.change-target.list",
+      "parent": "mainui.team.view.change-target",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "role-level-filter",
+          "kind": "conditional-list",
+          "child": "mainui.team.view.change-target.list.role-level-filter"
+        },
+        {
+          "id": "scroll",
+          "kind": "scroll",
+          "child": "mainui.team.view.change-target.list.scroll"
+        },
+        {
+          "id": "row-render",
+          "kind": "list-item",
+          "child": "mainui.team.view.change-target.list.row-render"
+        },
+        {
+          "id": "selected-state",
+          "kind": "conditional-state",
+          "child": "mainui.team.view.change-target.list.selected-state"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.view.change-target.list.role-level-filter",
+      "parent": "mainui.team.view.change-target.list",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.change-target.list.scroll",
+      "parent": "mainui.team.view.change-target.list",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.change-target.list.row-render",
+      "parent": "mainui.team.view.change-target.list",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.change-target.list.selected-state",
+      "parent": "mainui.team.view.change-target.list",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.change-target.down-level-click",
+      "parent": "mainui.team.view.change-target",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.change-target.up-level-click",
+      "parent": "mainui.team.view.change-target",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator",
+      "parent": "mainui.team.view.change-target",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "open-event",
+          "kind": "popup-open",
+          "child": "mainui.team.view.change-target.calculator.open-event"
+        },
+        {
+          "id": "value-change",
+          "kind": "input",
+          "child": "mainui.team.view.change-target.calculator.value-change"
+        },
+        {
+          "id": "close-callback",
+          "kind": "popup-close",
+          "child": "mainui.team.view.change-target.calculator.close-callback"
+        },
+        {
+          "id": "validation",
+          "kind": "conditional-state",
+          "child": "mainui.team.view.change-target.calculator.validation"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.open-event",
+      "parent": "mainui.team.view.change-target.calculator",
+      "type": "navigation",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.value-change",
+      "parent": "mainui.team.view.change-target.calculator",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.close-callback",
+      "parent": "mainui.team.view.change-target.calculator",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.validation",
+      "parent": "mainui.team.view.change-target.calculator",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "min-below-config",
+          "kind": "failure-state",
+          "child": "mainui.team.view.change-target.calculator.validation.min-below-config"
+        },
+        {
+          "id": "min-above-max",
+          "kind": "failure-state",
+          "child": "mainui.team.view.change-target.calculator.validation.min-above-config-or-current-max"
+        },
+        {
+          "id": "max-above-config",
+          "kind": "failure-state",
+          "child": "mainui.team.view.change-target.calculator.validation.max-above-config"
+        },
+        {
+          "id": "max-below-min",
+          "kind": "failure-state",
+          "child": "mainui.team.view.change-target.calculator.validation.max-below-config-or-current-min"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.validation.min-below-config",
+      "parent": "mainui.team.view.change-target.calculator.validation",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.validation.min-above-config-or-current-max",
+      "parent": "mainui.team.view.change-target.calculator.validation",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.validation.max-above-config",
+      "parent": "mainui.team.view.change-target.calculator.validation",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.team.view.change-target.calculator.validation.max-below-config-or-current-min",
+      "parent": "mainui.team.view.change-target.calculator.validation",
+      "type": "reversible-write",
+      "risk": "reversible-write"
+    },
+    {
+      "id": "mainui.team.match.sentient-alert",
+      "parent": "mainui.team.match",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "open",
+          "kind": "conditional-state",
+          "child": "mainui.team.match.sentient-alert.open"
+        },
+        {
+          "id": "auto-cancel-match",
+          "kind": "conditional-transaction",
+          "child": "mainui.team.match.sentient-alert.auto-cancel-match"
+        },
+        {
+          "id": "confirm",
+          "kind": "button",
+          "child": "mainui.team.match.sentient-alert.confirm"
+        },
+        {
+          "id": "cancel",
+          "kind": "button",
+          "child": "mainui.team.match.sentient-alert.cancel"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.match.sentient-alert.open",
+      "parent": "mainui.team.match.sentient-alert",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.match.sentient-alert.auto-cancel-match",
+      "parent": "mainui.team.match.sentient-alert",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.match.sentient-alert.confirm",
+      "parent": "mainui.team.match.sentient-alert",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "in-scene-find-way",
+          "kind": "navigation",
+          "child": "mainui.team.match.sentient-alert.confirm.find-way"
+        },
+        {
+          "id": "off-scene-24108",
+          "kind": "transaction",
+          "child": "mainui.team.match.sentient-alert.confirm.request-24108"
+        }
+      ]
+    },
+    {
+      "id": "mainui.team.match.sentient-alert.confirm.find-way",
+      "parent": "mainui.team.match.sentient-alert.confirm",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.match.sentient-alert.confirm.request-24108",
+      "parent": "mainui.team.match.sentient-alert.confirm",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.match.sentient-alert.cancel",
+      "parent": "mainui.team.match.sentient-alert",
+      "type": "return",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.query.scene-change-timer",
+      "parent": "mainui.team.view.invite.nearby.query",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.query.request-24053",
+      "parent": "mainui.team.view.invite.nearby.query",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.invite.nearby.query.destroy-clear-timer",
+      "parent": "mainui.team.view.invite.nearby.query",
+      "type": "read",
+      "risk": "read-only"
+    },
+    {
+      "id": "mainui.team.view.change-target.confirm.existing-team-24017",
+      "parent": "mainui.team.view.change-target.confirm",
+      "type": "transaction",
+      "risk": "destructive-write"
+    },
+    {
+      "id": "mainui.team.view.change-target.confirm.no-team-change-target-success",
+      "parent": "mainui.team.view.change-target.confirm",
+      "type": "transaction",
+      "risk": "destructive-write"
+    }
+  ]
+}

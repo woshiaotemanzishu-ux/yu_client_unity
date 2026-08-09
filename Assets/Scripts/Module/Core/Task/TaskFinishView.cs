@@ -137,6 +137,8 @@ namespace Shenxiao.Module.Core.Tasks
             if (_bind == null)
             {
                 GameLog.Error("Task", "TaskModule missing TaskFinishViewBind. Run task LayaUI convert + bind backfill.");
+                ResManager.ReleaseInstance(_moduleRoot);
+                _moduleRoot = null;
                 return false;
             }
 
@@ -258,13 +260,18 @@ namespace Shenxiao.Module.Core.Tasks
         private void OnSubmit()
         {
             if (_submitSent) return;
-            CancelTimer();
             if (_task == null)
             {
+                CancelTimer();
                 Close();
                 return;
             }
 
+            // 老端 TaskFinishView 点击提交前会再次检查 IsAllStepFinish。弹层打开后若 30001
+            // 已把任务推进/替换，旧弹层不能继续提交一个已失效任务号。
+            if (!TaskModel.Instance.IsAllStepFinish(_task.TaskId)) return;
+
+            CancelTimer();
             _submitSent = true;
             TaskController.Instance.SubmitFinish(_task.TaskId);
             Close();
