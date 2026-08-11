@@ -157,11 +157,14 @@ async function executeStep(context, step, index) {
 function attachFailureDiagnostic(report, outputDir, error) {
   if (!error || !error.diagnostic) return null;
   const diagnosticPath = writeSelectorDiagnostic(outputDir, error.diagnostic);
-  const artifact = addArtifact(report, outputDir, diagnosticPath, 'selector-identity-diagnostic');
+  const lifecycle = error.diagnostic.context && error.diagnostic.context.kind === 'popup-close-lifecycle';
+  const artifact = addArtifact(report, outputDir, diagnosticPath,
+    lifecycle ? 'popup-close-lifecycle-diagnostic' : 'selector-identity-diagnostic');
   report.failure = {
     code: error.code || 'SELECTOR_IDENTITY_FAILURE',
     diagnostic: {
       schema: error.diagnostic.schema,
+      diagnosticSha256: error.diagnostic.sha256,
       selectorSha256: error.diagnostic.sha256,
       artifact,
     },

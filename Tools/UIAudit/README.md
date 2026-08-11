@@ -27,7 +27,9 @@ Node 调用方可 `const uiAudit = require('./Tools/UIAudit')`，也可直接 re
 
 ### 启动弹窗
 
-`policies/startup-popups.json` 只允许 source-backed 的精确身份。配置队列弹窗按 `ClientConfigPopupLevel.sort` 处理；不在该配置且由回包直接打开的弹窗禁止伪造 sort，只能使用真实 visible stack 的 top-first 顺序。`CycleimpActlistYesterday` 是后一类：由 `22703` 回包在推送或当日首次登录、榜单非空且角色等级至少 150 时直接打开；唯一安全面是 `_btn_close`。关闭后必须连续两个已推进的 Laya 帧都不存在该 View，重复 frame token 或中途重现均不算关闭完成。未知弹窗仍一律 `unknown-hard-stop`。
+`policies/startup-popups.json` 只允许 source-backed 的精确身份。配置队列弹窗按 `ClientConfigPopupLevel.sort` 处理；不在该配置且由回包直接打开的弹窗禁止伪造 sort，只能使用真实 visible stack 的 top-first 顺序。`CycleimpActlistYesterday` 是后一类：由 `22703` 回包在推送或当日首次登录、榜单非空且角色等级至少 150 时直接打开；唯一安全面是 `_btn_close`。关闭后必须连续两个已推进的 Laya 帧都确认“被点击的具体实例不再打开、也不在 stage 可见”，重复 frame token 或中途重现均不算关闭完成。未知弹窗仍一律 `unknown-hard-stop`。
+
+稳定关闭不是固定 sleep 后检查 View 名称。公共层以点击时的 `ViewManager`/runtime registry 实例键和根 `stagePath` 锚定具体实例，持续调和 loaded view 的 `HasOpen/isPop`、managed view 根状态和 `Laya.stage` 的可见/`displayedInStage`。`open=false` 但仍保留在 registry、等待延迟销毁的根属于 `closed-cached`，不会被误报为仍打开；关闭请求后 stage 仍可见属于 `closing`，继续等真实推进帧；消失后同名新实例或同一缓存实例重新打开属于 `requeued` 并硬停。稳定闸内不会二次点击。
 
 启动弹窗的 `safeClose.node` 按真实 View 实例字段解释。公共 session 使用 `ownerView + boundField` 精确定位 `_btn_close` 指向的显示对象，不再要求字段名与 Laya display node 的 `name` 相同，也不会退回页面坐标。绑定缺失或出现多个实例时仍由 `expectedCount=1` 与运行时 hit-test 硬停。
 
@@ -78,7 +80,9 @@ selector 支持三种可组合的精确身份：`view`（兼容字段）、`owne
 
 selector 仍支持 `dataIdentity` 子集匹配，例如 `{ "dataIdentity": { "fashion_id": 12010008 } }`。click/drag 始终先在 Laya 逻辑坐标做唯一身份与 `hitTestPoint` 验证，再按真实 Canvas DOM rect 映射到浏览器坐标；1920×1080 宽屏不再误用 720×1280 逻辑坐标直接点击。
 
-若唯一身份数量不符，`CANVAS_TARGET_IDENTITY_MISMATCH` 会携带 `ui-audit.selector-diagnostic.v1`。runner 在失败 run 中写入 `selector-diagnostic-*.json`，内容包含目标 View 的最小规范化 stage 子树、按 owner/运行名/绑定字段评分的候选、stage/source 摘要及内容 SHA-256；`ui-audit-report.json.failure.diagnostic` 和 `artifacts[]` 同时引用它。即使登录阶段尚未产生常规 runtime snapshot，也不会再留下 `runtime-tree=0` 的盲区。
+若唯一身份数量不符，`CANVAS_TARGET_IDENTITY_MISMATCH` 会携带 `ui-audit.selector-diagnostic.v1`。runner 在失败 run 中写入 `selector-diagnostic-*.json`，内容包含目标 View 的最小规范化 stage 子树、按 owner/运行名/绑定字段评分的候选、stage/source 摘要、子树 SHA-256 及诊断内容 SHA-256；`ui-audit-report.json.failure.diagnostic` 和 `artifacts[]` 同时引用它。即使登录阶段尚未产生常规 runtime snapshot，也不会再留下 `runtime-tree=0` 的盲区。
+
+`POPUP_CLOSE_NOT_STABLE` 使用同一不可变诊断通道，artifact 类型为 `popup-close-lifecycle-diagnostic`。除 selector、最终子树和候选外，`context` 还保存点击前子树/哈希、具体实例锚、每次采样的 frame token、loaded/managed/stage 判定来源和最终分类：`click-not-consumed`、`closing-timeout`、`requeued`、`frame-not-advancing` 或 `still-visible-or-managed`。这使失败可以区分点击未消费、关闭过程未完成、缓存实例、帧未推进和队列重新打开，而不靠坐标猜测或页面专用重试。
 
 历史 `step.expect` 不会被当成注释跳过，而是在 schema/preflight 硬停。应改成上述可执行动作。
 
@@ -92,6 +96,7 @@ selector 仍支持 `dataIdentity` 子集匹配，例如 `{ "dataIdentity": { "fa
 | `lib/selector-diagnostic.cjs` | selector 失败的最小子树、候选、内容哈希与不可变诊断写入 |
 | `lib/canvas-input.cjs` | Canvas rect 坐标换算、唯一命中后的真实 click/drag |
 | `lib/popup-policy.cjs` | `allow/forbid/unknown-hard-stop`、配置队列/真实栈顺序、安全节点与稳定关闭帧 |
+| `lib/popup-lifecycle.cjs` | 被点击实例锚定、loaded/managed/stage 关闭调和与失败分类 |
 | `lib/item-use.cjs` | ItemUse 精确身份、稳定帧、队列和一次受控关闭 |
 | `lib/protocol-probe.cjs` | transport 级收发 trace、handler 惰性关联、读写分类、required/forbidden 与 policy 闸 |
 | `lib/route-assertions.cjs` | 节点、条件分支、几何、裁剪和滚动断言 |

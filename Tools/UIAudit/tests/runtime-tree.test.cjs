@@ -62,3 +62,27 @@ test('a detached cached view with an empty stagePath cannot claim the stage root
     source: 'laya-stage', ownerView: 'CycleimpActlistYesterday', boundField: '_btn_close',
   }).length, 1);
 });
+
+test('a registered cached view with open=false is normalized but excluded from visibleViews', () => {
+  const cached = structuredClone(ownerBindingFixture);
+  const popup = cached.loaded.find(view => view.name === 'CycleimpActlistYesterday');
+  Object.assign(popup, {
+    stagePath: [], visible: true, loaded: true, open: false,
+    instances: [{ source: 'RuntimeRegistry', key: 'root_42' }],
+  });
+  cached.managed.views[0].meta = {
+    ...cached.managed.views[0].meta,
+    stagePath: [], visible: true, loaded: true, open: false,
+    instances: [{ source: 'RuntimeRegistry', key: 'root_42' }],
+  };
+  cached.stage.nodes = cached.stage.nodes.filter(row => !(Array.isArray(row.indexPath)
+    && row.indexPath.length >= 2 && row.indexPath[0] === 0 && row.indexPath[1] === 1));
+
+  const snapshot = normalizeRuntimeSources(cached);
+  const loaded = findNodes(snapshot, { source: 'loaded-view', view: 'CycleimpActlistYesterday', visible: false })[0];
+  assert.equal(snapshot.visibleViews.includes('CycleimpActlistYesterday'), false);
+  assert.equal(loaded.visible, true);
+  assert.equal(loaded.displayed, false);
+  assert.equal(loaded.state.dataIdentity.lifecycle.open, false);
+  assert.deepEqual(loaded.identity.owner.instances, [{ source: 'RuntimeRegistry', key: 'root_42' }]);
+});

@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { POPUP_POLICY_SCHEMA_VERSION } = require('./version.cjs');
+const { classifyPopupCloseFailure } = require('./popup-lifecycle.cjs');
 
 function validatePopupPolicy(policy) {
   const errors = [];
@@ -102,11 +103,17 @@ function popupCloseStability(samples, viewName, stability) {
   let lastCountedFrame = null;
   let lastFrameToken = null;
   let present = null;
+  const frameTokens = [];
+  const phases = [];
   for (const sample of samples || []) {
     const visibleViews = Array.isArray(sample && sample.visibleViews) ? sample.visibleViews : [];
-    present = visibleViews.includes(viewName);
-    const frameToken = Number(sample && sample.stage && sample.stage.frameToken);
+    present = sample && sample.lifecycle && typeof sample.lifecycle.present === 'boolean'
+      ? sample.lifecycle.present : visibleViews.includes(viewName);
+    const frameToken = Number(sample && sample.lifecycle && sample.lifecycle.frameToken != null
+      ? sample.lifecycle.frameToken : sample && sample.stage && sample.stage.frameToken);
     lastFrameToken = Number.isFinite(frameToken) ? frameToken : null;
+    frameTokens.push(lastFrameToken);
+    phases.push(sample && sample.lifecycle && sample.lifecycle.phase || (present ? 'present-legacy' : 'absent-legacy'));
     if (present) {
       stableFrames = 0;
       lastCountedFrame = null;
@@ -126,6 +133,9 @@ function popupCloseStability(samples, viewName, stability) {
     lastFrameToken,
     present,
     samples: Array.isArray(samples) ? samples.length : 0,
+    frameTokens,
+    phases,
+    classification: stableFrames >= requiredFrames ? 'closed-stable' : classifyPopupCloseFailure(samples),
   };
 }
 

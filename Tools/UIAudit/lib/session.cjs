@@ -9,6 +9,8 @@ const { findEdgeExecutable } = require('./preflight.cjs');
 const { collectRuntimeSnapshot, findNodes } = require('./runtime-tree.cjs');
 const { decidePopup, assertSafePopupDecision, popupCloseStability } = require('./popup-policy.cjs');
 const { clickRuntimeTarget } = require('./canvas-input.cjs');
+const { createPopupInstanceRef, observePopupLifecycle } = require('./popup-lifecycle.cjs');
+const { buildSelectorDiagnostic, SelectorIdentityError } = require('./selector-diagnostic.cjs');
 
 const LEGACY_720_LOGIN = Object.freeze({
   viewport: { width: 720, height: 1280 },
@@ -108,14 +110,23 @@ class HeadlessUiSession {
     const decision = decidePopup(popupPolicy, viewName);
     const close = assertSafePopupDecision(decision);
     const maxClicks = Number(close.maxClicks || 1);
+    const selector = close.kind === 'view-node' ? {
+      source: 'laya-stage', ownerView: viewName, boundField: close.node, expectedCount: 1,
+    } : { source: 'laya-stage', ownerView: viewName, expectedCount: 1 };
+    let instanceRef = null;
+    let clickedTarget = null;
+    let clickSnapshot = null;
     for (let clickIndex = 0; clickIndex < maxClicks; clickIndex++) {
       const before = await this.snapshot();
       if (!before.visibleViews.includes(viewName)) return { closed: true, clicks: clickIndex, decision };
       if (close.kind === 'view-node') {
-        await clickRuntimeTarget(this.page, before, {
-          source: 'laya-stage', ownerView: viewName, boundField: close.node, expectedCount: 1,
-        });
+        const click = await clickRuntimeTarget(this.page, before, selector);
+        clickedTarget = click.target;
+        clickSnapshot = clickSnapshot || before;
+        instanceRef = instanceRef || createPopupInstanceRef(before, viewName, selector, click.target);
       } else if (close.kind === 'shared-background') {
+        clickSnapshot = clickSnapshot || before;
+        instanceRef = instanceRef || createPopupInstanceRef(before, viewName, selector);
         const candidate = await this.page.evaluate(targetView => {
           const Manager = window.ViewManager;
           const manager = Manager && Manager.GetInstance && Manager.GetInstance();
@@ -132,19 +143,60 @@ class HeadlessUiSession {
       } else {
         throw new Error(`POPUP_CLOSE_KIND_UNSUPPORTED: ${close.kind}`);
       }
-      await sleep(close.mode && close.mode.includes('tween') ? 900 : 300);
+      this.note('popup-close-click', {
+        view: viewName, clickIndex, selector, instance: instanceRef,
+        target: clickedTarget ? { path: clickedTarget.path, indexPath: clickedTarget.indexPath } : null,
+      });
+      if (!close.stability) await sleep(close.mode && close.mode.includes('tween') ? 900 : 300);
     }
     if (close.stability) {
       const samples = [];
       const deadline = Date.now() + Number(close.stability.timeoutMs);
       let stability = popupCloseStability(samples, viewName, close.stability);
+      let lastSnapshot = null;
       while (Date.now() <= deadline && !stability.pass) {
-        const snapshot = await this.snapshot();
-        samples.push({ visibleViews: snapshot.visibleViews, stage: snapshot.stage });
+        lastSnapshot = await this.snapshot();
+        const lifecycle = observePopupLifecycle(lastSnapshot, instanceRef);
+        samples.push({
+          capturedAt: lastSnapshot.capturedAt,
+          visibleViews: lastSnapshot.visibleViews,
+          stage: lastSnapshot.stage,
+          lifecycle,
+        });
         stability = popupCloseStability(samples, viewName, close.stability);
         if (!stability.pass) await sleep(Number(close.stability.pollMs));
       }
-      if (!stability.pass) throw new Error(`POPUP_CLOSE_NOT_STABLE: ${JSON.stringify(stability)}`);
+      this.note('popup-close-stability', { view: viewName, stability });
+      if (!stability.pass) {
+        const actualCount = lastSnapshot ? findNodes(lastSnapshot, selector).length : 0;
+        const initialDiagnostic = clickSnapshot ? buildSelectorDiagnostic(clickSnapshot, selector, {
+          expectedCount: 1,
+          actualCount: findNodes(clickSnapshot, selector).length,
+        }) : null;
+        const diagnostic = buildSelectorDiagnostic(lastSnapshot, selector, {
+          expectedCount: 1,
+          actualCount,
+          context: {
+            kind: 'popup-close-lifecycle',
+            instance: instanceRef,
+            evaluation: stability,
+            samples,
+            initialSelector: initialDiagnostic ? {
+              capturedAt: initialDiagnostic.capturedAt,
+              runtimeSources: initialDiagnostic.runtimeSources,
+              stage: initialDiagnostic.stage,
+              subtree: initialDiagnostic.subtree,
+              candidates: initialDiagnostic.candidates,
+              sha256: initialDiagnostic.sha256,
+            } : null,
+          },
+        });
+        throw new SelectorIdentityError(
+          'POPUP_CLOSE_NOT_STABLE',
+          `POPUP_CLOSE_NOT_STABLE: ${JSON.stringify(stability)} diagnosticSha256=${diagnostic.sha256}`,
+          diagnostic,
+        );
+      }
       return { closed: true, clicks: maxClicks, decision, stability };
     }
     const after = await this.snapshot();

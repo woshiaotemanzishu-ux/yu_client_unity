@@ -22,6 +22,7 @@ function projectNode(node) {
     bounds: node.bounds,
     identity: node.identity,
     interaction: node.interaction,
+    state: node.state,
   };
 }
 
@@ -67,6 +68,8 @@ function buildSelectorDiagnostic(snapshot, selector, options = {}) {
   }
   const selectorExpectedCount = selector && selector.expectedCount == null ? 1 : Number(selector && selector.expectedCount);
   const expectedCount = options.expectedCount == null ? selectorExpectedCount : Number(options.expectedCount);
+  const subtreeNodes = targetNodes.slice(0, maxSubtreeNodes).map(projectNode);
+  const subtreeSha256 = crypto.createHash('sha256').update(safeStringify(subtreeNodes, 0)).digest('hex');
   const core = {
     schema: SELECTOR_DIAGNOSTIC_SCHEMA,
     capturedAt: snapshot && snapshot.capturedAt || null,
@@ -79,9 +82,11 @@ function buildSelectorDiagnostic(snapshot, selector, options = {}) {
     subtree: {
       total: targetNodes.length,
       truncated: targetNodes.length > maxSubtreeNodes,
-      nodes: targetNodes.slice(0, maxSubtreeNodes).map(projectNode),
+      sha256: subtreeSha256,
+      nodes: subtreeNodes,
     },
     candidates,
+    context: options.context || null,
   };
   const sha256 = crypto.createHash('sha256').update(safeStringify(core, 0)).digest('hex');
   return { ...core, sha256 };

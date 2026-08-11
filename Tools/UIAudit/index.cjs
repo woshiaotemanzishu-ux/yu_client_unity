@@ -7,6 +7,7 @@ module.exports = {
   selectorDiagnostic: require('./lib/selector-diagnostic.cjs'),
   canvasInput: require('./lib/canvas-input.cjs'),
   popupPolicy: require('./lib/popup-policy.cjs'),
+  popupLifecycle: require('./lib/popup-lifecycle.cjs'),
   itemUse: require('./lib/item-use.cjs'),
   protocolProbe: require('./lib/protocol-probe.cjs'),
   routeAssertions: require('./lib/route-assertions.cjs'),

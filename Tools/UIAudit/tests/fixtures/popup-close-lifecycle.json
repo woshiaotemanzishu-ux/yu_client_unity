@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "view": "CycleimpActlistYesterday",
+  "selector": {
+    "source": "laya-stage",
+    "ownerView": "CycleimpActlistYesterday",
+    "boundField": "_btn_close",
+    "expectedCount": 1
+  },
+  "stableClose": [
+    {
+      "frameToken": 501,
+      "loaded": { "open": false, "visible": false, "stagePath": [1], "instanceKey": "root_42" },
+      "managed": { "open": false, "visible": true, "stagePath": [1], "instanceKey": "root_42" },
+      "stage": { "present": true, "visible": true, "instanceKey": "root_42" }
+    },
+    {
+      "frameToken": 502,
+      "loaded": { "open": false, "visible": true, "stagePath": [], "instanceKey": "root_42" },
+      "managed": { "open": false, "visible": true, "stagePath": [], "instanceKey": "root_42" },
+      "stage": { "present": false, "visible": false, "instanceKey": "root_42" }
+    },
+    {
+      "frameToken": 503,
+      "loaded": { "open": false, "visible": true, "stagePath": [], "instanceKey": "root_42" },
+      "managed": { "open": false, "visible": true, "stagePath": [], "instanceKey": "root_42" },
+      "stage": { "present": false, "visible": false, "instanceKey": "root_42" }
+    }
+  ],
+  "clickNotConsumed": [
+    {
+      "frameToken": 601,
+      "loaded": { "open": true, "visible": true, "stagePath": [1], "instanceKey": "root_42" },
+      "managed": { "open": true, "visible": true, "stagePath": [1], "instanceKey": "root_42" },
+      "stage": { "present": true, "visible": true, "instanceKey": "root_42" }
+    },
+    {
+      "frameToken": 602,
+      "loaded": { "open": true, "visible": true, "stagePath": [1], "instanceKey": "root_42" },
+      "managed": { "open": true, "visible": true, "stagePath": [1], "instanceKey": "root_42" },
+      "stage": { "present": true, "visible": true, "instanceKey": "root_42" }
+    }
+  ],
+  "requeued": [
+    {
+      "frameToken": 701,
+      "loaded": { "open": false, "visible": true, "stagePath": [], "instanceKey": "root_42" },
+      "managed": { "open": false, "visible": true, "stagePath": [], "instanceKey": "root_42" },
+      "stage": { "present": false, "visible": false, "instanceKey": "root_42" }
+    },
+    {
+      "frameToken": 702,
+      "loaded": { "open": true, "visible": true, "stagePath": [1], "instanceKey": "root_99" },
+      "managed": { "open": true, "visible": true, "stagePath": [1], "instanceKey": "root_99" },
+      "stage": { "present": true, "visible": true, "instanceKey": "root_99" }
+    }
+  ]
+}

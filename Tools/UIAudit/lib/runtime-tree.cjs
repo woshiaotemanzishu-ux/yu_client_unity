@@ -47,9 +47,28 @@ function stagePathArray(value) {
   return result.every(Number.isInteger) ? result : null;
 }
 
+function normalizedInstances(value) {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set();
+  const result = [];
+  for (const item of value) {
+    const source = String(item && item.source || '');
+    const key = String(item && item.key || '');
+    if (!source || !key || seen.has(`${source}\u0000${key}`)) continue;
+    seen.add(`${source}\u0000${key}`);
+    result.push({ source, key });
+  }
+  return result;
+}
+
 function isPathPrefix(prefix, value) {
   return Array.isArray(prefix) && Array.isArray(value) && prefix.length <= value.length
     && prefix.every((part, index) => part === value[index]);
+}
+
+function samePath(left, right) {
+  return Array.isArray(left) && Array.isArray(right) && left.length === right.length
+    && left.every((part, index) => Number(part) === Number(right[index]));
 }
 
 function reconcileStageOwnership(stageRows, loaded = [], managedViews = []) {
@@ -71,11 +90,13 @@ function reconcileStageOwnership(stageRows, loaded = [], managedViews = []) {
       registrySource: String(meta.source || ''),
       rootStagePath,
     };
+    const instances = normalizedInstances(meta.instances || value.ownerIdentity && value.ownerIdentity.instances);
     if (existing) {
       if (!existing.evidence.some(item => JSON.stringify(item) === JSON.stringify(evidence))) existing.evidence.push(evidence);
+      existing.instances = normalizedInstances([...(existing.instances || []), ...instances]);
       return;
     }
-    owners.push({ view, rootStagePath, evidence: [evidence] });
+    owners.push({ view, rootStagePath, evidence: [evidence], instances });
   };
   loaded.forEach(value => addOwner(value, 'loaded-view-stage-path'));
   managedViews.forEach(value => addOwner(value, 'managed-view-stage-path'));
@@ -91,6 +112,7 @@ function reconcileStageOwnership(stageRows, loaded = [], managedViews = []) {
       rootStagePath: owner.rootStagePath,
       isRoot: owner.rootStagePath.length === relativePath.length,
       evidence: owner.evidence,
+      instances: owner.instances,
     } : null);
     return { ...row, view, ownerIdentity };
   });
@@ -109,7 +131,7 @@ function normalizedNode(raw, context = {}) {
     rootStagePath: stagePathArray(rawOwner.rootStagePath),
     isRoot: !!rawOwner.isRoot,
     evidence: Array.isArray(rawOwner.evidence) ? rawOwner.evidence : [],
-    instances: Array.isArray(rawOwner.instances) ? rawOwner.instances : [],
+    instances: normalizedInstances(rawOwner.instances),
   } : null;
   return {
     schema: NODE_SCHEMA,
@@ -174,7 +196,36 @@ function flattenManagedTree(root, viewName, options = {}) {
     if (!raw || depth > maxDepth || nodes.length >= maxNodes) return;
     const segment = `${String(raw.name || raw.type || 'node')}[${siblingIndex}]`;
     const currentPath = parentPath ? `${parentPath}/${segment}` : segment;
-    nodes.push(normalizedNode(raw, {
+    const meta = options.ownerMeta || {};
+    const rootStagePath = stagePathArray(meta.stagePath);
+    const enriched = depth === 0 ? {
+      ...raw,
+      ownerIdentity: {
+        view: viewName,
+        rootStagePath,
+        isRoot: true,
+        evidence: [{
+          source: 'managed-view-stage-path',
+          name: viewName,
+          rawName: String(meta.rawName || ''),
+          layoutFile: String(meta.layoutFile || ''),
+          registrySource: String(meta.source || ''),
+          rootStagePath,
+        }],
+        instances: normalizedInstances(meta.instances),
+      },
+      dataIdentity: {
+        ...(raw && raw.dataIdentity || {}),
+        lifecycle: {
+          source: String(meta.source || ''),
+          loaded: meta.loaded !== false,
+          open: meta.open !== false,
+          visible: meta.visible !== false,
+          stagePath: rootStagePath,
+        },
+      },
+    } : raw;
+    nodes.push(normalizedNode(enriched, {
       source: 'managed-view', view: viewName, path: currentPath, parentPath, depth,
     }));
     const children = Array.isArray(raw.children) ? raw.children : [];
@@ -192,19 +243,58 @@ function normalizeRuntimeSources(raw, options = {}) {
   const stageRows = reconcileStageOwnership(rawStageRows, loaded, managedViews);
   const nodes = [];
 
+  const inferredInstances = view => {
+    const rootStagePath = stagePathArray(view && view.stagePath);
+    const owner = stageRows.map(row => row && row.ownerIdentity).find(identity => identity
+      && identity.isRoot && identity.view === String(view && view.name || '')
+      && samePath(identity.rootStagePath, rootStagePath));
+    return normalizedInstances(view && view.instances || owner && owner.instances);
+  };
+
   for (const view of loaded) {
+    const viewName = String(view.name || '');
+    const rootStagePath = stagePathArray(view.stagePath);
     nodes.push(normalizedNode({
-      name: view.name,
+      name: viewName,
       type: 'LoadedView',
       visible: view.visible,
-      displayedInStage: view.visible,
-      dataIdentity: { loaded: view.loaded !== false, open: view.open !== false },
-    }, { source: 'loaded-view', view: String(view.name || ''), path: `loaded/${String(view.name || '')}` }));
+      displayedInStage: !!(rootStagePath && rootStagePath.length && view.visible !== false),
+      ownerIdentity: {
+        view: viewName,
+        rootStagePath,
+        isRoot: true,
+        evidence: [{
+          source: 'loaded-view-stage-path',
+          name: viewName,
+          rawName: String(view.rawName || ''),
+          layoutFile: String(view.layoutFile || ''),
+          registrySource: String(view.source || ''),
+          rootStagePath,
+        }],
+        instances: inferredInstances(view),
+      },
+      dataIdentity: {
+        lifecycle: {
+          source: String(view.source || ''),
+          loaded: view.loaded !== false,
+          open: view.open !== false,
+          visible: view.visible !== false,
+          stagePath: rootStagePath,
+        },
+      },
+    }, { source: 'loaded-view', view: viewName, path: `loaded/${viewName}` }));
   }
 
   for (const view of managedViews) {
     const viewName = String(view && view.meta && view.meta.name || view && view.name || '');
-    nodes.push(...flattenManagedTree(view && view.nodeTree, viewName, options));
+    const loadedMeta = loaded.find(item => String(item && item.name || '') === viewName) || {};
+    const ownerMeta = {
+      ...loadedMeta,
+      ...(view && view.meta || {}),
+      instances: normalizedInstances(view && view.meta && view.meta.instances).length
+        ? view.meta.instances : inferredInstances(loadedMeta),
+    };
+    nodes.push(...flattenManagedTree(view && view.nodeTree, viewName, { ...options, ownerMeta }));
   }
 
   for (const row of stageRows) {
@@ -221,6 +311,9 @@ function normalizeRuntimeSources(raw, options = {}) {
   const seen = new Set();
   for (const node of nodes) {
     if (!node.view || !node.visible || seen.has(node.view)) continue;
+    if ((node.source === 'loaded-view' || node.source === 'managed-view')
+      && node.state && node.state.dataIdentity && node.state.dataIdentity.lifecycle
+      && node.state.dataIdentity.lifecycle.open === false) continue;
     if (node.source === 'loaded-view' || node.name === node.view) {
       seen.add(node.view);
       visibleViews.push(node.view);
@@ -370,7 +463,15 @@ async function collectRuntimeSources(page, options = {}) {
       const viewInstances = [];
       const addViewInstance = (view, instanceSource, instanceKey) => {
         if (!view || !view.display_obj || viewInstances.some(item => item.view === view)) return;
-        viewInstances.push({ view, root: view.display_obj, instanceSource, instanceKey: String(instanceKey || '') });
+        let qualifiedName = '';
+        try {
+          qualifiedName = window.GetQualifiedClassName ? String(window.GetQualifiedClassName(view) || '') : '';
+        } catch (_) {}
+        viewInstances.push({
+          view, root: view.display_obj, instanceSource, instanceKey: String(instanceKey || ''),
+          names: [instanceKey, qualifiedName, view.layout_file, view.layoutFile, view.constructor && view.constructor.name]
+            .filter(Boolean).map(String),
+        });
       };
       try {
         const Manager = window.ViewManager || window['ViewManager'];
@@ -385,6 +486,24 @@ async function collectRuntimeSources(page, options = {}) {
           addViewInstance(item && item.view, 'RuntimeRegistry', key);
         }
       } catch (error) { warnings.push(`view-instance-registry: ${String(error)}`); }
+
+      for (const meta of loaded) {
+        const root = stageNodeAt(meta.stagePath);
+        let instances = root ? viewInstances.filter(item => item.root === root) : [];
+        if (!instances.length) {
+          const names = new Set([meta.name, meta.rawName, meta.layoutFile].filter(Boolean).map(String));
+          instances = viewInstances.filter(item => item.names.some(name => names.has(name)));
+        }
+        meta.instances = instances.map(item => ({ source: item.instanceSource, key: item.instanceKey }));
+      }
+      for (const exported of managed.views || []) {
+        const meta = exported && exported.meta;
+        if (!meta) continue;
+        const loadedMeta = loaded.find(item => item.name === meta.name
+          && JSON.stringify(item.stagePath || []) === JSON.stringify(meta.stagePath || []))
+          || loaded.find(item => item.name === meta.name);
+        meta.instances = loadedMeta && loadedMeta.instances || [];
+      }
 
       const bindingsByNode = new Map();
       for (const owner of ownerByPath.values()) {
