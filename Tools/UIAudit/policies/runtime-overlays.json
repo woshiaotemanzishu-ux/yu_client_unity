@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "default": "unknown-hard-stop",
+  "authority": {
+    "view-manager": {
+      "pathFromLegacyRoot": "h5/src/common/ViewManager.ts",
+      "sha256": "39dc85378093c91493a7efe8b332097e1aa1b71fc3bf72108b3bdf03702d5739"
+    },
+    "waitfor-open-view-loading": {
+      "pathFromLegacyRoot": "h5/src/login/WaitforOpenViewLoading.ts",
+      "sha256": "3c6f64fe00ca4ab25dcd4bcb4358ba90ce8e4da4e947fe7808bdb1e6ad50248f"
+    },
+    "layer-manager": {
+      "pathFromLegacyRoot": "h5/src/common/LayerManager.ts",
+      "sha256": "b44fcb2e432e8776aca3668c1e8b42378024c2d2639addc16dbf5cd1d8cf45e8"
+    }
+  },
+  "entries": [
+    {
+      "id": "view-manager-shared-background",
+      "match": {
+        "kind": "managed-view-background",
+        "authority": "ViewManager.GetBackGround"
+      },
+      "action": "resolve-current-view",
+      "source": {
+        "authorityId": "view-manager",
+        "lines": "90-106,253-343,389-410,470-471",
+        "meaning": "The single full-screen background is inserted immediately before GetMostFrontView, stores curr_view, and is hidden or rebound when that view closes."
+      }
+    },
+    {
+      "id": "waitfor-open-view-loading-gate",
+      "match": {
+        "kind": "global-input-gate",
+        "authority": "ViewManager.waitfor_openView_loading.display_obj"
+      },
+      "action": "wait-for-release",
+      "timeoutMs": 16000,
+      "source": {
+        "authorityId": "waitfor-open-view-loading",
+        "lines": "21-97",
+        "meaning": "The loading gate is released when its pending hash dictionary becomes empty; stale entries are removed after 15 seconds."
+      }
+    }
+  ]
+}

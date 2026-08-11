@@ -1,0 +1,62 @@
+{
+  "runtimeOverlays": [
+    {
+      "schema": "ui-audit.runtime-overlay.v1",
+      "id": "view-manager-background",
+      "kind": "managed-view-background",
+      "authority": "ViewManager.GetBackGround",
+      "manager": "ViewManager",
+      "managerField": "_background",
+      "nodeStagePath": [0, 2, 1],
+      "nodePath": "Ue[0]/UIRoot[2]/Top[3]/o[1]",
+      "active": true,
+      "visible": true,
+      "displayed": true,
+      "interactive": true,
+      "currentView": {
+        "name": "DailyActTipView",
+        "stagePath": [0, 2, 2],
+        "visible": true,
+        "displayed": true,
+        "open": true,
+        "instanceSource": "RuntimeRegistry",
+        "instanceKey": "root_upper"
+      },
+      "candidates": [],
+      "node": {
+        "runtimeName": "o",
+        "runtimeClass": "laya.ui.Image",
+        "childIndex": 1,
+        "zOrder": 0,
+        "mouseEnabled": true,
+        "mouseThrough": false,
+        "hitArea": { "type": "Rectangle", "x": 0, "y": 0, "width": 730, "height": 1290 },
+        "eventListeners": [{ "type": "click", "count": 1 }]
+      }
+    },
+    {
+      "schema": "ui-audit.runtime-overlay.v1",
+      "id": "waitfor-open-view-loading",
+      "kind": "global-input-gate",
+      "authority": "ViewManager.waitfor_openView_loading.display_obj",
+      "nodeStagePath": [0, 4, 0],
+      "active": true,
+      "visible": true,
+      "displayed": true,
+      "interactive": true,
+      "gate": { "pendingKeys": ["CycleimpActlistYesterday"], "ready": false, "visible": true, "releaseCondition": "pending dictionary empty" }
+    },
+    {
+      "schema": "ui-audit.runtime-overlay.v1",
+      "id": "unknown-fullscreen",
+      "kind": "unknown-interactive-overlay",
+      "authority": "Laya.stage.hit-policy",
+      "nodeStagePath": [0, 5, 0],
+      "active": true,
+      "visible": true,
+      "displayed": true,
+      "interactive": true,
+      "node": { "runtimeName": "x", "runtimeClass": "laya.display.Sprite", "mouseEnabled": true, "mouseThrough": false }
+    }
+  ]
+}

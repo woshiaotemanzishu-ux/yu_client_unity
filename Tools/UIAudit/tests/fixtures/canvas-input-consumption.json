@@ -63,6 +63,33 @@
       "hitAtPoint": true
     }
   },
+  "globalBackgroundTop": {
+    "path": "Ue[0]/UIRoot[2]/Top[3]/o[1]",
+    "indexPath": [0, 2, 3, 1],
+    "name": "o",
+    "runtimeClass": "laya.ui.Image",
+    "ownerView": "DailyActTipView",
+    "childIndex": 1,
+    "zOrder": 0,
+    "visible": true,
+    "displayed": true,
+    "alpha": 1,
+    "effectiveAlpha": 1,
+    "mouseEnabled": true,
+    "mouseThrough": false,
+    "mouseState": 2,
+    "hitAtPoint": true,
+    "hitArea": { "type": "Rectangle", "x": 0, "y": 0, "width": 730, "height": 1290 },
+    "eventListeners": [{ "type": "click", "count": 1 }],
+    "systemOverlay": {
+      "kind": "managed-view-background",
+      "authority": "ViewManager.GetBackGround",
+      "manager": "ViewManager",
+      "managerField": "_background",
+      "currentView": { "name": "DailyActTipView", "stagePath": [0, 2, 3, 2], "instanceSource": "RuntimeRegistry", "instanceKey": "root_upper" },
+      "candidates": []
+    }
+  },
   "mappingPass": {
     "logicalPoint": { "x": 626.5, "y": 182 },
     "domPoint": { "x": 1229.75, "y": 153.5625 },

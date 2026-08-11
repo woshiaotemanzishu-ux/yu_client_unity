@@ -8,10 +8,11 @@ const { NODE_SCHEMA, normalizeRuntimeSources, findNodes } = require('../lib/runt
 
 const fixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'runtime-sources.json'), 'utf8'));
 const ownerBindingFixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'runtime-owner-bindings.json'), 'utf8'));
+const runtimeOverlayFixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'runtime-overlays.json'), 'utf8'));
 
 test('loaded, managed and Laya.stage sources normalize into one node schema', () => {
   const snapshot = normalizeRuntimeSources(fixture);
-  assert.deepEqual(snapshot.sources, { loadedViews: 2, managedViews: 1, stageNodes: 7 });
+  assert.deepEqual(snapshot.sources, { loadedViews: 2, managedViews: 1, stageNodes: 7, runtimeOverlays: 0 });
   assert.deepEqual(new Set(snapshot.nodes.map(node => node.source)), new Set(['loaded-view', 'managed-view', 'laya-stage']));
   assert.equal(snapshot.nodes.every(node => node.schema === NODE_SCHEMA), true);
   assert.equal(snapshot.visibleViews.includes('ItemUseView'), true);
@@ -48,7 +49,7 @@ test('stage normalization retains render order, effective alpha, hit policy and 
   });
   const snapshot = normalizeRuntimeSources(raw);
   const node = findNodes(snapshot, { source: 'laya-stage', view: 'ItemUseView', name: 'close_btn' })[0];
-  assert.equal(node.schema, 'ui-audit.runtime-node.v2');
+  assert.equal(node.schema, 'ui-audit.runtime-node.v3');
   assert.equal(node.childIndex, target.childIndex);
   assert.equal(node.effectiveAlpha, 0.25);
   assert.equal(node.zOrder, 7);
@@ -111,4 +112,24 @@ test('a registered cached view with open=false is normalized but excluded from v
   assert.equal(loaded.displayed, false);
   assert.equal(loaded.state.dataIdentity.lifecycle.open, false);
   assert.deepEqual(loaded.identity.owner.instances, [{ source: 'RuntimeRegistry', key: 'root_42' }]);
+});
+
+test('runtime overlay source normalizes manager ownership and current view without dropping diagnostics', () => {
+  const raw = structuredClone(ownerBindingFixture);
+  const overlay = runtimeOverlayFixture.runtimeOverlays[0];
+  raw.stage.overlays = [overlay];
+  raw.stage.nodes.push({
+    name: 'o', type: 'Image', runtimeClass: 'laya.ui.Image', path: overlay.nodePath,
+    indexPath: overlay.nodeStagePath, depth: 3, visible: true, displayedInStage: true,
+    bounds: { x: -5, y: -5, width: 730, height: 1290 }, mouseEnabled: true, mouseState: 2,
+    systemOverlay: overlay, hitArea: overlay.node.hitArea, eventListeners: overlay.node.eventListeners,
+  });
+  const snapshot = normalizeRuntimeSources(raw);
+  assert.equal(snapshot.sources.runtimeOverlays, 1);
+  assert.equal(snapshot.visibleViews.includes('DailyActTipView'), true);
+  assert.equal(snapshot.runtimeOverlays[0].currentView.instanceKey, 'root_upper');
+  const node = snapshot.nodes.find(value => value.source === 'laya-stage' && value.name === 'o');
+  assert.equal(node.identity.systemOverlay.authority, 'ViewManager.GetBackGround');
+  assert.equal(node.interaction.eventListeners[0].type, 'click');
+  assert.equal(node.interaction.hitArea.width, 730);
 });

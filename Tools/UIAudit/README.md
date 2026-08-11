@@ -1,5 +1,13 @@
 # UIAudit 公共 Headless 采集与探针
 
+## 运行栈遮挡归属（runtime overlay v1）
+
+`policies/runtime-overlays.json` 是公共运行遮挡策略，页面 route 不得复制或覆盖它。采集器把 `ViewManager.GetBackGround()` 的共享全屏背景通过 `curr_view` 归属到实际受管 View，并把该 View 按真实 `stagePath` 加入 observed popup stack；因此背景短名或 `ownerView=null` 不再遗漏栈顶。若上层是已授权安全弹窗，当前关闭动作会在零点击状态下让位，由公共 drain 先处理真实栈顶；未知或危险 View 仍由 popup policy 硬停。
+
+`ViewManager.waitfor_openView_loading.display_obj` 被识别为全局输入门。公共 session 只按源码定义的 `curr_loading_view_dic` 清空/隐藏条件有界等待，超时返回 `RUNTIME_INPUT_GATE_TIMEOUT`；没有 source-backed 归属的全屏可交互对象返回 `RUNTIME_OVERLAY_UNKNOWN`，并写入 `runtime-overlay-diagnostic`，禁止穿透、改 `mouseEnabled`、DOM 直调或坐标重试。
+
+runtime node v3 保留 `runtimeClass`、`identity.systemOverlay`、`hitArea` 与事件 listener 计数。Canvas 输入诊断同时保存真实 topmost 的祖先链、最小 normalized subtree、候选受管 View、layer/manager 关联及 SHA-256；可以区分受管背景、全局输入门和未解释拦截。公共 API 为 `runtimeOverlay.loadRuntimeOverlayPolicy/classifyRuntimeOverlay/runtimeOverlayDecisions/runtimeOverlayViews`。
+
 `Tools/UIAudit` 是 UI 对接/精修路线唯一可复用的老 H5 浏览器执行层。它复用 `Tools/headless/node_modules/puppeteer` 驱动系统 Edge 的真实 Headless 页面；不生成合成截图，不占用前台，也不把可复用代码留在 `output/`。
 
 ## 命令
@@ -78,7 +86,7 @@ selector 支持三种可组合的精确身份：`view`（兼容字段）、`owne
 
 `runtime-tree` 先用 loaded/managed 快照中真实 `display_obj` 的 `stagePath` 给整棵 stage 子树归属 owner；再从 `ViewManager`/运行时 registry 的 View 实例枚举“字段直接引用显示节点”的绑定。规范化节点的 `identity.owner` 与 `identity.bindings[]` 会同时保留 owner 来源、根路径、字段名、运行节点名和实例 registry 来源，便于审计别名链；只在两类权威路径都缺失时保留带 `stage-name-heuristic` 标记的旧名称兜底，不能作为绑定证据。
 
-selector 仍支持 `dataIdentity` 子集匹配，例如 `{ "dataIdentity": { "fashion_id": 12010008 } }`。runtime node v2 另外保留 `childIndex/zOrder/alpha/effectiveAlpha`、`mouseEnabled/mouseThrough/hitTestPrior/_mouseState` 和 mask/scroll clip 信息，供栈与输入诊断使用。
+selector 仍支持 `dataIdentity` 子集匹配，例如 `{ "dataIdentity": { "fashion_id": 12010008 } }`。runtime node v3 另外保留 `childIndex/zOrder/alpha/effectiveAlpha`、`mouseEnabled/mouseThrough/hitTestPrior/_mouseState`、`runtimeClass/systemOverlay/hitArea/eventListeners` 和 mask/scroll clip 信息，供栈与输入诊断使用。
 
 click/drag 不再把目标自身 `hitTestPoint=true` 当作可达证明。公共输入层优先锁定 `Laya.Render.canvas.source`，通过当前 `stage._canvasTransform` 做“逻辑坐标 → 浏览器 client 坐标 → Laya 逻辑坐标”往返，并验证 `document.elementFromPoint` 的顶层 DOM 元素仍是该 canvas。随后按当前 Laya `MouseManager.check` 的真实逆序 child traversal 取 topmost hit；只有 topmost 是目标或目标子节点才允许输入。诊断同时保存 stage→目标链、stage→实际命中链、共同祖先后的遮挡分支、每层 `childIndex/zOrder`、鼠标策略、可见性、alpha、mask/scroll clip、独占 capture 与 Canvas 映射。稳定分类为：
 
@@ -105,6 +113,7 @@ click/drag 不再把目标自身 `hitTestPoint=true` 当作可达证明。公共
 | `lib/session.cjs` | Edge、登录、选角、进城、启动弹窗和热会话 |
 | `lib/safe-json.cjs` | 只丢祖先环、保留共享引用的 JSON 与原子写入 |
 | `lib/runtime-tree.cjs` | loaded/managed/`Laya.stage` 统一节点 schema、数据身份、display order 与 mask/输入属性 |
+| `lib/runtime-overlay.cjs` | 受管背景、全局输入门和未知全屏拦截的归属、策略判定与 observed stack 视图 |
 | `lib/selector-diagnostic.cjs` | selector 失败的最小子树、候选、内容哈希与不可变诊断写入 |
 | `lib/canvas-input.cjs` | Canvas transform 往返、Laya topmost/遮挡链、一次真实 click/drag 与事件消费 probe |
 | `lib/popup-policy.cjs` | `allow/forbid/unknown-hard-stop`、配置队列/observed runtime stack、安全节点与稳定关闭帧 |

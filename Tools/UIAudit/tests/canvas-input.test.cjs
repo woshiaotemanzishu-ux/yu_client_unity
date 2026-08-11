@@ -150,6 +150,50 @@ test('topmost overlay hard-stops before browser input and preserves the occlusio
   assert.equal(page.calls.length, 0);
 });
 
+test('manager-owned full-screen blocker records ownership, listeners, hit area and normalized obstacle subtree', async () => {
+  const page = fakePage();
+  const withObstacle = structuredClone(ownerBindingSnapshot);
+  withObstacle.nodes.push({
+    ...withObstacle.nodes[0],
+    source: 'laya-stage', view: null, path: inputFixture.globalBackgroundTop.path,
+    indexPath: inputFixture.globalBackgroundTop.indexPath, parentPath: 'Ue[0]/UIRoot[2]/Top[3]',
+    name: 'o', type: 'Image', identity: {
+      ownerView: null, runtimeName: 'o', runtimeClass: 'laya.ui.Image', owner: null, bindings: [],
+      systemOverlay: inputFixture.globalBackgroundTop.systemOverlay,
+    },
+    interaction: {
+      mouseEnabled: true, mouseThrough: false, mouseState: 2, disabled: false,
+      hitArea: inputFixture.globalBackgroundTop.hitArea,
+      eventListeners: inputFixture.globalBackgroundTop.eventListeners,
+    },
+  });
+  withObstacle.runtimeOverlays = [{
+    ...inputFixture.globalBackgroundTop.systemOverlay,
+    nodeStagePath: inputFixture.globalBackgroundTop.indexPath,
+  }];
+  page.evaluate = async (_function, payload) => {
+    if (payload.operation === 'inspect-canvas-input') return {
+      schema: inputFixture.schema, applicable: true,
+      targetResolution: { actualCount: 1 }, target: inputFixture.target,
+      targetChain: [inputFixture.target], topmost: inputFixture.globalBackgroundTop,
+      topmostChain: [inputFixture.globalBackgroundTop], capture: null, mapping: inputFixture.mappingPass,
+    };
+    throw new Error(`unexpected operation: ${payload.operation}`);
+  };
+  await assert.rejects(clickRuntimeTarget(page, withObstacle, {
+    source: 'laya-stage', ownerView: 'CycleimpActlistYesterday', boundField: '_btn_close', expectedCount: 1,
+  }, { canvasMetrics }), error => {
+    assert.equal(error.code, 'CANVAS_STACK_ORDER_WRONG');
+    const obstacle = error.diagnostic.context.obstacle;
+    assert.equal(obstacle.systemOverlay.authority, 'ViewManager.GetBackGround');
+    assert.equal(obstacle.subtree[0].interaction.eventListeners[0].type, 'click');
+    assert.equal(obstacle.subtree[0].interaction.hitArea.width, 730);
+    assert.match(obstacle.sha256, /^[a-f0-9]{64}$/);
+    return true;
+  });
+  assert.equal(page.calls.length, 0);
+});
+
 test('missing Laya target click is classified after exactly one browser click', async () => {
   const page = fakePage();
   const originalEvaluate = page.evaluate;

@@ -4,10 +4,12 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('path');
 const { loadPopupPolicy } = require('../lib/popup-policy.cjs');
+const { loadRuntimeOverlayPolicy } = require('../lib/runtime-overlay.cjs');
 const { loadProtocolPolicy } = require('../lib/protocol-probe.cjs');
 const { validateRoute, runPreflight, assertPreflight } = require('../lib/preflight.cjs');
 
 const popupPolicy = loadPopupPolicy(path.join(__dirname, '..', 'policies', 'startup-popups.json'));
+const runtimeOverlayPolicy = loadRuntimeOverlayPolicy(path.join(__dirname, '..', 'policies', 'runtime-overlays.json'));
 const protocolPolicy = loadProtocolPolicy(path.join(__dirname, '..', 'policies', 'protocols.json'));
 const route = {
   schema: 1, id: 'fixture', engine: 'legacy-laya', url: 'http://127.0.0.1:8091/index.html',
@@ -23,6 +25,7 @@ test('preflight reports all deterministic hard failures and assert rejects them'
     route,
     outputDir: path.join(repoRoot, 'output', 'fixture-preflight'),
     popupPolicy,
+    runtimeOverlayPolicy,
     protocolPolicy,
     nodeVersion: '20.0.0',
     edgeCandidates: ['Z:/missing/msedge.exe'],
@@ -46,6 +49,7 @@ test('route URL readiness is a stable pre-browser hard gate', async () => {
     route: { ...route, snapshotSource: __filename, session: { itemUse: { mode: 'hard-stop' } } },
     outputDir: path.join(repoRoot, 'output', 'fixture-route-url'),
     popupPolicy,
+    runtimeOverlayPolicy,
     protocolPolicy,
     edgeExecutable: process.execPath,
     puppeteerPackage: __filename,

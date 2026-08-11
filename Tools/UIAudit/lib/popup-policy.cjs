@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { POPUP_POLICY_SCHEMA_VERSION } = require('./version.cjs');
 const { classifyPopupCloseFailure } = require('./popup-lifecycle.cjs');
+const { runtimeOverlayViews } = require('./runtime-overlay.cjs');
 
 function validatePopupPolicy(policy) {
   const errors = [];
@@ -84,8 +85,9 @@ function compareStagePathsTopFirst(leftPath, rightPath) {
   return right.length - left.length;
 }
 
-function observePopupStack(snapshot, items) {
-  const deduped = dedupePopupQueue(items);
+function observePopupStack(snapshot, items, runtimeOverlayPolicy = null) {
+  const overlayViews = runtimeOverlayPolicy ? runtimeOverlayViews(snapshot, runtimeOverlayPolicy) : [];
+  const deduped = dedupePopupQueue([...(items || []), ...overlayViews]);
   const nodes = Array.isArray(snapshot && snapshot.nodes) ? snapshot.nodes : [];
   const rootsByView = new Map();
   for (const node of nodes) {
@@ -96,17 +98,21 @@ function observePopupStack(snapshot, items) {
   }
   const observed = deduped.map(item => {
     const roots = (rootsByView.get(item.view) || []).sort((left, right) => compareStagePathsTopFirst(left.indexPath, right.indexPath));
+    const overlay = overlayViews.find(value => value.view === item.view) || null;
     const root = roots[0] || null;
     return {
       ...item,
-      source: root ? 'laya-stage' : item.source || null,
-      resolved: !!root,
-      stagePath: root && root.indexPath || null,
+      source: root ? 'laya-stage' : overlay ? 'runtime-overlay' : item.source || null,
+      resolved: !!root || !!overlay,
+      stagePath: root && root.indexPath || overlay && overlay.stagePath || null,
       rootPath: root && root.path || null,
       childIndex: root && root.childIndex != null ? root.childIndex
-        : root && Array.isArray(root.indexPath) ? root.indexPath[root.indexPath.length - 1] : null,
+        : root && Array.isArray(root.indexPath) ? root.indexPath[root.indexPath.length - 1]
+          : overlay && overlay.childIndex != null ? overlay.childIndex : null,
       zOrder: root && Number.isFinite(Number(root.zOrder)) ? Number(root.zOrder) : null,
-      instance: root && root.identity && root.identity.owner && root.identity.owner.instances || [],
+      instance: root && root.identity && root.identity.owner && root.identity.owner.instances
+        || overlay && overlay.instance || [],
+      overlay: overlay && overlay.overlay || item.overlay || null,
     };
   });
   return observed.sort((left, right) => {

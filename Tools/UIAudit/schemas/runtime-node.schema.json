@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "ui-audit.runtime-node.v2",
+  "$id": "ui-audit.runtime-node.v3",
   "type": "object",
   "required": ["schema", "source", "path", "name", "visible", "interaction", "state"],
   "properties": {
-    "schema": { "const": "ui-audit.runtime-node.v2" },
+    "schema": { "const": "ui-audit.runtime-node.v3" },
     "source": { "enum": ["loaded-view", "managed-view", "laya-stage", "unknown"] },
     "path": { "type": "string" },
     "name": { "type": "string" },
@@ -19,6 +19,8 @@
       "properties": {
         "ownerView": { "type": ["string", "null"] },
         "runtimeName": { "type": "string" },
+        "runtimeClass": { "type": "string" },
+        "systemOverlay": { "type": ["object", "null"] },
         "bindings": {
           "type": "array",
           "items": {
@@ -30,6 +32,23 @@
               "runtimeName": { "type": "string" },
               "relation": { "const": "direct-reference" },
               "source": { "const": "view-instance-field" }
+            }
+          }
+        }
+      }
+    },
+    "interaction": {
+      "type": "object",
+      "properties": {
+        "hitArea": { "type": ["object", "null"] },
+        "eventListeners": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["type", "count"],
+            "properties": {
+              "type": { "type": "string" },
+              "count": { "type": "integer", "minimum": 0 }
             }
           }
         }

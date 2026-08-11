@@ -190,13 +190,42 @@ function classifyInputConsumption(evidence) {
   };
 }
 
+function runtimeObstacleDiagnostic(snapshot, input) {
+  const topmost = input && (input.topmost || input.preflight && input.preflight.topmost);
+  const topPath = topmost && topmost.indexPath;
+  if (!Array.isArray(topPath)) return null;
+  const nodes = (snapshot && snapshot.nodes || []).filter(node => node.source === 'laya-stage');
+  const isPrefix = (left, right) => Array.isArray(left) && Array.isArray(right)
+    && left.length <= right.length && left.every((part, index) => Number(part) === Number(right[index]));
+  const ancestors = nodes.filter(node => isPrefix(node.indexPath, topPath));
+  const subtree = nodes.filter(node => isPrefix(topPath, node.indexPath));
+  const systemOverlay = topmost.systemOverlay || null;
+  const candidateNames = new Set([
+    systemOverlay && systemOverlay.currentView && systemOverlay.currentView.name,
+    ...(systemOverlay && systemOverlay.candidates || []).map(item => item && item.name),
+  ].filter(Boolean));
+  const ownershipCandidates = (snapshot && snapshot.nodes || []).filter(node => candidateNames.has(node.view));
+  const result = {
+    topmostPath: topmost.path || null,
+    topmostIndexPath: topPath,
+    systemOverlay,
+    ancestors,
+    subtree,
+    ownershipCandidates,
+    runtimeOverlays: (snapshot && snapshot.runtimeOverlays || []).filter(overlay => isPrefix(overlay.nodeStagePath, topPath)
+      || isPrefix(topPath, overlay.nodeStagePath)),
+  };
+  result.sha256 = crypto.createHash('sha256').update(JSON.stringify(result)).digest('hex');
+  return result;
+}
+
 function canvasInputError(code, snapshot, selector, input, phase) {
   const expectedCount = selector.expectedCount == null ? 1 : Number(selector.expectedCount);
   const actualCount = findNodes(snapshot, selector).length;
   const diagnostic = buildSelectorDiagnostic(snapshot, selector, {
     expectedCount,
     actualCount,
-    context: { kind: 'canvas-input', phase, input },
+    context: { kind: 'canvas-input', phase, input, obstacle: runtimeObstacleDiagnostic(snapshot, input) },
   });
   return new SelectorIdentityError(
     code,
@@ -249,6 +278,7 @@ async function inspectStageInput(page, node, point, domPoint, canvas, selector =
     };
     const entries = [];
     const seenViews = new Set();
+    let viewManager = null;
     const addView = (view, source, key) => {
       if (!view || seenViews.has(view)) return;
       seenViews.add(view);
@@ -260,7 +290,7 @@ async function inspectStageInput(page, node, point, domPoint, canvas, selector =
     };
     try {
       const ViewManagerClass = window.ViewManager;
-      const viewManager = ViewManagerClass && ViewManagerClass.GetInstance && ViewManagerClass.GetInstance();
+      viewManager = ViewManagerClass && ViewManagerClass.GetInstance && ViewManagerClass.GetInstance();
       const dictionary = viewManager && (viewManager.view_dic || viewManager._view_dic) || {};
       for (const key of Object.keys(dictionary)) addView(dictionary[key], 'ViewManager', key);
     } catch (_) {}
@@ -293,6 +323,79 @@ async function inspectStageInput(page, node, point, domPoint, canvas, selector =
         ? String(payload.selector.ownerView) : owner.names[0] || null;
       return { view: requested, source: owner.source, key: owner.key, rootPath: indexPathOf(owner.root) };
     };
+    const viewDescription = view => {
+      if (!view) return null;
+      const entry = entries.find(item => item.view === view) || null;
+      const name = entry && (entry.names[0] || entry.key) || qualifiedName(view)
+        || String(view.layout_file || view.layoutFile || view.constructor && view.constructor.name || '');
+      if (!name) return null;
+      return {
+        name, rawName: qualifiedName(view), constructorName: String(view.constructor && view.constructor.name || ''),
+        layoutFile: String(view.layout_file || view.layoutFile || ''),
+        stagePath: indexPathOf(view.display_obj),
+        instanceSource: entry && entry.source || 'ViewManagerRuntime',
+        instanceKey: entry && entry.key || String(view.hashCode || ''),
+      };
+    };
+    const layerDescription = value => {
+      try {
+        const Layer = window.LayerManager;
+        const layerManager = Layer && Layer.GetInstance && Layer.GetInstance();
+        const layers = layerManager && layerManager.ui_layer_list || [];
+        for (let current = value; current; current = current.parent) {
+          const index = layers.indexOf(current);
+          if (index >= 0) return { name: String(current.name || ''), index, stagePath: indexPathOf(current) };
+        }
+      } catch (_) {}
+      return null;
+    };
+    const eventListenersOf = value => {
+      const events = value && (value._events || value._eventMap);
+      if (!events || typeof events !== 'object') return [];
+      return Object.keys(events).sort().map(type => {
+        const current = events[type];
+        return { type: String(type), count: Array.isArray(current) ? current.length : current ? 1 : 0 };
+      });
+    };
+    const hitAreaOf = value => {
+      const area = value && value._style && value._style.hitArea;
+      if (!area) return null;
+      const source = area._hit || area;
+      return {
+        type: String(source && source.constructor && source.constructor.name || area.constructor && area.constructor.name || ''),
+        x: Number(source && source.x || 0), y: Number(source && source.y || 0),
+        width: Number(source && source.width || 0), height: Number(source && source.height || 0),
+      };
+    };
+    const systemAssociation = value => {
+      if (!value || !viewManager) return null;
+      try {
+        const background = viewManager._background || viewManager.GetBackGround && viewManager.GetBackGround();
+        if (value === background) {
+          const currentView = background.curr_view || background['curr_view'] || null;
+          const dictionary = viewManager.has_backgroup_view_dic || viewManager._has_backgroup_view_dic || {};
+          return {
+            kind: 'managed-view-background', authority: 'ViewManager.GetBackGround',
+            manager: 'ViewManager', managerField: '_background', currentView: viewDescription(currentView),
+            candidates: Object.keys(dictionary).map(key => viewDescription(dictionary[key])).filter(Boolean),
+          };
+        }
+        const loading = viewManager.waitfor_openView_loading || viewManager._waitfor_openView_loading;
+        const gate = loading && (loading.display_obj || loading);
+        if (gate && contains(gate, value)) {
+          const pending = loading.curr_loading_view_dic || {};
+          return {
+            kind: 'global-input-gate', authority: 'ViewManager.waitfor_openView_loading.display_obj',
+            manager: 'ViewManager', managerField: 'waitfor_openView_loading',
+            gate: { pendingKeys: Object.keys(pending), ready: Object.keys(pending).length === 0 || gate.visible === false },
+          };
+        }
+        const fields = Object.keys(viewManager).filter(key => viewManager[key] === value);
+        if (fields.length) return { kind: 'manager-owned-overlay', authority: 'ViewManager.runtime-field', manager: 'ViewManager', managerFields: fields };
+      } catch (_) {}
+      const layer = layerDescription(value);
+      return layer ? { kind: 'unresolved-layer-overlay', authority: 'LayerManager.ui_layer_list', layer } : null;
+    };
     const boundsOf = value => {
       if (!value || typeof value.localToGlobal !== 'function') return null;
       try {
@@ -315,6 +418,7 @@ async function inspectStageInput(page, node, point, domPoint, canvas, selector =
       if (!value) return null;
       const indexPath = indexPathOf(value);
       const owner = ownerOf(value);
+      const systemOverlay = systemAssociation(value);
       let effectiveAlpha = 1;
       let effectiveVisible = true;
       for (let current = value; current; current = current.parent) {
@@ -331,8 +435,10 @@ async function inspectStageInput(page, node, point, domPoint, canvas, selector =
         indexPath,
         name: String(value.name || ''),
         type: String(value.constructor && value.constructor.name || ''),
-        ownerView: owner && owner.view || null,
+        runtimeClass: qualifiedName(value),
+        ownerView: owner && owner.view || systemOverlay && systemOverlay.currentView && systemOverlay.currentView.name || null,
         ownerInstance: owner ? { source: owner.source, key: owner.key, rootPath: owner.rootPath } : null,
+        systemOverlay,
         childIndex: indexPath && indexPath.length ? indexPath[indexPath.length - 1] : null,
         zOrder: Number(value.zOrder || 0),
         visible: value.visible !== false,
@@ -347,6 +453,8 @@ async function inspectStageInput(page, node, point, domPoint, canvas, selector =
         disabled: !!value.disabled,
         bounds: boundsOf(value),
         hitAtPoint: hitAt(value),
+        hitArea: hitAreaOf(value),
+        eventListeners: eventListenersOf(value),
         scrollRect: value.scrollRect ? {
           x: Number(value.scrollRect.x || 0), y: Number(value.scrollRect.y || 0),
           width: Number(value.scrollRect.width || 0), height: Number(value.scrollRect.height || 0),
@@ -702,6 +810,7 @@ module.exports = {
   resolveTarget,
   classifyPreInput,
   classifyInputConsumption,
+  runtimeObstacleDiagnostic,
   inspectStageInput,
   installInputProbe,
   finishInputProbe,

@@ -11,6 +11,7 @@ const { decidePopup, assertSafePopupDecision, popupCloseStability, observePopupS
 const { clickRuntimeTarget } = require('./canvas-input.cjs');
 const { createPopupInstanceRef, observePopupLifecycle } = require('./popup-lifecycle.cjs');
 const { buildSelectorDiagnostic, SelectorIdentityError } = require('./selector-diagnostic.cjs');
+const { runtimeOverlayDecisions, runtimeOverlayViews } = require('./runtime-overlay.cjs');
 
 const LEGACY_720_LOGIN = Object.freeze({
   viewport: { width: 720, height: 1280 },
@@ -30,10 +31,26 @@ const LEGACY_720_LOGIN = Object.freeze({
 
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
-function startupBlockers(snapshot, preset = LEGACY_720_LOGIN) {
+function startupBlockers(snapshot, preset = LEGACY_720_LOGIN, runtimeOverlayPolicy = null) {
   const passive = new RegExp(preset.passiveViewPattern);
-  return (snapshot && snapshot.visibleViews || []).filter(name => !passive.test(name)
+  const names = [
+    ...(snapshot && snapshot.visibleViews || []),
+    ...(runtimeOverlayPolicy ? runtimeOverlayViews(snapshot, runtimeOverlayPolicy).map(item => item.view) : []),
+  ];
+  return [...new Set(names)].filter(name => !passive.test(name)
     && name !== preset.mainView && !/^LoginLoadingView$/.test(name));
+}
+
+function overlayDiagnostic(snapshot, decision, code, elapsedMs = 0) {
+  const overlay = decision && decision.overlay;
+  const runtimeName = overlay && overlay.node && overlay.node.runtimeName || '';
+  const selector = { source: 'laya-stage', runtimeName, expectedCount: 1 };
+  const actualCount = runtimeName ? findNodes(snapshot, selector).length : 0;
+  return new SelectorIdentityError(code, `${code}: ${decision && decision.reason || ''}`, buildSelectorDiagnostic(snapshot, selector, {
+    expectedCount: 1,
+    actualCount,
+    context: { kind: 'runtime-overlay', elapsedMs, decision },
+  }));
 }
 
 function loadPuppeteer(repoRoot) {
@@ -127,10 +144,14 @@ class HeadlessUiSession {
       const before = await this.snapshot();
       if (!before.visibleViews.includes(viewName)) return { closed: true, clicks: clickIndex, decision };
       if (close.requiresCurrentView && runtime.preset) {
-        const blockers = startupBlockers(before, runtime.preset);
-        const stack = observePopupStack(before, blockers);
+        const blockers = startupBlockers(before, runtime.preset, runtime.runtimeOverlayPolicy);
+        const stack = observePopupStack(before, blockers, runtime.runtimeOverlayPolicy);
         const unresolved = stack.filter(item => !item.resolved);
         if (unresolved.length || !stack.length || stack[0].view !== viewName) {
+          if (runtime.runtimeOverlayPolicy && !unresolved.length && stack.length && stack[0].view !== viewName) {
+            this.note('popup-close-deferred', { requestedView: viewName, observedTopFirst: stack });
+            return { closed: false, deferred: true, clicks: clickIndex, decision, observedTopFirst: stack };
+          }
           const diagnostic = buildSelectorDiagnostic(before, selector, {
             expectedCount: 1,
             actualCount: findNodes(before, selector).length,
@@ -262,13 +283,32 @@ class HeadlessUiSession {
     await sleep(options.postSubmitWaitMs || 8000);
 
     let clean = 0;
+    const runtimeGateStartedAt = new Map();
     for (let iteration = 0; iteration < (options.maxIterations || 45) && clean < 3; iteration++) {
       const snapshot = await this.snapshot();
       const visible = snapshot.visibleViews;
       const inMain = visible.includes(preset.mainView);
-      const blockers = startupBlockers(snapshot, preset);
-      const popupStack = inMain && blockers.length ? observePopupStack(snapshot, blockers) : [];
-      this.note('login-state', { iteration, inMain, blockers, popupStack });
+      const runtimeDecisions = options.runtimeOverlayPolicy
+        ? runtimeOverlayDecisions(snapshot, options.runtimeOverlayPolicy) : [];
+      const unknownOverlay = runtimeDecisions.find(decision => decision.action === 'unknown-hard-stop');
+      if (unknownOverlay) throw overlayDiagnostic(snapshot, unknownOverlay, 'RUNTIME_OVERLAY_UNKNOWN');
+      const waitingGate = runtimeDecisions.find(decision => decision.action === 'wait-for-release');
+      if (waitingGate) {
+        const key = waitingGate.overlay.id;
+        const startedAt = runtimeGateStartedAt.get(key) || Date.now();
+        runtimeGateStartedAt.set(key, startedAt);
+        const elapsedMs = Date.now() - startedAt;
+        this.note('runtime-overlay-wait', { iteration, elapsedMs, decision: waitingGate });
+        if (elapsedMs > waitingGate.timeoutMs) throw overlayDiagnostic(snapshot, waitingGate, 'RUNTIME_INPUT_GATE_TIMEOUT', elapsedMs);
+        clean = 0;
+        await sleep(options.pollMs || 1000);
+        continue;
+      }
+      runtimeGateStartedAt.clear();
+      const blockers = startupBlockers(snapshot, preset, options.runtimeOverlayPolicy);
+      const popupStack = inMain && blockers.length
+        ? observePopupStack(snapshot, blockers, options.runtimeOverlayPolicy) : [];
+      this.note('login-state', { iteration, inMain, blockers, popupStack, runtimeDecisions });
       const transition = Object.entries(preset.transitions).find(([name]) => visible.includes(name));
       if (transition && (transition[0] !== 'DialogueView' || !inMain)) {
         clean = 0;
@@ -283,7 +323,17 @@ class HeadlessUiSession {
           if (typeof options.itemUseHandler !== 'function') throw new Error('ITEM_USE_REQUIRES_CONTROLLED_HANDLER');
           await options.itemUseHandler(this.page, snapshot);
         } else {
-          await this.closeAllowlistedPopup(top, options.popupPolicy, { preset });
+          const topPolicy = decidePopup(options.popupPolicy, top);
+          if (topPolicy.action !== 'allow' && popupStack[0].overlay) {
+            throw overlayDiagnostic(snapshot, {
+              ...topPolicy,
+              overlay: popupStack[0].overlay,
+              reason: `popup policy ${topPolicy.action}: ${topPolicy.reason || top}`,
+            }, 'POPUP_POLICY_HARD_STOP');
+          }
+          await this.closeAllowlistedPopup(top, options.popupPolicy, {
+            preset, runtimeOverlayPolicy: options.runtimeOverlayPolicy,
+          });
         }
       } else if (inMain) clean++;
       await sleep(options.pollMs || 1000);
@@ -319,5 +369,6 @@ module.exports = {
   loadPuppeteer,
   loadPageSnapshotScript,
   startupBlockers,
+  overlayDiagnostic,
   HeadlessUiSession,
 };

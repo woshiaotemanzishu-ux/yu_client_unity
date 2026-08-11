@@ -5,6 +5,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { ROUTE_SCHEMA_VERSION } = require('./version.cjs');
 const { validatePopupPolicy } = require('./popup-policy.cjs');
+const { validateRuntimeOverlayPolicy, verifyRuntimeOverlayAuthority } = require('./runtime-overlay.cjs');
 const { validateProtocolPolicy, validateRouteProtocolContract, verifyProtocolAuthority } = require('./protocol-probe.cjs');
 const { validateItemUseRouteConfig } = require('./item-use.cjs');
 const {
@@ -119,6 +120,7 @@ async function runPreflight(options = {}) {
   const nodeVersion = options.nodeVersion || process.versions.node;
   const route = validateRoute(options.route);
   validatePopupPolicy(options.popupPolicy);
+  validateRuntimeOverlayPolicy(options.runtimeOverlayPolicy);
   validateProtocolPolicy(options.protocolPolicy);
   const checks = [];
   const add = (id, pass, detail) => checks.push({ id, pass: !!pass, detail });
@@ -157,6 +159,7 @@ async function runPreflight(options = {}) {
   const authority = [];
   if (route.legacyRoot && route.verifyAuthority !== false) {
     authority.push(...verifyAuthority(options.popupPolicy, route.legacyRoot, existsSync));
+    authority.push(...verifyRuntimeOverlayAuthority(options.runtimeOverlayPolicy, route.legacyRoot, existsSync));
     authority.push(...verifyProtocolAuthority(options.protocolPolicy, route.legacyRoot, existsSync));
     for (const result of authority) add(`authority:${result.id}`, result.pass, result);
   }

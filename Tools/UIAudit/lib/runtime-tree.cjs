@@ -1,6 +1,7 @@
 'use strict';
 
 const { RUNTIME_NODE_SCHEMA_VERSION } = require('./version.cjs');
+const { normalizeRuntimeOverlay } = require('./runtime-overlay.cjs');
 
 const NODE_SCHEMA = `ui-audit.runtime-node.v${RUNTIME_NODE_SCHEMA_VERSION}`;
 
@@ -182,8 +183,10 @@ function normalizedNode(raw, context = {}) {
     identity: {
       ownerView: owner && owner.view || view,
       runtimeName: name,
+      runtimeClass: String(raw && raw.runtimeClass || type),
       owner,
       bindings,
+      systemOverlay: raw && raw.systemOverlay || null,
     },
     interaction: {
       mouseEnabled: raw && raw.mouseEnabled !== false,
@@ -192,6 +195,8 @@ function normalizedNode(raw, context = {}) {
       mouseState: raw && raw.mouseState == null ? null : finite(raw.mouseState),
       disabled: !!(raw && raw.disabled),
       hitTestCenter: raw && raw.hitTestCenter == null ? null : !!raw.hitTestCenter,
+      hitArea: raw && raw.hitArea || null,
+      eventListeners: Array.isArray(raw && raw.eventListeners) ? raw.eventListeners : [],
     },
     state: {
       selected: raw && raw.selected == null ? null : !!raw.selected,
@@ -259,6 +264,8 @@ function normalizeRuntimeSources(raw, options = {}) {
     ? raw.managed.views : [];
   const rawStageRows = Array.isArray(raw && raw.stage && raw.stage.nodes) ? raw.stage.nodes : [];
   const stageRows = reconcileStageOwnership(rawStageRows, loaded, managedViews);
+  const runtimeOverlays = (Array.isArray(raw && raw.stage && raw.stage.overlays) ? raw.stage.overlays : [])
+    .map(normalizeRuntimeOverlay).filter(Boolean);
   const nodes = [];
 
   const inferredInstances = view => {
@@ -337,6 +344,12 @@ function normalizeRuntimeSources(raw, options = {}) {
       visibleViews.push(node.view);
     }
   }
+  for (const overlay of runtimeOverlays) {
+    const current = overlay.kind === 'managed-view-background' && overlay.currentView;
+    if (!current || !current.name || !current.visible || !current.displayed || !current.open || seen.has(current.name)) continue;
+    seen.add(current.name);
+    visibleViews.push(current.name);
+  }
 
   return {
     schema: RUNTIME_NODE_SCHEMA_VERSION,
@@ -347,8 +360,10 @@ function normalizeRuntimeSources(raw, options = {}) {
       loadedViews: loaded.length,
       managedViews: managedViews.length,
       stageNodes: stageRows.length,
+      runtimeOverlays: runtimeOverlays.length,
     },
     visibleViews,
+    runtimeOverlays,
     nodes,
     warnings: Array.isArray(raw && raw.warnings) ? raw.warnings : [],
   };
@@ -401,7 +416,7 @@ async function collectRuntimeSources(page, options = {}) {
     } catch (error) { warnings.push(`managed-view: ${String(error)}`); }
 
     const stage = window.Laya && window.Laya.stage;
-    const stageResult = { meta: null, nodes: [] };
+    const stageResult = { meta: null, nodes: [], overlays: [] };
     if (!stage) {
       warnings.push('Laya.stage missing');
     } else {
@@ -453,6 +468,65 @@ async function collectRuntimeSources(page, options = {}) {
         }
         return current;
       };
+      const stagePathOf = node => {
+        const result = [];
+        let current = node;
+        while (current && current !== stage) {
+          const parent = current.parent;
+          if (!parent) return null;
+          const index = childrenOf(parent).indexOf(current);
+          if (index < 0) return null;
+          result.unshift(index);
+          current = parent;
+        }
+        return current === stage ? result : null;
+      };
+      const fullStagePathOf = node => {
+        const relative = stagePathOf(node);
+        return relative ? [0, ...relative] : null;
+      };
+      const stageDisplayPathOf = node => {
+        const indices = fullStagePathOf(node);
+        if (!indices) return '';
+        let current = stage;
+        return indices.map((index, depth) => {
+          if (depth > 0) current = childrenOf(current)[Number(index)];
+          return `${String(current && (current.name || current.constructor && current.constructor.name) || 'node')}[${index}]`;
+        }).join('/');
+      };
+      const qualifiedName = value => {
+        try { return window.GetQualifiedClassName ? String(window.GetQualifiedClassName(value) || '') : ''; }
+        catch (_) { return ''; }
+      };
+      const eventListenersOf = node => {
+        const result = [];
+        const events = node && node._events;
+        if (!events || typeof events !== 'object') return result;
+        const handlersOf = value => Array.isArray(value) ? value.filter(Boolean) : value ? [value] : [];
+        for (const type of Object.keys(events)) {
+          const handlers = handlersOf(events[type]);
+          result.push({
+            type: String(type),
+            count: handlers.length,
+            handlers: handlers.slice(0, 8).map(handler => ({
+              callerClass: qualifiedName(handler && handler.caller),
+              method: String(handler && handler.method && handler.method.name || ''),
+              once: !!(handler && handler.once),
+            })),
+          });
+        }
+        return result;
+      };
+      const hitAreaOf = node => {
+        const area = node && node._style && node._style.hitArea;
+        if (!area) return null;
+        const source = area._hit || area;
+        return {
+          type: String(source && source.constructor && source.constructor.name || area.constructor && area.constructor.name || ''),
+          x: Number(source && source.x || 0), y: Number(source && source.y || 0),
+          width: Number(source && source.width || 0), height: Number(source && source.height || 0),
+        };
+      };
       const ownerByPath = new Map();
       const addOwner = (meta, evidenceSource) => {
         if (!meta || !Array.isArray(meta.stagePath) || !meta.stagePath.length || !meta.name) return;
@@ -481,20 +555,18 @@ async function collectRuntimeSources(page, options = {}) {
       const viewInstances = [];
       const addViewInstance = (view, instanceSource, instanceKey) => {
         if (!view || !view.display_obj || viewInstances.some(item => item.view === view)) return;
-        let qualifiedName = '';
-        try {
-          qualifiedName = window.GetQualifiedClassName ? String(window.GetQualifiedClassName(view) || '') : '';
-        } catch (_) {}
+        const runtimeQualifiedName = qualifiedName(view);
         viewInstances.push({
           view, root: view.display_obj, instanceSource, instanceKey: String(instanceKey || ''),
-          names: [instanceKey, qualifiedName, view.layout_file, view.layoutFile, view.constructor && view.constructor.name]
+          names: [instanceKey, runtimeQualifiedName, view.layout_file, view.layoutFile, view.constructor && view.constructor.name]
             .filter(Boolean).map(String),
         });
       };
+      let viewManager = null;
       try {
         const Manager = window.ViewManager || window['ViewManager'];
-        const manager = Manager && Manager.GetInstance && Manager.GetInstance();
-        const dictionary = manager && (manager.view_dic || manager._view_dic) || {};
+        viewManager = Manager && Manager.GetInstance && Manager.GetInstance();
+        const dictionary = viewManager && (viewManager.view_dic || viewManager._view_dic) || {};
         for (const key of Object.keys(dictionary)) addViewInstance(dictionary[key], 'ViewManager', key);
       } catch (error) { warnings.push(`view-instance-manager: ${String(error)}`); }
       try {
@@ -504,6 +576,171 @@ async function collectRuntimeSources(page, options = {}) {
           addViewInstance(item && item.view, 'RuntimeRegistry', key);
         }
       } catch (error) { warnings.push(`view-instance-registry: ${String(error)}`); }
+
+      const viewDescription = (view, instanceSource = '', instanceKey = '') => {
+        if (!view) return null;
+        const root = view.display_obj || null;
+        const name = qualifiedName(view) || String(view.layout_file || view.layoutFile || view.constructor && view.constructor.name || '');
+        if (!name) return null;
+        let open = true;
+        try { if (typeof view.HasOpen === 'function') open = !!view.HasOpen(); } catch (_) {}
+        return {
+          name,
+          rawName: qualifiedName(view),
+          layoutFile: String(view.layout_file || view.layoutFile || ''),
+          constructorName: String(view.constructor && view.constructor.name || ''),
+          hashCode: view.hashCode == null ? null : String(view.hashCode),
+          stagePath: fullStagePathOf(root),
+          visible: !!(root && root.visible !== false),
+          displayed: !!(root && root.displayedInStage !== false && fullStagePathOf(root)),
+          open,
+          useBackground: view.use_background == null ? null : !!view.use_background,
+          clickBackgroundToClose: view.click_bg_toClose == null ? null : !!view.click_bg_toClose,
+          backgroundTouchEnabled: view.backgroup_touchEnable == null ? null : !!view.backgroup_touchEnable,
+          instanceSource: String(instanceSource || ''),
+          instanceKey: String(instanceKey || ''),
+        };
+      };
+      const instanceIdentity = view => {
+        const instance = viewInstances.find(item => item.view === view);
+        return instance ? { source: instance.instanceSource, key: instance.instanceKey } : { source: 'ViewManagerRuntime', key: String(view && view.hashCode || '') };
+      };
+      const layerDescription = node => {
+        const Layer = window.LayerManager || window['LayerManager'];
+        const layerManager = Layer && Layer.GetInstance && Layer.GetInstance();
+        const layers = layerManager && layerManager.ui_layer_list || [];
+        let current = node;
+        while (current) {
+          const index = layers.indexOf(current);
+          if (index >= 0) return { name: String(current.name || ''), index, stagePath: fullStagePathOf(current) };
+          current = current.parent;
+        }
+        return null;
+      };
+      const overlayByNode = new Map();
+      const registerOverlay = (node, value) => {
+        if (!node || !fullStagePathOf(node)) return;
+        const overlay = {
+          ...value,
+          nodeStagePath: fullStagePathOf(node),
+          nodePath: stageDisplayPathOf(node),
+          active: node.visible !== false && node.displayedInStage !== false,
+          visible: node.visible !== false,
+          displayed: node.displayedInStage !== false,
+          interactive: node.mouseEnabled !== false && !node.mouseThrough,
+          layer: layerDescription(node),
+          node: {
+            runtimeName: String(node.name || ''),
+            runtimeClass: qualifiedName(node),
+            constructorName: String(node.constructor && node.constructor.name || ''),
+            childIndex: node.parent ? childrenOf(node.parent).indexOf(node) : null,
+            zOrder: Number(node.zOrder || 0),
+            visible: node.visible !== false,
+            alpha: Number(node.alpha == null ? 1 : node.alpha),
+            mouseEnabled: node.mouseEnabled !== false,
+            mouseThrough: !!node.mouseThrough,
+            hitTestPrior: !!node.hitTestPrior,
+            mouseState: Number(node._mouseState == null ? 0 : node._mouseState),
+            bounds: boundsOf(node),
+            hitArea: hitAreaOf(node),
+            eventListeners: eventListenersOf(node),
+          },
+        };
+        stageResult.overlays.push(overlay);
+        overlayByNode.set(node, overlay);
+      };
+      if (viewManager) {
+        try {
+          const background = viewManager.GetBackGround ? viewManager.GetBackGround() : viewManager._background;
+          if (background && fullStagePathOf(background)) {
+            const currentView = background.curr_view || background['curr_view'] || null;
+            if (currentView) {
+              const identity = instanceIdentity(currentView);
+              addViewInstance(currentView, identity.source, identity.key);
+              const description = viewDescription(currentView, identity.source, identity.key);
+              if (description && Array.isArray(description.stagePath)) {
+                addOwner({
+                  name: description.name,
+                  rawName: description.rawName,
+                  layoutFile: description.layoutFile,
+                  source: 'ViewManager.GetBackGround.curr_view',
+                  stagePath: description.stagePath.slice(1),
+                }, 'runtime-overlay-current-view');
+              }
+            }
+            const candidates = [];
+            const dictionary = viewManager.has_backgroup_view_dic || viewManager._has_backgroup_view_dic || {};
+            for (const key of Object.keys(dictionary)) {
+              const candidate = dictionary[key];
+              const identity = instanceIdentity(candidate);
+              const description = viewDescription(candidate, identity.source, identity.key || key);
+              if (description) candidates.push(description);
+            }
+            const currentIdentity = instanceIdentity(currentView);
+            registerOverlay(background, {
+              id: 'view-manager-background',
+              kind: 'managed-view-background',
+              authority: 'ViewManager.GetBackGround',
+              manager: 'ViewManager',
+              managerField: '_background',
+              currentView: viewDescription(currentView, currentIdentity.source, currentIdentity.key),
+              candidates,
+              evidence: [{ source: 'ViewManager._background.curr_view', relation: 'shared-background-current-view' }],
+            });
+          }
+        } catch (error) { warnings.push(`runtime-overlay-background: ${String(error)}`); }
+        try {
+          const loading = viewManager.waitfor_openView_loading || viewManager._waitfor_openView_loading;
+          const gateNode = loading && (loading.display_obj || loading);
+          if (gateNode && fullStagePathOf(gateNode) && gateNode.visible !== false && gateNode.displayedInStage !== false) {
+            const pending = loading.curr_loading_view_dic || {};
+            registerOverlay(gateNode, {
+              id: 'waitfor-open-view-loading',
+              kind: 'global-input-gate',
+              authority: 'ViewManager.waitfor_openView_loading.display_obj',
+              manager: 'ViewManager',
+              managerField: 'waitfor_openView_loading',
+              gate: {
+                pendingKeys: Object.keys(pending),
+                ready: Object.keys(pending).length === 0 || gateNode.visible === false || gateNode.displayedInStage === false,
+                visible: gateNode.visible !== false,
+                releaseCondition: 'curr_loading_view_dic empty and display_obj hidden',
+              },
+              evidence: [{ source: 'WaitforOpenViewLoading.curr_loading_view_dic', relation: 'pending-resource-view-loads' }],
+            });
+          }
+        } catch (error) { warnings.push(`runtime-overlay-loading-gate: ${String(error)}`); }
+      }
+
+      try {
+        const Layer = window.LayerManager || window['LayerManager'];
+        const layerManager = Layer && Layer.GetInstance && Layer.GetInstance();
+        const layers = layerManager && layerManager.ui_layer_list || [];
+        for (const layer of layers) {
+          for (const child of childrenOf(layer)) {
+            if (overlayByNode.has(child) || child.visible === false || child.displayedInStage === false
+              || child.mouseEnabled === false || Number(child._mouseState == null ? 0 : child._mouseState) <= 1) continue;
+            const bounds = boundsOf(child);
+            if (!bounds || bounds.width < Number(stage.width || 0) * 0.8 || bounds.height < Number(stage.height || 0) * 0.8) continue;
+            const relativePath = stagePathOf(child);
+            const knownOwner = relativePath && ownerByPath.has(relativePath.join('.'))
+              || viewInstances.some(instance => instance.root === child);
+            if (knownOwner) continue;
+            const candidates = viewInstances.filter(instance => instance.root && instance.root.parent === layer)
+              .map(instance => viewDescription(instance.view, instance.instanceSource, instance.instanceKey)).filter(Boolean);
+            registerOverlay(child, {
+              id: `unknown-interactive-overlay:${(fullStagePathOf(child) || []).join('.')}`,
+              kind: 'unknown-interactive-overlay',
+              authority: 'Laya.stage.hit-policy',
+              manager: '',
+              managerField: '',
+              currentView: null,
+              candidates,
+              evidence: [{ source: 'LayerManager.ui_layer_list', relation: 'unowned-fullscreen-interactive-child' }],
+            });
+          }
+        }
+      } catch (error) { warnings.push(`runtime-overlay-unknown-scan: ${String(error)}`); }
 
       for (const meta of loaded) {
         const root = stageNodeAt(meta.stagePath);
@@ -604,6 +841,7 @@ async function collectRuntimeSources(page, options = {}) {
           childIndex: indexPath[indexPath.length - 1],
           ownerIdentity: publicOwner(nextOwner, !!exactOwner || !!heuristicOwner),
           bindings: bindingsByNode.get(node) || [],
+          systemOverlay: overlayByNode.get(node) || null,
           visible, displayedInStage: node.displayedInStage !== false, bounds,
           local: { x: Number(node.x || 0), y: Number(node.y || 0), width: Number(node.width || 0), height: Number(node.height || 0) },
           pivot: { x: Number(node.pivotX || 0), y: Number(node.pivotY || 0) },
@@ -616,6 +854,8 @@ async function collectRuntimeSources(page, options = {}) {
           gray: !!node.gray, disabled: !!node.disabled,
           mouseEnabled: node.mouseEnabled !== false, mouseThrough: !!node.mouseThrough,
           hitTestPrior: !!node.hitTestPrior, mouseState: Number(node._mouseState == null ? 0 : node._mouseState),
+          hitArea: overlayByNode.has(node) ? hitAreaOf(node) : null,
+          eventListeners: overlayByNode.has(node) ? eventListenersOf(node) : [],
           selected: node.selected === undefined ? null : !!node.selected,
           isAnim: typeof node.is_anim === 'boolean' ? node.is_anim : null,
           frameToken: exactOwner || heuristicOwner ? stageResult.meta.frameToken : null,

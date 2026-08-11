@@ -15,8 +15,11 @@ const {
 } = require('../lib/popup-policy.cjs');
 const { normalizeRuntimeSources } = require('../lib/runtime-tree.cjs');
 const { HeadlessUiSession } = require('../lib/session.cjs');
+const { loadRuntimeOverlayPolicy } = require('../lib/runtime-overlay.cjs');
 
 const policy = loadPopupPolicy(path.join(__dirname, '..', 'policies', 'startup-popups.json'));
+const runtimeOverlayPolicy = loadRuntimeOverlayPolicy(path.join(__dirname, '..', 'policies', 'runtime-overlays.json'));
+const runtimeOverlayFixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'runtime-overlays.json'), 'utf8'));
 const cycleimpFixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'startup-popup-cycleimp-yesterday.json'), 'utf8'));
 const runtimeOwnerBindingFixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'runtime-owner-bindings.json'), 'utf8'));
 
@@ -71,6 +74,31 @@ test('observed runtime stack uses the current Laya child order instead of loaded
   assert.deepEqual(stack.map(item => item.view), ['DailyActTipView', 'CycleimpActlistYesterday']);
   assert.deepEqual(stack[0].stagePath, [0, 2]);
   assert.equal(stack[0].instance[0].key, 'root_upper');
+});
+
+test('managed background current view joins the observed stack even when no loaded-view owner exists', () => {
+  const snapshot = normalizeRuntimeSources(runtimeOwnerBindingFixture);
+  snapshot.runtimeOverlays = [runtimeOverlayFixture.runtimeOverlays[0]];
+  const stack = observePopupStack(snapshot, ['CycleimpActlistYesterday'], runtimeOverlayPolicy);
+  assert.deepEqual(stack.map(item => item.view), ['DailyActTipView', 'CycleimpActlistYesterday']);
+  assert.equal(stack[0].source, 'runtime-overlay');
+  assert.deepEqual(stack[0].stagePath, [0, 2, 2]);
+  assert.equal(stack[0].overlay.kind, 'managed-view-background');
+});
+
+test('popup close is deferred without input when an authoritative overlay view becomes the real stack top', async () => {
+  const snapshot = normalizeRuntimeSources(runtimeOwnerBindingFixture);
+  snapshot.runtimeOverlays = [runtimeOverlayFixture.runtimeOverlays[0]];
+  const session = new HeadlessUiSession({});
+  session.snapshot = async () => snapshot;
+  session.page = { mouse: { click: async () => { throw new Error('must not click a covered popup'); } } };
+  const result = await session.closeAllowlistedPopup('CycleimpActlistYesterday', policy, {
+    preset: require('../lib/session.cjs').LEGACY_720_LOGIN,
+    runtimeOverlayPolicy,
+  });
+  assert.equal(result.deferred, true);
+  assert.equal(result.clicks, 0);
+  assert.equal(result.observedTopFirst[0].view, 'DailyActTipView');
 });
 
 test('Cycleimp close needs two distinct advancing Laya frames with the view absent', () => {

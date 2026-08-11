@@ -38,7 +38,7 @@ test('identity mismatch persists a minimal normalized subtree, candidates and ha
     assert.equal(persistedDiagnostic.sha256, diagnostic.sha256);
     assert.equal(persistedDiagnostic.subtree.total, 2);
     assert.match(persistedDiagnostic.subtree.sha256, /^[a-f0-9]{64}$/);
-    assert.equal(persistedDiagnostic.subtree.nodes.every(node => node.schema === 'ui-audit.runtime-node.v2'), true);
+    assert.equal(persistedDiagnostic.subtree.nodes.every(node => node.schema === 'ui-audit.runtime-node.v3'), true);
     assert.equal(persistedDiagnostic.candidates.length > 0, true);
     assert.match(persistedReport.failure.diagnostic.artifact.sha256, /^[a-f0-9]{64}$/);
   } finally {

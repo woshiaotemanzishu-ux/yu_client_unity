@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { runPreflight, assertPreflight } = require('./preflight.cjs');
 const { loadPopupPolicy } = require('./popup-policy.cjs');
+const { loadRuntimeOverlayPolicy } = require('./runtime-overlay.cjs');
 const {
   loadProtocolPolicy,
   installLegacyProtocolTrace,
@@ -161,10 +162,12 @@ function attachFailureDiagnostic(report, outputDir, error) {
   const lifecycle = contextKind === 'popup-close-lifecycle';
   const canvasInput = contextKind === 'canvas-input';
   const popupStack = contextKind === 'popup-runtime-stack';
+  const runtimeOverlay = contextKind === 'runtime-overlay';
   const artifact = addArtifact(report, outputDir, diagnosticPath,
     lifecycle ? 'popup-close-lifecycle-diagnostic'
       : canvasInput ? 'canvas-input-diagnostic'
-        : popupStack ? 'popup-runtime-stack-diagnostic' : 'selector-identity-diagnostic');
+        : popupStack ? 'popup-runtime-stack-diagnostic'
+          : runtimeOverlay ? 'runtime-overlay-diagnostic' : 'selector-identity-diagnostic');
   report.failure = {
     code: error.code || 'SELECTOR_IDENTITY_FAILURE',
     diagnostic: {
@@ -185,6 +188,7 @@ async function runRoute(options) {
   const popupPolicyPath = resolveRoutePath(routePath, route.popupPolicy || '../policies/startup-popups.json');
   const protocolPolicyPath = resolveRoutePath(routePath, route.protocolPolicy || '../policies/protocols.json');
   const popupPolicy = loadPopupPolicy(popupPolicyPath);
+  const runtimeOverlayPolicy = loadRuntimeOverlayPolicy(path.join(__dirname, '..', 'policies', 'runtime-overlays.json'));
   const protocolPolicy = loadProtocolPolicy(protocolPolicyPath);
   let ensuredServer = null;
   if (options.ensureServer) {
@@ -193,7 +197,7 @@ async function runRoute(options) {
     ensuredServer = await (options.ensureServerFn || ensureServer)({ repoRoot, profile });
   }
   const preflight = assertPreflight(await runPreflight({
-    repoRoot, routePath, route, outputDir, popupPolicy, protocolPolicy,
+    repoRoot, routePath, route, outputDir, popupPolicy, runtimeOverlayPolicy, protocolPolicy,
     edgeExecutable: options.edgeExecutable, env: options.env || process.env,
     ...(options.preflightOptions || {}),
   }));
@@ -224,7 +228,7 @@ async function runRoute(options) {
         protocolAssertions: route.session.itemUse.protocolAssertions || { mode: 'read-only' },
       });
     } : null;
-    await session.loginAndReachMainUi({ account, password, popupPolicy, itemUseHandler });
+    await session.loginAndReachMainUi({ account, password, popupPolicy, runtimeOverlayPolicy, itemUseHandler });
     await resetLegacyProtocolTrace(session.page, 'page-route');
     if (routeUsesAction(route.steps, new Set(['reset-sound', 'assert-sound']))) {
       await installSoundTrace(session.page);

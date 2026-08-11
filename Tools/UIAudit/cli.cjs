@@ -6,6 +6,7 @@ const path = require('path');
 const { versionInfo } = require('./lib/version.cjs');
 const { runPreflight, assertPreflight } = require('./lib/preflight.cjs');
 const { loadPopupPolicy } = require('./lib/popup-policy.cjs');
+const { loadRuntimeOverlayPolicy } = require('./lib/runtime-overlay.cjs');
 const { loadProtocolPolicy } = require('./lib/protocol-probe.cjs');
 const { runRoute } = require('./lib/route-runner.cjs');
 const { serverStatus, startServer, stopServer } = require('./lib/server-lifecycle.cjs');
@@ -47,8 +48,9 @@ async function main(argv = process.argv.slice(2)) {
     const outputDir = path.resolve(required(args, 'output'));
     const route = JSON.parse(fs.readFileSync(routePath, 'utf8'));
     const popupPolicy = loadPopupPolicy(resolvePolicy(routePath, route, 'popupPolicy', '../policies/startup-popups.json'));
+    const runtimeOverlayPolicy = loadRuntimeOverlayPolicy(path.join(__dirname, 'policies', 'runtime-overlays.json'));
     const protocolPolicy = loadProtocolPolicy(resolvePolicy(routePath, route, 'protocolPolicy', '../policies/protocols.json'));
-    const result = await runPreflight({ routePath, route, outputDir, popupPolicy, protocolPolicy });
+    const result = await runPreflight({ routePath, route, outputDir, popupPolicy, runtimeOverlayPolicy, protocolPolicy });
     if (args.report && args.report !== true) writeJsonAtomic(path.resolve(args.report), result);
     process.stdout.write(`${safeStringify(result)}\n`);
     assertPreflight(result);
