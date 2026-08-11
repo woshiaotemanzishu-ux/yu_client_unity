@@ -31,6 +31,13 @@ function endpoint(pid = 11300, commandLine = 'python external.py --secret=value'
   };
 }
 
+function endpointAt(port, pid = 11300, commandLine = 'python external.py --secret=value') {
+  const result = endpoint(pid, commandLine);
+  result.port = Number(port);
+  result.listener.listeners.forEach(value => { value.localPort = Number(port); });
+  return result;
+}
+
 const noListener = {
   schema: 'ui-audit.server-endpoint-observation.v1', observedAt: '2026-08-11T09:00:00.000Z', elapsedMs: 1,
   host: '127.0.0.1', port: 8091, inspectError: null, listener: { up: false, identity: '', listeners: [] },
@@ -145,6 +152,37 @@ test('start never spawns over an external listener even when HTTP is unresponsiv
     spawn: () => { spawned = true; return { pid: 999, unref() {} }; },
   });
   assert.equal(result.code, 'SERVER_PORT_OR_CONTENT_CONFLICT');
+  assert.equal(spawned, false);
+});
+
+test('stale resource-tool preview blocks start without spawn or provider write calls', async () => {
+  let spawned = false;
+  let statusReads = 0;
+  const resourceProfile = {
+    ...profile({ transientRetry: { maxAttempts: 1 } }),
+    previewProvider: {
+      schema: 1, id: 'yu-resource-tool-preview', controlHost: '127.0.0.1', controlPort: 7074,
+      statusPath: '/api/preview/status', startPath: '/api/preview/start', stopPath: '/api/preview/stop',
+      expectedProcessCommandIncludes: ['tools/yu-resource-tool/python/main.py', '--port=7074'],
+      recoveryContractFromTool: 'contracts/yu-resource-tool-preview-lifecycle.v1.json',
+    },
+  };
+  const resourceCommand = 'python E:/GitProject/yu_client/tools/yu-resource-tool/python/main.py --port=7074 --secret=value';
+  const result = await startServer({
+    profile: resourceProfile,
+    inspectEndpoint: value => endpointAt(value.port, 11300, resourceCommand),
+    probeRouteUrl: async () => ({ pass: false, ready: false, code: 'SERVER_NOT_RUNNING', networkCode: 'ECONNREFUSED', requests: [] }),
+    probePreviewProviderStatus: async () => {
+      statusReads += 1;
+      return { pass: true, code: 'RESOURCE_TOOL_STATUS_READY', data: { running: true, port: 8091 }, request: { method: 'GET' } };
+    },
+    spawn: () => { spawned = true; return { pid: 999, unref() {} }; },
+  });
+  assert.equal(result.code, 'SERVER_PORT_OR_CONTENT_CONFLICT');
+  assert.equal(result.probe.code, 'RESOURCE_TOOL_PREVIEW_STALE_STATE');
+  assert.equal(result.recovery.previewProvider.code, 'RESOURCE_TOOL_PREVIEW_PROVIDER_CAS_REQUIRED');
+  assert.equal(result.recovery.previewProvider.writeEndpointsAllowed, false);
+  assert.equal(statusReads, 1);
   assert.equal(spawned, false);
 });
 

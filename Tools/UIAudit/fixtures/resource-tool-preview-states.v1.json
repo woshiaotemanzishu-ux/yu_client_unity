@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "provider": {
+    "schema": 1,
+    "id": "yu-resource-tool-preview",
+    "controlHost": "127.0.0.1",
+    "controlPort": 7074,
+    "statusPath": "/api/preview/status",
+    "startPath": "/api/preview/start",
+    "stopPath": "/api/preview/stop",
+    "expectedProcessCommandIncludes": ["tools/yu-resource-tool/python/main.py", "--port=7074"],
+    "recoveryContractFromTool": "contracts/yu-resource-tool-preview-lifecycle.v1.json",
+    "recoveryContract": "E:/fixture/yu-resource-tool-preview-lifecycle.v1.json"
+  },
+  "cases": [
+    {
+      "id": "same-pid-api-running-route-refused",
+      "controlPid": 11300,
+      "previewPid": 11300,
+      "api": { "running": true, "port": 8091, "url": "http://127.0.0.1:8091/index.html" },
+      "route": { "pass": false, "code": "EXTERNAL_SERVER_UNRESPONSIVE", "causeCode": "SERVER_NOT_RUNNING" },
+      "expected": "RESOURCE_TOOL_PREVIEW_STALE_STATE"
+    },
+    {
+      "id": "same-pid-api-running-route-ready",
+      "controlPid": 11300,
+      "previewPid": 11300,
+      "api": { "running": true, "port": 8091, "url": "http://127.0.0.1:8091/index.html" },
+      "route": { "pass": true, "code": "ROUTE_READY", "causeCode": null },
+      "expected": "RESOURCE_TOOL_PREVIEW_READY"
+    },
+    {
+      "id": "different-preview-owner",
+      "controlPid": 11300,
+      "previewPid": 22000,
+      "api": { "running": true, "port": 8091, "url": "http://127.0.0.1:8091/index.html" },
+      "route": { "pass": false, "code": "EXTERNAL_SERVER_UNRESPONSIVE", "causeCode": "ROUTE_URL_TIMEOUT" },
+      "expected": "RESOURCE_TOOL_PREVIEW_PORT_CONFLICT"
+    },
+    {
+      "id": "api-stopped-no-preview-listener",
+      "controlPid": 11300,
+      "previewPid": null,
+      "api": { "running": false, "port": null, "url": null },
+      "route": { "pass": false, "code": "SERVER_NOT_RUNNING", "causeCode": "SERVER_NOT_RUNNING" },
+      "expected": "RESOURCE_TOOL_PREVIEW_STOPPED"
+    },
+    {
+      "id": "api-stopped-preview-still-listening",
+      "controlPid": 11300,
+      "previewPid": 11300,
+      "api": { "running": false, "port": null, "url": null },
+      "route": { "pass": false, "code": "EXTERNAL_SERVER_UNRESPONSIVE", "causeCode": "ROUTE_URL_TIMEOUT" },
+      "expected": "RESOURCE_TOOL_PREVIEW_STATUS_MISMATCH"
+    }
+  ]
+}

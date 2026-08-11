@@ -18,6 +18,13 @@ function validateServerProfile(profile) {
   if (!profile || typeof profile.cwdFromRepo !== 'string' || !profile.cwdFromRepo) errors.push('cwdFromRepo');
   if (!profile || typeof profile.staticRootFromRepo !== 'string' || !profile.staticRootFromRepo) errors.push('staticRootFromRepo');
   if (!profile || typeof profile.workerFromTool !== 'string' || !profile.workerFromTool) errors.push('workerFromTool');
+  if (profile && profile.previewProvider) {
+    const provider = profile.previewProvider;
+    if (Number(provider.schema) !== 1) errors.push('previewProvider.schema');
+    if (typeof provider.id !== 'string' || !provider.id) errors.push('previewProvider.id');
+    if (!Number.isInteger(Number(provider.controlPort))) errors.push('previewProvider.controlPort');
+    if (typeof provider.recoveryContractFromTool !== 'string' || !provider.recoveryContractFromTool) errors.push('previewProvider.recoveryContractFromTool');
+  }
   if (errors.length) throw new Error(`SERVER_PROFILE_INVALID: ${errors.join(',')}`);
   return profile;
 }
@@ -63,6 +70,11 @@ function resolvedServerProfile(profile, repoRoot) {
     staticRoot: path.resolve(repoRoot, profile.staticRootFromRepo),
     worker: path.resolve(toolRoot, profile.workerFromTool),
     readiness: { ...(profile.readiness || {}) },
+    previewProvider: profile.previewProvider ? {
+      ...profile.previewProvider,
+      expectedProcessCommandIncludes: [...(profile.previewProvider.expectedProcessCommandIncludes || [])],
+      recoveryContract: path.resolve(toolRoot, profile.previewProvider.recoveryContractFromTool),
+    } : null,
   };
 }
 

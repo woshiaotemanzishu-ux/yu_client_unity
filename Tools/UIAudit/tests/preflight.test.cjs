@@ -20,10 +20,18 @@ const noListener = () => ({
   schema: 'ui-audit.server-endpoint-observation.v1', observedAt: '2026-08-11T09:00:00.000Z', elapsedMs: 0,
   host: '127.0.0.1', port: 8091, inspectError: null, listener: { up: false, identity: '', listeners: [] },
 });
-const externalListener = () => ({
+const externalListener = profile => {
+  const port = Number(profile && profile.port || 8091);
+  return ({
   schema: 'ui-audit.server-endpoint-observation.v1', observedAt: '2026-08-11T09:00:00.000Z', elapsedMs: 0,
-  host: '127.0.0.1', port: 8091, inspectError: null,
-  listener: { up: true, identity: '11300', listeners: [{ localAddress: '127.0.0.1', localPort: 8091, pid: 11300, state: 'Listen', process: { pid: 11300, name: 'python.exe', executablePath: 'C:/Python/python.exe', commandLine: 'python external.py' } }] },
+  host: '127.0.0.1', port, inspectError: null,
+  listener: { up: true, identity: '11300', listeners: [{ localAddress: '127.0.0.1', localPort: port, pid: 11300, state: 'Listen', process: { pid: 11300, name: 'python.exe', executablePath: 'C:/Python/python.exe', commandLine: 'python E:/GitProject/yu_client/tools/yu-resource-tool/python/main.py --port=7074' } }] },
+  });
+};
+const previewProviderReady = async () => ({
+  pass: true, code: 'RESOURCE_TOOL_STATUS_READY',
+  data: { running: true, port: 8091, url: 'http://127.0.0.1:8091/index.html' },
+  request: { method: 'GET', elapsedMs: 1 },
 });
 
 test('preflight reports all deterministic hard failures and assert rejects them', async () => {
@@ -42,6 +50,7 @@ test('preflight reports all deterministic hard failures and assert rejects them'
     existsSync: () => false,
     env: {},
     inspectEndpoint: externalListener,
+    probePreviewProviderStatus: previewProviderReady,
     probeRouteUrl: async url => ({ pass: true, ready: true, code: 'ROUTE_READY', url }),
   });
   assert.equal(result.pass, false);
@@ -72,7 +81,7 @@ test('route URL readiness is a stable pre-browser hard gate', async () => {
   assert.match(check.detail.recovery.start, /server start --profile legacy-h5-local/);
 });
 
-test('preflight distinguishes an occupied external listener from a route timeout', async () => {
+test('preflight elevates a same-process resource-tool false-running state above route timeout', async () => {
   const repoRoot = path.resolve(__dirname, '..', '..', '..');
   const result = await runPreflight({
     repoRoot,
@@ -85,18 +94,21 @@ test('preflight distinguishes an occupied external listener from a route timeout
     edgeExecutable: process.execPath,
     puppeteerPackage: __filename,
     inspectEndpoint: externalListener,
+    probePreviewProviderStatus: previewProviderReady,
     probeRouteUrl: async url => ({ pass: false, ready: false, code: 'ROUTE_URL_TIMEOUT', category: 'route-readiness', url, requests: [] }),
     sleep: async () => {},
     routeReadiness: { transientRetry: { maxAttempts: 2, backoffMs: [0] } },
   });
   const check = result.checks.find(value => value.id === 'route-url-readiness');
   assert.equal(check.pass, false);
-  assert.equal(check.detail.code, 'EXTERNAL_SERVER_UNRESPONSIVE');
-  assert.equal(check.detail.causeCode, 'ROUTE_URL_TIMEOUT');
+  assert.equal(check.detail.code, 'RESOURCE_TOOL_PREVIEW_STALE_STATE');
+  assert.equal(check.detail.causeCode, 'EXTERNAL_SERVER_UNRESPONSIVE');
+  assert.equal(check.detail.transportCauseCode, 'ROUTE_URL_TIMEOUT');
   assert.equal(check.detail.ownership.owned, false);
   assert.equal(check.detail.recovery.userActionRequired, true);
   assert.equal(check.detail.recovery.start, null);
   assert.equal(check.detail.recovery.stopOwned, null);
+  assert.equal(check.detail.recovery.previewProvider.code, 'RESOURCE_TOOL_PREVIEW_PROVIDER_CAS_REQUIRED');
 });
 
 test('decorative expect fields and incomplete generic assertions are rejected before execution', () => {

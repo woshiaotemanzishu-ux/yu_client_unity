@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "id": "yu-resource-tool-preview-lifecycle.v1",
+  "status": "provider-change-required",
+  "siblingRepository": "E:/GitProject/yu_client",
+  "source": {
+    "path": "tools/yu-resource-tool/python/main.py",
+    "sha256": "2166dbcc0b4c9254e4a2db4bd2771ac6e75912d8311ec844761c8d9b34857bb6",
+    "functions": {
+      "killPortOccupants": "4292-4321",
+      "start": "4323-4359",
+      "stop": "4362-4370",
+      "status": "4373-4382"
+    }
+  },
+  "blocker": {
+    "code": "RESOURCE_TOOL_PREVIEW_PROVIDER_CAS_REQUIRED",
+    "reason": "The provider stores no preview thread or generation, status only checks whether _preview_httpd exists, and start may kill an unrelated process occupying the port. UIAudit cannot safely repair this from outside the provider process."
+  },
+  "requiredStatusResponse": {
+    "method": "GET",
+    "path": "/api/preview/status",
+    "fields": [
+      "running",
+      "port",
+      "url",
+      "controlPid",
+      "previewPid",
+      "generation",
+      "threadAlive",
+      "socketBound",
+      "httpReady"
+    ],
+    "runningDefinition": "threadAlive && socketBound && httpReady && previewPid == controlPid"
+  },
+  "requiredRecoveryRequest": {
+    "method": "POST",
+    "path": "/api/preview/recover",
+    "body": {
+      "expectedControlPid": "integer",
+      "expectedPreviewPid": "integer",
+      "expectedGeneration": "integer",
+      "port": "integer"
+    }
+  },
+  "requiredAtomicSemantics": [
+    "Keep _preview_thread, _preview_generation and a process-local _preview_lock.",
+    "Reject unless expectedControlPid equals os.getpid(), expectedPreviewPid equals the provider-owned preview PID and expectedGeneration equals the current generation.",
+    "Reject if the configured port is owned by a different PID before recovery.",
+    "Stop only the provider-owned HTTPServer object; call shutdown, server_close and join the recorded thread with a bound timeout.",
+    "Bind the replacement HTTPServer directly while holding the process-local lifecycle lock; if bind reports address-in-use, return conflict and never kill the occupant.",
+    "Increment generation only after a successful bind and thread start.",
+    "Run an internal bounded HTTP readiness probe before returning running=true.",
+    "The normal /api/preview/start path must use the same bind-without-kill primitive; _kill_port_occupants must not be called by start or recover."
+  ],
+  "forbidden": [
+    "taskkill",
+    "Stop-Process",
+    "os.kill",
+    "killing a port occupant",
+    "returning running=true from _preview_httpd is not None alone",
+    "check-port-then-call-existing-start without an atomic bind"
+  ],
+  "fixtures": "../fixtures/resource-tool-preview-states.v1.json"
+}

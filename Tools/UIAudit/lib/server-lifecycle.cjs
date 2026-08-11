@@ -6,6 +6,11 @@ const path = require('path');
 const crypto = require('crypto');
 const childProcess = require('child_process');
 const { loadServerProfile, resolvedServerProfile, probeRouteUrl } = require('./server-readiness.cjs');
+const {
+  inspectResourceToolPreview,
+  applyProviderObservationToProbe,
+  applyProviderObservationToRecovery,
+} = require('./resource-tool-preview.cjs');
 
 const TRANSIENT_READINESS_CODES = new Set(['ROUTE_URL_TIMEOUT', 'CONNECTION_RESET']);
 const ROUTE_MISMATCH_CODES = new Set([
@@ -290,11 +295,16 @@ async function serverStatus(options = {}) {
   const processInfo = owner ? inspect(owner.pid) : null;
   const owned = verifyProcessOwnership(owner, processInfo);
   const ownership = { owned, owner: owner || null, process: publicProcessInfo(processInfo) };
-  const probe = await probeServerRoute(profile, ownership, {
+  const routeProbe = await probeServerRoute(profile, ownership, {
     ...options,
     url: options.url || profile.url,
     readiness: options.readiness || profile.readiness,
   });
+  const previewProvider = await inspectResourceToolPreview(profile, routeProbe, ownership, {
+    ...options,
+    inspectEndpoint: options.inspectEndpoint || inspectEndpoint,
+  });
+  const probe = applyProviderObservationToProbe(routeProbe, previewProvider);
   let code = probe.code;
   if (probe.pass && owner && !owned) code = 'SERVER_READY_UNOWNED';
   const ownerState = assessOwnerState(owner, owned, processInfo, probe.endpoint.before);
@@ -316,7 +326,14 @@ async function serverStatus(options = {}) {
     endpoint: probe.endpoint,
     ownerState,
     externalState,
+    previewProvider,
   };
+  const recovery = applyProviderObservationToRecovery(serverRecovery(profile, {
+    owned,
+    listenerUp: listenerState,
+    ready: probe.pass,
+    retryPerformed: probe.attempts.some(value => value.retryEvidence && value.retryEvidence.retryScheduled),
+  }), previewProvider);
   return {
     pass: probe.pass,
     code,
@@ -325,12 +342,7 @@ async function serverStatus(options = {}) {
     ownership,
     observation,
     runtime: paths,
-    recovery: serverRecovery(profile, {
-      owned,
-      listenerUp: listenerState,
-      ready: probe.pass,
-      retryPerformed: probe.attempts.some(value => value.retryEvidence && value.retryEvidence.retryScheduled),
-    }),
+    recovery,
   };
 }
 

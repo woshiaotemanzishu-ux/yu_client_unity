@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ui-audit.resource-tool-preview-observation.v1",
+  "title": "UIAudit resource-tool preview provider observation",
+  "type": "object",
+  "required": ["schema", "providerId", "code", "pass", "blocking", "recovery"],
+  "properties": {
+    "schema": { "const": "ui-audit.resource-tool-preview-observation.v1" },
+    "providerId": { "type": "string" },
+    "code": { "type": "string" },
+    "pass": { "type": "boolean" },
+    "blocking": { "type": "boolean" },
+    "controlEndpoint": { "type": ["object", "null"] },
+    "previewEndpoint": { "type": ["object", "null"] },
+    "status": { "type": ["object", "null"] },
+    "identity": {
+      "type": "object",
+      "properties": {
+        "controlPids": { "type": "array", "items": { "type": "integer" } },
+        "previewPids": { "type": "array", "items": { "type": "integer" } },
+        "controlIdentityMatches": { "type": "boolean" },
+        "sameSourcePid": { "type": "boolean" },
+        "expectedProcessCommandIncludes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "route": { "type": "object" },
+    "recovery": {
+      "type": "object",
+      "required": ["schema", "code", "blocking", "automaticRecoverySupported", "writeEndpointsAllowed", "forbidden", "requiredContract"],
+      "properties": {
+        "schema": { "const": 1 },
+        "code": { "type": "string" },
+        "blocking": { "type": "boolean" },
+        "automaticRecoverySupported": { "const": false },
+        "writeEndpointsAllowed": { "const": false },
+        "status": { "type": "string" },
+        "forbidden": { "type": "array", "items": { "type": "string" } },
+        "reason": { "type": ["string", "null"] },
+        "requiredContract": { "type": "string" }
+      }
+    }
+  }
+}

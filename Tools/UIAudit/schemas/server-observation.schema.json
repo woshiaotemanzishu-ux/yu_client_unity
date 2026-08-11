@@ -36,6 +36,12 @@
         "stale": { "type": "null" },
         "staleAssessment": { "type": "string" }
       }
+    },
+    "previewProvider": {
+      "oneOf": [
+        { "$ref": "resource-tool-preview-observation.schema.json" },
+        { "type": "null" }
+      ]
     }
   },
   "$defs": {

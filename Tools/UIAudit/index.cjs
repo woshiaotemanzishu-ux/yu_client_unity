@@ -15,6 +15,7 @@ module.exports = {
   runtimeProbes: require('./lib/runtime-probes.cjs'),
   serverReadiness: require('./lib/server-readiness.cjs'),
   serverLifecycle: require('./lib/server-lifecycle.cjs'),
+  resourceToolPreview: require('./lib/resource-tool-preview.cjs'),
   preflight: require('./lib/preflight.cjs'),
   session: require('./lib/session.cjs'),
   report: require('./lib/report.cjs'),

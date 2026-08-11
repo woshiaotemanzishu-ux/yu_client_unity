@@ -182,6 +182,8 @@ async function runPreflight(options = {}) {
       probeRouteUrl: options.probeRouteUrl,
       inspectEndpoint: options.inspectEndpoint,
       inspectProcess: options.inspectProcess,
+      probePreviewProviderStatus: options.probePreviewProviderStatus,
+      requestJson: options.requestJson,
       sleep: options.sleep,
       runtimeDirectory: options.runtimeDirectory,
     });

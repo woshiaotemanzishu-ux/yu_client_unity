@@ -31,6 +31,10 @@ node --test Tools/UIAudit/tests/*.test.cjs
 
 `legacy-h5-local` 是 UIAudit 的标准老 H5 profile：固定 `E:/GitProject/yu_client/h5` 为编译 cwd、`E:/GitProject/yu_client/cdn` 为静态根、`127.0.0.1:8091` 为路线端口。它绕过旧 `npm start` 的 8070 默认值以及 `open:true/openUrl`，在后台内存编译，不打开用户浏览器。`stop` 只终止同时匹配 PID、worker 路径和私有 owner token 的本工具进程，绝不接管或杀死非本工具服务。
 
+该 profile 还声明 `previewProvider=yu-resource-tool-preview`。`server status`/`preflight` 会只读检查 7074 listener 的进程命令、8091 listener PID 与 `GET /api/preview/status`；当两个端口确属同一资源工具进程，但 API 报 `running=true` 而 8091 的真实 route probe 拒绝连接或不可达时，稳定返回 `RESOURCE_TOOL_PREVIEW_STALE_STATE`。报告保留原始 route 分类于 `causeCode`/`transportCauseCode`，并将 `start/stopOwned/runWithEnsure` 全部置空。
+
+UIAudit 不会对资源工具调用 `/api/preview/stop` 或 `/api/preview/start`。当前 provider 的 `/start` 会在绑定前清理端口占用者，且 status 缺少 thread、generation、socket 与 HTTP-ready 事实；外部的“先检查、再 stop/start”存在竞态，无法证明不会杀掉后来占用 8091 的其他进程。所需 sibling 修复已版本化为 `contracts/yu-resource-tool-preview-lifecycle.v1.json`：provider 必须实现 PID+generation compare-and-swap、仅关闭自身保存的 HTTPServer/thread、直接 bind 且地址冲突时拒绝、绝不 kill 端口占用者，并在返回 running 前完成内部 HTTP ready。该契约落地前，`RESOURCE_TOOL_PREVIEW_PROVIDER_CAS_REQUIRED` 是资源服务 blocker，不得改写为页面 blocker，也不得由 route 复制恢复命令。
+
 Node 调用方可 `const uiAudit = require('./Tools/UIAudit')`，也可直接 require `lib/*.cjs`。`runPreflight` 是异步 API，必须 `await`。
 
 ## 页面 route 合同
@@ -128,6 +132,7 @@ click/drag 不再把目标自身 `hitTestPoint=true` 当作可达证明。公共
 | `lib/runtime-probes.cjs` | 声音调用与 RenderTexture 非透明像素 ready |
 | `lib/server-readiness.cjs` | 无浏览器 GET/HEAD readiness、逐请求耗时与底层网络/内容分类 |
 | `lib/server-lifecycle.cjs` | listener/PID/进程/owner 调和、有界 transient retry、后台 start/status/owned stop |
+| `lib/resource-tool-preview.cjs` | 资源工具 7074/8091 同源身份、只读 status 调和、stale preview 分类与零写恢复闸 |
 | `lib/preflight.cjs` | 版本、依赖、authority、route 合同、URL 与输出闸 |
 | `lib/route-runner.cjs` | 数据化步骤、真实截图/snapshot/trace 和结构报告 |
 

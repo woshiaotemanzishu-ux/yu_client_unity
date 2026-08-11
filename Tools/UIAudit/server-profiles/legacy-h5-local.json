@@ -11,6 +11,21 @@
   "cwdFromRepo": "../yu_client/h5",
   "staticRootFromRepo": "../yu_client/cdn",
   "workerFromTool": "server/legacy-h5-worker.cjs",
+  "previewProvider": {
+    "schema": 1,
+    "id": "yu-resource-tool-preview",
+    "controlHost": "127.0.0.1",
+    "controlPort": 7074,
+    "statusPath": "/api/preview/status",
+    "startPath": "/api/preview/start",
+    "stopPath": "/api/preview/stop",
+    "statusTimeoutMs": 1500,
+    "expectedProcessCommandIncludes": [
+      "tools/yu-resource-tool/python/main.py",
+      "--port=7074"
+    ],
+    "recoveryContractFromTool": "contracts/yu-resource-tool-preview-lifecycle.v1.json"
+  },
   "readiness": {
     "timeoutMs": 2500,
     "readyTimeoutMs": 120000,
