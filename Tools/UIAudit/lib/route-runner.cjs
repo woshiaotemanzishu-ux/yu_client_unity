@@ -32,7 +32,7 @@ const {
 const { findServerProfileForUrl } = require('./server-readiness.cjs');
 const { ensureServer } = require('./server-lifecycle.cjs');
 const { writeJsonAtomic } = require('./safe-json.cjs');
-const { createReport, addArtifact, finalizeReport, writeReport } = require('./report.cjs');
+const { createReport, addArtifact, finalizeReport, writeReport, measurePhase } = require('./report.cjs');
 const { writeSelectorDiagnostic } = require('./selector-diagnostic.cjs');
 
 function resolveRoutePath(routePath, value) {
@@ -69,13 +69,25 @@ async function saveSnapshotEvidence(session, outputDir, label, screenshot = true
 async function executeStep(context, step, index) {
   const { session, outputDir, protocolPolicy, report } = context;
   const label = step.label || `${String(index).padStart(3, '0')}_${step.action}`;
+  const startedAtMs = Date.now();
+  const startedAt = new Date(startedAtMs).toISOString();
+  let samplingWaitMs = 0;
+  let configuredSettleMs = 0;
+  let result;
+  const category = ['click', 'drag', 'set-viewport'].includes(step.action) ? 'interaction'
+    : step.action === 'snapshot' ? 'evidence'
+      : ['wait-view', 'wait-render-ready'].includes(step.action) ? 'runtime-ready-wait'
+        : step.action.startsWith('assert-') ? 'assertion' : 'runtime-operation';
+  try {
   if (step.action === 'snapshot' && step.samplingTargetMs != null) {
     if (!context.lastClickAt) throw new Error(`SAMPLING_TARGET_WITHOUT_CLICK: ${label}`);
     const remaining = context.lastClickAt + Number(step.samplingTargetMs) - Date.now();
-    if (remaining > 0) await sleep(remaining);
+    if (remaining > 0) {
+      samplingWaitMs = remaining;
+      await sleep(remaining);
+    }
   }
   const before = await session.snapshot();
-  let result;
   if (step.action === 'snapshot') {
     const sampledAt = Date.now();
     result = await saveSnapshotEvidence(session, outputDir, label, step.screenshot !== false, before);
@@ -149,10 +161,45 @@ async function executeStep(context, step, index) {
   } else {
     throw new Error(`UNSUPPORTED_ROUTE_ACTION: ${step.action}`);
   }
-  if (step.settleMs) await sleep(Number(step.settleMs));
-  const entry = { index, label, action: step.action, at: new Date().toISOString(), result };
+  if (step.settleMs) {
+    configuredSettleMs = Number(step.settleMs);
+    await sleep(configuredSettleMs);
+  }
+  const endedAtMs = Date.now();
+  const entry = {
+    index, label, action: step.action, at: new Date(endedAtMs).toISOString(), status: 'passed', result,
+    timing: {
+      category,
+      startedAt,
+      endedAt: new Date(endedAtMs).toISOString(),
+      durationMs: endedAtMs - startedAtMs,
+      samplingWaitMs,
+      configuredSettleMs,
+      fixedWaitCandidateMs: configuredSettleMs,
+      unclassifiedMs: Math.max(0, endedAtMs - startedAtMs - samplingWaitMs - configuredSettleMs),
+    },
+  };
   report.steps.push(entry);
   return entry;
+  } catch (error) {
+    const endedAtMs = Date.now();
+    report.steps.push({
+      index, label, action: step.action, at: new Date(endedAtMs).toISOString(), status: 'failed',
+      result: null,
+      error: String(error && error.stack || error),
+      timing: {
+        category,
+        startedAt,
+        endedAt: new Date(endedAtMs).toISOString(),
+        durationMs: endedAtMs - startedAtMs,
+        samplingWaitMs,
+        configuredSettleMs,
+        fixedWaitCandidateMs: configuredSettleMs,
+        unclassifiedMs: Math.max(0, endedAtMs - startedAtMs - samplingWaitMs - configuredSettleMs),
+      },
+    });
+    throw error;
+  }
 }
 
 function attachFailureDiagnostic(report, outputDir, error) {
@@ -215,9 +262,11 @@ async function runRoute(options) {
   const session = options.sessionFactory ? options.sessionFactory(sessionOptions) : new HeadlessUiSession(sessionOptions);
   let error = null;
   try {
-    await session.start();
-    await installLegacyProtocolTrace(session.page, { inboundCommands: route.protocol && route.protocol.inboundCommands || [] });
-    await resetLegacyProtocolTrace(session.page, 'login-and-route');
+    await measurePhase(report, 'session-start', 'environment-wait', () => session.start());
+    await measurePhase(report, 'protocol-bootstrap', 'runtime-operation', async () => {
+      await installLegacyProtocolTrace(session.page, { inboundCommands: route.protocol && route.protocol.inboundCommands || [] });
+      await resetLegacyProtocolTrace(session.page, 'login-and-route');
+    });
     const account = options.account || env[route.session.accountEnv];
     const password = options.password || env[route.session.passwordEnv];
     const itemUseHandler = route.session.itemUse && route.session.itemUse.mode !== 'hard-stop' ? async () => {
@@ -228,7 +277,7 @@ async function runRoute(options) {
         protocolAssertions: route.session.itemUse.protocolAssertions || { mode: 'read-only' },
       });
     } : null;
-    await session.loginAndReachMainUi({ account, password, popupPolicy, runtimeOverlayPolicy, itemUseHandler });
+    await measurePhase(report, 'login-mainui', 'runtime-wait', () => session.loginAndReachMainUi({ account, password, popupPolicy, runtimeOverlayPolicy, itemUseHandler }));
     await resetLegacyProtocolTrace(session.page, 'page-route');
     if (routeUsesAction(route.steps, new Set(['reset-sound', 'assert-sound']))) {
       await installSoundTrace(session.page);
@@ -236,22 +285,27 @@ async function runRoute(options) {
     }
     report.session = { id: session.sessionId, hotSession: true };
     if (ensuredServer) report.server = { profileId: ensuredServer.profile.id, code: ensuredServer.code, started: ensuredServer.started };
-    for (const request of route.protocol && route.protocol.reads || []) {
-      await sendReadProbe(session.page, request, protocolPolicy);
-      if (request.waitInboundCmd != null) {
-        await session.page.waitForFunction(cmd => {
-          const trace = window.__uiAuditProtocolTrace;
-          return trace && trace.inbound.some(event => Number(event.cmd) === Number(cmd));
-        }, { timeout: request.timeoutMs || 12000 }, Number(request.waitInboundCmd));
+    await measurePhase(report, 'route-protocol-reads', 'runtime-wait', async () => {
+      for (const request of route.protocol && route.protocol.reads || []) {
+        await sendReadProbe(session.page, request, protocolPolicy);
+        if (request.waitInboundCmd != null) {
+          await session.page.waitForFunction(cmd => {
+            const trace = window.__uiAuditProtocolTrace;
+            return trace && trace.inbound.some(event => Number(event.cmd) === Number(cmd));
+          }, { timeout: request.timeoutMs || 12000 }, Number(request.waitInboundCmd));
+        }
       }
-    }
+    });
     const context = { session, outputDir, protocolPolicy, report, snapshots: new Map(), lastClickAt: null, lastClickLabel: null };
-    for (let index = 0; index < route.steps.length; index++) await executeStep(context, route.steps[index], index);
-    const trace = await readLegacyProtocolTrace(session.page);
-    report.protocol = evaluateProtocolAssertions(trace, route.protocol && route.protocol.assertions || {}, protocolPolicy);
+    await measurePhase(report, 'route-steps', 'mixed', async () => {
+      for (let index = 0; index < route.steps.length; index++) await executeStep(context, route.steps[index], index);
+    });
+    await measurePhase(report, 'final-protocol', 'assertion', async () => {
+      const trace = await readLegacyProtocolTrace(session.page);
+      report.protocol = evaluateProtocolAssertions(trace, route.protocol && route.protocol.assertions || {}, protocolPolicy);
+    });
     if (!report.protocol.pass) throw new Error(`FINAL_PROTOCOL_ASSERTION_FAILED: ${JSON.stringify(report.protocol)}`);
     report.events = session.events;
-    finalizeReport(report, 'passed');
   } catch (caught) {
     error = caught;
     report.events = session.events;
@@ -263,9 +317,9 @@ async function runRoute(options) {
         diagnosticPersistenceError: String(diagnosticError && diagnosticError.stack || diagnosticError),
       };
     }
-    finalizeReport(report, 'failed', caught);
   } finally {
-    try { await session.close(); } catch (closeError) { if (!error) error = closeError; }
+    try { await measurePhase(report, 'session-close', 'cleanup', () => session.close()); } catch (closeError) { if (!error) error = closeError; }
+    finalizeReport(report, error ? 'failed' : 'passed', error);
     writeReport(outputDir, report);
   }
   if (error) throw error;

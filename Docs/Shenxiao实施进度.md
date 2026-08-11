@@ -2080,3 +2080,12 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **pilot 公共缺口收口**：preflight 新增稳定 ID `route-url-readiness`，本地未监听返回 `SERVER_NOT_RUNNING`；标准 `legacy-h5-local` profile 固定 `yu_client/h5` cwd、`yu_client/cdn` 静态根和审计 route 使用的后台 8091，绕过旧 `npm start` 的 8070 与前台 `open:true/openUrl`。协议 policy v2 加入 Bag/Warehouse 15010、Pet 16002/16006/16011/16028、Fashion 41312 源码证据，并把 41305 作为底层写包 trace 的 write。runner 新增 ItemUse route 身份/队列闸、dataIdentity、真实 Canvas rect、350/1000ms、声音/RT、条件/存在/几何/滚动断言；装饰性 `step.expect` 现在硬停而非假绿。
 - **output 策略**：迁移前 Git 跟踪 5059 项，磁盘 10130 文件、6,804,727,490 字节；精确 `git rm --cached` 后 `git ls-files output` 为 0，`.gitignore` 命中 `/output/`，磁盘数量/字节及三个代表 SHA-256 不变。现有证据未删除；公共代码、策略、schema、fixture 不再允许留在 `output/`。
 - **完成边界**：本轮没有启动 Unity、没有构建 Addressables/WebGL、没有登录游戏或运行页面验收；暂停的 A/B/C/D 路线和 `unity-ui` 自动化未恢复，页面状态不因工具完成而变化。
+
+## 2026-08-11：角色-垂神翼影观察任务与 UIAudit 流程优化
+
+- **任务隔离**：实际“角色 → 垂神翼影”修复已放入独立 Codex 任务；主任务只做范围、问题和工时观察，以及 UIAudit/精修流程改进，不修改该页面的 C#/Prefab。当前未启动 Unity、未使用 Computer Use、未构建或部署。
+- **人物保护**：按用户本轮确认，把“角色-人物”登记为完成且默认冻结。UIAudit preflight 新增 `completed-scope-guard`，兄弟页只允许导航过境；无新的用户/真实运行证据或共享影响证据，不再重复修改、点击或整页复验人物页。
+- **发现期估算**：独立任务确认“垂神翼影”不是少量像素收尾；共享 `OutWardBaseView` 仍涉及属性、技能详情、晶石详情、幻化、等级系统等子流程。发现期初估总主动工时 10～16 小时，其中静态调和/schema 6/安全实现约 6～10 小时，获授权后的 Unity/真实 Web 闸约 3～5 小时；复用历史 57 节点候选词表预计节省 45～75 分钟枚举时间。该估算会随独立任务实测收窄。
+- **重复 blocker 晋升**：本轮 UIDAudit 在进入页面前再次复现资源工具 preview stale：PID 11300 同时监听 7074/8091，status 报 running，但 8091 GET `ECONNREFUSED`。该问题不再计为页面缺陷；公共工具增加严格 CAS recover 对接，旧 provider 字段缺失时继续零写硬停。
+- **计时产品化**：新增原子 `route_timing.py`，分开主动工作/环境等待并记录失败 fingerprint、重复失败与估算节省；UIAudit 1.2.0 报告新增 preflight/phase/step timing、最慢步骤和固定 settle 的理论节省上限。真实 ready、动画、稳定帧、Unity/真实 Web 闸仍不可删减。
+- **工具回归**：UIAudit Node 回归 105/105，`route_ledger`、`ui_route_master`、`route_timing` Python 自测及全部 Node 语法检查通过；`git diff --check` 无 whitespace error。工具通过不代表“垂神翼影”页面通过。

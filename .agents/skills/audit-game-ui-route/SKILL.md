@@ -33,6 +33,8 @@ description: 执行项目统一的“UI 对接 / UI 精修”流程：对照老 
 8. **模型开销分层**：确定性的枚举、台账校验、资源闭包和协议帧解析交给脚本；模型只处理视觉判断、跨模块根因和修复决策。除非用户明确要求，不为机械枚举另开高成本代理。
 9. **克隆与滚动初始化**：运行时克隆 `BaseView` 必须走 `Show/Hide` 触发 `OnInit`，不可只 `SetActive`。动态列表必须修改实际 `ScrollRect.content` 的锚点和高度；真实拖动从可命中子项开始，并点击滚动后才出现的末项。
 10. **公共采集执行层**：页面路线只保存 JSON route map、控件 selector 和断言数据；loaded/managed/stage 运行树、循环安全 JSON、Canvas 命中、启动弹窗、`ItemUseView`、协议 trace、preflight 和结构化报告统一由 `Tools/UIAudit` 执行。`output/` 只存新 run 的不可变证据，不得承载可复用代码、策略、schema 或 fixture。
+11. **完成范围保护**：用户明确确认已完成且要求不再重复处理的页面，写入 `Tools/UIAudit/policies/completed-scopes.json`。preflight 的 `completed-scope-guard` 默认拒绝直接命中该 route id/前缀；仅允许把它作为到达兄弟页的导航过境。只有新的用户运行证据、当前真实运行证据或已证明的共享组件影响，才可在 route 的 `scope.reopen[]` 中携带精确范围、时间和证据引用重开，禁止因相邻页精修顺手重跑。
+12. **分阶段计时**：长页面在发现阶段就创建 `route-timing.json`，把主动工作与等待分开。至少记录上下文加载、老端清单、UIAudit preflight、诊断、实现、组件矩阵、Editor/CLI、构建/Web、返工和环境等待；每次失败记录是否获得新信息与稳定 fingerprint。固定 settle 只能计为“可节约上限”，不能在没有 ready 探针时直接宣称浪费。
 
 ### 共享组件依赖与状态矩阵
 
@@ -47,6 +49,16 @@ description: 执行项目统一的“UI 对接 / UI 精修”流程：对照老 
 ### 十分钟路线纠偏
 
 长页面执行中每约十分钟暂停一次并检查：当前动作是否仍直接推进选定页面；该页全部控件是否仍在范围内；主要视觉事实是否来自最新真实 Web；是否误把构建、环境、Git 或证据整理混入页面实现；是否在无新信息地重复验证。发现任一偏航立即停止当前循环，回到共享根因或拆出独立基础设施 blocker。选择一个页面后，完成其全部适用叶子或明确 `blocked` 前不得换页。同一种基础设施问题第二次出现时必须立即停止页面工作，晋升到 `Tools/UIAudit` 并补 fixture 回归，禁止再复制一份专项实现。
+
+计时台账使用原子命令，不手改汇总：
+
+```powershell
+python .agents/skills/audit-game-ui-route/scripts/route_timing.py init <route-id> <route-timing.json>
+python .agents/skills/audit-game-ui-route/scripts/route_timing.py start <route-timing.json> <phase-id> --bucket <bucket> --kind <active|wait>
+python .agents/skills/audit-game-ui-route/scripts/route_timing.py stop <route-timing.json>
+python .agents/skills/audit-game-ui-route/scripts/route_timing.py event <route-timing.json> --category <saved-work|blocker|failure|repeat-failure|scope-correction|estimate> --detail <说明>
+python .agents/skills/audit-game-ui-route/scripts/route_timing.py summary <route-timing.json>
+```
 
 ### 四层完成定义
 
@@ -161,6 +173,7 @@ python .agents/skills/audit-game-ui-route/scripts/ui_route_master.py output/ui_r
 python .agents/skills/audit-game-ui-route/scripts/route_ledger.py init <manifest.json> <new-route-ledger.json>
 python .agents/skills/audit-game-ui-route/scripts/route_ledger.py apply <route-ledger.json> <results.json>
 python .agents/skills/audit-game-ui-route/scripts/route_ledger.py validate <route-ledger.json>
+python .agents/skills/audit-game-ui-route/scripts/route_timing.py validate <route-timing.json>
 ```
 
 `ui_route_master.py` 只生成项目级排程索引，并将 schema 6 与历史 schema 2～5 分栏；它不替代正式台账校验，也不得把历史完成态升级为当前完成。

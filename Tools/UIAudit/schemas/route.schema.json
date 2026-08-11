@@ -10,6 +10,30 @@
     "url": { "type": "string", "pattern": "^https?://" },
     "readiness": { "$ref": "#/$defs/readiness" },
     "snapshotSource": { "type": "string", "minLength": 1 },
+    "scope": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "reopen": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["scopeId", "reason", "source", "observedAt", "evidence"],
+            "properties": {
+              "scopeId": { "type": "string", "minLength": 1 },
+              "reason": { "type": "string", "minLength": 8 },
+              "source": { "enum": ["user-runtime", "new-runtime-evidence", "shared-impact"] },
+              "observedAt": { "type": "string", "format": "date-time" },
+              "evidence": {
+                "type": "object",
+                "required": ["reference"],
+                "properties": { "reference": { "type": "string", "minLength": 1 } }
+              }
+            }
+          }
+        }
+      }
+    },
     "session": {
       "type": "object",
       "required": ["itemUse"],

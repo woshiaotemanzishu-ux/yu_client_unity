@@ -1,17 +1,31 @@
 {
   "schema": 1,
   "id": "yu-resource-tool-preview-lifecycle.v1",
-  "status": "provider-change-required",
+  "status": "implemented-and-verified",
   "siblingRepository": "E:/GitProject/yu_client",
   "source": {
-    "path": "tools/yu-resource-tool/python/main.py",
-    "sha256": "2166dbcc0b4c9254e4a2db4bd2771ac6e75912d8311ec844761c8d9b34857bb6",
+    "revision": "643cf7e5a",
+    "files": [
+      {
+        "path": "tools/yu-resource-tool/python/main.py",
+        "sha256": "67f40b09e68895ffef81191ebe94a1cf8538650e72b649662c180757b316b527"
+      },
+      {
+        "path": "tools/yu-resource-tool/python/preview_lifecycle.py",
+        "sha256": "fa5a966fbbc7b218203ef4255c5d6e50ab40da8ebc5df83e93381669ff22c412"
+      }
+    ],
     "functions": {
       "killPortOccupants": "4292-4321",
       "start": "4323-4359",
       "stop": "4362-4370",
       "status": "4373-4382"
     }
+  },
+  "verification": {
+    "command": "tools/yu-resource-tool/python/.venv/Scripts/python.exe -X utf8 -m unittest tools/yu-resource-tool/python/tests/test_preview_lifecycle.py",
+    "result": "9 passed",
+    "observedAt": "2026-08-11T22:36:00+08:00"
   },
   "blocker": {
     "code": "RESOURCE_TOOL_PREVIEW_PROVIDER_CAS_REQUIRED",

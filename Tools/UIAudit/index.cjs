@@ -16,6 +16,7 @@ module.exports = {
   serverReadiness: require('./lib/server-readiness.cjs'),
   serverLifecycle: require('./lib/server-lifecycle.cjs'),
   resourceToolPreview: require('./lib/resource-tool-preview.cjs'),
+  completedScope: require('./lib/completed-scope.cjs'),
   preflight: require('./lib/preflight.cjs'),
   session: require('./lib/session.cjs'),
   report: require('./lib/report.cjs'),

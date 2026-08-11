@@ -8,6 +8,7 @@ const { validatePopupPolicy } = require('./popup-policy.cjs');
 const { validateRuntimeOverlayPolicy, verifyRuntimeOverlayAuthority } = require('./runtime-overlay.cjs');
 const { validateProtocolPolicy, validateRouteProtocolContract, verifyProtocolAuthority } = require('./protocol-probe.cjs');
 const { validateItemUseRouteConfig } = require('./item-use.cjs');
+const { loadCompletedScopePolicy, evaluateCompletedScope } = require('./completed-scope.cjs');
 const {
   ROUTE_URL_CHECK_ID,
   findServerProfileForUrl,
@@ -114,6 +115,8 @@ function verifyAuthority(policy, legacyRoot, existsSync = fs.existsSync) {
 }
 
 async function runPreflight(options = {}) {
+  const preflightStartedAtMs = Date.now();
+  const preflightStartedAt = new Date(preflightStartedAtMs).toISOString();
   const repoRoot = path.resolve(options.repoRoot || path.join(__dirname, '..', '..', '..'));
   const existsSync = options.existsSync || fs.existsSync;
   const env = options.env || process.env;
@@ -155,6 +158,10 @@ async function runPreflight(options = {}) {
   add('item-use-session-policy', itemUse.pass, itemUse);
   const protocolContract = validateRouteProtocolContract(route, options.protocolPolicy);
   add('route-protocol-contract', protocolContract.pass, protocolContract);
+  const completedScopePolicy = options.completedScopePolicy || loadCompletedScopePolicy(
+    path.join(__dirname, '..', 'policies', 'completed-scopes.json'));
+  const completedScope = evaluateCompletedScope(route, completedScopePolicy);
+  add('completed-scope-guard', completedScope.pass, completedScope);
 
   const authority = [];
   if (route.legacyRoot && route.verifyAuthority !== false) {
@@ -201,9 +208,15 @@ async function runPreflight(options = {}) {
   };
   add(ROUTE_URL_CHECK_ID, routeProbe.pass, readinessDetail);
 
+  const preflightEndedAtMs = Date.now();
   return {
     schema: 1,
-    checkedAt: new Date().toISOString(),
+    checkedAt: new Date(preflightEndedAtMs).toISOString(),
+    timing: {
+      startedAt: preflightStartedAt,
+      endedAt: new Date(preflightEndedAtMs).toISOString(),
+      durationMs: preflightEndedAtMs - preflightStartedAtMs,
+    },
     pass: checks.every(check => check.pass),
     checks,
     authority,

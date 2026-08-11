@@ -162,6 +162,13 @@ Unity 主界面固定入口必须绑定到 `_img_setting/_img_friend/_img_shop` 
 - 本地 Web 若烧包默认仍是 `{streaming}/cdn`，必须通过 `?cdn=http://127.0.0.1:8090/res` 或壳同目录 `boot_config.json` 覆盖。卡在 90% 时读取浏览器日志；出现 `/StreamingAssets/cdn/WebGL/*.bundle` 404 先修 CDN 基址，不重打内容。
 - 运行时克隆 `BaseView` 页签/格子时调用 `Show/Hide`；只 `SetActive` 不会触发 `OnInit`。动态列表把高度写到真正的 `ScrollRect.content`，规范顶部锚点并强制布局；拖动从可命中子项开始，必须验证隐藏末行可达。
 
+## 已完成范围与工时观测
+
+- 用户确认已完成并明确要求不再重复处理的页面，先登记到 `Tools/UIAudit/policies/completed-scopes.json`。相邻页 route 可以把它当导航过境，但不得点击其页内叶子、修改其专用 Prefab/代码或重跑其整页证据。
+- 新的用户运行证据、当前真实运行证据或共享组件影响确需重开时，route 必须在 `scope.reopen[]` 写明 `scopeId/reason/source/observedAt/evidence.reference`；preflight 会留下 `COMPLETED_SCOPE_REOPEN_ACCEPTED`，不能靠删策略或改 route id 绕过。
+- 长页面从发现阶段创建 `route-timing.json`。`active` 与 `wait` 分开；失败事件写稳定 fingerprint，重复 fingerprint 归为 `repeat-failure` 并触发公共工具晋升。历史 manifest/组件证据带来的省时只记估算值，不能从总时长里重复扣除。
+- UIAudit report 的 step timing 把动作/采证、采样等待和配置 settle 分开；`fixedWaitSavingsCeilingMs` 只是用 ready 探针替换固定等待时的理论上限，不代表这些等待已经可以删除。
+
 ## 转换页的三项快速核对
 
 - **先算有效变换，不先目测调数值**：老端节点的最终尺寸必须包含父节点 `scale`、运行时 `SetScale` 和 `anchor/skew`。例如 `anchorX=1 + skewY=180` 在 Unity 中应保留为围绕右轴的 `localScale.x=-1`；漏掉翻转会让相邻页签底图压住文字，漏掉第二级 `SetScale(0.8)` 会把 80px 物品格放大到约 100px。

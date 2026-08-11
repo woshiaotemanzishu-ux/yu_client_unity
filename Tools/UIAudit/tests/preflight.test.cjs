@@ -111,6 +111,50 @@ test('preflight elevates a same-process resource-tool false-running state above 
   assert.equal(check.detail.recovery.previewProvider.code, 'RESOURCE_TOOL_PREVIEW_PROVIDER_CAS_REQUIRED');
 });
 
+test('preflight blocks a protected completed scope and accepts only explicit scoped evidence', async () => {
+  const repoRoot = path.resolve(__dirname, '..', '..', '..');
+  const completedScopePolicy = {
+    schema: 1,
+    entries: [{
+      id: 'mainui.role.person', label: '角色-人物', status: 'completed', protected: true,
+      observedAt: '2026-08-11T22:20:00+08:00', reason: 'user confirmed complete',
+      routeIds: ['mainui.role.person'], routePrefixes: ['mainui.role.full-tabs.v3.person'],
+    }],
+  };
+  const serverStatus = async () => ({
+    code: 'ROUTE_READY', probe: { pass: true, ready: true, code: 'ROUTE_READY', url: route.url },
+    ownership: { owned: false }, observation: null, recovery: null,
+  });
+  const baseOptions = {
+    repoRoot,
+    routePath: path.join(__dirname, 'person-route.json'),
+    outputDir: path.join(repoRoot, 'output', 'fixture-completed-scope'),
+    popupPolicy, runtimeOverlayPolicy, protocolPolicy, completedScopePolicy,
+    edgeExecutable: process.execPath, puppeteerPackage: __filename, serverStatus,
+  };
+  const blocked = await runPreflight({
+    ...baseOptions,
+    route: { ...route, id: 'mainui.role.person', snapshotSource: __filename, session: { itemUse: { mode: 'hard-stop' } } },
+  });
+  const blockedCheck = blocked.checks.find(value => value.id === 'completed-scope-guard');
+  assert.equal(blockedCheck.pass, false);
+  assert.equal(blockedCheck.detail.code, 'COMPLETED_SCOPE_REOPEN_REQUIRED');
+
+  const reopened = await runPreflight({
+    ...baseOptions,
+    route: {
+      ...route, id: 'mainui.role.person', snapshotSource: __filename, session: { itemUse: { mode: 'hard-stop' } },
+      scope: { reopen: [{
+        scopeId: 'mainui.role.person', reason: 'new user runtime screenshot shows regression',
+        source: 'user-runtime', observedAt: '2026-08-11T23:00:00+08:00', evidence: { reference: 'user-message:runtime-screenshot' },
+      }] },
+    },
+  });
+  const reopenedCheck = reopened.checks.find(value => value.id === 'completed-scope-guard');
+  assert.equal(reopenedCheck.pass, true);
+  assert.equal(reopenedCheck.detail.code, 'COMPLETED_SCOPE_REOPEN_ACCEPTED');
+});
+
 test('decorative expect fields and incomplete generic assertions are rejected before execution', () => {
   assert.throws(() => validateRoute({
     ...route,

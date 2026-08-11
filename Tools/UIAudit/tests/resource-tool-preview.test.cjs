@@ -7,6 +7,7 @@ const path = require('node:path');
 const {
   probePreviewProviderStatus,
   inspectResourceToolPreview,
+  recoverPreviewProvider,
   applyProviderObservationToProbe,
   applyProviderObservationToRecovery,
 } = require('../lib/resource-tool-preview.cjs');
@@ -73,6 +74,54 @@ test('provider status probe accepts only code=0 with an explicit running boolean
   assert.equal(invalid.code, 'RESOURCE_TOOL_STATUS_INVALID_PAYLOAD');
 });
 
+test('CAS-capable stale provider exposes one exact recover request', async () => {
+  const routeProbe = {
+    pass: false, code: 'EXTERNAL_SERVER_UNRESPONSIVE', causeCode: 'SERVER_NOT_RUNNING',
+    endpoint: { before: endpoint(8091, 11300), after: endpoint(8091, 11300) }, attempts: [],
+  };
+  const statusData = {
+    running: false, state: 'stale', port: 8091, url: null,
+    providerPid: 11300, controlPid: 11300, previewPid: 11300, generation: 7,
+    threadAlive: false, socketBound: true, httpReady: false,
+  };
+  const observation = await inspectResourceToolPreview({ port: 8091, previewProvider: provider }, routeProbe, { owned: false }, {
+    inspectEndpoint: () => endpoint(7074, 11300),
+    probePreviewProviderStatus: async () => providerStatus(statusData),
+  });
+  assert.equal(observation.code, 'RESOURCE_TOOL_PREVIEW_STALE_STATE');
+  assert.equal(observation.recovery.code, 'RESOURCE_TOOL_PREVIEW_PROVIDER_CAS_RECOVERY_AVAILABLE');
+  assert.equal(observation.recovery.automaticRecoverySupported, true);
+  assert.deepEqual(observation.recovery.request.body, {
+    expectedControlPid: 11300, expectedPreviewPid: 11300, expectedGeneration: 7, port: 8091,
+  });
+
+  let received;
+  const recovered = await recoverPreviewProvider({ port: 8091, previewProvider: provider }, observation, {
+    recoverRequestJson: async (url, timeoutMs, requestOptions) => {
+      received = { url, timeoutMs, requestOptions };
+      return { response: { statusCode: 200 }, elapsedMs: 3, body: JSON.stringify({ code: 0, data: { running: true } }) };
+    },
+  });
+  assert.equal(recovered.code, 'RESOURCE_TOOL_PREVIEW_RECOVERED');
+  assert.equal(received.requestOptions.method, 'POST');
+  assert.deepEqual(received.requestOptions.body, observation.recovery.request.body);
+});
+
+test('legacy stale provider without a verified token remains read-only blocked', async () => {
+  const state = fixture.cases.find(value => value.id === 'same-pid-api-running-route-refused');
+  const routeProbe = {
+    ...state.route,
+    endpoint: { before: endpoint(8091, state.previewPid), after: endpoint(8091, state.previewPid) }, attempts: [],
+  };
+  const observation = await inspectResourceToolPreview({ port: 8091, previewProvider: provider }, routeProbe, { owned: false }, {
+    inspectEndpoint: () => endpoint(7074, state.controlPid),
+    probePreviewProviderStatus: async () => providerStatus(state.api),
+  });
+  const recovered = await recoverPreviewProvider({ port: 8091, previewProvider: provider }, observation, {});
+  assert.equal(recovered.code, 'RESOURCE_TOOL_PREVIEW_RECOVERY_NOT_ALLOWED');
+  assert.equal(recovered.attempted, false);
+});
+
 test('stale provider elevates route failure and removes every write recovery action', async () => {
   const state = fixture.cases.find(value => value.id === 'same-pid-api-running-route-refused');
   const routeProbe = {
@@ -109,9 +158,9 @@ test('provider identity mismatch never treats an arbitrary 7074 process as the r
   assert.equal(result.blocking, true);
 });
 
-test('versioned sibling recovery contract requires provider-side CAS and forbids occupant killing', () => {
+test('versioned sibling recovery contract records the verified provider implementation', () => {
   const contract = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'contracts', 'yu-resource-tool-preview-lifecycle.v1.json'), 'utf8'));
-  assert.equal(contract.status, 'provider-change-required');
+  assert.equal(contract.status, 'implemented-and-verified');
   assert.equal(contract.requiredRecoveryRequest.path, '/api/preview/recover');
   assert.deepEqual(Object.keys(contract.requiredRecoveryRequest.body), [
     'expectedControlPid', 'expectedPreviewPid', 'expectedGeneration', 'port',

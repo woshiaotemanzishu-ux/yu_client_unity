@@ -19,7 +19,9 @@
     "statusPath": "/api/preview/status",
     "startPath": "/api/preview/start",
     "stopPath": "/api/preview/stop",
+    "recoveryPath": "/api/preview/recover",
     "statusTimeoutMs": 1500,
+    "recoveryTimeoutMs": 8000,
     "expectedProcessCommandIncludes": [
       "tools/yu-resource-tool/python/main.py",
       "--port=7074"

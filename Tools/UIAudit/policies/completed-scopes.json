@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "entries": [
+    {
+      "id": "mainui.role.person",
+      "label": "角色-人物",
+      "status": "completed",
+      "protected": true,
+      "observedAt": "2026-08-11T22:20:00+08:00",
+      "source": "user-confirmed",
+      "reason": "用户明确确认角色-人物目前基本完善；默认不得重复修改、重跑或把它混入其他角色一级页签范围。",
+      "routeIds": [
+        "mainui.role.person",
+        "mainui.role.fashion-main-pos1"
+      ],
+      "routePrefixes": [
+        "mainui.role.full-tabs.v3.person"
+      ],
+      "allowTransit": true,
+      "reopenContract": {
+        "required": ["scopeId", "reason", "source", "observedAt", "evidence.reference"],
+        "sources": ["user-runtime", "new-runtime-evidence", "shared-impact"]
+      }
+    }
+  ]
+}

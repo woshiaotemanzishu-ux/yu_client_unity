@@ -15,6 +15,8 @@ function validatePreviewProvider(provider) {
   if (!provider || typeof provider.statusPath !== 'string' || !provider.statusPath.startsWith('/')) errors.push('statusPath');
   if (!provider || typeof provider.startPath !== 'string' || !provider.startPath.startsWith('/')) errors.push('startPath');
   if (!provider || typeof provider.stopPath !== 'string' || !provider.stopPath.startsWith('/')) errors.push('stopPath');
+  if (!provider || typeof provider.recoveryPath !== 'string' || !provider.recoveryPath.startsWith('/')) errors.push('recoveryPath');
+  if (provider && provider.recoveryTimeoutMs != null && (!Number.isFinite(Number(provider.recoveryTimeoutMs)) || Number(provider.recoveryTimeoutMs) < 100)) errors.push('recoveryTimeoutMs');
   if (!Array.isArray(provider && provider.expectedProcessCommandIncludes) || !provider.expectedProcessCommandIncludes.length) errors.push('expectedProcessCommandIncludes');
   if (!provider || typeof provider.recoveryContractFromTool !== 'string' || !provider.recoveryContractFromTool) errors.push('recoveryContractFromTool');
   if (errors.length) throw new Error(`PREVIEW_PROVIDER_INVALID: ${errors.join(',')}`);
@@ -36,7 +38,7 @@ function listenerPids(observation) {
     .map(value => Number(value.pid)).filter(Number.isInteger))].sort((a, b) => a - b);
 }
 
-function requestJson(url, timeoutMs = 1500) {
+function requestJson(url, timeoutMs = 1500, requestOptions = {}) {
   return new Promise(resolve => {
     const startedAt = Date.now();
     const parsed = new URL(url);
@@ -48,9 +50,16 @@ function requestJson(url, timeoutMs = 1500) {
       clearTimeout(deadline);
       resolve({ ...value, elapsedMs: Date.now() - startedAt });
     };
+    const method = String(requestOptions.method || 'GET').toUpperCase();
+    const requestBody = requestOptions.body == null ? null : JSON.stringify(requestOptions.body);
+    const headers = { Accept: 'application/json', 'Cache-Control': 'no-cache', 'User-Agent': '@shenxiao/ui-audit-preview-provider' };
+    if (requestBody != null) {
+      headers['Content-Type'] = 'application/json';
+      headers['Content-Length'] = Buffer.byteLength(requestBody);
+    }
     const request = transport.request(parsed, {
-      method: 'GET',
-      headers: { Accept: 'application/json', 'Cache-Control': 'no-cache', 'User-Agent': '@shenxiao/ui-audit-preview-provider' },
+      method,
+      headers,
     }, response => {
       const chunks = [];
       let bytes = 0;
@@ -75,6 +84,7 @@ function requestJson(url, timeoutMs = 1500) {
       request.destroy(error);
       finish({ error });
     }, timeoutMs + 25);
+    if (requestBody != null) request.write(requestBody);
     request.end();
   });
 }
@@ -102,26 +112,75 @@ async function probePreviewProviderStatus(provider, options = {}) {
   }
   return {
     pass: true, code: 'RESOURCE_TOOL_STATUS_READY', url, statusCode, request,
-    data: { running: data.running, port: data.port == null ? null : Number(data.port), url: data.url || null },
+    data: {
+      running: data.running,
+      state: typeof data.state === 'string' ? data.state : null,
+      port: data.port == null ? null : Number(data.port),
+      configuredPort: data.configuredPort == null ? null : Number(data.configuredPort),
+      url: data.url || null,
+      providerPid: data.providerPid == null ? null : Number(data.providerPid),
+      controlPid: data.controlPid == null ? null : Number(data.controlPid),
+      previewPid: data.previewPid == null ? null : Number(data.previewPid),
+      generation: data.generation == null ? null : Number(data.generation),
+      threadAlive: typeof data.threadAlive === 'boolean' ? data.threadAlive : null,
+      socketBound: typeof data.socketBound === 'boolean' ? data.socketBound : null,
+      httpReady: typeof data.httpReady === 'boolean' ? data.httpReady : null,
+    },
   };
 }
 
-function providerRecovery(provider, code, blocking) {
+function providerCapability(statusData, controlPids, previewPids) {
+  const data = statusData || {};
+  const controlPid = controlPids.length === 1 ? controlPids[0] : null;
+  const identityMatches = Number.isInteger(controlPid)
+    && Number.isInteger(data.providerPid)
+    && Number.isInteger(data.controlPid)
+    && data.providerPid === controlPid
+    && data.controlPid === controlPid;
+  const contractFieldsPresent = Number.isInteger(data.generation)
+    && typeof data.threadAlive === 'boolean'
+    && typeof data.socketBound === 'boolean'
+    && typeof data.httpReady === 'boolean'
+    && ['ready', 'stale', 'stopped'].includes(data.state);
+  const previewIdentityMatches = Number.isInteger(data.previewPid)
+    && data.previewPid === controlPid
+    && (previewPids.length === 0 || previewPids.every(pid => pid === data.previewPid));
+  const recoverable = identityMatches && contractFieldsPresent && previewIdentityMatches
+    && data.state === 'stale' && data.running === false;
+  return { identityMatches, contractFieldsPresent, previewIdentityMatches, recoverable };
+}
+
+function providerRecovery(provider, code, blocking, capability = {}) {
+  const recoverable = blocking && capability.recoverable === true;
+  const recoveryUrl = `http://${provider.controlHost}:${Number(provider.controlPort)}${provider.recoveryPath}`;
   return {
     schema: 1,
-    code: blocking ? 'RESOURCE_TOOL_PREVIEW_PROVIDER_CAS_REQUIRED' : 'RESOURCE_TOOL_PREVIEW_NO_RECOVERY_NEEDED',
+    code: recoverable
+      ? 'RESOURCE_TOOL_PREVIEW_PROVIDER_CAS_RECOVERY_AVAILABLE'
+      : (blocking ? 'RESOURCE_TOOL_PREVIEW_PROVIDER_CAS_REQUIRED' : 'RESOURCE_TOOL_PREVIEW_NO_RECOVERY_NEEDED'),
     blocking,
-    automaticRecoverySupported: false,
-    writeEndpointsAllowed: false,
+    automaticRecoverySupported: recoverable,
+    writeEndpointsAllowed: recoverable,
     status: `GET http://${provider.controlHost}:${Number(provider.controlPort)}${provider.statusPath}`,
+    recover: recoverable ? `POST ${recoveryUrl}` : null,
+    request: recoverable ? {
+      method: 'POST',
+      url: recoveryUrl,
+      body: {
+        expectedControlPid: capability.controlPid,
+        expectedPreviewPid: capability.previewPid,
+        expectedGeneration: capability.generation,
+        port: capability.port,
+      },
+    } : null,
     forbidden: [
       `POST http://${provider.controlHost}:${Number(provider.controlPort)}${provider.stopPath}`,
       `POST http://${provider.controlHost}:${Number(provider.controlPort)}${provider.startPath}`,
       'taskkill', 'Stop-Process', 'os.kill', 'start on an occupied preview port',
     ],
-    reason: blocking
-      ? `${code}: the current provider has no PID/generation compare-and-swap recovery and its start path may kill a competing port owner.`
-      : null,
+    reason: recoverable
+      ? `${code}: exact provider PID, preview PID and generation are available for one compare-and-swap recovery.`
+      : (blocking ? `${code}: the running provider does not expose a verified PID/generation compare-and-swap recovery token.` : null),
     requiredContract: provider.recoveryContract,
   };
 }
@@ -149,6 +208,7 @@ async function inspectResourceToolPreview(profile, routeProbe, ownership, option
   const sameSourcePid = controlIdentityMatches && previewPids.length > 0
     && previewPids.every(pid => pid === controlPids[0]);
   let status = null;
+  let capability = {};
   let code;
   let blocking = false;
   if (!(controlEndpoint && controlEndpoint.listener && controlEndpoint.listener.up === true)) {
@@ -161,8 +221,12 @@ async function inspectResourceToolPreview(profile, routeProbe, ownership, option
     blocking = true;
   } else {
     status = await (options.probePreviewProviderStatus || probePreviewProviderStatus)(provider, options);
+    capability = providerCapability(status && status.data, controlPids, previewPids);
     if (!status.pass) {
       code = 'RESOURCE_TOOL_PREVIEW_STATUS_UNAVAILABLE';
+      blocking = true;
+    } else if (status.data.state === 'stale' && capability.recoverable) {
+      code = 'RESOURCE_TOOL_PREVIEW_STALE_STATE';
       blocking = true;
     } else if (status.data.running && Number(status.data.port) !== Number(profile.port)) {
       code = 'RESOURCE_TOOL_PREVIEW_STATUS_PORT_MISMATCH';
@@ -197,8 +261,46 @@ async function inspectResourceToolPreview(profile, routeProbe, ownership, option
       expectedProcessCommandIncludes: provider.expectedProcessCommandIncludes,
     },
     route: { pass: !!(routeProbe && routeProbe.pass), code: routeProbe && routeProbe.code || null, causeCode: routeProbe && routeProbe.causeCode || null },
-    recovery: providerRecovery(provider, code, blocking),
+    recovery: providerRecovery(provider, code, blocking, {
+      ...capability,
+      controlPid: controlPids.length === 1 ? controlPids[0] : null,
+      previewPid: status && status.data && status.data.previewPid,
+      generation: status && status.data && status.data.generation,
+      port: Number(profile.port),
+    }),
   };
+}
+
+async function recoverPreviewProvider(profile, providerObservation, options = {}) {
+  const provider = profile && profile.previewProvider;
+  const recovery = providerObservation && providerObservation.recovery;
+  if (!provider || !recovery || !recovery.automaticRecoverySupported || !recovery.request) {
+    return { pass: false, code: 'RESOURCE_TOOL_PREVIEW_RECOVERY_NOT_ALLOWED', attempted: false };
+  }
+  const outcome = await (options.recoverRequestJson || requestJson)(
+    recovery.request.url,
+    Number(provider.recoveryTimeoutMs || 8000),
+    { method: 'POST', body: recovery.request.body },
+  );
+  const request = {
+    method: 'POST', url: recovery.request.url, body: recovery.request.body,
+    elapsedMs: Number(outcome.elapsedMs || 0),
+  };
+  if (outcome.error) {
+    return { pass: false, code: 'RESOURCE_TOOL_PREVIEW_RECOVERY_NETWORK_ERROR', attempted: true, request, networkCode: outcome.error.code || null };
+  }
+  const statusCode = Number(outcome.response && outcome.response.statusCode || 0);
+  request.statusCode = statusCode;
+  let payload;
+  try { payload = JSON.parse(String(outcome.body || '')); }
+  catch (_) { return { pass: false, code: 'RESOURCE_TOOL_PREVIEW_RECOVERY_INVALID_JSON', attempted: true, request }; }
+  if (statusCode !== 200 || Number(payload && payload.code) !== 0) {
+    return {
+      pass: false, code: 'RESOURCE_TOOL_PREVIEW_RECOVERY_REJECTED', attempted: true, request,
+      providerCode: payload && payload.data && payload.data.errorCode || null,
+    };
+  }
+  return { pass: true, code: 'RESOURCE_TOOL_PREVIEW_RECOVERED', attempted: true, request };
 }
 
 function applyProviderObservationToProbe(routeProbe, providerObservation) {
@@ -244,7 +346,9 @@ module.exports = {
   requestJson,
   probePreviewProviderStatus,
   providerRecovery,
+  providerCapability,
   inspectResourceToolPreview,
+  recoverPreviewProvider,
   applyProviderObservationToProbe,
   applyProviderObservationToRecovery,
 };

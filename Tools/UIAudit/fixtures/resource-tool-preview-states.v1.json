@@ -8,6 +8,7 @@
     "statusPath": "/api/preview/status",
     "startPath": "/api/preview/start",
     "stopPath": "/api/preview/stop",
+    "recoveryPath": "/api/preview/recover",
     "expectedProcessCommandIncludes": ["tools/yu-resource-tool/python/main.py", "--port=7074"],
     "recoveryContractFromTool": "contracts/yu-resource-tool-preview-lifecycle.v1.json",
     "recoveryContract": "E:/fixture/yu-resource-tool-preview-lifecycle.v1.json"

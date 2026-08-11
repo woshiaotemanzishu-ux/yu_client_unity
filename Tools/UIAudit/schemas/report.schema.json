@@ -2,12 +2,20 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "ui-audit.report.v1",
   "type": "object",
-  "required": ["schema", "tool", "route", "startedAt", "status", "preflight", "steps", "artifacts"],
+  "required": ["schema", "tool", "route", "startedAt", "status", "preflight", "steps", "artifacts", "timing"],
   "properties": {
     "schema": { "const": 1 },
     "status": { "enum": ["running", "passed", "failed"] },
     "steps": { "type": "array" },
     "artifacts": { "type": "array" },
+    "timing": {
+      "type": "object",
+      "required": ["phases", "summary"],
+      "properties": {
+        "phases": { "type": "array" },
+        "summary": { "type": ["object", "null"] }
+      }
+    },
     "failure": {
       "type": ["object", "null"],
       "properties": {

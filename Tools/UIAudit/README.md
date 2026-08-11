@@ -10,6 +10,8 @@ runtime node v3 保留 `runtimeClass`、`identity.systemOverlay`、`hitArea` 与
 
 `Tools/UIAudit` 是 UI 对接/精修路线唯一可复用的老 H5 浏览器执行层。它复用 `Tools/headless/node_modules/puppeteer` 驱动系统 Edge 的真实 Headless 页面；不生成合成截图，不占用前台，也不把可复用代码留在 `output/`。
 
+当前版本为 `1.2.0`。本版本新增完成范围保护、route/step/phase 分层计时，以及资源工具 preview 的严格 CAS 恢复对接。
+
 ## 命令
 
 ```powershell
@@ -31,9 +33,15 @@ node --test Tools/UIAudit/tests/*.test.cjs
 
 `legacy-h5-local` 是 UIAudit 的标准老 H5 profile：固定 `E:/GitProject/yu_client/h5` 为编译 cwd、`E:/GitProject/yu_client/cdn` 为静态根、`127.0.0.1:8091` 为路线端口。它绕过旧 `npm start` 的 8070 默认值以及 `open:true/openUrl`，在后台内存编译，不打开用户浏览器。`stop` 只终止同时匹配 PID、worker 路径和私有 owner token 的本工具进程，绝不接管或杀死非本工具服务。
 
-该 profile 还声明 `previewProvider=yu-resource-tool-preview`。`server status`/`preflight` 会只读检查 7074 listener 的进程命令、8091 listener PID 与 `GET /api/preview/status`；当两个端口确属同一资源工具进程，但 API 报 `running=true` 而 8091 的真实 route probe 拒绝连接或不可达时，稳定返回 `RESOURCE_TOOL_PREVIEW_STALE_STATE`。报告保留原始 route 分类于 `causeCode`/`transportCauseCode`，并将 `start/stopOwned/runWithEnsure` 全部置空。
+该 profile 还声明 `previewProvider=yu-resource-tool-preview`。`server status`/`preflight` 会只读检查 7074 listener 的进程命令、8091 listener PID 与 `GET /api/preview/status`；当两个端口确属同一资源工具进程，但 API 状态与真实 HTTP route 冲突时，稳定返回 `RESOURCE_TOOL_PREVIEW_STALE_STATE`。报告保留原始 route 分类于 `causeCode`/`transportCauseCode`。
 
-UIAudit 不会对资源工具调用 `/api/preview/stop` 或 `/api/preview/start`。当前 provider 的 `/start` 会在绑定前清理端口占用者，且 status 缺少 thread、generation、socket 与 HTTP-ready 事实；外部的“先检查、再 stop/start”存在竞态，无法证明不会杀掉后来占用 8091 的其他进程。所需 sibling 修复已版本化为 `contracts/yu-resource-tool-preview-lifecycle.v1.json`：provider 必须实现 PID+generation compare-and-swap、仅关闭自身保存的 HTTPServer/thread、直接 bind 且地址冲突时拒绝、绝不 kill 端口占用者，并在返回 running 前完成内部 HTTP ready。该契约落地前，`RESOURCE_TOOL_PREVIEW_PROVIDER_CAS_REQUIRED` 是资源服务 blocker，不得改写为页面 blocker，也不得由 route 复制恢复命令。
+UIAudit 永远不会对资源工具调用旧 `/api/preview/stop`、`/api/preview/start`，也不会 taskkill、`Stop-Process`、`os.kill` 或清理端口占用者。sibling provider 的安全实现已按 `contracts/yu-resource-tool-preview-lifecycle.v1.json` 落地并通过 9/9 测试：status 返回 control/preview PID、generation、thread/socket/HTTP-ready，recover 仅关闭本进程记录的 HTTPServer/thread，直接 bind，地址冲突即拒绝。只有 `server start`/`run --ensure-server` 且这些字段完整、PID 与 7074/8091 listener 精确一致、状态为 self-owned stale 时，UIAudit 才发送一次携带原 token 的 `/api/preview/recover`；CAS 变化或任何字段缺失均零写硬停。`preflight` 仍完全只读。已经长期运行、尚未加载新 provider 代码的旧进程会继续返回 `RESOURCE_TOOL_PREVIEW_PROVIDER_CAS_REQUIRED`，需要用户自行重启资源工具后才具备安全恢复能力。
+
+## 完成范围保护与计时
+
+`policies/completed-scopes.json` 保存用户确认完成且要求冻结的 route id/前缀。preflight 固定检查 `completed-scope-guard`；直接命中时返回 `COMPLETED_SCOPE_REOPEN_REQUIRED`。相邻页可以导航过境，只有 `scope.reopen[]` 提供新运行证据、用户证据或共享影响的时间与引用时才允许精确重开。
+
+每份运行报告都保存 `preflight.timing`、`timing.phases[]` 和逐步 timing。汇总分开 action/evidence、sampling wait 与 configured settle，并列出最慢步骤。`fixedWaitSavingsCeilingMs` 是固定 settle 可被 ready 探针替代的理论上限，不表示允许省略真实动画、资源 ready 或稳定帧。跨实现阶段的主动/等待工时由 `route_timing.py` 单独原子落账。
 
 Node 调用方可 `const uiAudit = require('./Tools/UIAudit')`，也可直接 require `lib/*.cjs`。`runPreflight` 是异步 API，必须 `await`。
 
@@ -132,9 +140,10 @@ click/drag 不再把目标自身 `hitTestPoint=true` 当作可达证明。公共
 | `lib/runtime-probes.cjs` | 声音调用与 RenderTexture 非透明像素 ready |
 | `lib/server-readiness.cjs` | 无浏览器 GET/HEAD readiness、逐请求耗时与底层网络/内容分类 |
 | `lib/server-lifecycle.cjs` | listener/PID/进程/owner 调和、有界 transient retry、后台 start/status/owned stop |
-| `lib/resource-tool-preview.cjs` | 资源工具 7074/8091 同源身份、只读 status 调和、stale preview 分类与零写恢复闸 |
-| `lib/preflight.cjs` | 版本、依赖、authority、route 合同、URL 与输出闸 |
-| `lib/route-runner.cjs` | 数据化步骤、真实截图/snapshot/trace 和结构报告 |
+| `lib/resource-tool-preview.cjs` | 资源工具 7074/8091 同源身份、status 调和、旧 provider 零写闸与严格 CAS recover |
+| `lib/completed-scope.cjs` | 用户确认完成范围、精确重开合同与 preflight 保护 |
+| `lib/preflight.cjs` | 版本、依赖、authority、完成范围、route 合同、URL 与输出闸 |
+| `lib/route-runner.cjs` | 数据化步骤、真实截图/snapshot/trace、分层计时和结构报告 |
 
 ## 不可变证据
 

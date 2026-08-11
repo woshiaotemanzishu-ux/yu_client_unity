@@ -162,7 +162,7 @@ test('stale resource-tool preview blocks start without spawn or provider write c
     ...profile({ transientRetry: { maxAttempts: 1 } }),
     previewProvider: {
       schema: 1, id: 'yu-resource-tool-preview', controlHost: '127.0.0.1', controlPort: 7074,
-      statusPath: '/api/preview/status', startPath: '/api/preview/start', stopPath: '/api/preview/stop',
+      statusPath: '/api/preview/status', startPath: '/api/preview/start', stopPath: '/api/preview/stop', recoveryPath: '/api/preview/recover',
       expectedProcessCommandIncludes: ['tools/yu-resource-tool/python/main.py', '--port=7074'],
       recoveryContractFromTool: 'contracts/yu-resource-tool-preview-lifecycle.v1.json',
     },
@@ -183,6 +183,49 @@ test('stale resource-tool preview blocks start without spawn or provider write c
   assert.equal(result.recovery.previewProvider.code, 'RESOURCE_TOOL_PREVIEW_PROVIDER_CAS_REQUIRED');
   assert.equal(result.recovery.previewProvider.writeEndpointsAllowed, false);
   assert.equal(statusReads, 1);
+  assert.equal(spawned, false);
+});
+
+test('start performs one verified CAS recovery for a capable stale provider', async () => {
+  let recovered = false;
+  let spawned = false;
+  let recoveryCalls = 0;
+  const resourceProfile = {
+    ...profile({ transientRetry: { maxAttempts: 1 } }),
+    previewProvider: {
+      schema: 1, id: 'yu-resource-tool-preview', controlHost: '127.0.0.1', controlPort: 7074,
+      statusPath: '/api/preview/status', startPath: '/api/preview/start', stopPath: '/api/preview/stop', recoveryPath: '/api/preview/recover',
+      expectedProcessCommandIncludes: ['tools/yu-resource-tool/python/main.py', '--port=7074'],
+      recoveryContractFromTool: 'contracts/yu-resource-tool-preview-lifecycle.v1.json',
+    },
+  };
+  const resourceCommand = 'python E:/GitProject/yu_client/tools/yu-resource-tool/python/main.py --port=7074 --secret=value';
+  const result = await startServer({
+    profile: resourceProfile,
+    inspectEndpoint: value => endpointAt(value.port, 11300, resourceCommand),
+    probeRouteUrl: async () => recovered
+      ? ({ pass: true, ready: true, code: 'ROUTE_READY', requests: [] })
+      : ({ pass: false, ready: false, code: 'SERVER_NOT_RUNNING', networkCode: 'ECONNREFUSED', requests: [] }),
+    probePreviewProviderStatus: async () => ({
+      pass: true, code: 'RESOURCE_TOOL_STATUS_READY', request: { method: 'GET' },
+      data: recovered
+        ? { running: true, state: 'ready', port: 8091, providerPid: 11300, controlPid: 11300, previewPid: 11300, generation: 8, threadAlive: true, socketBound: true, httpReady: true }
+        : { running: false, state: 'stale', port: 8091, providerPid: 11300, controlPid: 11300, previewPid: 11300, generation: 7, threadAlive: false, socketBound: true, httpReady: false },
+    }),
+    recoverRequestJson: async (_url, _timeoutMs, requestOptions) => {
+      recoveryCalls += 1;
+      assert.deepEqual(requestOptions.body, {
+        expectedControlPid: 11300, expectedPreviewPid: 11300, expectedGeneration: 7, port: 8091,
+      });
+      recovered = true;
+      return { response: { statusCode: 200 }, elapsedMs: 2, body: JSON.stringify({ code: 0, data: { running: true } }) };
+    },
+    spawn: () => { spawned = true; return { pid: 999, unref() {} }; },
+  });
+  assert.equal(result.pass, true);
+  assert.equal(result.code, 'RESOURCE_TOOL_PREVIEW_RECOVERED');
+  assert.equal(result.providerRecovered, true);
+  assert.equal(recoveryCalls, 1);
   assert.equal(spawned, false);
 });
 

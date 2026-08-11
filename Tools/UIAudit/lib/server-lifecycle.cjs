@@ -8,6 +8,7 @@ const childProcess = require('child_process');
 const { loadServerProfile, resolvedServerProfile, probeRouteUrl } = require('./server-readiness.cjs');
 const {
   inspectResourceToolPreview,
+  recoverPreviewProvider,
   applyProviderObservationToProbe,
   applyProviderObservationToRecovery,
 } = require('./resource-tool-preview.cjs');
@@ -370,6 +371,26 @@ async function startServer(options = {}) {
   const profile = resolvedServerProfile(rawProfile, repoRoot);
   const initial = await serverStatus({ ...options, repoRoot, profile: rawProfile });
   if (initial.pass) return { ...initial, started: false, code: initial.ownership.owned ? 'SERVER_ALREADY_OWNED_READY' : 'SERVER_ALREADY_READY' };
+  if (initial.observation && initial.observation.previewProvider
+    && initial.observation.previewProvider.recovery
+    && initial.observation.previewProvider.recovery.automaticRecoverySupported) {
+    const providerRecoveryAttempt = await recoverPreviewProvider(
+      profile,
+      initial.observation.previewProvider,
+      options,
+    );
+    if (!providerRecoveryAttempt.pass) {
+      return { ...initial, started: false, code: providerRecoveryAttempt.code, providerRecoveryAttempt };
+    }
+    const recovered = await serverStatus({ ...options, repoRoot, profile: rawProfile });
+    return {
+      ...recovered,
+      started: false,
+      providerRecovered: recovered.pass,
+      code: recovered.pass ? 'RESOURCE_TOOL_PREVIEW_RECOVERED' : recovered.code,
+      providerRecoveryAttempt,
+    };
+  }
   if (initial.ownership.owned) {
     const probe = await waitForServer(profile, {
       ...options,
