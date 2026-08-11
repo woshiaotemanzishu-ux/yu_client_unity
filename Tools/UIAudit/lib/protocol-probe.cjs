@@ -219,7 +219,7 @@ function canonicalHash(value) {
 }
 
 async function installLegacyProtocolTrace(page, options = {}) {
-  const inboundCommands = (options.inboundCommands || []).map(Number);
+  const inboundCommands = [...new Set((options.inboundCommands || []).map(Number))];
   return page.evaluate(({ inboundCommands }) => {
     const Adapter = window.UserMsgAdapter;
     if (!Adapter || typeof Adapter.GetInstance !== 'function') throw new Error('UserMsgAdapter unavailable');
@@ -241,10 +241,21 @@ async function installLegacyProtocolTrace(page, options = {}) {
       };
       try { return visit(value); } catch (_) { return String(value); }
     };
-    const trace = window.__uiAuditProtocolTrace = window.__uiAuditProtocolTrace || {
-      schema: 2, installedAt: new Date().toISOString(), outbound: [], inbound: [], wrappedInbound: [], pendingOutbound: null,
-    };
-    if (!trace.transportWrapped) {
+    const trace = window.__uiAuditProtocolTrace = window.__uiAuditProtocolTrace || {};
+    trace.schema = 3;
+    trace.installedAt = trace.installedAt || new Date().toISOString();
+    trace.outbound = Array.isArray(trace.outbound) ? trace.outbound : [];
+    trace.inbound = Array.isArray(trace.inbound) ? trace.inbound : [];
+    trace.wrappedInbound = Array.isArray(trace.wrappedInbound) ? trace.wrappedInbound : [];
+    trace.watchedInbound = Array.isArray(trace.watchedInbound) ? trace.watchedInbound : [];
+    trace.handlerAssociations = trace.handlerAssociations && typeof trace.handlerAssociations === 'object'
+      ? trace.handlerAssociations : {};
+    trace.pendingOutbound = trace.pendingOutbound || null;
+    trace.currentInbound = null;
+    trace.inboundSequence = Number(trace.inboundSequence || 0);
+    for (const cmd of inboundCommands) if (!trace.watchedInbound.includes(cmd)) trace.watchedInbound.push(cmd);
+
+    if (!trace.outboundTransportWrapped && !trace.transportWrapped) {
       const originalWriteBegin = adapter.WriteBegin;
       const originalWriteFMT = adapter.WriteFMT;
       const originalSendToGame = adapter.SendToGame;
@@ -269,23 +280,142 @@ async function installLegacyProtocolTrace(page, options = {}) {
         trace.pendingOutbound = null;
         return originalSendToGame.apply(this, arguments);
       };
+      trace.outboundTransportWrapped = true;
       trace.transportWrapped = true;
+    } else {
+      trace.outboundTransportWrapped = true;
     }
-    for (const cmd of inboundCommands) {
-      if (trace.wrappedInbound.includes(cmd)) continue;
+
+    const association = (cmd, values) => {
+      trace.handlerAssociations[String(cmd)] = {
+        cmd: Number(cmd),
+        ...(trace.handlerAssociations[String(cmd)] || {}),
+        ...values,
+        updatedAt: new Date().toISOString(),
+      };
+    };
+    const attachInboundHandler = rawCmd => {
+      const cmd = Number(rawCmd);
+      if (!trace.watchedInbound.includes(cmd)) return false;
       const original = adapter.register_list && adapter.register_list[cmd];
-      if (typeof original !== 'function') throw new Error(`response handler unavailable: ${cmd}`);
-      adapter.register_list[cmd] = function uiAuditTracedInbound() {
+      if (typeof original !== 'function') {
+        association(cmd, { registered: false, attached: false, invoked: false });
+        return false;
+      }
+      if (Number(original.__uiAuditProtocolTraceHandlerCmd) === cmd) {
+        association(cmd, { registered: true, attached: true });
+        if (!trace.wrappedInbound.includes(cmd)) trace.wrappedInbound.push(cmd);
+        return true;
+      }
+      const wrapped = function uiAuditTracedInboundHandler() {
+        const event = trace.currentInbound && Number(trace.currentInbound.cmd) === cmd ? trace.currentInbound : null;
         const before = adapter.receive_byteBuff && adapter.receive_byteBuff.pos;
-        let payload = null;
-        try { payload = clone(adapter.GetSCMD(String(cmd))); }
-        finally { if (adapter.receive_byteBuff && before != null) adapter.receive_byteBuff.pos = before; }
-        trace.inbound.push({ at: new Date().toISOString(), cmd, payload });
+        if (event) {
+          event.handler = { registered: true, attached: true, invoked: true };
+          try {
+            if (typeof adapter.GetSCMD === 'function') event.payload = clone(adapter.GetSCMD(String(cmd)));
+            else event.payloadError = 'GetSCMD unavailable';
+          } catch (error) {
+            event.payloadError = String(error && error.message || error);
+          } finally {
+            if (adapter.receive_byteBuff && before != null) adapter.receive_byteBuff.pos = before;
+          }
+        }
+        association(cmd, { registered: true, attached: true, invoked: true });
         return original.apply(this, arguments);
       };
-      trace.wrappedInbound.push(cmd);
+      Object.defineProperty(wrapped, '__uiAuditProtocolTraceHandlerCmd', { value: cmd });
+      adapter.register_list[cmd] = wrapped;
+      association(cmd, { registered: true, attached: true, invoked: false });
+      if (!trace.wrappedInbound.includes(cmd)) trace.wrappedInbound.push(cmd);
+      return true;
+    };
+
+    if (!trace.registerTransportWrapped && typeof adapter.RegisterMsgOperate === 'function') {
+      const originalRegister = adapter.RegisterMsgOperate;
+      adapter.RegisterMsgOperate = function uiAuditTracedRegisterMsgOperate(id) {
+        const result = originalRegister.apply(this, arguments);
+        attachInboundHandler(Number(id));
+        return result;
+      };
+      trace.registerTransportWrapped = true;
     }
-    return { installed: true, inboundCommands: trace.wrappedInbound.slice() };
+
+    if (!trace.inboundTransportWrapped) {
+      const originalReceive = adapter.ReceiveHandler;
+      if (typeof originalReceive !== 'function') {
+        if (trace.watchedInbound.length) throw new Error('UserMsgAdapter receive transport unavailable');
+        trace.inboundTransportAvailable = false;
+      } else {
+        adapter.ReceiveHandler = function uiAuditTracedReceiveHandler() {
+          const buffer = adapter.receive_byteBuff;
+          let frame = null;
+          if (adapter.is_game_connected !== false && buffer && Number(buffer.length || 0) >= 4
+            && Number(buffer.pos || 0) <= Number(buffer.length || 0) - 4) {
+            const before = Number(buffer.pos || 0);
+            try {
+              const frameLength = Number(buffer.readUint32());
+              const cmd = Number(buffer.readUint16());
+              const compression = Number(buffer.readByte());
+              frame = {
+                at: new Date().toISOString(),
+                sequence: ++trace.inboundSequence,
+                cmd,
+                transport: 'receive-frame',
+                frame: { start: before, length: frameLength, compression, bufferLength: Number(buffer.length || 0) },
+                payload: null,
+              };
+            } catch (error) {
+              frame = {
+                at: new Date().toISOString(),
+                sequence: ++trace.inboundSequence,
+                cmd: null,
+                transport: 'receive-frame',
+                frameError: String(error && error.message || error),
+              };
+            } finally {
+              buffer.pos = before;
+            }
+          }
+          if (!frame || frame.cmd == null) return originalReceive.apply(this, arguments);
+          attachInboundHandler(frame.cmd);
+          frame.handler = {
+            registered: typeof (adapter.register_list && adapter.register_list[frame.cmd]) === 'function',
+            attached: trace.wrappedInbound.includes(frame.cmd),
+            invoked: false,
+          };
+          const insertAt = trace.inbound.length;
+          trace.inbound.push(frame);
+          const previous = trace.currentInbound;
+          trace.currentInbound = frame;
+          try {
+            return originalReceive.apply(this, arguments);
+          } catch (error) {
+            frame.transportError = String(error && error.message || error);
+            throw error;
+          } finally {
+            trace.currentInbound = previous;
+            for (let index = trace.inbound.length - 1; index > insertAt; index--) {
+              const legacy = trace.inbound[index];
+              if (Number(legacy && legacy.cmd) !== Number(frame.cmd) || legacy.transport) continue;
+              if (frame.payload == null && legacy.payload != null) frame.payload = clone(legacy.payload);
+              frame.handler = { registered: true, attached: true, invoked: true, legacyAssociation: true };
+              trace.inbound.splice(index, 1);
+            }
+          }
+        };
+        trace.inboundTransportWrapped = true;
+        trace.inboundTransportAvailable = true;
+      }
+    }
+    for (const cmd of trace.watchedInbound) attachInboundHandler(cmd);
+    return {
+      installed: true,
+      inboundTransportAvailable: trace.inboundTransportAvailable === true,
+      inboundCommands: trace.watchedInbound.slice(),
+      attachedHandlers: trace.wrappedInbound.slice(),
+      handlerAssociations: clone(trace.handlerAssociations),
+    };
   }, { inboundCommands });
 }
 
@@ -298,6 +428,8 @@ async function resetLegacyProtocolTrace(page, label) {
     trace.outbound.length = 0;
     trace.inbound.length = 0;
     trace.pendingOutbound = null;
+    trace.currentInbound = null;
+    trace.inboundSequence = 0;
     return true;
   }, label);
 }

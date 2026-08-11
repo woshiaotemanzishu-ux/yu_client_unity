@@ -11,11 +11,71 @@ const {
   evaluateProtocolAssertions,
   validateRouteProtocolContract,
   installLegacyProtocolTrace,
+  resetLegacyProtocolTrace,
   readLegacyProtocolTrace,
 } = require('../lib/protocol-probe.cjs');
 
 const policy = loadProtocolPolicy(path.join(__dirname, '..', 'policies', 'protocols.json'));
 const trace = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'protocol-trace.json'), 'utf8'));
+const lifecycleFixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'protocol-trace-lifecycle.json'), 'utf8'));
+
+class FixtureReceiveByte {
+  constructor(cmd, payloadValue) {
+    this.cmd = Number(cmd);
+    this.payloadValue = Number(payloadValue);
+    this.length = lifecycleFixture.frameLength;
+    this.pos = 0;
+  }
+
+  readUint32() {
+    assert.equal(this.pos, 0);
+    this.pos = 4;
+    return this.length;
+  }
+
+  readUint16() {
+    if (this.pos === 4) {
+      this.pos = 6;
+      return this.cmd;
+    }
+    assert.equal(this.pos, 7);
+    this.pos = 9;
+    return this.payloadValue;
+  }
+
+  readByte() {
+    assert.equal(this.pos, 6);
+    this.pos = 7;
+    return lifecycleFixture.compression;
+  }
+}
+
+function inboundFixtureAdapter() {
+  return {
+    is_game_connected: true,
+    register_list: {},
+    receive_byteBuff: new FixtureReceiveByte(lifecycleFixture.cmd, lifecycleFixture.payloads.afterLateRegistration),
+    WriteBegin() {},
+    WriteFMT() {},
+    SendToGame() {},
+    RegisterMsgOperate(id, handler) { this.register_list[Number(id)] = handler; },
+    GetSCMD() { return { pos: this.receive_byteBuff.readUint16() }; },
+    ReceiveHandler() {
+      const buffer = this.receive_byteBuff;
+      if (!this.is_game_connected || buffer.length < 4 || buffer.pos > buffer.length - 4) return;
+      buffer.readUint32();
+      const cmd = buffer.readUint16();
+      buffer.readByte();
+      const handler = this.register_list[cmd];
+      if (handler) handler();
+    },
+  };
+}
+
+function fixturePage(adapter) {
+  global.window = { UserMsgAdapter: { GetInstance: () => adapter } };
+  return { evaluate: async (fn, arg) => fn(arg) };
+}
 
 test('required and forbidden protocol assertions use transport records', () => {
   const result = evaluateProtocolAssertions(trace, {
@@ -88,6 +148,69 @@ test('transport trace records custom WriteBegin/WriteFMT/SendToGame writes for f
     }, policy);
     assert.equal(result.pass, false);
     assert.equal(result.forbidden[0].count, 1);
+  } finally {
+    delete global.window;
+  }
+});
+
+test('trace installs before a response handler, lazily associates it, and keeps transport receive authority', async () => {
+  const adapter = inboundFixtureAdapter();
+  const page = fixturePage(adapter);
+  let businessPayload = null;
+  try {
+    const installed = await installLegacyProtocolTrace(page, { inboundCommands: [lifecycleFixture.cmd] });
+    assert.equal(installed.inboundTransportAvailable, true);
+    assert.deepEqual(installed.attachedHandlers, []);
+    assert.equal(installed.handlerAssociations['15010'].registered, false);
+
+    adapter.receive_byteBuff = new FixtureReceiveByte(lifecycleFixture.cmd, lifecycleFixture.payloads.beforeHandler);
+    adapter.ReceiveHandler();
+    const withoutHandler = await readLegacyProtocolTrace(page);
+    assert.equal(withoutHandler.inbound.length, 1);
+    assert.equal(withoutHandler.inbound[0].transport, 'receive-frame');
+    assert.deepEqual(withoutHandler.inbound[0].handler, { registered: false, attached: false, invoked: false });
+    assert.equal(evaluateProtocolAssertions(withoutHandler, {
+      required: [{ direction: 'inbound', cmd: 15010 }],
+    }, policy).pass, true);
+    await resetLegacyProtocolTrace(page, 'late-handler-registration');
+
+    adapter.RegisterMsgOperate(lifecycleFixture.cmd, () => { businessPayload = adapter.GetSCMD(String(lifecycleFixture.cmd)); });
+    adapter.receive_byteBuff = new FixtureReceiveByte(lifecycleFixture.cmd, lifecycleFixture.payloads.afterLateRegistration);
+    adapter.ReceiveHandler();
+
+    const recorded = await readLegacyProtocolTrace(page);
+    assert.equal(recorded.schema, 3);
+    assert.equal(recorded.inbound.length, 1);
+    assert.equal(recorded.inbound[0].transport, 'receive-frame');
+    assert.equal(recorded.inbound[0].cmd, 15010);
+    assert.equal(recorded.inbound[0].frame.length, 9);
+    assert.deepEqual(recorded.inbound[0].payload, { pos: 4 });
+    assert.deepEqual(recorded.inbound[0].handler, { registered: true, attached: true, invoked: true });
+    assert.deepEqual(businessPayload, { pos: 4 });
+    assert.equal(evaluateProtocolAssertions(recorded, {
+      mode: 'read-only',
+      required: [{ direction: 'inbound', cmd: 15010, payloadFields: { pos: 4 } }],
+      forbidden: [{ direction: 'outbound', cmd: 15201 }],
+    }, policy).pass, true);
+  } finally {
+    delete global.window;
+  }
+});
+
+test('an already registered response handler is associated without changing its payload cursor', async () => {
+  const adapter = inboundFixtureAdapter();
+  let businessPayload = null;
+  adapter.RegisterMsgOperate(lifecycleFixture.cmd, () => { businessPayload = adapter.GetSCMD(String(lifecycleFixture.cmd)); });
+  const page = fixturePage(adapter);
+  try {
+    const installed = await installLegacyProtocolTrace(page, { inboundCommands: [lifecycleFixture.cmd] });
+    assert.deepEqual(installed.attachedHandlers, [lifecycleFixture.cmd]);
+    adapter.receive_byteBuff = new FixtureReceiveByte(lifecycleFixture.cmd, lifecycleFixture.payloads.existingHandler);
+    adapter.ReceiveHandler();
+    const recorded = await readLegacyProtocolTrace(page);
+    assert.equal(recorded.inbound.length, 1);
+    assert.deepEqual(recorded.inbound[0].payload, { pos: 5 });
+    assert.deepEqual(businessPayload, { pos: 5 });
   } finally {
     delete global.window;
   }

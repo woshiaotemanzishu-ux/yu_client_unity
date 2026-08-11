@@ -43,7 +43,9 @@ Node 调用方可 `const uiAudit = require('./Tools/UIAudit')`，也可直接 re
 { "cmd": 16002, "fmt": "c", "args": [5], "ruleId": "outward-base-read-16002" }
 ```
 
-required outbound 断言必须提供精确 `fmt+args`，或绑定公共 `ruleId`；只写 `cmd` 会在 `route-protocol-contract` 失败。当前公共策略覆盖 Bag/Warehouse `15010` 容器读、Pet `16002/16006/16011/16028` 和 Fashion `41312`。页面不能内联扩展 policy；新增命令必须由公共层核对当前源码哈希、命令语义与签名后加入策略。trace 包装底层 `WriteBegin/WriteFMT/SendToGame`，所以 41305 等自定义写包链也能证明“未发送”或精确捕获违规发送。
+required outbound 断言必须提供精确 `fmt+args`，或绑定公共 `ruleId`；只写 `cmd` 会在 `route-protocol-contract` 失败。当前公共策略覆盖 Bag/Warehouse `15010` 容器读、Pet `16002/16006/16011/16028` 和 Fashion `41312`。页面不能内联扩展 policy；新增命令必须由公共层核对当前源码哈希、命令语义与签名后加入策略。
+
+protocol trace v3 的收发权威都在 transport 层：outbound 包装 `WriteBegin/WriteFMT/SendToGame`，所以 41305 等自定义写包链也能证明“未发送”或精确捕获违规发送；inbound 在 `ReceiveHandler` 读取 frame header 前记录 `cmd/frame length/compression/sequence`，不要求业务 `register_list[cmd]` 已存在。`inboundCommands` 只声明哪些命令需要可选 payload 关联：handler 已存在则立即包裹，尚未注册则通过 `RegisterMsgOperate` 惰性附着，并在真实 handler 调用前读取 payload 后恢复 Byte cursor。handler 缺失、注册状态或 payload 解码失败只作为关联元数据，不能抹掉或替代 transport frame 证据。
 
 ### 通用动作
 
@@ -69,7 +71,7 @@ selector 支持 `dataIdentity` 子集匹配，例如 `{ "dataIdentity": { "fashi
 | `lib/canvas-input.cjs` | Canvas rect 坐标换算、唯一命中后的真实 click/drag |
 | `lib/popup-policy.cjs` | `allow/forbid/unknown-hard-stop`、安全节点与副作用策略 |
 | `lib/item-use.cjs` | ItemUse 精确身份、稳定帧、队列和一次受控关闭 |
-| `lib/protocol-probe.cjs` | 底层收发 trace、读写分类、required/forbidden 与 policy 闸 |
+| `lib/protocol-probe.cjs` | transport 级收发 trace、handler 惰性关联、读写分类、required/forbidden 与 policy 闸 |
 | `lib/route-assertions.cjs` | 节点、条件分支、几何、裁剪和滚动断言 |
 | `lib/runtime-probes.cjs` | 声音调用与 RenderTexture 非透明像素 ready |
 | `lib/server-readiness.cjs` | 无浏览器 HTTP readiness 与稳定错误分类 |
