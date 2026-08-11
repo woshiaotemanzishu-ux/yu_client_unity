@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "view": "CycleimpActlistYesterday",
+  "detectedTopFirst": [
+    { "view": "CycleimpActlistYesterday", "source": "loaded-view", "stackIndex": 6 },
+    { "view": "CycleimpActlistYesterday", "source": "laya-stage", "stackIndex": 6 },
+    { "view": "DailyActTipView", "source": "laya-stage", "stackIndex": 5 }
+  ],
+  "stableCloseSamples": [
+    { "visibleViews": ["MainUITopView", "CycleimpActlistYesterday"], "stage": { "frameToken": 500 } },
+    { "visibleViews": ["MainUITopView"], "stage": { "frameToken": 501 } },
+    { "visibleViews": ["MainUITopView"], "stage": { "frameToken": 501 } },
+    { "visibleViews": ["MainUITopView"], "stage": { "frameToken": 502 } }
+  ],
+  "reappearingSamples": [
+    { "visibleViews": ["MainUITopView"], "stage": { "frameToken": 600 } },
+    { "visibleViews": ["MainUITopView", "CycleimpActlistYesterday"], "stage": { "frameToken": 601 } },
+    { "visibleViews": ["MainUITopView"], "stage": { "frameToken": 602 } }
+  ]
+}

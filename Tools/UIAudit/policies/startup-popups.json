@@ -10,7 +10,11 @@
   "authority": {
     "popupConfig": { "pathFromLegacyRoot": "cdn/resource/config/client/ClientConfigPopupLevel.json", "sha256": "f0a20508589ccd15a9a3c4a259dc17b8f0bf2c641fd9e9749104825e98de890e" },
     "queueModel": { "pathFromLegacyRoot": "h5/src/commonModel/ViewPopLevelModel.ts", "sha256": "e4e4a90c9f115d288e986fcb058d1b9229edf44abe48ece1ddfe84716b0e0fb3" },
-    "viewManager": { "pathFromLegacyRoot": "h5/src/common/ViewManager.ts", "sha256": "39dc85378093c91493a7efe8b332097e1aa1b71fc3bf72108b3bdf03702d5739" }
+    "viewManager": { "pathFromLegacyRoot": "h5/src/common/ViewManager.ts", "sha256": "39dc85378093c91493a7efe8b332097e1aa1b71fc3bf72108b3bdf03702d5739" },
+    "cycleimpYesterdayController": { "pathFromLegacyRoot": "h5/src/commonController/CycleimpActlistController.ts", "sha256": "4218ba1868d72188e5e3caa8959d31810c273e366ba8175d170cce33c12ee9ec" },
+    "cycleimpYesterdayModel": { "pathFromLegacyRoot": "h5/src/commonModel/CycleimpActlistModel.ts", "sha256": "1de5b80a4266cfa5e7a8e201dc18f5bd3fd60171914bc8e44c6ba9112edb93df" },
+    "baseViewLifecycle": { "pathFromLegacyRoot": "h5/src/common/BaseView1.ts", "sha256": "03e22ed906bbaa24aa4dee9a2cefbb234f3b17c688765cb7e68824826ffe8119" },
+    "customActivityDayFirstLogin": { "pathFromLegacyRoot": "h5/src/commonModel/CustomActivityModel.ts", "sha256": "74af282ff17d0c77d553e2ba8cecfa996947d7a4ac48c4015b566053528f64ca" }
   },
   "entries": [
     {
@@ -144,6 +148,53 @@
       "closeProtocols": [], "closeWrites": ["DeleteCurrentItem and pending queue advance"],
       "reason": "generic startup drain must never close ItemUseView; use the controlled ItemUse probe",
       "source": { "pathFromLegacyRoot": "h5/src/common/ItemUseView.ts", "sha256": "61b8f5d0a75962ab3501c9c025793da2a4eafcb4fe91163cc21d5db5f8c9762f" }
+    },
+    {
+      "view": "CycleimpActlistYesterday", "action": "allow",
+      "queue": {
+        "kind": "direct-response-open",
+        "configured": false,
+        "configKey": "CycleimpActlistYesterday",
+        "order": "observed-top-first",
+        "reason": "the view is absent from ClientConfigPopupLevel and opens directly from the 22703 response handler"
+      },
+      "trigger": {
+        "responseCmd": 22703,
+        "conditions": [
+          "push_type == 1 or the model's first-yesterday flag and current-day first-login state",
+          "rank_list.length > 0",
+          "main role level >= 150"
+        ],
+        "open": "CycleimpActlistEvent.OPEN_VIEW -> CycleimpActlistYesterday"
+      },
+      "identifyNodes": ["CycleimpActlistYesterday", "_img_bg", "_btn_close", "Content", "lb_title"],
+      "safeClose": {
+        "kind": "view-node",
+        "node": "_btn_close",
+        "mode": "single-click-stable-frames",
+        "maxClicks": 1,
+        "requiresCurrentView": true,
+        "stability": {
+          "kind": "absent-advancing-laya-frames",
+          "consecutiveFrames": 2,
+          "timeoutMs": 2000,
+          "pollMs": 50
+        }
+      },
+      "dangerousNodes": [],
+      "openSideEffects": ["22703 response data and the daily-first-login decision are consumed before the view opens"],
+      "closeSideEffects": ["delete the local LoopScrowViewMgr and let ViewManager advance any independently queued popup"],
+      "closeProtocols": [],
+      "closeWrites": [],
+      "reason": "_btn_close only calls BaseView1.Close; the view close callback only deletes the local list manager",
+      "sourceEvidence": [
+        { "authority": "cycleimpYesterdayController", "lines": "92-110", "fact": "trigger and direct OPEN_VIEW chain" },
+        { "authority": "cycleimpYesterdayModel", "lines": "68-69,140-157", "fact": "one-session flags and yesterday response storage" },
+        { "authority": "customActivityDayFirstLogin", "lines": "3821-3830", "fact": "current-day first-login state" },
+        { "authority": "baseViewLifecycle", "lines": "436-520,585-590", "fact": "Close is local lifecycle cleanup before ViewManager queue advancement" },
+        { "authority": "viewManager", "lines": "331-341,419-440", "fact": "exact background/current-view close and next-popup lifecycle" }
+      ],
+      "source": { "pathFromLegacyRoot": "h5/src/cycleimpActlist/CycleimpActlistYesterday.ts", "sha256": "bd5849b3e4399ca4c9e0256b0d11113feaced161eb19b310a5bbabbd638c5907" }
     },
     {
       "view": "RuneTreasureResultView", "sort": -1, "action": "allow",

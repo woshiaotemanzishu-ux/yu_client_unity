@@ -16,6 +16,18 @@ function validatePopupPolicy(policy) {
     if (!['allow', 'forbid'].includes(entry && entry.action)) errors.push(`action:${entry && entry.view}`);
     if (entry && entry.action === 'allow' && (!entry.safeClose || !entry.safeClose.kind)) errors.push(`safeClose:${entry.view}`);
     if (entry && entry.action === 'forbid' && entry.safeClose) errors.push(`forbid-safeClose:${entry.view}`);
+    const stability = entry && entry.safeClose && entry.safeClose.stability;
+    if (stability) {
+      if (stability.kind !== 'absent-advancing-laya-frames') errors.push(`stability-kind:${entry.view}`);
+      for (const field of ['consecutiveFrames', 'timeoutMs', 'pollMs']) {
+        if (!Number.isInteger(Number(stability[field])) || Number(stability[field]) <= 0) {
+          errors.push(`stability-${field}:${entry.view}`);
+        }
+      }
+    }
+    if (entry && entry.queue && entry.queue.order === 'observed-top-first') {
+      if (entry.queue.configured !== false || entry.sort != null) errors.push(`runtime-stack-order:${entry.view}`);
+    }
     if (!Array.isArray(entry && entry.closeProtocols) || !Array.isArray(entry && entry.closeWrites)) {
       errors.push(`side-effect-schema:${entry && entry.view}`);
     }
@@ -62,7 +74,14 @@ function dedupePopupQueue(items) {
 }
 
 function orderPopupQueue(items, policy) {
-  return dedupePopupQueue(items).sort((left, right) => {
+  const deduped = dedupePopupQueue(items);
+  const runtimeStackViews = deduped
+    .filter(item => getPopupEntry(policy, item.view)?.queue?.order === 'observed-top-first')
+    .map(item => item.view);
+  if (runtimeStackViews.length) {
+    throw new Error(`POPUP_OBSERVED_TOP_FIRST_REQUIRED: ${runtimeStackViews.join(',')}`);
+  }
+  return deduped.sort((left, right) => {
     const leftEntry = getPopupEntry(policy, left.view);
     const rightEntry = getPopupEntry(policy, right.view);
     const leftSort = Number.isFinite(Number(left.sort)) ? Number(left.sort) : Number(leftEntry && leftEntry.sort);
@@ -72,6 +91,42 @@ function orderPopupQueue(items, policy) {
     }
     return 0;
   });
+}
+
+function popupCloseStability(samples, viewName, stability) {
+  if (!stability || stability.kind !== 'absent-advancing-laya-frames') {
+    throw new Error(`POPUP_STABILITY_INVALID: ${viewName}`);
+  }
+  const requiredFrames = Number(stability.consecutiveFrames);
+  let stableFrames = 0;
+  let lastCountedFrame = null;
+  let lastFrameToken = null;
+  let present = null;
+  for (const sample of samples || []) {
+    const visibleViews = Array.isArray(sample && sample.visibleViews) ? sample.visibleViews : [];
+    present = visibleViews.includes(viewName);
+    const frameToken = Number(sample && sample.stage && sample.stage.frameToken);
+    lastFrameToken = Number.isFinite(frameToken) ? frameToken : null;
+    if (present) {
+      stableFrames = 0;
+      lastCountedFrame = null;
+      continue;
+    }
+    if (!Number.isFinite(frameToken) || (lastCountedFrame != null && frameToken <= lastCountedFrame)) continue;
+    lastCountedFrame = frameToken;
+    stableFrames++;
+    if (stableFrames >= requiredFrames) break;
+  }
+  return {
+    pass: stableFrames >= requiredFrames,
+    view: viewName,
+    kind: stability.kind,
+    requiredFrames,
+    stableFrames,
+    lastFrameToken,
+    present,
+    samples: Array.isArray(samples) ? samples.length : 0,
+  };
 }
 
 function planPopupDrain(items, policy, options = {}) {
@@ -114,4 +169,5 @@ module.exports = {
   orderPopupQueue,
   planPopupDrain,
   assertSafePopupDecision,
+  popupCloseStability,
 };

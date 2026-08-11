@@ -7,7 +7,7 @@ const { pathToFileURL } = require('url');
 const { createRequire } = require('module');
 const { findEdgeExecutable } = require('./preflight.cjs');
 const { collectRuntimeSnapshot, findNodes } = require('./runtime-tree.cjs');
-const { decidePopup, assertSafePopupDecision } = require('./popup-policy.cjs');
+const { decidePopup, assertSafePopupDecision, popupCloseStability } = require('./popup-policy.cjs');
 const { clickRuntimeTarget } = require('./canvas-input.cjs');
 
 const LEGACY_720_LOGIN = Object.freeze({
@@ -134,9 +134,22 @@ class HeadlessUiSession {
       }
       await sleep(close.mode && close.mode.includes('tween') ? 900 : 300);
     }
+    if (close.stability) {
+      const samples = [];
+      const deadline = Date.now() + Number(close.stability.timeoutMs);
+      let stability = popupCloseStability(samples, viewName, close.stability);
+      while (Date.now() <= deadline && !stability.pass) {
+        const snapshot = await this.snapshot();
+        samples.push({ visibleViews: snapshot.visibleViews, stage: snapshot.stage });
+        stability = popupCloseStability(samples, viewName, close.stability);
+        if (!stability.pass) await sleep(Number(close.stability.pollMs));
+      }
+      if (!stability.pass) throw new Error(`POPUP_CLOSE_NOT_STABLE: ${JSON.stringify(stability)}`);
+      return { closed: true, clicks: maxClicks, decision, stability };
+    }
     const after = await this.snapshot();
     if (after.visibleViews.includes(viewName)) throw new Error(`POPUP_DID_NOT_CLOSE: ${viewName}`);
-    return { closed: true, clicks: maxClicks, decision };
+    return { closed: true, clicks: maxClicks, decision, stability: null };
   }
 
   async loginAndReachMainUi(options) {

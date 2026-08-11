@@ -2,16 +2,63 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('fs');
 const path = require('path');
-const { loadPopupPolicy, decidePopup, orderPopupQueue, planPopupDrain, assertSafePopupDecision } = require('../lib/popup-policy.cjs');
+const {
+  loadPopupPolicy,
+  decidePopup,
+  orderPopupQueue,
+  planPopupDrain,
+  assertSafePopupDecision,
+  popupCloseStability,
+} = require('../lib/popup-policy.cjs');
 
 const policy = loadPopupPolicy(path.join(__dirname, '..', 'policies', 'startup-popups.json'));
+const cycleimpFixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'startup-popup-cycleimp-yesterday.json'), 'utf8'));
 
 test('unknown popup is an unconditional hard stop', () => {
-  assert.equal(policy.entries.length, 16);
+  assert.equal(policy.entries.length, 17);
   const decision = decidePopup(policy, 'NeverAuditedPopup');
   assert.equal(decision.action, 'unknown-hard-stop');
   assert.throws(() => assertSafePopupDecision(decision), /POPUP_HARD_STOP/);
+});
+
+test('Cycleimp yesterday is source-backed, deduplicated and requires observed runtime stack order', () => {
+  const decision = decidePopup(policy, cycleimpFixture.view);
+  assert.equal(decision.action, 'allow');
+  assert.equal(decision.entry.sort, undefined);
+  assert.deepEqual(decision.entry.queue, {
+    kind: 'direct-response-open',
+    configured: false,
+    configKey: 'CycleimpActlistYesterday',
+    order: 'observed-top-first',
+    reason: 'the view is absent from ClientConfigPopupLevel and opens directly from the 22703 response handler',
+  });
+  assert.deepEqual(assertSafePopupDecision(decision), decision.entry.safeClose);
+  assert.throws(() => orderPopupQueue(cycleimpFixture.detectedTopFirst, policy), /POPUP_OBSERVED_TOP_FIRST_REQUIRED/);
+
+  const plan = planPopupDrain(cycleimpFixture.detectedTopFirst, policy, { observedTopFirst: true });
+  assert.equal(plan.pass, true);
+  assert.deepEqual(plan.steps.map(step => step.view), ['CycleimpActlistYesterday', 'DailyActTipView']);
+  assert.equal(plan.steps[0].observed.source, 'laya-stage');
+  assert.equal(plan.steps[0].entry.closeProtocols.length, 0);
+  assert.equal(plan.steps[0].entry.closeWrites.length, 0);
+});
+
+test('Cycleimp close needs two distinct advancing Laya frames with the view absent', () => {
+  const entry = decidePopup(policy, cycleimpFixture.view).entry;
+  const stable = popupCloseStability(cycleimpFixture.stableCloseSamples, cycleimpFixture.view, entry.safeClose.stability);
+  assert.equal(stable.pass, true);
+  assert.equal(stable.stableFrames, 2);
+  assert.equal(stable.lastFrameToken, 502);
+
+  const duplicateFrame = popupCloseStability(cycleimpFixture.stableCloseSamples.slice(0, 3), cycleimpFixture.view, entry.safeClose.stability);
+  assert.equal(duplicateFrame.pass, false);
+  assert.equal(duplicateFrame.stableFrames, 1);
+
+  const reappearing = popupCloseStability(cycleimpFixture.reappearingSamples, cycleimpFixture.view, entry.safeClose.stability);
+  assert.equal(reappearing.pass, false);
+  assert.equal(reappearing.stableFrames, 1);
 });
 
 test('safe startup popups are deduplicated and ordered by authoritative sort', () => {

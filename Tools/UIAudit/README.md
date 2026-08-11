@@ -25,6 +25,10 @@ Node 调用方可 `const uiAudit = require('./Tools/UIAudit')`，也可直接 re
 
 正式 route 只保存 route map、selector、控件名和断言数据，不复制登录、运行树、JSON、弹窗、协议或 server 启动逻辑。
 
+### 启动弹窗
+
+`policies/startup-popups.json` 只允许 source-backed 的精确身份。配置队列弹窗按 `ClientConfigPopupLevel.sort` 处理；不在该配置且由回包直接打开的弹窗禁止伪造 sort，只能使用真实 visible stack 的 top-first 顺序。`CycleimpActlistYesterday` 是后一类：由 `22703` 回包在推送或当日首次登录、榜单非空且角色等级至少 150 时直接打开；唯一安全面是 `_btn_close`。关闭后必须连续两个已推进的 Laya 帧都不存在该 View，重复 frame token 或中途重现均不算关闭完成。未知弹窗仍一律 `unknown-hard-stop`。
+
 ### ItemUseView
 
 每条 route 必须明确二选一：
@@ -69,7 +73,7 @@ selector 支持 `dataIdentity` 子集匹配，例如 `{ "dataIdentity": { "fashi
 | `lib/safe-json.cjs` | 只丢祖先环、保留共享引用的 JSON 与原子写入 |
 | `lib/runtime-tree.cjs` | loaded/managed/`Laya.stage` 统一节点 schema 与数据身份 |
 | `lib/canvas-input.cjs` | Canvas rect 坐标换算、唯一命中后的真实 click/drag |
-| `lib/popup-policy.cjs` | `allow/forbid/unknown-hard-stop`、安全节点与副作用策略 |
+| `lib/popup-policy.cjs` | `allow/forbid/unknown-hard-stop`、配置队列/真实栈顺序、安全节点与稳定关闭帧 |
 | `lib/item-use.cjs` | ItemUse 精确身份、稳定帧、队列和一次受控关闭 |
 | `lib/protocol-probe.cjs` | transport 级收发 trace、handler 惰性关联、读写分类、required/forbidden 与 policy 闸 |
 | `lib/route-assertions.cjs` | 节点、条件分支、几何、裁剪和滚动断言 |
