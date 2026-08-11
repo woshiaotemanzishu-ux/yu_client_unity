@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ui-audit.runtime-node.v1",
+  "type": "object",
+  "required": ["schema", "source", "path", "name", "visible", "interaction", "state"],
+  "properties": {
+    "schema": { "const": "ui-audit.runtime-node.v1" },
+    "source": { "enum": ["loaded-view", "managed-view", "laya-stage", "unknown"] },
+    "path": { "type": "string" },
+    "name": { "type": "string" },
+    "visible": { "type": "boolean" }
+  }
+}

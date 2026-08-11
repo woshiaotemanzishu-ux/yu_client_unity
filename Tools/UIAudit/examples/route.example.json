@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "id": "example.read-only-page",
+  "engine": "legacy-laya",
+  "url": "http://127.0.0.1:8091/index.html",
+  "legacyRoot": "E:/GitProject/yu_client",
+  "snapshotSource": "E:/GitProject/yu_client/tools/yu-resource-tool/frontend/src/utils/pageSnapshot.js",
+  "popupPolicy": "../policies/startup-popups.json",
+  "protocolPolicy": "../policies/protocols.json",
+  "viewport": { "width": 720, "height": 1280 },
+  "session": {
+    "accountEnv": "UIAUDIT_ACCOUNT",
+    "passwordEnv": "UIAUDIT_PASSWORD"
+  },
+  "protocol": {
+    "inboundCommands": [15010],
+    "assertions": {
+      "mode": "read-only",
+      "forbidden": [{ "direction": "outbound", "cmd": 15201 }, { "direction": "outbound", "cmd": 15050 }]
+    }
+  },
+  "controls": [
+    { "id": "example_button", "selector": { "source": "laya-stage", "view": "ExampleView", "name": "example_btn", "expectedCount": 1 } }
+  ],
+  "steps": [
+    { "action": "snapshot", "label": "00_mainui_ready" },
+    { "action": "click", "label": "01_open", "selector": { "source": "laya-stage", "view": "MainUITopView", "name": "example_btn", "expectedCount": 1 }, "settleMs": 350 },
+    { "action": "wait-view", "view": "ExampleView", "visible": true },
+    { "action": "snapshot", "label": "02_example_ready" },
+    { "action": "assert-protocol", "assertions": { "mode": "read-only", "forbidden": [{ "direction": "outbound", "cmd": 15201 }] } }
+  ]
+}

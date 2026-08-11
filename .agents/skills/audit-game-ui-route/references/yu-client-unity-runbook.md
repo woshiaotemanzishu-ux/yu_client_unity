@@ -27,7 +27,9 @@
 
 ## 日常无头对比
 
-- 常规对比使用项目已有 `tools/headless/` 的 Puppeteer/系统 Edge 能力扩展路线脚本，不使用 Computer Use。老 H5 与 Unity WebGL 均在后台浏览器中按真实 Canvas 指针事件操作；Browser MCP 只用于首次探索或排障。
+- 常规对比使用 `Tools/UIAudit/` 复用 `Tools/headless/` 的 Puppeteer/系统 Edge 依赖，不使用 Computer Use。老 H5 与 Unity WebGL 均在后台浏览器中按真实 Canvas 指针事件操作；Browser MCP 只用于首次探索或排障。页面路线必须是 JSON 数据，不得重复实现登录、运行树、序列化、启动弹窗、`ItemUseView` 或协议 trace。
+- 执行前先跑 `node Tools/UIAudit/cli.cjs preflight --route <route.json> --output <new-run>`；Node/Edge/Puppeteer、策略、authority、凭证、route schema 或不可变输出任一失败都硬停。未知启动弹窗、危险关闭面、未知/格式错误协议同样硬停，不猜右上角、中心点或 Controller。
+- 同一种基础设施故障第二次出现时停止页面工作并晋升 `Tools/UIAudit`，补确定性 fixture 后再恢复页面。`output/` 只存不可变截图、snapshot、trace 和报告；公共代码、策略、schema、fixture 不得放入其中。
 - 同账号单会话必须先完成老端路线并确认断线，再登录 Unity。固定保存 `720×1280` 移动端和一个宽屏 viewport 的 old/unity/overlay/diff。
 - Unity 页面采证前先核对当前源码指纹、Player 哈希和服务器 catalog 哈希。首次或内容状态不可信时运行 `BuildAllWebCli`；只改 C# 且持续工作区保留成套内容时才运行 `BuildWebShellOnlyCli`；纯 Addressable Prefab/资源改动只构建内容。缺少精确同批证明时禁止继续对比。
 - 当前壳构建预算按 12～25 分钟。Headless 只消除手工点击和截图整理，不消除构建时间；整包按页面/逻辑批次执行，页面 `done` 前至少有一份当前真实包报告。
@@ -73,7 +75,7 @@ screenY = rect.y + designY * rect.height / 1280
 
 ## 证据命名
 
-建议目录：`output/ui_route_audit/YYYY-MM-DD_<route>/<run-id>/`。同一路线每次复验创建新 run 子目录，不覆盖旧截图、日志或报告；台账中的正式文件引用同时记录 SHA-256。
+建议目录：`output/ui_route_audit/YYYY-MM-DD_<route>/<run-id>/`。同一路线每次复验创建新 run 子目录，不覆盖旧截图、日志或报告；`Tools/UIAudit` 写入器默认拒绝覆盖。台账中的正式文件引用同时记录 SHA-256。整个 `output/` 已从 Git 跟踪中移除并被忽略，磁盘证据仍保留；需要版本化的内容必须迁入正式工具或文档目录。
 
 - `old_00_entry.jpg`、`old_01_target.jpg`
 - `unity_before_00_entry.jpg`、`unity_before_01_failure.jpg`

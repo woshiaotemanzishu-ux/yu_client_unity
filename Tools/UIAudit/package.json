@@ -1,0 +1,17 @@
+{
+  "name": "@shenxiao/ui-audit",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "main": "index.cjs",
+  "description": "神霄 UI 精修真实 Headless 采集与安全探针公共基础设施",
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "preflight": "node cli.cjs preflight",
+    "run": "node cli.cjs run",
+    "version": "node cli.cjs version"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "capturedAt": "2026-08-11T00:00:00.000Z",
+  "loaded": [
+    { "name": "ItemUseView", "visible": true, "loaded": true, "open": true },
+    { "name": "ExampleView", "visible": true, "loaded": true, "open": true }
+  ],
+  "managed": {
+    "views": [
+      {
+        "meta": { "name": "ItemUseView" },
+        "nodeTree": {
+          "name": "ItemUseView", "type": "Box", "effectiveVisible": true,
+          "children": [
+            { "name": "name_label", "type": "Label", "text": "离线挂机卡", "effectiveVisible": true, "children": [] },
+            { "name": "bottom_label", "type": "Label", "text": "剩余不足2小时", "effectiveVisible": true, "children": [] }
+          ]
+        }
+      }
+    ]
+  },
+  "stage": {
+    "meta": { "width": 720, "height": 1280, "frameToken": 100 },
+    "nodes": [
+      { "name": "stage", "type": "Stage", "path": "stage[0]", "indexPath": [0], "depth": 0, "visible": true, "displayedInStage": true, "bounds": { "x": 0, "y": 0, "width": 720, "height": 1280 } },
+      { "name": "ItemUseView", "type": "ItemUseView", "view": "ItemUseView", "path": "stage[0]/ItemUseView[0]", "parentPath": "stage[0]", "indexPath": [0, 0], "depth": 1, "visible": true, "displayedInStage": true, "isAnim": false, "frameToken": 100, "dataIdentity": { "type_id": 38070001 }, "bounds": { "x": 90, "y": 300, "width": 540, "height": 650 }, "mouseEnabled": true, "hitTestCenter": true },
+      { "name": "name_label", "type": "Label", "view": "ItemUseView", "path": "stage[0]/ItemUseView[0]/name_label[0]", "parentPath": "stage[0]/ItemUseView[0]", "indexPath": [0, 0, 0], "depth": 2, "visible": true, "displayedInStage": true, "text": "离线挂机卡", "bounds": { "x": 250, "y": 420, "width": 220, "height": 40 }, "mouseEnabled": false },
+      { "name": "bottom_label", "type": "Label", "view": "ItemUseView", "path": "stage[0]/ItemUseView[0]/bottom_label[1]", "parentPath": "stage[0]/ItemUseView[0]", "indexPath": [0, 0, 1], "depth": 2, "visible": true, "displayedInStage": true, "text": "剩余不足2小时", "bounds": { "x": 250, "y": 720, "width": 220, "height": 40 }, "mouseEnabled": false },
+      { "name": "enter_btn", "type": "Button", "view": "ItemUseView", "path": "stage[0]/ItemUseView[0]/enter_btn[2]", "parentPath": "stage[0]/ItemUseView[0]", "indexPath": [0, 0, 2], "depth": 2, "visible": true, "displayedInStage": true, "bounds": { "x": 270, "y": 800, "width": 180, "height": 70 }, "mouseEnabled": true, "hitTestCenter": true },
+      { "name": "enter_label", "type": "Label", "view": "ItemUseView", "path": "stage[0]/ItemUseView[0]/enter_btn[2]/enter_label[0]", "parentPath": "stage[0]/ItemUseView[0]/enter_btn[2]", "indexPath": [0, 0, 2, 0], "depth": 3, "visible": true, "displayedInStage": true, "text": "购买", "bounds": { "x": 315, "y": 815, "width": 90, "height": 40 }, "mouseEnabled": false },
+      { "name": "close_btn", "type": "Button", "view": "ItemUseView", "path": "stage[0]/ItemUseView[0]/close_btn[3]", "parentPath": "stage[0]/ItemUseView[0]", "indexPath": [0, 0, 3], "depth": 2, "visible": true, "displayedInStage": true, "bounds": { "x": 570, "y": 320, "width": 48, "height": 48 }, "mouseEnabled": true, "disabled": false, "hitTestCenter": true }
+    ]
+  },
+  "warnings": []
+}

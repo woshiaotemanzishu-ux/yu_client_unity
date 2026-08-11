@@ -1,0 +1,158 @@
+{
+  "schema": 1,
+  "id": "legacy-h5.startup-popups.v1",
+  "default": "unknown-hard-stop",
+  "queue": {
+    "dedupeKey": "view",
+    "normalOrder": "sort-descending",
+    "nestedVisibility": "top visible popup must be handled first"
+  },
+  "authority": {
+    "popupConfig": { "pathFromLegacyRoot": "cdn/resource/config/client/ClientConfigPopupLevel.json", "sha256": "f0a20508589ccd15a9a3c4a259dc17b8f0bf2c641fd9e9749104825e98de890e" },
+    "queueModel": { "pathFromLegacyRoot": "h5/src/commonModel/ViewPopLevelModel.ts", "sha256": "e4e4a90c9f115d288e986fcb058d1b9229edf44abe48ece1ddfe84716b0e0fb3" },
+    "viewManager": { "pathFromLegacyRoot": "h5/src/common/ViewManager.ts", "sha256": "39dc85378093c91493a7efe8b332097e1aa1b71fc3bf72108b3bdf03702d5739" }
+  },
+  "entries": [
+    {
+      "view": "OnHookMainView", "sort": 14, "action": "allow",
+      "identifyNodes": ["OnHookMainView", "_img_close", "_gp_get_btn"],
+      "safeClose": { "kind": "view-node", "node": "_img_close", "mode": "single-click", "maxClicks": 1 },
+      "dangerousNodes": [{ "node": "_gp_get_btn", "effect": "protocol 13216 and reward continuation" }],
+      "closeProtocols": [], "closeWrites": [],
+      "reason": "_img_close only closes and performs local cleanup",
+      "source": { "pathFromLegacyRoot": "h5/src/onHook/OnHookMainView.ts", "sha256": "7b78e2ba307b0b6ab6da345b4db6aefff4efe35aca7f4ab0e2a43430ac1510f6" }
+    },
+    {
+      "view": "CongratulationObtainView", "sort": 13, "action": "allow",
+      "identifyNodes": ["CongratulationObtainView", "click_bg", "bottom_label"],
+      "safeClose": { "kind": "view-node", "node": "click_bg", "mode": "local-complete-then-close", "maxClicks": 2 },
+      "dangerousNodes": [{ "node": "bt_use", "effect": "continue item use" }, { "node": "bt_use_ten", "effect": "continue item use" }],
+      "closeProtocols": [], "closeWrites": [],
+      "reason": "click_bg only completes the local reveal or closes",
+      "source": { "pathFromLegacyRoot": "h5/src/common/CongratulationObtainView.ts", "sha256": "dbac213c849c244450743e8c730f2397f78183bffc1513850e74a6d6506788e4" }
+    },
+    {
+      "view": "SuperGiftView", "sort": 12, "action": "allow",
+      "identifyNodes": ["SuperGiftView", "close", "free", "check"],
+      "safeClose": { "kind": "view-node", "node": "close", "mode": "single-click-wait-tween", "maxClicks": 1 },
+      "dangerousNodes": [{ "node": "free", "effect": "protocol 33105" }, { "node": "check", "effect": "persistent cookie write" }],
+      "openSideEffects": ["local activity red-dot state cleared"], "closeProtocols": [], "closeWrites": [],
+      "reason": "close only runs local exit tween then closes",
+      "source": { "pathFromLegacyRoot": "h5/src/superGift/SuperGiftView.ts", "sha256": "aeb5fdaff35c705c72964c1d9e33eaa11827e0fc2a52b045559cdc58259231cc" }
+    },
+    {
+      "view": "ForeshowStarTipsView", "sort": 11, "action": "allow",
+      "identifyNodes": ["ForeshowStarTipsView", "_btn", "_check"],
+      "safeClose": { "kind": "shared-background", "node": "ViewManager._background", "requiresCurrentView": true, "mode": "single-click", "maxClicks": 1 },
+      "dangerousNodes": [{ "node": "_btn", "effect": "route navigation" }, { "node": "_check", "effect": "reminder state change" }],
+      "closeProtocols": [], "closeWrites": [], "closeSideEffects": ["advance local foreshow queue"],
+      "reason": "shared background closes only the exact current popup",
+      "source": { "pathFromLegacyRoot": "h5/src/foreshow/ForeshowStarTipsView.ts", "sha256": "662e2e68b0f3399233a6afdb9e983980e04086891c57fd8b31b0c95bd1f3a511" }
+    },
+    {
+      "view": "DailyActTipView", "sort": 10, "action": "allow",
+      "identifyNodes": ["DailyActTipView", "close", "yuyue", "go", "check"],
+      "safeClose": { "kind": "view-node", "node": "close", "mode": "single-click", "maxClicks": 1 },
+      "dangerousNodes": [{ "node": "yuyue", "effect": "protocol 15719" }, { "node": "check", "effect": "protocol 15722" }, { "node": "go", "effect": "route navigation" }],
+      "closeProtocols": [], "closeWrites": [],
+      "reason": "close only closes and cancels local timers",
+      "source": { "pathFromLegacyRoot": "h5/src/daily/DailyActTipView.ts", "sha256": "039f25a75d0722096f4020283d8ff0dfa7dbbea20af93462ba268cd55339cc1d" }
+    },
+    {
+      "view": "PushGiftTips", "sort": 9, "action": "allow",
+      "identifyNodes": ["PushGiftTips", "_btn_close", "_btn_go"],
+      "safeClose": { "kind": "view-node", "node": "_btn_close", "mode": "single-click", "maxClicks": 1 },
+      "dangerousNodes": [{ "node": "_btn_go", "effect": "purchase and protocol 19103" }],
+      "closeProtocols": [], "closeWrites": [],
+      "reason": "_btn_close only closes and cleans local state",
+      "source": { "pathFromLegacyRoot": "h5/src/pushGift/PushGiftTips.ts", "sha256": "34f84115c99cc87f22d0a35b0077c51da3030da64a99a6af9b68d2135dbfa3c9" }
+    },
+    {
+      "view": "PartnerAwakeShowView", "sort": 8, "action": "forbid",
+      "identifyNodes": ["PartnerAwakeShowView", "closeBtn", "goBtn"], "safeClose": null,
+      "dangerousNodes": [{ "node": "closeBtn", "effect": "conditional route navigation" }, { "node": "goBtn", "effect": "route navigation" }],
+      "closeProtocols": [], "closeWrites": ["closeBtn may call OpenFun.OpenFunHandler(16)"],
+      "reason": "visible close button is not a pure close surface",
+      "source": { "pathFromLegacyRoot": "h5/src/partnerAwake/PartnerAwakeShowView.ts", "sha256": "e8585234384e263b0038c784c4944d18b26cbac58aa12c32c60129c91e060d12" }
+    },
+    {
+      "view": "FirstRechargeView", "sort": 7, "action": "allow",
+      "identifyNodes": ["FirstRechargeView", "_img_close", "_gp_recharge"],
+      "safeClose": { "kind": "view-node", "node": "_img_close", "mode": "single-click", "maxClicks": 1 },
+      "dangerousNodes": [{ "node": "_gp_recharge", "effect": "protocol 15906 or route navigation" }],
+      "openSideEffects": ["status read protocol 15905"], "closeProtocols": [], "closeWrites": [],
+      "reason": "_img_close is a pure close surface",
+      "source": { "pathFromLegacyRoot": "h5/src/recharge/FirstRechargeView.ts", "sha256": "3dafe1bad599c32c25a708a32cd1a20c74ab0ad334c78d7cebe4f97c73e0ef55" }
+    },
+    {
+      "view": "GoodsExpiredView", "sort": 6, "action": "allow",
+      "identifyNodes": ["GoodsExpiredView", "_close_btn", "_cancel_btn", "_ok_btn"],
+      "safeClose": { "kind": "view-node", "node": "_close_btn", "mode": "single-click", "maxClicks": 1 },
+      "dangerousNodes": [{ "node": "_ok_btn", "effect": "protocol 15050 or 15027" }, { "node": "timer", "effect": "delayed protocol 15050 or 15027" }],
+      "closeProtocols": [], "closeWrites": [],
+      "reason": "_close_btn cancels the protocol-sending timer and closes",
+      "source": { "pathFromLegacyRoot": "h5/src/common/GoodsExpiredView.ts", "sha256": "cb5dfb4dd0978926ae703d2a2de3b57e76283e394590ac600569f3670af19960" }
+    },
+    {
+      "view": "MarriageForeShowView", "sort": 5, "action": "allow",
+      "identifyNodes": ["MarriageForeShowView", "close", "_bg", "_btn"],
+      "safeClose": { "kind": "view-node", "node": "close", "mode": "single-click-wait-tween", "maxClicks": 1 },
+      "dangerousNodes": [{ "node": "_btn", "effect": "gameplay task action" }],
+      "openSideEffects": ["analytics and local auto-task pause"], "closeSideEffects": ["resume local auto-task"], "closeProtocols": [], "closeWrites": [],
+      "reason": "close only runs local exit lifecycle",
+      "source": { "pathFromLegacyRoot": "h5/src/marriage/MarriageForeShowView.ts", "sha256": "98d889d312009c8b563aa5ce2e73ecb6d79421613bdb79a8b20c1b6714e4f94f" }
+    },
+    {
+      "view": "GuardActivateView", "sort": 4, "action": "allow",
+      "identifyNodes": ["GuardActivateView", "btn_close", "btn_active"],
+      "safeClose": { "kind": "view-node", "node": "btn_close", "mode": "single-click", "maxClicks": 1 },
+      "dangerousNodes": [{ "node": "btn_active", "effect": "activation route" }],
+      "closeProtocols": [], "closeWrites": [],
+      "reason": "btn_close only closes and cleans local items",
+      "source": { "pathFromLegacyRoot": "h5/src/guard/GuardActivateView.ts", "sha256": "80050d8e421b95485e1d09443f1481051a8d4c9af3643061fff685d374e80068" }
+    },
+    {
+      "view": "OutLineView", "sort": 3, "action": "allow",
+      "identifyNodes": ["OutLineView", "_btn_close", "_btn_confirm", "_btn_one", "_btn_all"],
+      "safeClose": { "kind": "view-node", "node": "_btn_close", "mode": "single-click", "maxClicks": 1 },
+      "dangerousNodes": [{ "node": "_btn_one", "effect": "protocol 13213" }, { "node": "_btn_all", "effect": "protocol 13213" }],
+      "closeProtocols": [], "closeWrites": [],
+      "reason": "_btn_close only closes and cleans local state",
+      "source": { "pathFromLegacyRoot": "h5/src/outline/OutLineView.ts", "sha256": "8acad34f20cdf2b9a3882b913d4e1dcbff408fb4ba18681bb325ce28b20afe1e" }
+    },
+    {
+      "view": "kfStageShowView", "sort": 2, "action": "forbid",
+      "identifyNodes": ["kfStageShowView", "_btn_close"], "safeClose": null,
+      "dangerousNodes": [{ "node": "_btn_close", "effect": "persistent cookie writes" }],
+      "closeProtocols": [], "closeWrites": ["kfStageModel.SaveCookie for every function entry"],
+      "reason": "even the visible close button persists state",
+      "source": { "pathFromLegacyRoot": "h5/src/kfStart/kfStageShowView.ts", "sha256": "298580568e14610eb2d975b1c8f5c5e8752d50a451e3eace620b052f44c15951" }
+    },
+    {
+      "view": "kfStageOpenView", "sort": 1, "action": "allow",
+      "identifyNodes": ["kfStageOpenView", "_btn_close", "_gp_click", "_gp_click2"],
+      "safeClose": { "kind": "view-node", "node": "_btn_close", "mode": "single-click", "maxClicks": 1 },
+      "dangerousNodes": [{ "node": "_gp_click", "effect": "cross-server presentation" }],
+      "closeProtocols": [], "closeWrites": [],
+      "reason": "_btn_close only closes and removes local animation state",
+      "source": { "pathFromLegacyRoot": "h5/src/kfStart/kfStageOpenView.ts", "sha256": "5db26e16fa27cd8d4349feecbeb9cfd031f1ba473af7b3f63f79a89661911c5f" }
+    },
+    {
+      "view": "ItemUseView", "sort": 0, "action": "forbid",
+      "identifyNodes": ["ItemUseView", "close_btn", "enter_btn"], "safeClose": null,
+      "dangerousNodes": [{ "node": "close_btn", "effect": "queue mutation" }, { "node": "enter_btn", "effect": "type-dependent write or navigation" }],
+      "closeProtocols": [], "closeWrites": ["DeleteCurrentItem and pending queue advance"],
+      "reason": "generic startup drain must never close ItemUseView; use the controlled ItemUse probe",
+      "source": { "pathFromLegacyRoot": "h5/src/common/ItemUseView.ts", "sha256": "61b8f5d0a75962ab3501c9c025793da2a4eafcb4fe91163cc21d5db5f8c9762f" }
+    },
+    {
+      "view": "RuneTreasureResultView", "sort": -1, "action": "allow",
+      "identifyNodes": ["RuneTreasureResultView", "_btn_click", "_lb_tips", "_img_chip"],
+      "safeClose": { "kind": "view-node", "node": "_btn_click", "mode": "local-reveal-then-close", "maxClicks": 2 },
+      "dangerousNodes": [{ "node": "_img_chip", "effect": "opens item tooltip" }],
+      "closeProtocols": [], "closeWrites": [],
+      "reason": "_btn_click only reveals locally then closes",
+      "source": { "pathFromLegacyRoot": "h5/src/runeTreasure/RuneTreasureResultView.ts", "sha256": "8601c10907bd770873ae538add85c7974929a982cd725ac79d1b9ce5d8b77194" }
+    }
+  ]
+}

@@ -27,11 +27,12 @@ description: 执行项目统一的“UI 对接 / UI 精修”流程：对照老 
 2. **一次建账**：先写一个精简 manifest，再运行 `python scripts/route_ledger.py init <manifest.json> <route-ledger.json>`。新账固定为 schema 6；`init` 拒绝覆盖现有目标。每批测试只写实际跑过叶子的紧凑`results.json`，用通用 `apply` 原子合并并自动回卷父状态；同一台账的并发写者由非阻塞进程锁拒绝，调用方应在读取最新账后重放 results。路线专用脚本只能生成 manifest/results，不得直接写正式台账。每个 `done` 闸必须同时绑定 `gate_runs`、`gate_evidence` 和对应结构化证据，不能只保存任意路径字符串或残留布尔值。
 3. **按风险分批**：只读叶子一批；可恢复写入逐项执行并立即还原；破坏性写入只在专用测试态或明确授权下执行。协议帧、状态更新和返回链可在同一次 Unity CLI 会话中批量验证。
 4. **按修改面编译**：纯 C# 先离线编译和定向 case；Prefab/资源累计成逻辑批次后再运行 Unity。默认使用当前工作树和持续构建状态，不新建 worktree/Library。首次或内容状态不可信时完整构建内容+壳；改 C# 重打壳，纯 Addressable Prefab/资源改动在已验证基线上只打内容。禁止每修一个按钮就全量打包，但每个完整页面 `done` 前必须有当前真实 Web 报告。
-5. **复用热状态**：后台 Headless Playwright/Puppeteer 保持浏览器缓存，老端采证并断线后再用同账号跑 Unity Web；Unity route case 保持同一登录/模型快照。cold 只测一次，warm 至少测一次，不用重复登录制造无意义耗时。
+5. **复用热状态**：后台 Headless Playwright/Puppeteer 保持浏览器缓存，老端采证并断线后再用同账号跑 Unity Web；Unity route case 保持同一登录/模型快照。cold 只测一次，warm 至少测一次，不用重复登录制造无意义耗时。`yu_client_unity` 的可重跑老 H5 路线统一调用 `Tools/UIAudit`，不得在页面脚本复制登录/选角/进城或热会话状态机。
 6. **GM 测试态配方**：账号缺等级、任务、物品、货币、功能开放或成就进度时，不得长期等待用户手工养号。优先复用 `111111`；会产生不可恢复写入、需要多个互斥状态或可能污染日常号时，通过现有注册链创建专用测试号。使用项目现有 `11100/11101` GM 通道按最小命令集准备状态，并保存 `account/commands/order/expected/reset/probes` 配方。GM 只准备被测事务的前置条件；领取、升级、穿戴、购买等目标事务仍必须由真实 UI 点击和正式协议完成，禁止直接用 GM 伪造结果。
 7. **证据去重**：页面级截图挂父节点，协议日志/断言挂叶子。多个叶子共用同一页面事实时引用同一路径，不复制大段截图或日志。
 8. **模型开销分层**：确定性的枚举、台账校验、资源闭包和协议帧解析交给脚本；模型只处理视觉判断、跨模块根因和修复决策。除非用户明确要求，不为机械枚举另开高成本代理。
 9. **克隆与滚动初始化**：运行时克隆 `BaseView` 必须走 `Show/Hide` 触发 `OnInit`，不可只 `SetActive`。动态列表必须修改实际 `ScrollRect.content` 的锚点和高度；真实拖动从可命中子项开始，并点击滚动后才出现的末项。
+10. **公共采集执行层**：页面路线只保存 JSON route map、控件 selector 和断言数据；loaded/managed/stage 运行树、循环安全 JSON、Canvas 命中、启动弹窗、`ItemUseView`、协议 trace、preflight 和结构化报告统一由 `Tools/UIAudit` 执行。`output/` 只存新 run 的不可变证据，不得承载可复用代码、策略、schema 或 fixture。
 
 ### 共享组件依赖与状态矩阵
 
@@ -45,7 +46,7 @@ description: 执行项目统一的“UI 对接 / UI 精修”流程：对照老 
 
 ### 十分钟路线纠偏
 
-长页面执行中每约十分钟暂停一次并检查：当前动作是否仍直接推进选定页面；该页全部控件是否仍在范围内；主要视觉事实是否来自最新真实 Web；是否误把构建、环境、Git 或证据整理混入页面实现；是否在无新信息地重复验证。发现任一偏航立即停止当前循环，回到共享根因或拆出独立基础设施 blocker。选择一个页面后，完成其全部适用叶子或明确 `blocked` 前不得换页。
+长页面执行中每约十分钟暂停一次并检查：当前动作是否仍直接推进选定页面；该页全部控件是否仍在范围内；主要视觉事实是否来自最新真实 Web；是否误把构建、环境、Git 或证据整理混入页面实现；是否在无新信息地重复验证。发现任一偏航立即停止当前循环，回到共享根因或拆出独立基础设施 blocker。选择一个页面后，完成其全部适用叶子或明确 `blocked` 前不得换页。同一种基础设施问题第二次出现时必须立即停止页面工作，晋升到 `Tools/UIAudit` 并补 fixture 回归，禁止再复制一份专项实现。
 
 ### 四层完成定义
 
@@ -76,8 +77,8 @@ Unity CLI 的成功依据必须是业务入口写出的 `VERDICT pass=True`，�
 
 1. 按项目 `AGENTS.md` 读取全局记忆索引、项目记忆、`Docs/README.md` 及当前模块权威文档。
 2. 检查 `git status`。默认在当前分支、当前工作树原地做最小修改并保留用户无关改动；只有确认存在同文件冲突、必须并发构建或破坏性实验等无法安全原地完成的实际隔离需求时，才说明磁盘/导入/等待成本并取得用户同意后使用 `codex/*` worktree。
-3. 常规视觉对比优先使用后台 Headless Playwright/Puppeteer 操作老 Web 和 Unity WebGL，不抢前台。不得使用 computer-use，除非用户本轮明确授权；Browser MCP 可用于一次性探索，但不能替代可重跑的真实 Web 路线与构建指纹报告。
-4. 建立不可变运行目录 `output/ui_route_audit/<日期>_<入口>/<run-id>/`，使用稳定文件名保存截图、日志、耗时和报告；每个正式文件在台账中记录 SHA-256，不覆盖旧 run 的同名文件。
+3. 常规视觉对比优先使用后台 Headless Playwright/Puppeteer 操作老 Web 和 Unity WebGL，不抢前台。不得使用 computer-use，除非用户本轮明确授权；Browser MCP 可用于一次性探索，但不能替代可重跑的真实 Web 路线与构建指纹报告。老 H5 路线执行前先运行 `node Tools/UIAudit/cli.cjs preflight --route <route.json> --output <new-run>`；preflight 任一失败都不得进入页面点击。
+4. 建立不可变运行目录 `output/ui_route_audit/<日期>_<入口>/<run-id>/`，使用稳定文件名保存截图、日志、耗时和报告；每个正式文件在台账中记录 SHA-256，不覆盖旧 run 的同名文件。仓库已整体忽略 `output/`，所以需复用的实现必须落入 `Tools/UIAudit` 或其他正式 `Tools/` 目录。
 5. 建树时同时保存老端运行时控件快照、老端源码/配置扫描和 Unity Prefab/Bind 扫描，三方调和后生成 `control_inventory[]`；schema 6 页面完成时把三份带哈希证据写入 `inventory_evidence`。在点击前另保存目标资源目录的文件清单与 `git status --untracked-files=all`。运行后新增的 PNG、`.meta`、模型或配置都必须说明来源；若是页面打开时由编辑器兜底导入，则先记为缺陷，不能把这批本机缓存当作完成证据。
 
 ## 2. 先建树，再选一条线跑到底

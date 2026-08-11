@@ -2071,3 +2071,11 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **天境**：落地 `TitleMainView.prefab`、10 个称号配置/协议读链、横向称号列表、5 行属性、共享材料格/战力、激活/幻化安全门禁和 11 个 UI 特效。修复运行时 HTML 字号丢失、卡片被 HBox 上移 41px 后标题全被裁剪、文字特效横向镜像及 disabled 空 Image 造成按钮显示但不可点；横向拖动后切换到“文月”会同步刷新文案、属性和主特效。
 - **组合验收**：`RoleRealmHonourCase` 从真实 `EquipmentView` 入口经 `GraphicRaycaster → PointerClick` 顺序执行人物→地境→天境→横向拖动/切换→无材料激活/未激活幻化门禁→地境返回→名誉→纵向拖动/末项→关闭重开→获取名誉。最终 V15 `route/startupRead/groundGeometry/skyGeometry/skyRuntime/skyEffects/titleScrolled/guardedWrites/honourGeometry/honourScroll/honourReopen` 全部为 true；天境 11 个特效的共享 RT 两帧约 4.9 万非透明像素并有 6957 像素变化，未发送 13402/13403/13404/13406 写事务。证据位于 `output/ui_route_audit/2026-08-09_role_person_realm_honour_runtime_v15/`。
 - **边界**：本轮完成的是当前源码组合 Editor/CLI 运行态和老端对照；真实账号写事务仍未授权，当前同批 WebGL Player/catalog 与双 viewport Headless 对比尚需随后生成，不能用本段扩大为整个角色模块完成。
+
+## 2026-08-11：UIAudit 公共采集与探针基础设施产品化
+
+- **正式工具**：新增 `Tools/UIAudit`，复用既有 Puppeteer 驱动系统 Edge，提供登录/选角/进城/热会话、三来源运行树统一 schema、真实 Canvas click/drag 命中、启动弹窗策略、`ItemUseView` 双稳定帧/队列/一次受控关闭、`UserMsgAdapter` 收发 trace、协议 required/forbidden、preflight、版本/schema 和结构化报告。页面路线以后只保留 JSON route map、控件与断言数据。
+- **安全策略**：16 个启动弹窗迁入独立 JSON；`ItemUseView`、`PartnerAwakeShowView`、`kfStageShowView` 禁止通用关闭，未知 View 硬停。协议只按精确 cmd/fmt/args 分类，写协议、未知号和格式错误在只读路线硬停，不再猜 Controller 作为主要探针。
+- **确定性验证**：`node --test Tools/UIAudit/tests/*.test.cjs` 为 16/16 通过，覆盖公共根 API、循环/共享引用、弹窗顺序与危险节点、三来源归一化、ItemUse 精确身份/稳定帧/队列前后、协议 required/forbidden、preflight 失败和 Canvas 命中/拖动释放。示例 JSON 的真实本机 preflight 另行通过 Node/Edge/Puppeteer/snapshot 源、不可变输出与 16 个弹窗源码 SHA-256，未启动浏览器或创建输出目录。
+- **output 策略**：迁移前 Git 跟踪 5059 项，磁盘 10130 文件、6,804,727,490 字节；精确 `git rm --cached` 后 `git ls-files output` 为 0，`.gitignore` 命中 `/output/`，磁盘数量/字节及三个代表 SHA-256 不变。现有证据未删除；公共代码、策略、schema、fixture 不再允许留在 `output/`。
+- **完成边界**：本轮没有启动 Unity、没有构建 Addressables/WebGL、没有登录游戏或运行页面验收；暂停的 A/B/C/D 路线和 `unity-ui` 自动化未恢复，页面状态不因工具完成而变化。

@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "legacy-h5.protocol-safety.v1",
+  "default": "unknown-hard-stop",
+  "rules": [
+    { "id": "keepalive-10006", "cmd": 10006, "classification": "system", "signatures": [{ "fmt": "", "args": [[]] }], "reason": "natural session keepalive" },
+    { "id": "login-read-12001", "cmd": 12001, "classification": "system", "signatures": [{ "fmt": "", "args": [[]] }], "reason": "natural login/read chain" },
+    { "id": "login-read-12008", "cmd": 12008, "classification": "system", "signatures": [{ "fmt": "", "args": [[]] }], "reason": "natural login/read chain" },
+    { "id": "afk-read-13211", "cmd": 13211, "classification": "read", "signatures": [{ "fmt": "", "args": [[]] }], "reason": "query offline time" },
+    { "id": "bag-snapshot-15010", "cmd": 15010, "classification": "read", "signatures": [{ "fmt": "h", "args": [[4], [1]] }], "reason": "authoritative inventory snapshots" },
+    { "id": "designation-read-41101", "cmd": 41101, "classification": "read", "signatures": [{ "fmt": "", "args": [[]] }], "reason": "designation state query" },
+    { "id": "fashion-read-41300", "cmd": 41300, "classification": "read", "signatures": [{ "fmt": "", "args": [[]] }], "reason": "fashion position query" },
+    { "id": "fashion-suit-read-41313", "cmd": 41313, "classification": "read", "signatures": [{ "fmt": "", "args": [[]] }], "reason": "fashion suit query" },
+    { "id": "monster-book-read-44205", "cmd": 44205, "classification": "read", "signatures": [{ "fmt": "", "args": [[]] }], "reason": "monster-book picture query" },
+    { "id": "wear-unreal-14901", "cmd": 14901, "classification": "write", "reason": "wear unreal item" },
+    { "id": "sell-goods-15021", "cmd": 15021, "classification": "write", "reason": "sell goods" },
+    { "id": "use-goods-15050", "cmd": 15050, "classification": "write", "reason": "use goods" },
+    { "id": "wear-equipment-15201", "cmd": 15201, "classification": "write", "reason": "wear equipment" },
+    { "id": "purchase-goods-15302", "cmd": 15302, "classification": "write", "reason": "purchase goods" },
+    { "id": "treasure-draw-41604", "cmd": 41604, "classification": "write", "reason": "treasure draw" },
+    { "id": "treasure-take-one-41605", "cmd": 41605, "classification": "write", "reason": "take one treasure bag item" },
+    { "id": "treasure-take-all-41606", "cmd": 41606, "classification": "write", "reason": "take all treasure bag items" },
+    { "id": "treasure-stage-reward-41607", "cmd": 41607, "classification": "write", "reason": "claim treasure stage reward" },
+    { "id": "treasure-exchange-41609", "cmd": 41609, "classification": "write", "reason": "exchange treasure goods" },
+    { "id": "treasure-task-reward-41622", "cmd": 41622, "classification": "write", "reason": "claim treasure task reward" }
+  ]
+}

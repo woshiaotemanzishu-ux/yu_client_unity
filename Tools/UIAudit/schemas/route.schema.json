@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ui-audit.route.v1",
+  "type": "object",
+  "required": ["schema", "id", "engine", "url", "snapshotSource", "session", "steps"],
+  "properties": {
+    "schema": { "const": 1 },
+    "id": { "type": "string", "minLength": 1 },
+    "engine": { "const": "legacy-laya" },
+    "url": { "type": "string", "format": "uri" },
+    "snapshotSource": { "type": "string", "minLength": 1 },
+    "session": { "type": "object" },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["action"],
+        "properties": {
+          "action": { "enum": ["snapshot", "click", "drag", "wait-view", "set-viewport", "protocol-read", "assert-protocol"] }
+        }
+      }
+    }
+  }
+}
