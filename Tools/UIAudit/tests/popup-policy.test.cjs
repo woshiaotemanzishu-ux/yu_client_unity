@@ -12,9 +12,12 @@ const {
   assertSafePopupDecision,
   popupCloseStability,
 } = require('../lib/popup-policy.cjs');
+const { normalizeRuntimeSources } = require('../lib/runtime-tree.cjs');
+const { HeadlessUiSession } = require('../lib/session.cjs');
 
 const policy = loadPopupPolicy(path.join(__dirname, '..', 'policies', 'startup-popups.json'));
 const cycleimpFixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'startup-popup-cycleimp-yesterday.json'), 'utf8'));
+const runtimeOwnerBindingFixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'runtime-owner-bindings.json'), 'utf8'));
 
 test('unknown popup is an unconditional hard stop', () => {
   assert.equal(policy.entries.length, 17);
@@ -59,6 +62,41 @@ test('Cycleimp close needs two distinct advancing Laya frames with the view abse
   const reappearing = popupCloseStability(cycleimpFixture.reappearingSamples, cycleimpFixture.view, entry.safeClose.stability);
   assert.equal(reappearing.pass, false);
   assert.equal(reappearing.stableFrames, 1);
+});
+
+test('Cycleimp exact bound-field close clicks once and waits for two advancing absent frames', async () => {
+  const before = normalizeRuntimeSources(runtimeOwnerBindingFixture);
+  const samples = [
+    before,
+    { visibleViews: ['MainUITopView'], stage: { width: 720, height: 1280, frameToken: 501 } },
+    { visibleViews: ['MainUITopView'], stage: { width: 720, height: 1280, frameToken: 502 } },
+  ];
+  const mouseCalls = [];
+  const session = new HeadlessUiSession({});
+  session.page = {
+    viewport: () => ({ width: 720, height: 1280 }),
+    evaluate: async (_function, payload) => {
+      if (payload && Object.hasOwn(payload, 'logicalWidth')) {
+        return { x: 0, y: 0, width: 720, height: 1280, logicalWidth: 720, logicalHeight: 1280 };
+      }
+      if (payload && payload.indexPath) return { applicable: true, pass: true, reason: null };
+      throw new Error(`unexpected page.evaluate payload: ${JSON.stringify(payload)}`);
+    },
+    mouse: { click: async (...args) => mouseCalls.push(args) },
+  };
+  session.snapshot = async () => {
+    const next = samples.shift();
+    if (!next) throw new Error('unexpected extra snapshot');
+    return next;
+  };
+
+  const result = await session.closeAllowlistedPopup('CycleimpActlistYesterday', policy);
+  assert.equal(result.closed, true);
+  assert.equal(result.clicks, 1);
+  assert.equal(result.stability.stableFrames, 2);
+  assert.equal(result.stability.lastFrameToken, 502);
+  assert.equal(mouseCalls.length, 1);
+  assert.deepEqual(mouseCalls[0].slice(0, 2), [608, 184]);
 });
 
 test('safe startup popups are deduplicated and ordered by authoritative sort', () => {

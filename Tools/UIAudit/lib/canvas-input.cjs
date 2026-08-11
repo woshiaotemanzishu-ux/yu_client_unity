@@ -1,6 +1,7 @@
 'use strict';
 
 const { findNodes } = require('./runtime-tree.cjs');
+const { buildSelectorDiagnostic, SelectorIdentityError } = require('./selector-diagnostic.cjs');
 
 function centerOf(rect) {
   if (!rect || ![rect.x, rect.y, rect.width, rect.height].every(value => Number.isFinite(Number(value)))) {
@@ -64,11 +65,23 @@ function resolveTarget(snapshot, selector = {}) {
   const matches = findNodes(snapshot, selector);
   const expectedCount = selector.expectedCount == null ? 1 : Number(selector.expectedCount);
   if (matches.length !== expectedCount) {
-    throw new Error(`CANVAS_TARGET_IDENTITY_MISMATCH expected=${expectedCount} actual=${matches.length} selector=${JSON.stringify(selector)}`);
+    const diagnostic = buildSelectorDiagnostic(snapshot, selector, { expectedCount, actualCount: matches.length });
+    throw new SelectorIdentityError(
+      'CANVAS_TARGET_IDENTITY_MISMATCH',
+      `CANVAS_TARGET_IDENTITY_MISMATCH expected=${expectedCount} actual=${matches.length} selector=${JSON.stringify(selector)} diagnosticSha256=${diagnostic.sha256}`,
+      diagnostic,
+    );
   }
   const index = selector.index == null ? 0 : Number(selector.index);
   const node = matches[index];
-  if (!node) throw new Error(`CANVAS_TARGET_INDEX_MISSING index=${index}`);
+  if (!node) {
+    const diagnostic = buildSelectorDiagnostic(snapshot, selector, { expectedCount, actualCount: matches.length });
+    throw new SelectorIdentityError(
+      'CANVAS_TARGET_INDEX_MISSING',
+      `CANVAS_TARGET_INDEX_MISSING index=${index} diagnosticSha256=${diagnostic.sha256}`,
+      diagnostic,
+    );
+  }
   if (!node.interaction.mouseEnabled || node.interaction.disabled || !node.displayed) {
     throw new Error(`CANVAS_TARGET_NOT_INTERACTIVE: ${node.path}`);
   }

@@ -71,7 +71,10 @@
       "properties": {
         "source": { "enum": ["loaded-view", "managed-view", "laya-stage"] },
         "view": { "type": "string" },
+        "ownerView": { "type": "string" },
         "name": { "type": "string" },
+        "runtimeName": { "type": "string" },
+        "boundField": { "type": "string" },
         "type": { "type": "string" },
         "text": { "type": "string" },
         "skinIncludes": { "type": "string" },

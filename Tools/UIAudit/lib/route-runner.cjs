@@ -32,6 +32,7 @@ const { findServerProfileForUrl } = require('./server-readiness.cjs');
 const { ensureServer } = require('./server-lifecycle.cjs');
 const { writeJsonAtomic } = require('./safe-json.cjs');
 const { createReport, addArtifact, finalizeReport, writeReport } = require('./report.cjs');
+const { writeSelectorDiagnostic } = require('./selector-diagnostic.cjs');
 
 function resolveRoutePath(routePath, value) {
   return path.isAbsolute(value) ? value : path.resolve(path.dirname(routePath), value);
@@ -153,6 +154,21 @@ async function executeStep(context, step, index) {
   return entry;
 }
 
+function attachFailureDiagnostic(report, outputDir, error) {
+  if (!error || !error.diagnostic) return null;
+  const diagnosticPath = writeSelectorDiagnostic(outputDir, error.diagnostic);
+  const artifact = addArtifact(report, outputDir, diagnosticPath, 'selector-identity-diagnostic');
+  report.failure = {
+    code: error.code || 'SELECTOR_IDENTITY_FAILURE',
+    diagnostic: {
+      schema: error.diagnostic.schema,
+      selectorSha256: error.diagnostic.sha256,
+      artifact,
+    },
+  };
+  return report.failure;
+}
+
 async function runRoute(options) {
   const routePath = path.resolve(options.routePath);
   const route = JSON.parse(fs.readFileSync(routePath, 'utf8'));
@@ -227,6 +243,14 @@ async function runRoute(options) {
   } catch (caught) {
     error = caught;
     report.events = session.events;
+    try {
+      attachFailureDiagnostic(report, outputDir, caught);
+    } catch (diagnosticError) {
+      report.failure = {
+        code: caught && caught.code || 'SELECTOR_IDENTITY_FAILURE',
+        diagnosticPersistenceError: String(diagnosticError && diagnosticError.stack || diagnosticError),
+      };
+    }
     finalizeReport(report, 'failed', caught);
   } finally {
     try { await session.close(); } catch (closeError) { if (!error) error = closeError; }
@@ -249,6 +273,7 @@ module.exports = {
   waitForView,
   saveSnapshotEvidence,
   executeStep,
+  attachFailureDiagnostic,
   routeUsesAction,
   runRoute,
 };

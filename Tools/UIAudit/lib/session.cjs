@@ -113,7 +113,7 @@ class HeadlessUiSession {
       if (!before.visibleViews.includes(viewName)) return { closed: true, clicks: clickIndex, decision };
       if (close.kind === 'view-node') {
         await clickRuntimeTarget(this.page, before, {
-          source: 'laya-stage', view: viewName, name: close.node, expectedCount: 1,
+          source: 'laya-stage', ownerView: viewName, boundField: close.node, expectedCount: 1,
         });
       } else if (close.kind === 'shared-background') {
         const candidate = await this.page.evaluate(targetView => {

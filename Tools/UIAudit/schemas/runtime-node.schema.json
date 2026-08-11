@@ -8,6 +8,28 @@
     "source": { "enum": ["loaded-view", "managed-view", "laya-stage", "unknown"] },
     "path": { "type": "string" },
     "name": { "type": "string" },
-    "visible": { "type": "boolean" }
+    "visible": { "type": "boolean" },
+    "identity": {
+      "type": "object",
+      "required": ["ownerView", "runtimeName", "bindings"],
+      "properties": {
+        "ownerView": { "type": ["string", "null"] },
+        "runtimeName": { "type": "string" },
+        "bindings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["field", "relation", "source"],
+            "properties": {
+              "ownerView": { "type": ["string", "null"] },
+              "field": { "type": "string" },
+              "runtimeName": { "type": "string" },
+              "relation": { "const": "direct-reference" },
+              "source": { "const": "view-instance-field" }
+            }
+          }
+        }
+      }
+    }
   }
 }

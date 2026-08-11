@@ -7,6 +7,13 @@
     "schema": { "const": 1 },
     "status": { "enum": ["running", "passed", "failed"] },
     "steps": { "type": "array" },
-    "artifacts": { "type": "array" }
+    "artifacts": { "type": "array" },
+    "failure": {
+      "type": ["object", "null"],
+      "properties": {
+        "code": { "type": "string" },
+        "diagnostic": { "type": "object" }
+      }
+    }
   }
 }

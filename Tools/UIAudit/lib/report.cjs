@@ -25,6 +25,7 @@ function createReport(route, preflight) {
     protocol: null,
     artifacts: [],
     error: null,
+    failure: null,
   };
 }
 

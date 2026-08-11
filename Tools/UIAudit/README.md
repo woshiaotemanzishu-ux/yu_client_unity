@@ -29,6 +29,8 @@ Node 调用方可 `const uiAudit = require('./Tools/UIAudit')`，也可直接 re
 
 `policies/startup-popups.json` 只允许 source-backed 的精确身份。配置队列弹窗按 `ClientConfigPopupLevel.sort` 处理；不在该配置且由回包直接打开的弹窗禁止伪造 sort，只能使用真实 visible stack 的 top-first 顺序。`CycleimpActlistYesterday` 是后一类：由 `22703` 回包在推送或当日首次登录、榜单非空且角色等级至少 150 时直接打开；唯一安全面是 `_btn_close`。关闭后必须连续两个已推进的 Laya 帧都不存在该 View，重复 frame token 或中途重现均不算关闭完成。未知弹窗仍一律 `unknown-hard-stop`。
 
+启动弹窗的 `safeClose.node` 按真实 View 实例字段解释。公共 session 使用 `ownerView + boundField` 精确定位 `_btn_close` 指向的显示对象，不再要求字段名与 Laya display node 的 `name` 相同，也不会退回页面坐标。绑定缺失或出现多个实例时仍由 `expectedCount=1` 与运行时 hit-test 硬停。
+
 ### ItemUseView
 
 每条 route 必须明确二选一：
@@ -61,7 +63,22 @@ protocol trace v3 的收发权威都在 transport 层：outbound 包装 `WriteBe
 - `reset-sound` / `assert-sound`：统计 `PlaySoundEffect/PlaySceneSound` 逻辑调用和重复消费。
 - `wait-render-ready`：读取指定 RenderTexture 的真实 alpha 像素，要求连续稳定帧达到阈值。
 
-selector 支持 `dataIdentity` 子集匹配，例如 `{ "dataIdentity": { "fashion_id": 12010008 } }`。click/drag 始终先在 Laya 逻辑坐标做唯一身份与 `hitTestPoint` 验证，再按真实 Canvas DOM rect 映射到浏览器坐标；1920×1080 宽屏不再误用 720×1280 逻辑坐标直接点击。
+selector 支持三种可组合的精确身份：`view`（兼容字段）、`ownerView`（三来源调和后的真实宿主）、`runtimeName`/`name`（显示节点名）以及 `boundField`（View 对显示节点的直接字段引用）。例如字段名与节点名不同时使用：
+
+```json
+{
+  "source": "laya-stage",
+  "ownerView": "CycleimpActlistYesterday",
+  "boundField": "_btn_close",
+  "expectedCount": 1
+}
+```
+
+`runtime-tree` 先用 loaded/managed 快照中真实 `display_obj` 的 `stagePath` 给整棵 stage 子树归属 owner；再从 `ViewManager`/运行时 registry 的 View 实例枚举“字段直接引用显示节点”的绑定。规范化节点的 `identity.owner` 与 `identity.bindings[]` 会同时保留 owner 来源、根路径、字段名、运行节点名和实例 registry 来源，便于审计别名链；只在两类权威路径都缺失时保留带 `stage-name-heuristic` 标记的旧名称兜底，不能作为绑定证据。
+
+selector 仍支持 `dataIdentity` 子集匹配，例如 `{ "dataIdentity": { "fashion_id": 12010008 } }`。click/drag 始终先在 Laya 逻辑坐标做唯一身份与 `hitTestPoint` 验证，再按真实 Canvas DOM rect 映射到浏览器坐标；1920×1080 宽屏不再误用 720×1280 逻辑坐标直接点击。
+
+若唯一身份数量不符，`CANVAS_TARGET_IDENTITY_MISMATCH` 会携带 `ui-audit.selector-diagnostic.v1`。runner 在失败 run 中写入 `selector-diagnostic-*.json`，内容包含目标 View 的最小规范化 stage 子树、按 owner/运行名/绑定字段评分的候选、stage/source 摘要及内容 SHA-256；`ui-audit-report.json.failure.diagnostic` 和 `artifacts[]` 同时引用它。即使登录阶段尚未产生常规 runtime snapshot，也不会再留下 `runtime-tree=0` 的盲区。
 
 历史 `step.expect` 不会被当成注释跳过，而是在 schema/preflight 硬停。应改成上述可执行动作。
 
@@ -72,6 +89,7 @@ selector 支持 `dataIdentity` 子集匹配，例如 `{ "dataIdentity": { "fashi
 | `lib/session.cjs` | Edge、登录、选角、进城、启动弹窗和热会话 |
 | `lib/safe-json.cjs` | 只丢祖先环、保留共享引用的 JSON 与原子写入 |
 | `lib/runtime-tree.cjs` | loaded/managed/`Laya.stage` 统一节点 schema 与数据身份 |
+| `lib/selector-diagnostic.cjs` | selector 失败的最小子树、候选、内容哈希与不可变诊断写入 |
 | `lib/canvas-input.cjs` | Canvas rect 坐标换算、唯一命中后的真实 click/drag |
 | `lib/popup-policy.cjs` | `allow/forbid/unknown-hard-stop`、配置队列/真实栈顺序、安全节点与稳定关闭帧 |
 | `lib/item-use.cjs` | ItemUse 精确身份、稳定帧、队列和一次受控关闭 |

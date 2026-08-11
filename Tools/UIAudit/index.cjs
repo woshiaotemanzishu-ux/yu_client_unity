@@ -4,6 +4,7 @@ module.exports = {
   version: require('./lib/version.cjs'),
   safeJson: require('./lib/safe-json.cjs'),
   runtimeTree: require('./lib/runtime-tree.cjs'),
+  selectorDiagnostic: require('./lib/selector-diagnostic.cjs'),
   canvasInput: require('./lib/canvas-input.cjs'),
   popupPolicy: require('./lib/popup-policy.cjs'),
   itemUse: require('./lib/item-use.cjs'),
