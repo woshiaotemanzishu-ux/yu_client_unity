@@ -7,18 +7,159 @@
     "schema": { "const": 1 },
     "id": { "type": "string", "minLength": 1 },
     "engine": { "const": "legacy-laya" },
-    "url": { "type": "string", "format": "uri" },
+    "url": { "type": "string", "pattern": "^https?://" },
+    "readiness": { "$ref": "#/$defs/readiness" },
     "snapshotSource": { "type": "string", "minLength": 1 },
-    "session": { "type": "object" },
-    "steps": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["action"],
-        "properties": {
-          "action": { "enum": ["snapshot", "click", "drag", "wait-view", "set-viewport", "protocol-read", "assert-protocol"] }
+    "session": {
+      "type": "object",
+      "required": ["itemUse"],
+      "properties": {
+        "accountEnv": { "type": "string" },
+        "passwordEnv": { "type": "string" },
+        "itemUse": {
+          "oneOf": [
+            { "type": "object", "required": ["mode"], "properties": { "mode": { "const": "hard-stop" } } },
+            {
+              "type": "object",
+              "required": ["authorization", "expected", "queueSpecs"],
+              "properties": {
+                "authorization": {
+                  "type": "object",
+                  "required": ["allowQueueMutation", "maxCloseClicks", "scope"],
+                  "properties": {
+                    "allowQueueMutation": { "const": true },
+                    "maxCloseClicks": { "const": 1 },
+                    "scope": { "type": "string", "minLength": 1 }
+                  }
+                },
+                "expected": {
+                  "type": "object",
+                  "required": ["view", "typeId", "name", "bottom", "enter", "closeNode"],
+                  "properties": { "view": { "const": "ItemUseView" } }
+                },
+                "queueSpecs": { "type": "array", "minItems": 1 }
+              }
+            }
+          ]
         }
       }
+    },
+    "protocol": {
+      "type": "object",
+      "properties": {
+        "reads": { "type": "array", "items": { "$ref": "#/$defs/readRequest" } },
+        "assertions": { "$ref": "#/$defs/protocolAssertions" }
+      }
+    },
+    "steps": { "type": "array", "items": { "$ref": "#/$defs/step" } }
+  },
+  "$defs": {
+    "readiness": {
+      "type": "object",
+      "properties": {
+        "timeoutMs": { "type": "integer", "minimum": 50 },
+        "maxRedirects": { "type": "integer", "minimum": 0 },
+        "acceptedStatus": { "type": "array", "items": { "type": "integer" } },
+        "contentTypeIncludes": { "type": "array", "items": { "type": "string" } },
+        "bodyIncludesAll": { "type": "array", "items": { "type": "string" } },
+        "requiredHeadPaths": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "selector": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "source": { "enum": ["loaded-view", "managed-view", "laya-stage"] },
+        "view": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "text": { "type": "string" },
+        "skinIncludes": { "type": "string" },
+        "path": { "type": "string" },
+        "dataIdentity": { "type": "object" },
+        "expectedCount": { "type": "integer", "minimum": 0 },
+        "index": { "type": "integer", "minimum": 0 },
+        "visible": { "type": "boolean" }
+      }
+    },
+    "readRequest": {
+      "type": "object",
+      "required": ["cmd", "fmt", "args"],
+      "properties": {
+        "ruleId": { "type": "string", "minLength": 1 },
+        "cmd": { "type": "integer" },
+        "fmt": { "type": "string" },
+        "args": { "type": "array" },
+        "waitInboundCmd": { "type": "integer" },
+        "timeoutMs": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "protocolAssertion": {
+      "type": "object",
+      "properties": {
+        "ruleId": { "type": "string" },
+        "direction": { "enum": ["outbound", "inbound"] },
+        "cmd": { "type": "integer" },
+        "fmt": { "type": "string" },
+        "args": { "type": "array" },
+        "payloadFields": { "type": "object" },
+        "min": { "type": "integer", "minimum": 0 },
+        "max": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "protocolAssertions": {
+      "type": "object",
+      "properties": {
+        "mode": { "enum": ["read-only", "transaction"] },
+        "required": { "type": "array", "items": { "$ref": "#/$defs/protocolAssertion" } },
+        "forbidden": { "type": "array", "items": { "$ref": "#/$defs/protocolAssertion" } }
+      }
+    },
+    "nodeAssertion": {
+      "type": "object",
+      "required": ["selector"],
+      "properties": {
+        "selector": { "$ref": "#/$defs/selector" },
+        "exists": { "type": "boolean" },
+        "count": { "oneOf": [{ "type": "integer" }, { "type": "object" }] }
+      }
+    },
+    "geometryAssertion": {
+      "type": "object",
+      "required": ["selector"],
+      "properties": {
+        "selector": { "$ref": "#/$defs/selector" },
+        "bounds": { "type": "object" },
+        "withinSelector": { "$ref": "#/$defs/selector" },
+        "clipMode": { "enum": ["inside", "partial", "outside", "intersects"] }
+      }
+    },
+    "step": {
+      "type": "object",
+      "required": ["action"],
+      "not": { "required": ["expect"] },
+      "properties": {
+        "action": { "enum": ["snapshot", "click", "drag", "wait-view", "set-viewport", "protocol-read", "assert-protocol", "assert-nodes", "assert-geometry", "assert-scroll", "branch", "reset-sound", "assert-sound", "wait-render-ready"] },
+        "label": { "type": "string" },
+        "selector": { "$ref": "#/$defs/selector" },
+        "samplingTargetMs": { "type": "number", "minimum": 0 },
+        "samplingToleranceMs": { "type": "number", "minimum": 0 },
+        "request": { "$ref": "#/$defs/readRequest" },
+        "assertions": {},
+        "assertion": { "type": "object" },
+        "beforeLabel": { "type": "string" },
+        "condition": { "type": "object" },
+        "then": { "type": "array", "items": { "$ref": "#/$defs/step" } },
+        "else": { "type": "array", "items": { "$ref": "#/$defs/step" } },
+        "probe": { "type": "object" }
+      },
+      "allOf": [
+        { "if": { "properties": { "action": { "enum": ["click", "drag"] } } }, "then": { "required": ["selector"] } },
+        { "if": { "properties": { "action": { "const": "protocol-read" } } }, "then": { "required": ["request"] } },
+        { "if": { "properties": { "action": { "const": "assert-scroll" } } }, "then": { "required": ["beforeLabel", "assertion"] } },
+        { "if": { "properties": { "action": { "const": "branch" } } }, "then": { "required": ["condition", "then", "else"] } },
+        { "if": { "properties": { "action": { "const": "wait-render-ready" } } }, "then": { "required": ["probe"] } }
+      ]
     }
   }
 }

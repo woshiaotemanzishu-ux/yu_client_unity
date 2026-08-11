@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
 const { normalizeRuntimeSources } = require('../lib/runtime-tree.cjs');
-const { inspectItemUseSnapshot, evaluateStableItemUseFrames, evaluateQueueTransition } = require('../lib/item-use.cjs');
+const { validateItemUseRouteConfig, inspectItemUseSnapshot, evaluateStableItemUseFrames, evaluateQueueTransition } = require('../lib/item-use.cjs');
 
 const fixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'runtime-sources.json'), 'utf8'));
 const expected = { view: 'ItemUseView', typeId: 38070001, name: '离线挂机卡', bottom: '剩余不足2小时', enter: '购买', closeNode: 'close_btn' };
@@ -46,4 +46,18 @@ test('ItemUseView queue assertions record required change without losing unrelat
   assert.equal(result.pass, true);
   assert.deepEqual(result.changed, [{ id: 'pending', pass: true }]);
   assert.deepEqual(result.unchanged, [{ id: 'recommendations', pass: true }]);
+});
+
+test('route must explicitly hard-stop or authorize one exact ItemUse identity and queue transition', () => {
+  assert.equal(validateItemUseRouteConfig(null).pass, false);
+  assert.equal(validateItemUseRouteConfig({ mode: 'hard-stop' }).pass, true);
+  const result = validateItemUseRouteConfig({
+    authorization: { allowQueueMutation: true, maxCloseClicks: 1, scope: 'login-current-item-only' },
+    expected: { view: 'ItemUseView', typeId: 38070001, name: 'item', bottom: 'remaining', enter: 'buy', closeNode: 'close_btn' },
+    queueSpecs: [{ id: 'pending', root: 'Model', path: ['pending'] }],
+    queueAssertions: { changed: ['pending'], unchanged: [] },
+    protocolAssertions: { mode: 'read-only' },
+  });
+  assert.equal(result.pass, true);
+  assert.equal(result.mode, 'controlled-close');
 });

@@ -1,15 +1,71 @@
 {
-  "schema": 1,
-  "id": "legacy-h5.protocol-safety.v1",
+  "schema": 2,
+  "id": "legacy-h5.protocol-safety.v2",
   "default": "unknown-hard-stop",
   "rules": [
     { "id": "keepalive-10006", "cmd": 10006, "classification": "system", "signatures": [{ "fmt": "", "args": [[]] }], "reason": "natural session keepalive" },
     { "id": "login-read-12001", "cmd": 12001, "classification": "system", "signatures": [{ "fmt": "", "args": [[]] }], "reason": "natural login/read chain" },
     { "id": "login-read-12008", "cmd": 12008, "classification": "system", "signatures": [{ "fmt": "", "args": [[]] }], "reason": "natural login/read chain" },
     { "id": "afk-read-13211", "cmd": 13211, "classification": "read", "signatures": [{ "fmt": "", "args": [[]] }], "reason": "query offline time" },
-    { "id": "bag-snapshot-15010", "cmd": 15010, "classification": "read", "signatures": [{ "fmt": "h", "args": [[4], [1]] }], "reason": "authoritative inventory snapshots" },
+    {
+      "id": "bag-snapshot-15010",
+      "cmd": 15010,
+      "classification": "read",
+      "signatures": [{
+        "fmt": "h",
+        "args": [[1], [4], [5], [7], [8], [10], [11], [12], [16], [17], [22], [23], [28], [29], [30], [31], [32], [33], [34], [35], [38], [39], [40], [41], [42], [43], [44], [45], [46], [47], [48], [49]]
+      }],
+      "reason": "query an authoritative GoodsModel container snapshot",
+      "evidence": [
+        { "pathFromLegacyRoot": "h5/src/commonModel/GoodsModel.ts", "sha256": "838dcb2839bc14b63c7f029e27f87550a904902234e3df8b5090157f7cde0685", "lines": "305-338", "meaning": "GOODS_POS_TYPE defines the allowed container ids" },
+        { "pathFromLegacyRoot": "h5/src/commonController/GoodsController.ts", "sha256": "05e44a3ac73557ac5c72a408d5248f0aa6c79b72c5d2cf5896333a8d0a195379", "lines": "1079-1150", "meaning": "active startup and explicit container helpers issue the closed 15010 read signatures" }
+      ]
+    },
+    {
+      "id": "outward-base-read-16002",
+      "cmd": 16002,
+      "classification": "read",
+      "signatures": [{ "fmt": "c", "args": [[1], [2], [3], [4], [5], [7], [8], [12]] }],
+      "reason": "query outward base state",
+      "evidence": { "pathFromLegacyRoot": "h5/src/commonController/OutWardController.ts", "sha256": "4477d8e4f2fbed6e58c4291fdbc7a0afb722025651eb02b93b47ff9f2382edf6", "lines": "389-422", "meaning": "startup and OPEN_MOUNTPET_VIEW issue 16002 as a type-scoped query" }
+    },
+    {
+      "id": "outward-illusion-read-16006",
+      "cmd": 16006,
+      "classification": "read",
+      "signatures": [{ "fmt": "c", "args": [[1], [2], [3], [4], [5], [7], [8], [12]] }],
+      "reason": "query outward illusion state",
+      "evidence": { "pathFromLegacyRoot": "h5/src/commonController/OutWardController.ts", "sha256": "4477d8e4f2fbed6e58c4291fdbc7a0afb722025651eb02b93b47ff9f2382edf6", "lines": "389-446", "meaning": "startup and outward view requests issue 16006 without mutating state" }
+    },
+    {
+      "id": "outward-star-read-16011",
+      "cmd": 16011,
+      "classification": "read",
+      "signatures": [{ "fmt": "c", "args": [[1], [2], [3], [4], [5], [7], [8], [12]] }],
+      "reason": "query outward star/equipment state",
+      "evidence": { "pathFromLegacyRoot": "h5/src/commonController/OutWardController.ts", "sha256": "4477d8e4f2fbed6e58c4291fdbc7a0afb722025651eb02b93b47ff9f2382edf6", "lines": "389-422", "meaning": "startup and OPEN_MOUNTPET_VIEW issue 16011 as a query" }
+    },
+    {
+      "id": "outward-level-read-16028",
+      "cmd": 16028,
+      "classification": "read",
+      "signatures": [{ "fmt": "c", "args": [[1], [2], [3], [4], [5], [7], [8], [12]] }],
+      "reason": "query outward level-system state",
+      "evidence": { "pathFromLegacyRoot": "h5/src/commonController/OutWardController.ts", "sha256": "4477d8e4f2fbed6e58c4291fdbc7a0afb722025651eb02b93b47ff9f2382edf6", "lines": "389-422", "meaning": "startup and OPEN_MOUNTPET_VIEW issue 16028 as a query" }
+    },
     { "id": "designation-read-41101", "cmd": 41101, "classification": "read", "signatures": [{ "fmt": "", "args": [[]] }], "reason": "designation state query" },
     { "id": "fashion-read-41300", "cmd": 41300, "classification": "read", "signatures": [{ "fmt": "", "args": [[]] }], "reason": "fashion position query" },
+    {
+      "id": "fashion-power-read-41312",
+      "cmd": 41312,
+      "classification": "read",
+      "signatures": [{ "fmt": "ci", "argsSpec": [{ "type": "integer", "min": 1, "max": 12 }, { "type": "integer", "min": 1 }] }],
+      "reason": "query the fighting power for one fashion position and fashion id",
+      "evidence": [
+        { "pathFromLegacyRoot": "h5/src/commonController/FashionController.ts", "sha256": "4456fa808da93d88c650534e0384273a8341cb40c351556f572c7b4f9472da16", "lines": "68-69,346-348", "meaning": "41312 sends ci and only publishes the returned UPDATE_FIGHT data" },
+        { "pathFromLegacyRoot": "h5/src/fashion/FashionMainView.ts", "sha256": "5588f81025b60d7238b2a5d2f4c01e4f121a51486ccaf4460d74de017bb558b1", "lines": "174-178,233-237", "meaning": "selecting a fashion item requests its fighting power" }
+      ]
+    },
     { "id": "fashion-suit-read-41313", "cmd": 41313, "classification": "read", "signatures": [{ "fmt": "", "args": [[]] }], "reason": "fashion suit query" },
     { "id": "monster-book-read-44205", "cmd": 44205, "classification": "read", "signatures": [{ "fmt": "", "args": [[]] }], "reason": "monster-book picture query" },
     { "id": "wear-unreal-14901", "cmd": 14901, "classification": "write", "reason": "wear unreal item" },
@@ -17,6 +73,7 @@
     { "id": "use-goods-15050", "cmd": 15050, "classification": "write", "reason": "use goods" },
     { "id": "wear-equipment-15201", "cmd": 15201, "classification": "write", "reason": "wear equipment" },
     { "id": "purchase-goods-15302", "cmd": 15302, "classification": "write", "reason": "purchase goods" },
+    { "id": "fashion-level-consume-41305", "cmd": 41305, "classification": "write", "reason": "consume a variable goods list to level fashion; emitted through WriteBegin/WriteFMT/SendToGame" },
     { "id": "treasure-draw-41604", "cmd": 41604, "classification": "write", "reason": "treasure draw" },
     { "id": "treasure-take-one-41605", "cmd": 41605, "classification": "write", "reason": "take one treasure bag item" },
     { "id": "treasure-take-all-41606", "cmd": 41606, "classification": "write", "reason": "take all treasure bag items" },

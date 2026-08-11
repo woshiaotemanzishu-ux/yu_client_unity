@@ -11,6 +11,17 @@ function sameArgs(actual, expected) {
     && actual.every((value, index) => value === expected[index]);
 }
 
+function valueMatchesSpec(value, spec) {
+  if (spec == null || typeof spec !== 'object' || Array.isArray(spec)) return value === spec;
+  if (spec.type === 'integer' && !Number.isInteger(Number(value))) return false;
+  if (spec.type === 'number' && !Number.isFinite(Number(value))) return false;
+  if (spec.type === 'string' && typeof value !== 'string') return false;
+  if (Array.isArray(spec.enum) && !spec.enum.some(candidate => candidate === value)) return false;
+  if (spec.min != null && Number(value) < Number(spec.min)) return false;
+  if (spec.max != null && Number(value) > Number(spec.max)) return false;
+  return true;
+}
+
 function validateProtocolPolicy(policy) {
   const errors = [];
   if (!policy || Number(policy.schema) !== PROTOCOL_POLICY_SCHEMA_VERSION) errors.push('schema');
@@ -22,6 +33,9 @@ function validateProtocolPolicy(policy) {
     if (!['system', 'read', 'write'].includes(rule && rule.classification)) errors.push(`classification:${rule && rule.id}`);
     if (!Number.isInteger(Number(rule && rule.cmd))) errors.push(`cmd:${rule && rule.id}`);
     if (rule && rule.classification !== 'write' && !Array.isArray(rule.signatures)) errors.push(`signatures:${rule && rule.id}`);
+    for (const signature of rule && rule.signatures || []) {
+      if (!Array.isArray(signature.args) && !Array.isArray(signature.argsSpec)) errors.push(`signature-args:${rule && rule.id}`);
+    }
   }
   if (errors.length) throw new Error(`PROTOCOL_POLICY_INVALID: ${errors.join(',')}`);
   return policy;
@@ -37,7 +51,16 @@ function loadProtocolPolicy(filePath) {
 
 function matchSignature(event, signature) {
   if (String(event.fmt == null ? '' : event.fmt) !== String(signature.fmt == null ? '' : signature.fmt)) return false;
+  if (Array.isArray(signature.argsSpec)) {
+    const actual = event.args || [];
+    return actual.length === signature.argsSpec.length
+      && actual.every((value, index) => valueMatchesSpec(value, signature.argsSpec[index]));
+  }
   return (signature.args || []).some(expected => sameArgs(event.args || [], expected));
+}
+
+function findPolicyRule(policy, id) {
+  return (policy && policy.rules || []).find(rule => rule.id === id) || null;
 }
 
 function classifyProtocolEvent(event, policy) {
@@ -73,11 +96,16 @@ function classifyProtocolTrace(trace, policy) {
   };
 }
 
-function eventMatches(event, assertion) {
+function eventMatches(event, assertion, policy) {
   if (assertion.direction && event.direction !== assertion.direction) return false;
   if (assertion.cmd != null && Number(event.cmd) !== Number(assertion.cmd)) return false;
   if (assertion.fmt != null && String(event.fmt == null ? '' : event.fmt) !== String(assertion.fmt)) return false;
   if (assertion.args && !sameArgs(event.args || [], assertion.args)) return false;
+  if (assertion.ruleId) {
+    const rule = findPolicyRule(policy, assertion.ruleId);
+    if (!rule || Number(rule.cmd) !== Number(event.cmd)) return false;
+    if (event.direction === 'outbound' && !(rule.signatures || []).some(signature => matchSignature(event, signature))) return false;
+  }
   if (assertion.payloadFields) {
     if (!event.payload || typeof event.payload !== 'object') return false;
     for (const [key, value] of Object.entries(assertion.payloadFields)) {
@@ -91,13 +119,13 @@ function evaluateProtocolAssertions(trace, assertions = {}, policy) {
   const classified = classifyProtocolTrace(trace, policy);
   const events = [...classified.outbound, ...classified.inbound];
   const required = (assertions.required || []).map(assertion => {
-    const matches = events.filter(event => eventMatches(event, assertion));
+    const matches = events.filter(event => eventMatches(event, assertion, policy));
     const min = assertion.min == null ? 1 : Number(assertion.min);
     const max = assertion.max == null ? Infinity : Number(assertion.max);
     return { assertion, count: matches.length, pass: matches.length >= min && matches.length <= max };
   });
   const forbidden = (assertions.forbidden || []).map(assertion => {
-    const matches = events.filter(event => eventMatches(event, assertion));
+    const matches = events.filter(event => eventMatches(event, assertion, policy));
     return { assertion, count: matches.length, pass: matches.length === 0 };
   });
   const modeChecks = assertions.mode === 'read-only' ? {
@@ -109,6 +137,79 @@ function evaluateProtocolAssertions(trace, assertions = {}, policy) {
     && forbidden.every(result => result.pass)
     && Object.values(modeChecks).every(Boolean);
   return { pass, required, forbidden, modeChecks, classified };
+}
+
+function validateProtocolAssertionsContract(assertions, policy, location, errors) {
+  for (const [index, assertion] of (assertions && assertions.required || []).entries()) {
+    if (assertion.direction !== 'outbound') continue;
+    let classification = null;
+    if (assertion.ruleId) {
+      const rule = findPolicyRule(policy, assertion.ruleId);
+      if (!rule) errors.push(`${location}.required[${index}].ruleId`);
+      else if (assertion.cmd != null && Number(assertion.cmd) !== Number(rule.cmd)) errors.push(`${location}.required[${index}].cmd-rule`);
+      else classification = rule.classification;
+    } else if (assertion.fmt != null && Array.isArray(assertion.args)) {
+      classification = classifyProtocolEvent(assertion, policy).classification;
+    } else {
+      errors.push(`${location}.required[${index}].policy-binding`);
+    }
+    if (classification && !['read', 'system'].includes(classification)) errors.push(`${location}.required[${index}].not-read`);
+  }
+}
+
+function validateRouteProtocolContract(route, policy) {
+  validateProtocolPolicy(policy);
+  const errors = [];
+  for (const [index, request] of (route && route.protocol && route.protocol.reads || []).entries()) {
+    const event = { cmd: Number(request.cmd), fmt: String(request.fmt || ''), args: request.args || [] };
+    const result = classifyProtocolEvent(event, policy);
+    if (request.ruleId && (!result.rule || result.rule.id !== request.ruleId)) errors.push(`protocol.reads[${index}].ruleId`);
+    if (result.classification !== 'read') errors.push(`protocol.reads[${index}].not-read`);
+  }
+  validateProtocolAssertionsContract(route && route.protocol && route.protocol.assertions, policy, 'protocol.assertions', errors);
+  const walk = (steps, prefix) => {
+    for (const [index, step] of (steps || []).entries()) {
+      const location = `${prefix}[${index}]`;
+      if (step.action === 'protocol-read') {
+        const request = step.request || {};
+        const result = classifyProtocolEvent({ cmd: Number(request.cmd), fmt: String(request.fmt || ''), args: request.args || [] }, policy);
+        if (request.ruleId && (!result.rule || result.rule.id !== request.ruleId)) errors.push(`${location}.request.ruleId`);
+        if (result.classification !== 'read') errors.push(`${location}.request.not-read`);
+      }
+      if (step.action === 'assert-protocol') validateProtocolAssertionsContract(step.assertions, policy, `${location}.assertions`, errors);
+      if (step.action === 'branch') {
+        walk(step.then, `${location}.then`);
+        walk(step.else, `${location}.else`);
+      }
+    }
+  };
+  walk(route && route.steps, 'steps');
+  return { pass: errors.length === 0, errors };
+}
+
+function verifyProtocolAuthority(policy, legacyRoot, existsSync = fs.existsSync) {
+  const checked = new Map();
+  for (const rule of policy && policy.rules || []) {
+    const evidence = Array.isArray(rule.evidence) ? rule.evidence : rule.evidence ? [rule.evidence] : [];
+    for (const item of evidence) {
+      if (!item.pathFromLegacyRoot) continue;
+      const target = path.resolve(legacyRoot, item.pathFromLegacyRoot);
+      const key = `${target}|${item.sha256 || ''}`;
+      if (checked.has(key)) continue;
+      const exists = existsSync(target);
+      const actualSha256 = exists ? crypto.createHash('sha256').update(fs.readFileSync(target)).digest('hex') : null;
+      checked.set(key, {
+        id: `protocol:${rule.id}:${item.pathFromLegacyRoot}`,
+        ruleId: rule.id,
+        target,
+        exists,
+        expectedSha256: item.sha256 || null,
+        actualSha256,
+        pass: exists && (!item.sha256 || actualSha256 === item.sha256),
+      });
+    }
+  }
+  return [...checked.values()];
 }
 
 function canonicalHash(value) {
@@ -141,16 +242,34 @@ async function installLegacyProtocolTrace(page, options = {}) {
       try { return visit(value); } catch (_) { return String(value); }
     };
     const trace = window.__uiAuditProtocolTrace = window.__uiAuditProtocolTrace || {
-      schema: 1, installedAt: new Date().toISOString(), outbound: [], inbound: [], wrappedInbound: [],
+      schema: 2, installedAt: new Date().toISOString(), outbound: [], inbound: [], wrappedInbound: [], pendingOutbound: null,
     };
-    if (!trace.outboundWrapped) {
-      const originalSend = adapter.SendAllFmtToGame;
-      if (typeof originalSend !== 'function') throw new Error('SendAllFmtToGame unavailable');
-      adapter.SendAllFmtToGame = function uiAuditTracedSend(cmd, fmt, args) {
-        trace.outbound.push({ at: new Date().toISOString(), cmd: Number(cmd), fmt: String(fmt || ''), args: clone(args || []) });
-        return originalSend.apply(this, arguments);
+    if (!trace.transportWrapped) {
+      const originalWriteBegin = adapter.WriteBegin;
+      const originalWriteFMT = adapter.WriteFMT;
+      const originalSendToGame = adapter.SendToGame;
+      if (typeof originalWriteBegin !== 'function' || typeof originalWriteFMT !== 'function' || typeof originalSendToGame !== 'function') {
+        throw new Error('UserMsgAdapter write transport unavailable');
+      }
+      adapter.WriteBegin = function uiAuditTracedWriteBegin(cmd) {
+        trace.pendingOutbound = { at: new Date().toISOString(), cmd: Number(cmd), fmt: '', args: [], chunks: [], transport: 'write-chain' };
+        return originalWriteBegin.apply(this, arguments);
       };
-      trace.outboundWrapped = true;
+      adapter.WriteFMT = function uiAuditTracedWriteFMT(fmt, args) {
+        const values = Array.isArray(args) ? args : [args];
+        if (trace.pendingOutbound) {
+          trace.pendingOutbound.fmt += String(fmt || '');
+          trace.pendingOutbound.args.push(...clone(values));
+          trace.pendingOutbound.chunks.push({ fmt: String(fmt || ''), args: clone(values) });
+        }
+        return originalWriteFMT.apply(this, arguments);
+      };
+      adapter.SendToGame = function uiAuditTracedSendToGame() {
+        if (trace.pendingOutbound) trace.outbound.push(clone(trace.pendingOutbound));
+        trace.pendingOutbound = null;
+        return originalSendToGame.apply(this, arguments);
+      };
+      trace.transportWrapped = true;
     }
     for (const cmd of inboundCommands) {
       if (trace.wrappedInbound.includes(cmd)) continue;
@@ -178,6 +297,7 @@ async function resetLegacyProtocolTrace(page, label) {
     trace.resetAt = new Date().toISOString();
     trace.outbound.length = 0;
     trace.inbound.length = 0;
+    trace.pendingOutbound = null;
     return true;
   }, label);
 }
@@ -207,13 +327,18 @@ async function sendReadProbe(page, request, policy) {
 
 module.exports = {
   sameArgs,
+  valueMatchesSpec,
   validateProtocolPolicy,
   loadProtocolPolicy,
   matchSignature,
+  findPolicyRule,
   classifyProtocolEvent,
   classifyProtocolTrace,
   eventMatches,
   evaluateProtocolAssertions,
+  validateProtocolAssertionsContract,
+  validateRouteProtocolContract,
+  verifyProtocolAuthority,
   canonicalHash,
   installLegacyProtocolTrace,
   resetLegacyProtocolTrace,

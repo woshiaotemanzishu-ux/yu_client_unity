@@ -28,6 +28,38 @@ function assertPointInViewport(point, viewport) {
   return true;
 }
 
+async function readCanvasMetrics(page, snapshot) {
+  const stage = snapshot && snapshot.stage || {};
+  return page.evaluate(({ logicalWidth, logicalHeight }) => {
+    const canvases = [...document.querySelectorAll('canvas')]
+      .map(canvas => ({ canvas, rect: canvas.getBoundingClientRect() }))
+      .filter(value => value.rect.width > 0 && value.rect.height > 0)
+      .sort((left, right) => right.rect.width * right.rect.height - left.rect.width * left.rect.height);
+    if (!canvases.length) return null;
+    const { canvas, rect } = canvases[0];
+    const layaStage = window.Laya && Laya.stage;
+    return {
+      selector: canvas.id ? `#${canvas.id}` : 'canvas',
+      x: Number(rect.x), y: Number(rect.y), width: Number(rect.width), height: Number(rect.height),
+      logicalWidth: Number(logicalWidth || layaStage && layaStage.width || canvas.width || rect.width),
+      logicalHeight: Number(logicalHeight || layaStage && layaStage.height || canvas.height || rect.height),
+      backingWidth: Number(canvas.width || 0), backingHeight: Number(canvas.height || 0),
+    };
+  }, { logicalWidth: Number(stage.width || 0), logicalHeight: Number(stage.height || 0) });
+}
+
+function logicalToDomPoint(point, metrics) {
+  if (!metrics || ![metrics.x, metrics.y, metrics.width, metrics.height, metrics.logicalWidth, metrics.logicalHeight]
+    .every(value => Number.isFinite(Number(value)))) throw new Error('CANVAS_METRICS_UNAVAILABLE');
+  if (Number(metrics.width) <= 0 || Number(metrics.height) <= 0 || Number(metrics.logicalWidth) <= 0 || Number(metrics.logicalHeight) <= 0) {
+    throw new Error(`CANVAS_METRICS_INVALID: ${JSON.stringify(metrics)}`);
+  }
+  return {
+    x: Number(metrics.x) + Number(point.x) * Number(metrics.width) / Number(metrics.logicalWidth),
+    y: Number(metrics.y) + Number(point.y) * Number(metrics.height) / Number(metrics.logicalHeight),
+  };
+}
+
 function resolveTarget(snapshot, selector = {}) {
   const matches = findNodes(snapshot, selector);
   const expectedCount = selector.expectedCount == null ? 1 : Number(selector.expectedCount);
@@ -72,9 +104,11 @@ async function probeStageHit(page, node, point = centerOf(node.bounds)) {
 
 async function clickRuntimeTarget(page, snapshot, selector, options = {}) {
   const target = resolveTarget(snapshot, selector);
-  const point = options.point || centerOf(target.bounds);
+  const logicalPoint = options.point || centerOf(target.bounds);
+  const canvas = options.canvasMetrics || await readCanvasMetrics(page, snapshot);
+  const point = logicalToDomPoint(logicalPoint, canvas);
   assertPointInViewport(point, viewportOf(page));
-  const hit = await probeStageHit(page, target, point);
+  const hit = await probeStageHit(page, target, logicalPoint);
   if (hit.applicable && !hit.pass) {
     throw new Error(`CANVAS_HIT_REJECTED path=${target.path} reason=${hit.reason}`);
   }
@@ -83,20 +117,23 @@ async function clickRuntimeTarget(page, snapshot, selector, options = {}) {
     clickCount: options.clickCount || 1,
     delay: options.delay || 0,
   });
-  return { action: 'click', target, point, hit };
+  return { action: 'click', target, logicalPoint, point, canvas, hit };
 }
 
 async function dragRuntimeTarget(page, snapshot, selector, options = {}) {
   const target = resolveTarget(snapshot, selector);
-  const start = options.start || centerOf(target.bounds);
-  const end = options.end || {
-    x: start.x + Number(options.deltaX || 0),
-    y: start.y + Number(options.deltaY || 0),
+  const logicalStart = options.start || centerOf(target.bounds);
+  const logicalEnd = options.end || {
+    x: logicalStart.x + Number(options.deltaX || 0),
+    y: logicalStart.y + Number(options.deltaY || 0),
   };
+  const canvas = options.canvasMetrics || await readCanvasMetrics(page, snapshot);
+  const start = logicalToDomPoint(logicalStart, canvas);
+  const end = logicalToDomPoint(logicalEnd, canvas);
   const viewport = viewportOf(page);
   assertPointInViewport(start, viewport);
   assertPointInViewport(end, viewport);
-  const hit = await probeStageHit(page, target, start);
+  const hit = await probeStageHit(page, target, logicalStart);
   if (hit.applicable && !hit.pass) {
     throw new Error(`CANVAS_DRAG_HIT_REJECTED path=${target.path} reason=${hit.reason}`);
   }
@@ -107,13 +144,15 @@ async function dragRuntimeTarget(page, snapshot, selector, options = {}) {
   } finally {
     await page.mouse.up({ button: options.button || 'left' });
   }
-  return { action: 'drag', target, start, end, hit };
+  return { action: 'drag', target, logicalStart, logicalEnd, start, end, canvas, hit };
 }
 
 module.exports = {
   centerOf,
   viewportOf,
   assertPointInViewport,
+  readCanvasMetrics,
+  logicalToDomPoint,
   resolveTarget,
   probeStageHit,
   clickRuntimeTarget,

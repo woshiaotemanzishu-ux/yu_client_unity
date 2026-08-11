@@ -10,7 +10,8 @@
   "viewport": { "width": 720, "height": 1280 },
   "session": {
     "accountEnv": "UIAUDIT_ACCOUNT",
-    "passwordEnv": "UIAUDIT_PASSWORD"
+    "passwordEnv": "UIAUDIT_PASSWORD",
+    "itemUse": { "mode": "hard-stop" }
   },
   "protocol": {
     "inboundCommands": [15010],
@@ -26,6 +27,10 @@
     { "action": "snapshot", "label": "00_mainui_ready" },
     { "action": "click", "label": "01_open", "selector": { "source": "laya-stage", "view": "MainUITopView", "name": "example_btn", "expectedCount": 1 }, "settleMs": 350 },
     { "action": "wait-view", "view": "ExampleView", "visible": true },
+    { "action": "assert-nodes", "label": "02a_example_exists", "assertions": [
+      { "selector": { "source": "laya-stage", "view": "ExampleView", "expectedCount": 1 }, "exists": true },
+      { "selector": { "source": "laya-stage", "view": "DangerousConfirmView" }, "exists": false }
+    ] },
     { "action": "snapshot", "label": "02_example_ready" },
     { "action": "assert-protocol", "assertions": { "mode": "read-only", "forbidden": [{ "direction": "outbound", "cmd": 15201 }] } }
   ]

@@ -62,7 +62,7 @@ schema 6 路线台账保留 `shared_component_identity` 和 `component_state_mat
 ## 真实 Web 对比与构建节奏
 
 1. 老 H5 与 Unity 的主视觉证据来自真实浏览器包。常规对比使用后台 Headless Playwright/Puppeteer，固定 `720×1280` 移动端 viewport，并补一个 Web 宽屏 viewport；保存 old、unity、overlay 和 diff。Computer Use、前台手工点击和 CLI 合成截图不得作为日常主对比链，除非用户本轮明确授权。
-2. 可重跑页面路线统一由 `Tools/UIAudit/cli.cjs` 执行。路线文件只能是 JSON 数据，只保存 route map、控件 selector、预期状态和协议 required/forbidden；登录/选角/进城/热会话、loaded/managed/stage 运行树、循环安全 JSON、Canvas 命中、启动弹窗、`ItemUseView`、协议 trace、preflight 和报告不得在页面目录重复实现。完整接口见 [UIAudit 公共采集与探针基础设施](RuntimeCompare/UIAudit公共采集与探针基础设施-20260811.md)。
+2. 可重跑页面路线统一由 `Tools/UIAudit/cli.cjs` 执行。路线文件只能是 JSON 数据，只保存 route map、控件 selector、可执行断言和协议 required/forbidden；登录/选角/进城/热会话、loaded/managed/stage 运行树、循环安全 JSON、Canvas 命中、启动弹窗、`ItemUseView`、协议 trace、server lifecycle、preflight 和报告不得在页面目录重复实现。`preflight` 必须先以 `route-url-readiness` 做无浏览器有界 HTTP 检查；`SERVER_NOT_RUNNING` 时使用公共 `legacy-h5-local` profile 的 `server start`，或显式 `run --ensure-server`。页面不得复制旧 H5 启动器、修改统一 8091 route URL 或自建代理。完整接口见 [UIAudit 公共采集与探针基础设施](RuntimeCompare/UIAudit公共采集与探针基础设施-20260811.md)。
 2. 同账号单会话必须顺序采证：老 H5 完成路线、截图并确认断线后，再登录 Unity Web 复现。Canvas 点击每次动态读取画布矩形；可使用开发态只读桥查询 Bind 的屏幕 Rect 和 ready 状态，但最终交互仍由浏览器发送真实指针事件。
 3. 每个页面收口前必须对照与当前源码精确匹配的真实 Web 包。报告至少记录 Git commit、未提交修改指纹、Player 哈希、catalog 哈希和页面路线；任一不匹配都拒绝比较，历史截图不能继承为当前 `web-verified`。
 4. 首次基线或 Addressables 状态不可信时完整构建内容+壳。修改 C#、Web 模板、插件或 Player 设置时重打壳；仅修改已登记的 Addressable Prefab、图片或配置时，在已验证基线上只构建内容。整包按逻辑批次执行，不按单个像素或按钮执行；页面 `done` 前至少有一份当前真实包报告。
@@ -76,7 +76,7 @@ schema 6 路线台账保留 `shared_component_identity` 和 `component_state_mat
 - 执行中每约十分钟检查一次：当前动作是否仍直接推进选定页面、对比是否来自最新真实 Web、是否把基础设施/Git/证据整理混入页面工时、是否在无新信息地重复验证。发现偏航立即停下并纠正。
 - 同一种基础设施缺陷第一次出现时可在当前页定位；第二次出现就必须停止页面实现，把它登记为公共 blocker 并晋升到 `Tools/UIAudit`，用 fixture 回归覆盖后再恢复页面。禁止复制专项登录、弹窗、运行树或协议探针来绕过公共修复。
 - 每个页面先修共享 Prefab、绑定、初始化和一条代表路径，再批量覆盖同构控件；真实 Web 对比后只改资源/Prefab的尾项优先走内容构建，C# 缺陷汇总后一次修完再重打壳。
-- 页面可见效果是主要产出指标。普通页面不复制数百行专项验收 Case；通用打开、点击、滚动、截图和几何断言应通过 `Tools/UIAudit` 数据化复用，专项代码只用于独特协议、场景生命周期或渲染机制。`output/` 只保存新 run 的不可变证据，公共代码、策略、schema 和 fixture 必须留在正式工具目录。
+- 页面可见效果是主要产出指标。普通页面不复制数百行专项验收 Case；通用打开、点击、条件分支、正负存在、滚动位移/裁剪/末项、350/1000ms 截图、声音计数、模型 RT ready 和几何断言应通过 `Tools/UIAudit` 数据化复用。每条 route 显式选择 ItemUse hard-stop 或一次受控身份/队列授权；只读 outbound 必须用公共 policy 的精确签名或 `ruleId`。历史 `step.expect` 不执行且现已由 preflight 拒绝。专项代码只用于独特协议、场景生命周期或渲染机制。`output/` 只保存新 run 的不可变证据，公共代码、策略、schema 和 fixture 必须留在正式工具目录。
 
 ### 复杂页签/标签的前置几何合同
 

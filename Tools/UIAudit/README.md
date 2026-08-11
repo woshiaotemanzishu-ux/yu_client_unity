@@ -1,41 +1,84 @@
 # UIAudit 公共 Headless 采集与探针
 
-`Tools/UIAudit` 是 UI 对接/精修路线唯一可复用的浏览器采集执行层。它用 `Tools/headless/node_modules/puppeteer` 驱动系统 Edge 的真实 Headless 页面，不生成合成画面，也不把路线专项实现写进 `output/`。
+`Tools/UIAudit` 是 UI 对接/精修路线唯一可复用的老 H5 浏览器执行层。它复用 `Tools/headless/node_modules/puppeteer` 驱动系统 Edge 的真实 Headless 页面；不生成合成截图，不占用前台，也不把可复用代码留在 `output/`。
 
 ## 命令
 
 ```powershell
 node Tools/UIAudit/cli.cjs version
-node Tools/UIAudit/cli.cjs preflight --route Tools/UIAudit/examples/route.example.json --output output/ui_route_audit/2026-08-11_example/run-001
-$env:UIAUDIT_ACCOUNT='111111'
-$env:UIAUDIT_PASSWORD='...'
-node Tools/UIAudit/cli.cjs run --route <route.json> --output <全新不可变证据目录>
+node Tools/UIAudit/cli.cjs server status --profile legacy-h5-local
+node Tools/UIAudit/cli.cjs server start --profile legacy-h5-local
+node Tools/UIAudit/cli.cjs preflight --route <route.json> --output <全新 output/run>
+node Tools/UIAudit/cli.cjs run --route <route.json> --output <全新 output/run>
+node Tools/UIAudit/cli.cjs run --ensure-server --route <route.json> --output <全新 output/run>
+node Tools/UIAudit/cli.cjs server stop --profile legacy-h5-local
 node --test Tools/UIAudit/tests/*.test.cjs
 ```
 
-`preflight` 不启动浏览器；`run` 才会启动真实 Headless Edge、登录并执行路线。正式路线文件必须是 JSON，只保存 route map、控件 selector、状态与协议断言；禁止在页面目录复制登录、运行树、JSON、弹窗、`ItemUseView` 或协议实现。
+`preflight` 只用有界 HTTP 检查 `route.url`、HTML 标记和必需 bundle，不启动 Edge、不创建 run 目录。固定检查 ID 是 `route-url-readiness`；本地端口未监听返回 `SERVER_NOT_RUNNING`，端口被错误服务占用返回内容/状态类错误。只有所有检查通过，`run` 才创建不可变证据目录并启动 Headless Edge。
 
-Node 调用方可从根入口加载命名空间：`const uiAudit = require('./Tools/UIAudit')`；也可按需直接 require `lib/*.cjs`。
+`legacy-h5-local` 是 UIAudit 的标准老 H5 profile：固定 `E:/GitProject/yu_client/h5` 为编译 cwd、`E:/GitProject/yu_client/cdn` 为静态根、`127.0.0.1:8091` 为路线端口。它绕过旧 `npm start` 的 8070 默认值以及 `open:true/openUrl`，在后台内存编译，不打开用户浏览器。`stop` 只终止同时匹配 PID、worker 路径和私有 owner token 的本工具进程，绝不接管或杀死非本工具服务。
+
+Node 调用方可 `const uiAudit = require('./Tools/UIAudit')`，也可直接 require `lib/*.cjs`。`runPreflight` 是异步 API，必须 `await`。
+
+## 页面 route 合同
+
+正式 route 只保存 route map、selector、控件名和断言数据，不复制登录、运行树、JSON、弹窗、协议或 server 启动逻辑。
+
+### ItemUseView
+
+每条 route 必须明确二选一：
+
+```json
+{ "session": { "itemUse": { "mode": "hard-stop" } } }
+```
+
+或声明一次受控关闭所需的 `authorization`、完整 `expected` 身份、`queueSpecs`、`queueAssertions` 与 `protocolAssertions.mode=read-only`。缺省不再代表安全；未声明会在 `item-use-session-policy` 失败。页面只能声明当前实例和队列授权，不能修改公共弹窗策略。
+
+### 协议
+
+页面只允许使用 `policies/protocols.json` 中有源码证据的精确只读签名。主动读请求写为：
+
+```json
+{ "cmd": 16002, "fmt": "c", "args": [5], "ruleId": "outward-base-read-16002" }
+```
+
+required outbound 断言必须提供精确 `fmt+args`，或绑定公共 `ruleId`；只写 `cmd` 会在 `route-protocol-contract` 失败。当前公共策略覆盖 Bag/Warehouse `15010` 容器读、Pet `16002/16006/16011/16028` 和 Fashion `41312`。页面不能内联扩展 policy；新增命令必须由公共层核对当前源码哈希、命令语义与签名后加入策略。trace 包装底层 `WriteBegin/WriteFMT/SendToGame`，所以 41305 等自定义写包链也能证明“未发送”或精确捕获违规发送。
+
+### 通用动作
+
+- `assert-nodes`：`exists:true/false` 或精确/区间数量，表达正负存在与条件 Tab 未生成。
+- `branch`：按 `nodes` 或 `geometry` 条件选择数据化 `then/else`，表达条件详情分支。
+- `assert-geometry`：矩形数值、`inside/partial/outside/intersects` 裁剪。
+- `assert-scroll`：对比先前 snapshot，验证 ScrollBar/Content 位移、裁剪和末项可达。
+- `snapshot.samplingTargetMs`：以最近一次真实 click 完成为锚，采 350/1000ms 等时点。
+- `reset-sound` / `assert-sound`：统计 `PlaySoundEffect/PlaySceneSound` 逻辑调用和重复消费。
+- `wait-render-ready`：读取指定 RenderTexture 的真实 alpha 像素，要求连续稳定帧达到阈值。
+
+selector 支持 `dataIdentity` 子集匹配，例如 `{ "dataIdentity": { "fashion_id": 12010008 } }`。click/drag 始终先在 Laya 逻辑坐标做唯一身份与 `hitTestPoint` 验证，再按真实 Canvas DOM rect 映射到浏览器坐标；1920×1080 宽屏不再误用 720×1280 逻辑坐标直接点击。
+
+历史 `step.expect` 不会被当成注释跳过，而是在 schema/preflight 硬停。应改成上述可执行动作。
 
 ## 公共 API
 
 | 模块 | 职责 |
 |---|---|
-| `lib/session.cjs` | Edge 启动、登录、选角、进城、启动弹窗处理和热会话身份 |
-| `lib/safe-json.cjs` | 只丢祖先环、不误删共享引用的 JSON 与原子不可变写入 |
-| `lib/runtime-tree.cjs` | loaded view、managed page snapshot、`Laya.stage` 统一节点 schema |
-| `lib/canvas-input.cjs` | 精确实例、viewport、`hitTestPoint` 通过后的真实 click/drag |
-| `lib/popup-policy.cjs` | `allow / forbid / unknown-hard-stop`、队列排序和安全关闭面 |
-| `lib/item-use.cjs` | `ItemUseView` 精确身份、双稳定帧、队列前后、一次受控关闭 |
-| `lib/protocol-probe.cjs` | `UserMsgAdapter` 传输层收发 trace、读写分类、required/forbidden |
-| `lib/preflight.cjs` | Node/Edge/Puppeteer、route、策略、凭证、authority 与输出目录闸 |
-| `lib/route-runner.cjs` | 数据化步骤执行和真实截图/运行树证据 |
-| `lib/report.cjs` | 版本化结构报告、产物大小与 SHA-256 |
-
-策略位于 `policies/`，schema 位于 `schemas/`。页面不得猜某个 Controller 作为主探针；协议事实来自 `UserMsgAdapter` 传输收发记录，页面只声明 required/forbidden 数据。
+| `lib/session.cjs` | Edge、登录、选角、进城、启动弹窗和热会话 |
+| `lib/safe-json.cjs` | 只丢祖先环、保留共享引用的 JSON 与原子写入 |
+| `lib/runtime-tree.cjs` | loaded/managed/`Laya.stage` 统一节点 schema 与数据身份 |
+| `lib/canvas-input.cjs` | Canvas rect 坐标换算、唯一命中后的真实 click/drag |
+| `lib/popup-policy.cjs` | `allow/forbid/unknown-hard-stop`、安全节点与副作用策略 |
+| `lib/item-use.cjs` | ItemUse 精确身份、稳定帧、队列和一次受控关闭 |
+| `lib/protocol-probe.cjs` | 底层收发 trace、读写分类、required/forbidden 与 policy 闸 |
+| `lib/route-assertions.cjs` | 节点、条件分支、几何、裁剪和滚动断言 |
+| `lib/runtime-probes.cjs` | 声音调用与 RenderTexture 非透明像素 ready |
+| `lib/server-readiness.cjs` | 无浏览器 HTTP readiness 与稳定错误分类 |
+| `lib/server-lifecycle.cjs` | 标准 profile 的后台 start/status/owned stop |
+| `lib/preflight.cjs` | 版本、依赖、authority、route 合同、URL 与输出闸 |
+| `lib/route-runner.cjs` | 数据化步骤、真实截图/snapshot/trace 和结构报告 |
 
 ## 不可变证据
 
-`output/` 整体由 Git 忽略，只保存每次运行的新目录。公共代码、策略、fixture、schema 和说明必须进入 `Tools/UIAudit` 或 `Docs`。写入器默认拒绝覆盖已存在文件；同一路线复验必须创建新 run-id。
+`output/` 整体由 Git 忽略，只保存每次运行的新目录。公共代码、策略、fixture、schema 和文档必须进入 `Tools/UIAudit` 或 `Docs`。写入器拒绝覆盖已有文件；同一路线复验必须新建 run-id。
 
-详细设计、迁移来源和未迁移专项边界见 [UIAudit 公共采集与探针基础设施](../../Docs/RuntimeCompare/UIAudit公共采集与探针基础设施-20260811.md)。
+设计、迁移来源和边界见 [UIAudit 公共采集与探针基础设施](../../Docs/RuntimeCompare/UIAudit公共采集与探针基础设施-20260811.md)。

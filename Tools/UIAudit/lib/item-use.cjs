@@ -10,6 +10,36 @@ const DEFAULT_IDENTITY = Object.freeze({
   enterNode: 'enter_btn',
 });
 
+function validateItemUseRouteConfig(config) {
+  if (!config) return { pass: false, mode: null, errors: ['session.itemUse'] };
+  if (config.mode === 'hard-stop') return { pass: true, mode: 'hard-stop', errors: [] };
+  const errors = [];
+  const authorization = config.authorization || {};
+  const expected = config.expected || {};
+  if (authorization.allowQueueMutation !== true) errors.push('authorization.allowQueueMutation');
+  if (Number(authorization.maxCloseClicks) !== 1) errors.push('authorization.maxCloseClicks');
+  if (typeof authorization.scope !== 'string' || !authorization.scope.trim()) errors.push('authorization.scope');
+  for (const key of ['view', 'typeId', 'name', 'bottom', 'enter', 'closeNode']) {
+    if (expected[key] == null || expected[key] === '') errors.push(`expected.${key}`);
+  }
+  if (expected.view && expected.view !== 'ItemUseView') errors.push('expected.view');
+  if (!Array.isArray(config.queueSpecs) || !config.queueSpecs.length) errors.push('queueSpecs');
+  const queueIds = new Set();
+  for (const [index, spec] of (config.queueSpecs || []).entries()) {
+    if (!spec.id || queueIds.has(spec.id)) errors.push(`queueSpecs[${index}].id`);
+    queueIds.add(spec.id);
+    if (!spec.root || !Array.isArray(spec.path)) errors.push(`queueSpecs[${index}].path`);
+    if ((spec.path || []).some(value => typeof value !== 'string' || !/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(value))) errors.push(`queueSpecs[${index}].unsafePath`);
+  }
+  const unchanged = config.queueAssertions && config.queueAssertions.unchanged || [];
+  const changed = config.queueAssertions && config.queueAssertions.changed || [];
+  if (!unchanged.length && !changed.length) errors.push('queueAssertions');
+  for (const id of [...unchanged, ...changed]) if (!queueIds.has(id)) errors.push(`queueAssertions.unknown:${id}`);
+  for (const id of unchanged) if (changed.includes(id)) errors.push(`queueAssertions.conflict:${id}`);
+  if (!config.protocolAssertions || config.protocolAssertions.mode !== 'read-only') errors.push('protocolAssertions.mode');
+  return { pass: errors.length === 0, mode: 'controlled-close', errors };
+}
+
 function finiteRect(rect) {
   return !!rect && ['x', 'y', 'width', 'height'].every(key => Number.isFinite(Number(rect[key])))
     && Number(rect.width) > 0 && Number(rect.height) > 0;
@@ -233,6 +263,7 @@ async function closeItemUseControlled(page, options) {
 
 module.exports = {
   DEFAULT_IDENTITY,
+  validateItemUseRouteConfig,
   finiteRect,
   rectEquals,
   rectsOverlap,

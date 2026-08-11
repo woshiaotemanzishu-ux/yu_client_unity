@@ -20,6 +20,12 @@ function normalizeRect(rect) {
   return value.width >= 0 && value.height >= 0 ? value : null;
 }
 
+function identitySubsetMatches(actual, expected) {
+  if (expected == null || typeof expected !== 'object' || Array.isArray(expected)) return actual === expected;
+  if (actual == null || typeof actual !== 'object' || Array.isArray(actual)) return false;
+  return Object.entries(expected).every(([key, value]) => identitySubsetMatches(actual[key], value));
+}
+
 function normalizedNode(raw, context = {}) {
   const name = String(raw && raw.name || '');
   const type = String(raw && raw.type || raw && raw.constructorName || '');
@@ -216,8 +222,10 @@ async function collectRuntimeSources(page, options = {}) {
           const value = node && node[key];
           if (!value || typeof value !== 'object') continue;
           const identity = {};
-          for (const field of ['type_id', 'typeId', 'goods_id', 'goodsId', 'id', 'name']) {
-            if (value[field] != null && ['string', 'number', 'boolean'].includes(typeof value[field])) identity[field] = value[field];
+          for (const [field, fieldValue] of Object.entries(value)) {
+            if (!/(^id$|^name$|_id$|Id$)/.test(field)) continue;
+            if (fieldValue != null && ['string', 'number', 'boolean'].includes(typeof fieldValue)) identity[field] = fieldValue;
+            if (Object.keys(identity).length >= 32) break;
           }
           if (Object.keys(identity).length) return identity;
         }
@@ -287,6 +295,7 @@ function matchNode(node, selector = {}) {
   if (selector.text && node.text.trim() !== String(selector.text).trim()) return false;
   if (selector.skinIncludes && !node.skin.includes(selector.skinIncludes)) return false;
   if (selector.path && node.path !== selector.path) return false;
+  if (selector.dataIdentity && !identitySubsetMatches(node.state && node.state.dataIdentity, selector.dataIdentity)) return false;
   if (selector.visible !== false && !node.visible) return false;
   return true;
 }
@@ -309,6 +318,7 @@ function findExactNode(snapshot, selector = {}) {
 module.exports = {
   NODE_SCHEMA,
   normalizeRect,
+  identitySubsetMatches,
   normalizedNode,
   flattenManagedTree,
   normalizeRuntimeSources,

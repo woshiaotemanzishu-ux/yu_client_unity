@@ -5,7 +5,15 @@ const path = require('path');
 const crypto = require('crypto');
 const { ROUTE_SCHEMA_VERSION } = require('./version.cjs');
 const { validatePopupPolicy } = require('./popup-policy.cjs');
-const { validateProtocolPolicy } = require('./protocol-probe.cjs');
+const { validateProtocolPolicy, validateRouteProtocolContract, verifyProtocolAuthority } = require('./protocol-probe.cjs');
+const { validateItemUseRouteConfig } = require('./item-use.cjs');
+const {
+  ROUTE_URL_CHECK_ID,
+  findServerProfileForUrl,
+  resolvedServerProfile,
+  probeRouteUrl,
+} = require('./server-readiness.cjs');
+const { serverRecovery } = require('./server-lifecycle.cjs');
 
 const DEFAULT_EDGE_PATHS = [
   'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
@@ -22,14 +30,51 @@ function validateRoute(route) {
   if (!route || Number(route.schema) !== ROUTE_SCHEMA_VERSION) errors.push('schema');
   if (!route || typeof route.id !== 'string' || !route.id.trim()) errors.push('id');
   if (!route || route.engine !== 'legacy-laya') errors.push('engine');
-  try { new URL(route && route.url); } catch (_) { errors.push('url'); }
+  try {
+    const parsed = new URL(route && route.url);
+    if (!['http:', 'https:'].includes(parsed.protocol)) errors.push('url.protocol');
+  } catch (_) { errors.push('url'); }
   if (!route || typeof route.snapshotSource !== 'string' || !route.snapshotSource.trim()) errors.push('snapshotSource');
   if (!Array.isArray(route && route.steps)) errors.push('steps');
-  for (const [index, step] of (route && route.steps || []).entries()) {
-    if (!step || !['snapshot', 'click', 'drag', 'wait-view', 'set-viewport', 'protocol-read', 'assert-protocol'].includes(step.action)) {
-      errors.push(`steps[${index}].action`);
+  const actions = new Set([
+    'snapshot', 'click', 'drag', 'wait-view', 'set-viewport', 'protocol-read', 'assert-protocol',
+    'assert-nodes', 'assert-geometry', 'assert-scroll', 'branch', 'reset-sound', 'assert-sound', 'wait-render-ready',
+  ]);
+  const selectorPresent = value => value && typeof value === 'object' && !Array.isArray(value);
+  const walk = (steps, prefix, inheritedClickAnchor = false) => {
+    let hasClickAnchor = inheritedClickAnchor;
+    for (const [index, step] of (steps || []).entries()) {
+      const location = `${prefix}[${index}]`;
+      if (!step || !actions.has(step.action)) errors.push(`${location}.action`);
+      if (step && step.expect != null) errors.push(`${location}.expect-unsupported`);
+      if (step && ['click', 'drag'].includes(step.action) && !selectorPresent(step.selector)) errors.push(`${location}.selector`);
+      if (step && step.action === 'snapshot' && step.samplingTargetMs != null) {
+        if (!hasClickAnchor) errors.push(`${location}.samplingTargetMs-no-click`);
+        if (!Number.isFinite(Number(step.samplingTargetMs)) || Number(step.samplingTargetMs) < 0) errors.push(`${location}.samplingTargetMs`);
+        if (step.samplingToleranceMs != null && (!Number.isFinite(Number(step.samplingToleranceMs)) || Number(step.samplingToleranceMs) < 0)) errors.push(`${location}.samplingToleranceMs`);
+      }
+      if (step && step.action === 'assert-nodes' && (!Array.isArray(step.assertions) || !step.assertions.length
+        || step.assertions.some(assertion => !selectorPresent(assertion.selector)))) errors.push(`${location}.assertions`);
+      if (step && step.action === 'assert-geometry') {
+        const assertions = step.assertions || (step.assertion ? [step.assertion] : []);
+        if (!Array.isArray(assertions) || !assertions.length || assertions.some(assertion => !selectorPresent(assertion.selector))) errors.push(`${location}.assertions`);
+      }
+      if (step && step.action === 'assert-scroll' && (typeof step.beforeLabel !== 'string' || !step.beforeLabel
+        || !selectorPresent(step.assertion))) errors.push(`${location}.scroll`);
+      if (step && step.action === 'protocol-read' && !selectorPresent(step.request)) errors.push(`${location}.request`);
+      if (step && step.action === 'assert-protocol' && !selectorPresent(step.assertions)) errors.push(`${location}.assertions`);
+      if (step && step.action === 'assert-sound' && !selectorPresent(step.assertions)) errors.push(`${location}.assertions`);
+      if (step && step.action === 'wait-render-ready' && (!selectorPresent(step.probe)
+        || !selectorPresent(step.probe.selector) || !Array.isArray(step.probe.propertyPath) || !step.probe.propertyPath.length)) errors.push(`${location}.probe`);
+      if (step && step.action === 'click') hasClickAnchor = true;
+      if (step && step.action === 'branch') {
+        if (!step.condition || !Array.isArray(step.then) || !Array.isArray(step.else)) errors.push(`${location}.branch`);
+        walk(step.then, `${location}.then`, hasClickAnchor);
+        walk(step.else, `${location}.else`, hasClickAnchor);
+      }
     }
-  }
+  };
+  walk(route && route.steps, 'steps');
   if (errors.length) throw new Error(`ROUTE_SCHEMA_INVALID: ${errors.join(',')}`);
   return route;
 }
@@ -67,7 +112,7 @@ function verifyAuthority(policy, legacyRoot, existsSync = fs.existsSync) {
   return results;
 }
 
-function runPreflight(options = {}) {
+async function runPreflight(options = {}) {
   const repoRoot = path.resolve(options.repoRoot || path.join(__dirname, '..', '..', '..'));
   const existsSync = options.existsSync || fs.existsSync;
   const env = options.env || process.env;
@@ -104,11 +149,32 @@ function runPreflight(options = {}) {
   if (accountEnv) add('account-env', typeof env[accountEnv] === 'string' && env[accountEnv].length > 0, { name: accountEnv });
   if (passwordEnv) add('password-env', typeof env[passwordEnv] === 'string' && env[passwordEnv].length > 0, { name: passwordEnv });
 
+  const itemUse = validateItemUseRouteConfig(route.session && route.session.itemUse);
+  add('item-use-session-policy', itemUse.pass, itemUse);
+  const protocolContract = validateRouteProtocolContract(route, options.protocolPolicy);
+  add('route-protocol-contract', protocolContract.pass, protocolContract);
+
   const authority = [];
   if (route.legacyRoot && route.verifyAuthority !== false) {
     authority.push(...verifyAuthority(options.popupPolicy, route.legacyRoot, existsSync));
+    authority.push(...verifyProtocolAuthority(options.protocolPolicy, route.legacyRoot, existsSync));
     for (const result of authority) add(`authority:${result.id}`, result.pass, result);
   }
+
+  const rawServerProfile = options.serverProfile || findServerProfileForUrl(route.url, options.serverProfiles);
+  const serverProfile = resolvedServerProfile(rawServerProfile, repoRoot);
+  const localRoute = ['127.0.0.1', 'localhost'].includes(new URL(route.url).hostname.toLowerCase());
+  add('route-server-profile', !localRoute || !!serverProfile, serverProfile
+    ? { pass: true, profileId: serverProfile.id, cwd: serverProfile.cwd, staticRoot: serverProfile.staticRoot, url: serverProfile.url }
+    : { pass: !localRoute, code: 'SERVER_PROFILE_NOT_FOUND', url: route.url });
+  const readinessOptions = { ...(serverProfile && serverProfile.readiness || {}), ...(route.readiness || {}), ...(options.routeReadiness || {}) };
+  const routeProbe = await (options.probeRouteUrl || probeRouteUrl)(route.url, readinessOptions);
+  const readinessDetail = {
+    ...routeProbe,
+    profileId: serverProfile && serverProfile.id || null,
+    recovery: serverProfile ? serverRecovery(serverProfile) : null,
+  };
+  add(ROUTE_URL_CHECK_ID, routeProbe.pass, readinessDetail);
 
   return {
     schema: 1,
@@ -116,7 +182,7 @@ function runPreflight(options = {}) {
     pass: checks.every(check => check.pass),
     checks,
     authority,
-    resolved: { repoRoot, outputDir, edgeExecutable: edge, puppeteerPackage },
+    resolved: { repoRoot, outputDir, edgeExecutable: edge, puppeteerPackage, serverProfile },
   };
 }
 

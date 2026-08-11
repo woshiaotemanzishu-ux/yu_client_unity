@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "id": "legacy-h5-local",
+  "description": "yu_client legacy H5 compiled in memory and served without opening a foreground browser",
+  "matchOrigins": [
+    "http://127.0.0.1:8091"
+  ],
+  "host": "127.0.0.1",
+  "port": 8091,
+  "routePath": "/index.html",
+  "cwdFromRepo": "../yu_client/h5",
+  "staticRootFromRepo": "../yu_client/cdn",
+  "workerFromTool": "server/legacy-h5-worker.cjs",
+  "readiness": {
+    "timeoutMs": 2500,
+    "readyTimeoutMs": 120000,
+    "maxRedirects": 2,
+    "maxBytes": 262144,
+    "acceptedStatus": [200],
+    "contentTypeIncludes": ["text/html"],
+    "bodyIncludesAll": ["egret-main-player", "js/bundle.js"],
+    "requiredHeadPaths": ["/js/bundle.js"]
+  }
+}
