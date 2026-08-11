@@ -2097,3 +2097,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **流程纠偏**：等级不是顶级态。GM 配方改为入口门槛、精确转生、主体激活、路线物品四层；实测批量 `finlvtask/finishawakentask/finfiguretask` 会造成 7 转回退 5 转，已从通用配方移除。VIP15 达成后经验显示 0 属满级语义，不再误判失败。
 - **公共工具**：新增 `Tools/UIAudit/cli.cjs gm top-ui`、运行时账号快照、差量命令、防回退观察、原子进度和全新会话复验；补齐 FunctionOpen 自然计时、共享窗框返回、跨服圣域直推提示与 ItemUse 缓存态识别。最终补写+双会话复验为 70.1 秒，实际货币命令 277ms，主要成本来自真实登录/启动队列；完整 UIAudit 回归 128/128、技能结构校验通过。
 - **范围保护**：本轮没有修改“角色-人物”、任何 UI Prefab、OutWard 页面实现或 Unity；页面“垂神翼影”仍由后续新任务按运行时转换实验继续，账号准备完成不等于页面验收完成。
+
+## 2026-08-12：角色-垂神翼影运行态通用转换实验
+
+- **结论**：Conditional Go。老 H5 8091、账号 111111、720×1280 下，真实 `OutWardBaseView` 主态和 `IllusionBaseView` 只读态同会话采集通过；首份权威目标快照后 7 分 04 秒得到隔离候选，热编译入口用输出 ready 探针实测 529 ms 出 report。
+- **量化**：目标子树 303/303 捕获，候选生成 269；119/119 图片资源解析，可见几何 99/111 配对，median 0 px、p95 28.0948 px、max 44.074 px。12 个缺失可见节点均为 Text，normalized runtime 快照文字值为空；克隆材料格出现 0/-20/-40 px 累积塌缩，3D 翅膀和动态特效不在 managed 子树。
+- **公共实现**：UIAudit 晋升当前 ItemUse 精确身份/两稳定帧/背包不减、嵌套共享窗框 wait、text identity 到显式交互祖先、采样 lead 和 `16022 cc` 只读协议合同；LayaUI 新增 runtime snapshot 适配、只读已有 Sprite 的隔离烘焙/720×1280 出帧和独立几何/像素 diff。回归为 UIAudit 136/136、适配 2/2、diff 2/2，Unity 定向编译 0 error。
+- **边界**：没有运行生产 `BakeModuleFromManifest`，没有注册 Addressables，没有覆盖 `RoleModule.prefab/PetModule.prefab`，没有进入 fix-view，也没有重开“角色-人物”完成范围。候选不能当生产页面或正确答案；详见 [角色-垂神翼影运行态通用转换实验](RuntimeCompare/角色-垂神翼影运行态通用转换实验-20260812.md)。

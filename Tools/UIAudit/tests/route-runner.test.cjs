@@ -6,7 +6,44 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { runRoute } = require('../lib/route-runner.cjs');
+const { runRoute, waitForView } = require('../lib/route-runner.cjs');
+
+test('wait-view timeout preserves the final three-source runtime diagnostic', async () => {
+  const snapshot = {
+    schema: 3,
+    capturedAt: '2026-08-12T02:00:00.000Z',
+    visibleViews: ['MainUITopView', 'RoleView'],
+    loaded: { nodes: [] },
+    managed: { nodes: [] },
+    stage: { nodes: [], frameToken: 10 },
+    sources: { loadedViews: 2, managedViews: 2, stageNodes: 1 },
+  };
+  await assert.rejects(
+    () => waitForView({ snapshot: async () => snapshot }, 'EquipmentView', true, 1),
+    error => error.code === 'WAIT_VIEW_TIMEOUT'
+      && error.diagnostic.context.kind === 'wait-view-timeout'
+      && error.diagnostic.context.visibleViews.includes('RoleView'),
+  );
+});
+
+test('wait-view accepts a visible content node nested inside a shared BaseWindowSkin', async () => {
+  const snapshot = {
+    schema: 3,
+    capturedAt: '2026-08-12T02:00:00.000Z',
+    visibleViews: ['BaseWindowSkin'],
+    loaded: { nodes: [] },
+    nodes: [{
+      schema: 'ui-audit.runtime-node.v3', source: 'managed-view', view: 'BaseWindowSkin',
+      name: 'EquipmentView', path: 'BaseWindowSkin[0]/_gp_item_con[0]/EquipmentView[0]',
+      visible: true, displayed: true, depth: 3,
+    }],
+    stage: { nodes: [], frameToken: 10 },
+    sources: { loadedViews: 1, managedViews: 1, stageNodes: 1 },
+  };
+  const result = await waitForView({ snapshot: async () => snapshot }, 'EquipmentView', true, 1);
+  assert.equal(result.visibleViews.includes('EquipmentView'), false);
+  assert.equal(result.nodes[0].name, 'EquipmentView');
+});
 
 test('failed route readiness creates no run and starts no browser session', async () => {
   const repoRoot = path.resolve(__dirname, '..', '..', '..');

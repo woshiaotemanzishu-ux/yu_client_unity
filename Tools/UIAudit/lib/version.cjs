@@ -1,7 +1,7 @@
 'use strict';
 
 const TOOL_NAME = '@shenxiao/ui-audit';
-const TOOL_VERSION = '1.2.0';
+const TOOL_VERSION = '1.2.1';
 const ROUTE_SCHEMA_VERSION = 1;
 const REPORT_SCHEMA_VERSION = 1;
 const RUNTIME_NODE_SCHEMA_VERSION = 3;

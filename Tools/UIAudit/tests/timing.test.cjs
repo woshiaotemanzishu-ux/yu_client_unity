@@ -41,3 +41,22 @@ test('failed steps remain visible with their elapsed timing', async () => {
   assert.equal(report.steps[0].status, 'failed');
   assert.equal(report.steps[0].label, 'bad-sample');
 });
+
+test('sampling capture lead starts an expensive runtime snapshot before the visual target', async () => {
+  const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ui-audit-sampling-lead-'));
+  try {
+    const report = createReport({ id: 'sampling-lead', schema: 1, engine: 'legacy-laya', url: 'http://fixture' }, null);
+    const context = {
+      session: { snapshot: async () => ({ visibleViews: [], nodes: [] }) },
+      outputDir, protocolPolicy: {}, report, snapshots: new Map(), lastClickAt: Date.now(), lastClickLabel: 'click',
+    };
+    const entry = await executeStep(context, {
+      action: 'snapshot', label: 'lead', screenshot: false,
+      samplingTargetMs: 50, samplingCaptureLeadMs: 40, samplingToleranceMs: 50,
+    }, 0);
+    assert.equal(entry.result.timing.captureLeadMs, 40);
+    assert.ok(entry.timing.samplingWaitMs <= 30);
+  } finally {
+    fs.rmSync(outputDir, { recursive: true, force: true });
+  }
+});

@@ -107,10 +107,17 @@ test('public source-backed policy classifies Bag, Pet and fashion power reads ex
     { cmd: 16002, fmt: 'c', args: [5] },
     { cmd: 16006, fmt: 'c', args: [5] },
     { cmd: 16011, fmt: 'c', args: [5] },
+    { cmd: 16022, fmt: 'cc', args: [3, 1] },
     { cmd: 16028, fmt: 'c', args: [5] },
     { cmd: 41312, fmt: 'ci', args: [1, 12010008] },
   ]) assert.equal(classifyProtocolEvent(event, policy).classification, 'read', JSON.stringify(event));
   assert.equal(classifyProtocolEvent({ cmd: 16002, fmt: 'c', args: [6] }, policy).classification, 'unknown');
+  for (const event of [
+    { cmd: 16022, fmt: 'cc', args: [6, 1] },
+    { cmd: 16022, fmt: 'cc', args: [3, 0] },
+    { cmd: 16022, fmt: 'cc', args: [3, 256] },
+    { cmd: 16022, fmt: 'ci', args: [3, 1] },
+  ]) assert.equal(classifyProtocolEvent(event, policy).classification, 'unknown', JSON.stringify(event));
 });
 
 test('required outbound reads need an exact signature or public rule binding', () => {

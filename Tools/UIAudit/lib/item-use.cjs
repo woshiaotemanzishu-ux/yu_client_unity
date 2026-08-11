@@ -15,10 +15,18 @@ function validateItemUseRouteConfig(config) {
   if (config.mode === 'hard-stop') return { pass: true, mode: 'hard-stop', errors: [] };
   const errors = [];
   const authorization = config.authorization || {};
-  const expected = config.expected || {};
   if (authorization.allowQueueMutation !== true) errors.push('authorization.allowQueueMutation');
   if (Number(authorization.maxCloseClicks) !== 1) errors.push('authorization.maxCloseClicks');
   if (typeof authorization.scope !== 'string' || !authorization.scope.trim()) errors.push('authorization.scope');
+  if (config.mode === 'controlled-current-read-only') {
+    const maxInstances = Number(authorization.maxInstances);
+    if (!Number.isInteger(maxInstances) || maxInstances < 1 || maxInstances > 8) errors.push('authorization.maxInstances');
+    if (config.identitySource !== 'ItemUseView.GetTypeId/GetGoodsId') errors.push('identitySource');
+    if (config.requireBagNonDecrease !== true) errors.push('requireBagNonDecrease');
+    if (!config.protocolAssertions || config.protocolAssertions.mode !== 'read-only') errors.push('protocolAssertions.mode');
+    return { pass: errors.length === 0, mode: 'controlled-current-read-only', errors };
+  }
+  const expected = config.expected || {};
   for (const key of ['view', 'typeId', 'name', 'bottom', 'enter', 'closeNode']) {
     if (expected[key] == null || expected[key] === '') errors.push(`expected.${key}`);
   }

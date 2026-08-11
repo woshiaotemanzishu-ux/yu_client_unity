@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const uiAudit = require('..');
 
 test('public root entry exposes versioned callable modules', () => {
-  assert.equal(uiAudit.version.versionInfo().version, '1.2.0');
+  assert.equal(uiAudit.version.versionInfo().version, '1.2.1');
   assert.equal(uiAudit.version.versionInfo().schemas.runtimeNode, 3);
   assert.equal(uiAudit.version.versionInfo().schemas.runtimeOverlayPolicy, 1);
   assert.equal(uiAudit.version.versionInfo().schemas.canvasInput, 1);

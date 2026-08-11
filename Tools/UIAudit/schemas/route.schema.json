@@ -45,6 +45,26 @@
             { "type": "object", "required": ["mode"], "properties": { "mode": { "const": "hard-stop" } } },
             {
               "type": "object",
+              "required": ["mode", "authorization", "identitySource", "requireBagNonDecrease", "protocolAssertions"],
+              "properties": {
+                "mode": { "const": "controlled-current-read-only" },
+                "authorization": {
+                  "type": "object",
+                  "required": ["allowQueueMutation", "maxCloseClicks", "maxInstances", "scope"],
+                  "properties": {
+                    "allowQueueMutation": { "const": true },
+                    "maxCloseClicks": { "const": 1 },
+                    "maxInstances": { "type": "integer", "minimum": 1, "maximum": 8 },
+                    "scope": { "type": "string", "minLength": 1 }
+                  }
+                },
+                "identitySource": { "const": "ItemUseView.GetTypeId/GetGoodsId" },
+                "requireBagNonDecrease": { "const": true },
+                "protocolAssertions": { "$ref": "#/$defs/protocolAssertions" }
+              }
+            },
+            {
+              "type": "object",
               "required": ["authorization", "expected", "queueSpecs"],
               "properties": {
                 "authorization": {
@@ -171,6 +191,7 @@
         "selector": { "$ref": "#/$defs/selector" },
         "samplingTargetMs": { "type": "number", "minimum": 0 },
         "samplingToleranceMs": { "type": "number", "minimum": 0 },
+        "samplingCaptureLeadMs": { "type": "number", "minimum": 0 },
         "request": { "$ref": "#/$defs/readRequest" },
         "assertions": {},
         "assertion": { "type": "object" },

@@ -54,6 +54,8 @@ function validateRoute(route) {
         if (!hasClickAnchor) errors.push(`${location}.samplingTargetMs-no-click`);
         if (!Number.isFinite(Number(step.samplingTargetMs)) || Number(step.samplingTargetMs) < 0) errors.push(`${location}.samplingTargetMs`);
         if (step.samplingToleranceMs != null && (!Number.isFinite(Number(step.samplingToleranceMs)) || Number(step.samplingToleranceMs) < 0)) errors.push(`${location}.samplingToleranceMs`);
+        if (step.samplingCaptureLeadMs != null && (!Number.isFinite(Number(step.samplingCaptureLeadMs)) || Number(step.samplingCaptureLeadMs) < 0
+          || Number(step.samplingCaptureLeadMs) > Number(step.samplingTargetMs))) errors.push(`${location}.samplingCaptureLeadMs`);
       }
       if (step && step.action === 'assert-nodes' && (!Array.isArray(step.assertions) || !step.assertions.length
         || step.assertions.some(assertion => !selectorPresent(assertion.selector)))) errors.push(`${location}.assertions`);

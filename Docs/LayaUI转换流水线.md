@@ -271,3 +271,11 @@ login 模块(13 个窗口、9 个内联模板、完整业务链)证明了分工�
 其余 mainUI 场景自动成 leftovers,各自单独弹窗预制体。
 生成:神霄/LayaUI 转换器 → 选 mainUI → 合并转换 → 回填 → 得 MainUIModule.prefab(对标 LoginModule),
 再对着老客户端运行时微调。
+
+## 运行态驱动的隔离候选（2026-08-12）
+
+已有人工接管 Prefab 的页面仍然禁止重转；但可以把当前老客户端真实运行树送入通用转换核心做“不注册、不覆盖”的候选实验。`Tools/LayaUI/runtime_snapshot_adapter.cjs` 只接受 UIAudit normalized managed runtime tree 的唯一子树，把最终 `gx/gy/runtime width/height`、anchor/pivot/scale、visible、text、skin 和状态转换为烘焙输入。拿到 `.scene` 设计值、静态页面或多根歧义时必须拒绝。
+
+隔离入口 `BakeViewFromSnapshotIsolated` 把输出硬限制在 `Assets/__RuntimeConversionExperiment/`，只复用已导入 Sprite，不物化缺图、不改共享 importer、不回填业务组件、不注册 Addressables，也不执行全局 `AssetDatabase.Refresh`。批处理入口 `BakeRuntimeSnapshotExperimentCli` 可在 720×1280 的真实 Canvas/Camera/RenderTexture 中出帧并写候选几何；已有 Editor 可通过 `Temp/RuntimeSnapshotExperiment/request.json` 和 `神霄/实验/运行态通用转换隔离候选` 执行。
+
+候选必须再由 `Tools/LayaUI/runtime_candidate_diff.py` 与同一老端截图/快照独立计算捕获率、生成率、资源解析、文字覆盖、几何 median/p95/max 和像素差。该流程只回答“通用转换能回收多少静态 2D 工作”，不能替代生产 Prefab、状态交互、3D/特效或最终 Web 验收。首个实测与边界见 [角色-垂神翼影运行态通用转换实验](RuntimeCompare/角色-垂神翼影运行态通用转换实验-20260812.md)。

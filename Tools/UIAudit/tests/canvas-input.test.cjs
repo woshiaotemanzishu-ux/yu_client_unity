@@ -7,6 +7,7 @@ const path = require('path');
 const { normalizeRuntimeSources } = require('../lib/runtime-tree.cjs');
 const {
   resolveTarget,
+  resolveTargetAncestor,
   logicalToDomPoint,
   domToLogicalPoint,
   classifyPreInput,
@@ -24,10 +25,13 @@ const canvasMetrics = { x: 0, y: 0, width: 720, height: 1280, logicalWidth: 720,
 
 function fakePage() {
   const calls = [];
+  const evaluations = [];
   return {
     calls,
+    evaluations,
     viewport: () => ({ width: 720, height: 1280 }),
     evaluate: async (_function, payload) => {
+      evaluations.push(payload);
       if (payload && payload.operation === 'inspect-canvas-input') {
         const target = {
           path: payload.indexPath.join('/'), indexPath: payload.indexPath,
@@ -68,6 +72,57 @@ test('canvas click verifies exact identity, viewport and runtime hit before mous
   const result = await clickRuntimeTarget(page, snapshot, { source: 'laya-stage', view: 'ItemUseView', name: 'close_btn', expectedCount: 1 }, { canvasMetrics });
   assert.equal(result.hit.pass, true);
   assert.deepEqual(page.calls[0].slice(0, 3), ['click', 594, 344]);
+});
+
+test('stage selector index is applied once before live exact-path resolution', async () => {
+  const multi = structuredClone(snapshot);
+  const first = multi.nodes.find(node => node.source === 'laya-stage' && node.view === 'ItemUseView' && node.name === 'close_btn');
+  const duplicate = structuredClone(first);
+  duplicate.path = `${first.path}-second`;
+  duplicate.indexPath = [...first.indexPath.slice(0, -1), Number(first.indexPath.at(-1)) + 10];
+  multi.nodes.push(duplicate);
+  const page = fakePage();
+  await clickRuntimeTarget(page, multi, {
+    source: 'laya-stage', view: 'ItemUseView', name: 'close_btn', expectedCount: 2, index: 1,
+  }, { canvasMetrics });
+  const inspect = page.evaluations.find(payload => payload.operation === 'inspect-canvas-input');
+  const install = page.evaluations.find(payload => payload.operation === 'install-canvas-input-probe');
+  assert.equal(inspect.liveCandidateIndex, 0);
+  assert.equal(install.liveCandidateIndex, 0);
+  assert.deepEqual(inspect.indexPath, duplicate.indexPath);
+});
+
+test('text identity may resolve only to one explicitly declared interactive ancestor', async () => {
+  const identitySnapshot = {
+    stage: { width: 720, height: 1280 },
+    nodes: [
+      {
+        schema: 'ui-audit.runtime-node.v3', source: 'laya-stage', view: 'BaseWindowSkin',
+        path: 'stage/item1', indexPath: [0, 1], name: 'item1', type: 'WindowComponentTabButtonOne',
+        visible: true, displayed: true, bounds: { x: 150, y: 1077, width: 150, height: 90 },
+        interaction: { mouseEnabled: true, disabled: false, hitTestCenter: true }, identity: {},
+      },
+      {
+        schema: 'ui-audit.runtime-node.v3', source: 'laya-stage', view: 'BaseWindowSkin',
+        path: 'stage/item1/skin/group/labelDisplay', indexPath: [0, 1, 0, 1, 1],
+        name: 'labelDisplay', type: 'Label', text: '垂神翼影', visible: true, displayed: true,
+        bounds: { x: 181, y: 1089, width: 88, height: 63 },
+        interaction: { mouseEnabled: false, disabled: false, hitTestCenter: true }, identity: {},
+      },
+    ],
+  };
+  const selector = { source: 'laya-stage', name: 'labelDisplay', text: '垂神翼影', expectedCount: 1 };
+  const identity = resolveTarget(identitySnapshot, selector, { allowNonInteractive: true });
+  const ancestorSpec = { name: 'item1', type: 'WindowComponentTabButtonOne', maxDepth: 4 };
+  assert.equal(resolveTargetAncestor(identitySnapshot, identity, ancestorSpec).name, 'item1');
+  const page = fakePage();
+  const result = await clickRuntimeTarget(page, identitySnapshot, selector, {
+    canvasMetrics, targetAncestor: ancestorSpec,
+  });
+  assert.equal(result.identityTarget.text, '垂神翼影');
+  assert.equal(result.target.type, 'WindowComponentTabButtonOne');
+  assert.throws(() => resolveTargetAncestor(identitySnapshot, identity, { ...ancestorSpec, type: 'WrongType' }),
+    error => error.code === 'CANVAS_TARGET_ANCESTOR_IDENTITY_MISMATCH');
 });
 
 test('canvas drag starts on a hittable runtime node and always releases the mouse', async () => {

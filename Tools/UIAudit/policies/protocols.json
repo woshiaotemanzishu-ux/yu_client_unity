@@ -46,6 +46,17 @@
       "evidence": { "pathFromLegacyRoot": "h5/src/commonController/OutWardController.ts", "sha256": "4477d8e4f2fbed6e58c4291fdbc7a0afb722025651eb02b93b47ff9f2382edf6", "lines": "389-422", "meaning": "startup and OPEN_MOUNTPET_VIEW issue 16011 as a query" }
     },
     {
+      "id": "outward-figure-power-read-16022",
+      "cmd": 16022,
+      "classification": "read",
+      "signatures": [{ "fmt": "cc", "argsSpec": [{ "type": "integer", "enum": [1, 2, 3, 4, 5, 7, 8, 12] }, { "type": "integer", "min": 1, "max": 255 }] }],
+      "reason": "query one outward illusion figure's current and next-star combat preview",
+      "evidence": [
+        { "pathFromLegacyRoot": "h5/src/pet/IllusionBaseView.ts", "sha256": "5fe6fce114c2e3a9ec936cebe60fa0d62168c55743cbe14bc68ffb632fa21b78", "lines": "1273-1293", "meaning": "SetFightValue issues 16022 only when the selected figure combat preview is missing locally" },
+        { "pathFromLegacyRoot": "h5/src/commonController/OutWardController.ts", "sha256": "4477d8e4f2fbed6e58c4291fdbc7a0afb722025651eb02b93b47ff9f2382edf6", "lines": "260-263,348,356-358", "meaning": "16022 response only publishes REAL_FIGHT and REQUEST_PROTO forwards the exact query" }
+      ]
+    },
+    {
       "id": "outward-level-read-16028",
       "cmd": 16028,
       "classification": "read",

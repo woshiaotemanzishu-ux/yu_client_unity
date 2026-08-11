@@ -1,6 +1,11 @@
 'use strict';
 
 const { clickRuntimeTarget } = require('./canvas-input.cjs');
+const {
+  inspectItemUseSnapshot,
+  evaluateStableItemUseFrames,
+  waitOneLayaFrame,
+} = require('./item-use.cjs');
 
 const ITEM_USE_CLOSE_AUTHORITY = Object.freeze({
   source: '../yu_client/h5/src/common/ItemUseView.ts',
@@ -93,19 +98,63 @@ function verifyItemUseDismissal(before, after) {
   };
 }
 
-function createControlledItemUseHandler(session) {
+function evaluateCurrentItemUseFrames(firstState, secondState, firstInspection, secondInspection) {
+  const stable = evaluateStableItemUseFrames([firstInspection, secondInspection]);
+  const checks = {
+    firstIdentityReady: !!(firstState && firstState.identityReady),
+    secondIdentityReady: !!(secondState && secondState.identityReady),
+    sameTypeId: Number(firstState && firstState.typeId) === Number(secondState && secondState.typeId),
+    sameGoodsId: Number(firstState && firstState.goodsId) === Number(secondState && secondState.goodsId),
+    firstNotAnimating: firstState && firstState.animating === false,
+    secondNotAnimating: secondState && secondState.animating === false,
+    exactRuntimeStructure: !!(firstInspection && firstInspection.exact && secondInspection && secondInspection.exact),
+    stableRuntimeFrames: stable.pass,
+  };
+  return { pass: Object.values(checks).every(Boolean), checks, stable };
+}
+
+async function waitForStableCurrentItemUse(session, options = {}) {
+  const deadline = Date.now() + Number(options.timeoutMs || 12000);
+  const attempts = [];
+  while (Date.now() < deadline) {
+    const firstState = await readItemUseState(session.page);
+    const firstInspection = inspectItemUseSnapshot(await session.snapshot(), {
+      view: 'ItemUseView', closeNode: 'close_btn', enterNode: 'enter_btn',
+    });
+    firstInspection.runtime.isAnim = firstState.animating;
+    await waitOneLayaFrame(session.page);
+    const secondState = await readItemUseState(session.page);
+    const secondInspection = inspectItemUseSnapshot(await session.snapshot(), {
+      view: 'ItemUseView', closeNode: 'close_btn', enterNode: 'enter_btn',
+    });
+    secondInspection.runtime.isAnim = secondState.animating;
+    const evaluation = evaluateCurrentItemUseFrames(firstState, secondState, firstInspection, secondInspection);
+    attempts.push(evaluation);
+    if (evaluation.pass) return {
+      ...evaluation,
+      before: secondState,
+      inspections: [firstInspection, secondInspection],
+      attempts,
+    };
+    await sleep(Number(options.pollMs || 50));
+  }
+  throw new Error(`ITEM_USE_CURRENT_STABLE_TIMEOUT: ${JSON.stringify(attempts.slice(-4))}`);
+}
+
+function createControlledItemUseHandler(session, options = {}) {
   if (!session || !session.page || typeof session.snapshot !== 'function') {
     throw new Error('ITEM_USE_HANDLER_SESSION_INVALID');
   }
   return async () => {
-    let before = await readItemUseState(session.page);
-    const animationDeadline = Date.now() + 3000;
-    while (before.open && before.animating && Date.now() < animationDeadline) {
-      await sleep(150);
-      before = await readItemUseState(session.page);
-    }
+    const stable = await waitForStableCurrentItemUse(session, options);
+    const before = stable.before;
     if (!before.open || !before.closeReady || !before.identityReady || before.animating) {
       throw new Error(`ITEM_USE_CONTROLLED_CLOSE_NOT_READY: ${JSON.stringify(before)}`);
+    }
+    const closeAuthorization = typeof options.authorizeBeforeClose === 'function'
+      ? await options.authorizeBeforeClose(before) : { pass: true };
+    if (!closeAuthorization || closeAuthorization.pass !== true) {
+      throw new Error(`ITEM_USE_CONTROLLED_CLOSE_NOT_AUTHORIZED: ${JSON.stringify(closeAuthorization)}`);
     }
     const snapshot = await session.snapshot();
     const selector = {
@@ -129,13 +178,15 @@ function createControlledItemUseHandler(session) {
       authority: ITEM_USE_CLOSE_AUTHORITY,
       before,
       after,
+      stable,
+      closeAuthorization,
       verification,
       input: click.input,
     });
     if (!verification.pass) {
       throw new Error(`ITEM_USE_CONTROLLED_CLOSE_FAILED: ${JSON.stringify(verification)}`);
     }
-    return { before, after, verification, input: click.input };
+    return { before, after, stable, closeAuthorization, verification, input: click.input };
   };
 }
 
@@ -143,5 +194,7 @@ module.exports = {
   ITEM_USE_CLOSE_AUTHORITY,
   readItemUseState,
   verifyItemUseDismissal,
+  evaluateCurrentItemUseFrames,
+  waitForStableCurrentItemUse,
   createControlledItemUseHandler,
 };

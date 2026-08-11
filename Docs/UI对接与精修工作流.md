@@ -102,6 +102,12 @@ schema 6 路线台账保留 `shared_component_identity` 和 `component_state_mat
 
 ## Skill 协作关系
 
+### 运行态通用转换实验边界
+
+当目标已经有人工接管 Prefab，但需要验证旧通用转换是否仍能节省纯 2D 搭建时间时，不得进入生产 `convert-module` 或 `fix-view`。先由 UIAudit 在同账号、同状态、同 viewport 下采真实 managed runtime 子树和至少一个安全只读状态，再走 LayaUI 的隔离候选入口；候选只允许进入 `Assets/__RuntimeConversionExperiment/`，不注册 Addressables、不覆盖生产 Prefab。独立 diff 通过后只给 Go/Conditional Go/No-Go 和工具缺口，不把候选视觉问题改写成页面精修清单。
+
+首轮实测证明图片资源和大部分静态几何可以回收，但文字最终值、重复实例矩阵、3D/特效及共享组合仍需单独合同；具体量化见 [角色-垂神翼影运行态通用转换实验](RuntimeCompare/角色-垂神翼影运行态通用转换实验-20260812.md)。
+
 | Skill | 在统一流程中的职责 |
 |---|---|
 | `audit-game-ui-route` | 统一入口、建树、逐叶验收、证据和最终收口 |

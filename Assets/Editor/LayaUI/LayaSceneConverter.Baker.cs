@@ -49,6 +49,187 @@ namespace Shenxiao.Editor.LayaUI
         }
 
         /// <summary>
+        /// 运行态转换实验专用入口：输出只能位于 Assets/__RuntimeConversionExperiment，
+        /// 不注册 Addressables、不回填业务组件、不全局 Refresh，也不物化/改写共享图片资源。
+        /// </summary>
+        public static string BakeViewFromSnapshotIsolated(string snapshotPath, string viewName, string outPrefabPath)
+        {
+            string normalized = (outPrefabPath ?? "").Replace('\\', '/');
+            if (!normalized.StartsWith("Assets/__RuntimeConversionExperiment/"))
+                throw new System.InvalidOperationException("ISOLATED_BAKE_OUTPUT_REQUIRED: " + outPrefabPath);
+            if (!File.Exists(snapshotPath))
+                throw new FileNotFoundException("runtime snapshot missing", snapshotPath);
+            JObject view = FindView(JObject.Parse(File.ReadAllText(snapshotPath)), viewName);
+            JObject tree = view?["nodeTree"] as JObject;
+            if (tree == null) throw new System.InvalidOperationException("runtime view missing: " + viewName);
+            LayaSpriteImporter.ExistingAssetsOnly = true;
+            try
+            {
+                string result = BakeViewTree(tree, viewName, normalized);
+                AssetDatabase.ImportAsset(normalized, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+                return result;
+            }
+            finally
+            {
+                LayaSpriteImporter.ExistingAssetsOnly = false;
+            }
+        }
+
+        /// <summary>BatchMode: bake isolated runtime snapshot candidate and render it in a real 720x1280 Canvas.</summary>
+        public static void BakeRuntimeSnapshotExperimentCli()
+        {
+            string snapshot = CommandLineValue("-runtimeSnapshot");
+            string viewName = CommandLineValue("-runtimeViewName");
+            string prefab = CommandLineValue("-runtimeOutPrefab");
+            string png = CommandLineValue("-runtimeRenderPng");
+            string report = CommandLineValue("-runtimeRenderReport");
+            if (string.IsNullOrEmpty(snapshot) || string.IsNullOrEmpty(viewName) || string.IsNullOrEmpty(prefab)
+                || string.IsNullOrEmpty(png) || string.IsNullOrEmpty(report))
+                throw new System.InvalidOperationException("runtime snapshot experiment arguments missing");
+            string baked = BakeViewFromSnapshotIsolated(snapshot, viewName, prefab);
+            RenderIsolatedCandidate(baked, png, report, 720, 1280);
+            Debug.Log("[RuntimeSnapshotExperiment] OK prefab=" + baked + " png=" + png + " report=" + report);
+        }
+
+        /// <summary>
+        /// Existing-editor entry for the isolated experiment. The request file is deliberately
+        /// outside Assets so opening the project does not register or import experiment inputs.
+        /// </summary>
+        [MenuItem("神霄/实验/运行态通用转换隔离候选", priority = 900)]
+        public static void BakeRuntimeSnapshotExperimentMenu()
+        {
+            const string requestPath = "Temp/RuntimeSnapshotExperiment/request.json";
+            if (!File.Exists(requestPath))
+                throw new FileNotFoundException("runtime snapshot experiment request missing", requestPath);
+            JObject request = JObject.Parse(File.ReadAllText(requestPath));
+            string snapshot = request["snapshot"]?.ToString();
+            string viewName = request["viewName"]?.ToString();
+            string prefab = request["prefab"]?.ToString();
+            string png = request["png"]?.ToString();
+            string report = request["report"]?.ToString();
+            if (string.IsNullOrEmpty(snapshot) || string.IsNullOrEmpty(viewName) || string.IsNullOrEmpty(prefab)
+                || string.IsNullOrEmpty(png) || string.IsNullOrEmpty(report))
+                throw new System.InvalidOperationException("runtime snapshot experiment request fields missing");
+            if (File.Exists(png) || File.Exists(report))
+                throw new System.InvalidOperationException("IMMUTABLE_EXPERIMENT_OUTPUT_EXISTS");
+            string baked = BakeViewFromSnapshotIsolated(snapshot, viewName, prefab);
+            RenderIsolatedCandidate(baked, png, report, 720, 1280);
+            Debug.Log("[RuntimeSnapshotExperiment] OK prefab=" + baked + " png=" + png + " report=" + report);
+        }
+
+        private static string CommandLineValue(string key)
+        {
+            string[] args = System.Environment.GetCommandLineArgs();
+            for (int i = 0; i + 1 < args.Length; i++) if (args[i] == key) return args[i + 1];
+            return null;
+        }
+
+        private static void RenderIsolatedCandidate(string prefabPath, string pngPath, string reportPath, int width, int height)
+        {
+            GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (asset == null) throw new System.InvalidOperationException("isolated candidate prefab failed to import: " + prefabPath);
+            GameObject cameraGo = null, canvasGo = null, instance = null;
+            RenderTexture rt = null;
+            Texture2D capture = null;
+            try
+            {
+                cameraGo = new GameObject("RuntimeCandidateCamera", typeof(Camera));
+                Camera camera = cameraGo.GetComponent<Camera>();
+                camera.clearFlags = CameraClearFlags.SolidColor;
+                camera.backgroundColor = new Color(0f, 0f, 0f, 0f);
+                camera.orthographic = true;
+                camera.orthographicSize = height * 0.5f;
+                camera.transform.position = new Vector3(0f, 0f, -100f);
+
+                rt = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32);
+                camera.targetTexture = rt;
+
+                canvasGo = new GameObject("RuntimeCandidateCanvas", typeof(RectTransform), typeof(Canvas), typeof(UnityEngine.UI.CanvasScaler), typeof(UnityEngine.UI.GraphicRaycaster));
+                Canvas canvas = canvasGo.GetComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                canvas.worldCamera = camera;
+                canvas.planeDistance = 10f;
+                UnityEngine.UI.CanvasScaler scaler = canvasGo.GetComponent<UnityEngine.UI.CanvasScaler>();
+                scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                scaler.referenceResolution = new Vector2(width, height);
+                scaler.screenMatchMode = UnityEngine.UI.CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+                scaler.matchWidthOrHeight = 0f;
+
+                instance = Object.Instantiate(asset, canvasGo.transform, false);
+                instance.name = asset.name;
+                Canvas.ForceUpdateCanvases();
+                camera.Render();
+
+                RenderTexture previous = RenderTexture.active;
+                RenderTexture.active = rt;
+                capture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+                capture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+                capture.Apply();
+                RenderTexture.active = previous;
+                Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(pngPath)));
+                File.WriteAllBytes(pngPath, capture.EncodeToPNG());
+
+                var nodes = new JArray();
+                int imageNodes = 0, resolvedImages = 0, textNodes = 0, renderedTexts = 0;
+                foreach (RectTransform rect in instance.GetComponentsInChildren<RectTransform>(true))
+                {
+                    Vector3[] corners = new Vector3[4];
+                    rect.GetWorldCorners(corners);
+                    Vector2 min = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
+                    Vector2 max = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
+                    foreach (Vector3 corner in corners)
+                    {
+                        Vector2 point = RectTransformUtility.WorldToScreenPoint(camera, corner);
+                        min = Vector2.Min(min, point); max = Vector2.Max(max, point);
+                    }
+                    UnityEngine.UI.Image image = rect.GetComponent<UnityEngine.UI.Image>();
+                    TMPro.TMP_Text text = rect.GetComponent<TMPro.TMP_Text>();
+                    if (image != null) { imageNodes++; if (image.enabled && image.sprite != null) resolvedImages++; }
+                    if (text != null) { textNodes++; if (text.enabled && !string.IsNullOrEmpty(text.text)) renderedTexts++; }
+                    nodes.Add(new JObject {
+                        ["path"] = CandidatePath(rect, instance.transform), ["name"] = rect.name,
+                        ["x"] = min.x, ["y"] = height - max.y, ["width"] = max.x - min.x, ["height"] = max.y - min.y,
+                        ["active"] = rect.gameObject.activeInHierarchy,
+                        ["image"] = image != null, ["spriteResolved"] = image != null && image.sprite != null,
+                        ["text"] = text != null ? text.text : ""
+                    });
+                }
+                JObject result = new JObject {
+                    ["schema"] = 1, ["prefab"] = prefabPath, ["width"] = width, ["height"] = height,
+                    ["nodes"] = nodes,
+                    ["metrics"] = new JObject {
+                        ["generatedNodes"] = nodes.Count, ["imageNodes"] = imageNodes, ["resolvedImages"] = resolvedImages,
+                        ["textNodes"] = textNodes, ["renderedTexts"] = renderedTexts
+                    }
+                };
+                Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(reportPath)));
+                File.WriteAllText(reportPath, result.ToString());
+            }
+            finally
+            {
+                if (capture != null) Object.DestroyImmediate(capture);
+                if (rt != null) { rt.Release(); Object.DestroyImmediate(rt); }
+                if (instance != null) Object.DestroyImmediate(instance);
+                if (canvasGo != null) Object.DestroyImmediate(canvasGo);
+                if (cameraGo != null) Object.DestroyImmediate(cameraGo);
+            }
+        }
+
+        private static string CandidatePath(Transform current, Transform root)
+        {
+            var parts = new List<string>();
+            Transform value = current;
+            while (value != null)
+            {
+                parts.Add(value.name);
+                if (value == root) break;
+                value = value.parent;
+            }
+            parts.Reverse();
+            return string.Join("/", parts.ToArray());
+        }
+
+        /// <summary>
         /// 批量烤整模块(给 conversion 流水线/skill 用):扫 manifest 的每个 prefab,
         /// 在 snapshotDir 的快照里找对应视图 → 烤 + 挂组件回填 + 注册 addressable。一次 MCP 调用跑完。
         /// Unity 单编辑器,资产操作必须串行,所以批量做成一个调用而不是多 agent 并行碰 Unity。

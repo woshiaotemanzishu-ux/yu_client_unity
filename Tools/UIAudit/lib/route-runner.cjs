@@ -16,6 +16,7 @@ const {
 const { HeadlessUiSession, sleep } = require('./session.cjs');
 const { clickRuntimeTarget, dragRuntimeTarget } = require('./canvas-input.cjs');
 const { closeItemUseControlled } = require('./item-use.cjs');
+const { createControlledItemUseHandler } = require('./item-use-handler.cjs');
 const {
   evaluateNodeAssertions,
   evaluateGeometryAssertion,
@@ -33,7 +34,8 @@ const { findServerProfileForUrl } = require('./server-readiness.cjs');
 const { ensureServer } = require('./server-lifecycle.cjs');
 const { writeJsonAtomic } = require('./safe-json.cjs');
 const { createReport, addArtifact, finalizeReport, writeReport, measurePhase } = require('./report.cjs');
-const { writeSelectorDiagnostic } = require('./selector-diagnostic.cjs');
+const { findNodes } = require('./runtime-tree.cjs');
+const { buildSelectorDiagnostic, writeSelectorDiagnostic } = require('./selector-diagnostic.cjs');
 
 function resolveRoutePath(routePath, value) {
   return path.isAbsolute(value) ? value : path.resolve(path.dirname(routePath), value);
@@ -45,14 +47,87 @@ function immutablePath(target) {
   return target;
 }
 
+function createRouteItemUseHandler(session, config, protocolPolicy) {
+  if (!config || config.mode === 'hard-stop') return null;
+  if (config.mode !== 'controlled-current-read-only') {
+    return async () => {
+      await resetLegacyProtocolTrace(session.page, 'item-use-controlled');
+      return closeItemUseControlled(session.page, {
+        ...config,
+        protocolPolicy,
+        protocolAssertions: config.protocolAssertions || { mode: 'read-only' },
+      });
+    };
+  }
+  const maxInstances = Number(config.authorization.maxInstances);
+  const closedIdentityKeys = new Set();
+  let closedInstances = 0;
+  const dismissCurrent = createControlledItemUseHandler(session, {
+    timeoutMs: config.timeoutMs || 12000,
+    authorizeBeforeClose: before => {
+      const identityKey = `${Number(before.typeId)}:${Number(before.goodsId)}`;
+      if (closedIdentityKeys.has(identityKey)) {
+        return { pass: false, reason: 'duplicate-runtime-identity', identityKey, closedInstances, maxInstances };
+      }
+      if (closedInstances >= maxInstances) {
+        return { pass: false, reason: 'total-instance-budget-exhausted', identityKey, closedInstances, maxInstances };
+      }
+      closedIdentityKeys.add(identityKey);
+      closedInstances += 1;
+      return { pass: true, identityKey, instanceIndex: closedInstances, maxInstances, maxCloseClicks: 1 };
+    },
+  });
+  return async () => {
+    await resetLegacyProtocolTrace(session.page, 'item-use-controlled-current');
+    const beforeTrace = await readLegacyProtocolTrace(session.page);
+    const beforeCheck = evaluateProtocolAssertions(beforeTrace, config.protocolAssertions, protocolPolicy);
+    if (!beforeCheck.pass) throw new Error(`ITEM_USE_CURRENT_PRECLICK_PROTOCOL_FAILED: ${JSON.stringify(beforeCheck)}`);
+    const result = await dismissCurrent();
+    const afterTrace = await readLegacyProtocolTrace(session.page);
+    const afterCheck = evaluateProtocolAssertions(afterTrace, config.protocolAssertions, protocolPolicy);
+    if (!afterCheck.pass) throw new Error(`ITEM_USE_CURRENT_POSTCLICK_PROTOCOL_FAILED: ${JSON.stringify(afterCheck)}`);
+    session.note('item-use-controlled-current-protocol', {
+      mode: config.mode,
+      identitySource: config.identitySource,
+      requireBagNonDecrease: config.requireBagNonDecrease,
+      instance: result.closeAuthorization,
+      before: beforeCheck,
+      after: afterCheck,
+    });
+    return { ...result, protocol: { before: beforeCheck, after: afterCheck }, closeClicks: 1 };
+  };
+}
+
 async function waitForView(session, viewName, visible = true, timeoutMs = 12000) {
   const deadline = Date.now() + timeoutMs;
+  let lastSnapshot = null;
   while (Date.now() < deadline) {
     const snapshot = await session.snapshot();
-    if (snapshot.visibleViews.includes(viewName) === visible) return snapshot;
+    lastSnapshot = snapshot;
+    const visibleAsRoot = snapshot.visibleViews.includes(viewName);
+    const visibleInComposition = findNodes(snapshot, { source: 'managed-view', name: viewName, visible: true })
+      .some(node => node.displayed !== false);
+    if ((visibleAsRoot || visibleInComposition) === visible) return snapshot;
     await sleep(100);
   }
-  throw new Error(`WAIT_VIEW_TIMEOUT view=${viewName} visible=${visible}`);
+  const selector = { source: 'managed-view', name: viewName, expectedCount: visible ? 1 : 0 };
+  const candidates = lastSnapshot ? findNodes(lastSnapshot, { source: 'managed-view', name: viewName }) : [];
+  const error = new Error(`WAIT_VIEW_TIMEOUT view=${viewName} visible=${visible}`);
+  error.code = 'WAIT_VIEW_TIMEOUT';
+  if (lastSnapshot) {
+    error.diagnostic = buildSelectorDiagnostic(lastSnapshot, selector, {
+      expectedCount: visible ? 1 : 0,
+      actualCount: candidates.length,
+      context: {
+        kind: 'wait-view-timeout',
+        viewName,
+        expectedVisible: visible,
+        timeoutMs,
+        visibleViews: lastSnapshot.visibleViews,
+      },
+    });
+  }
+  throw error;
 }
 
 async function saveSnapshotEvidence(session, outputDir, label, screenshot = true, suppliedSnapshot = null) {
@@ -81,7 +156,8 @@ async function executeStep(context, step, index) {
   try {
   if (step.action === 'snapshot' && step.samplingTargetMs != null) {
     if (!context.lastClickAt) throw new Error(`SAMPLING_TARGET_WITHOUT_CLICK: ${label}`);
-    const remaining = context.lastClickAt + Number(step.samplingTargetMs) - Date.now();
+    const captureLeadMs = Number(step.samplingCaptureLeadMs || 0);
+    const remaining = context.lastClickAt + Number(step.samplingTargetMs) - captureLeadMs - Date.now();
     if (remaining > 0) {
       samplingWaitMs = remaining;
       await sleep(remaining);
@@ -97,6 +173,7 @@ async function executeStep(context, step, index) {
         targetMs: Number(step.samplingTargetMs),
         actualMs: sampledAt - context.lastClickAt,
         toleranceMs: Number(step.samplingToleranceMs == null ? 250 : step.samplingToleranceMs),
+        captureLeadMs: Number(step.samplingCaptureLeadMs || 0),
         anchor: context.lastClickLabel,
       };
       result.timing.errorMs = result.timing.actualMs - result.timing.targetMs;
@@ -269,14 +346,7 @@ async function runRoute(options) {
     });
     const account = options.account || env[route.session.accountEnv];
     const password = options.password || env[route.session.passwordEnv];
-    const itemUseHandler = route.session.itemUse && route.session.itemUse.mode !== 'hard-stop' ? async () => {
-      await resetLegacyProtocolTrace(session.page, 'item-use-controlled');
-      return closeItemUseControlled(session.page, {
-        ...route.session.itemUse,
-        protocolPolicy,
-        protocolAssertions: route.session.itemUse.protocolAssertions || { mode: 'read-only' },
-      });
-    } : null;
+    const itemUseHandler = createRouteItemUseHandler(session, route.session.itemUse, protocolPolicy);
     await measurePhase(report, 'login-mainui', 'runtime-wait', () => session.loginAndReachMainUi({ account, password, popupPolicy, runtimeOverlayPolicy, itemUseHandler }));
     await resetLegacyProtocolTrace(session.page, 'page-route');
     if (routeUsesAction(route.steps, new Set(['reset-sound', 'assert-sound']))) {
@@ -341,5 +411,6 @@ module.exports = {
   executeStep,
   attachFailureDiagnostic,
   routeUsesAction,
+  createRouteItemUseHandler,
   runRoute,
 };

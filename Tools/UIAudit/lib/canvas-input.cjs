@@ -106,7 +106,7 @@ function domToLogicalPoint(point, metrics) {
   };
 }
 
-function resolveTarget(snapshot, selector = {}) {
+function resolveTarget(snapshot, selector = {}, options = {}) {
   const matches = findNodes(snapshot, selector);
   const expectedCount = selector.expectedCount == null ? 1 : Number(selector.expectedCount);
   if (matches.length !== expectedCount) {
@@ -127,10 +127,46 @@ function resolveTarget(snapshot, selector = {}) {
       diagnostic,
     );
   }
-  if (!node.interaction.mouseEnabled || node.interaction.disabled || !node.displayed) {
+  if (!options.allowNonInteractive && (!node.interaction.mouseEnabled || node.interaction.disabled || !node.displayed)) {
     throw new Error(`CANVAS_TARGET_NOT_INTERACTIVE: ${node.path}`);
   }
   return node;
+}
+
+function resolveTargetAncestor(snapshot, identityTarget, spec = {}) {
+  if (!identityTarget || identityTarget.source !== 'laya-stage' || !Array.isArray(identityTarget.indexPath)) {
+    throw new Error('CANVAS_TARGET_ANCESTOR_REQUIRES_STAGE_IDENTITY');
+  }
+  const maxDepth = Number(spec.maxDepth == null ? 4 : spec.maxDepth);
+  if (!Number.isInteger(maxDepth) || maxDepth < 1 || maxDepth > 8) {
+    throw new Error(`CANVAS_TARGET_ANCESTOR_MAX_DEPTH_INVALID: ${spec.maxDepth}`);
+  }
+  const isStrictAncestor = node => node.source === 'laya-stage' && Array.isArray(node.indexPath)
+    && node.indexPath.length < identityTarget.indexPath.length
+    && identityTarget.indexPath.length - node.indexPath.length <= maxDepth
+    && node.indexPath.every((part, index) => Number(part) === Number(identityTarget.indexPath[index]));
+  const matches = (snapshot && snapshot.nodes || []).filter(node => isStrictAncestor(node)
+    && (spec.name == null || node.name === spec.name)
+    && (spec.type == null || node.type === spec.type)
+    && (spec.runtimeClass == null || node.identity && node.identity.runtimeClass === spec.runtimeClass));
+  if (matches.length !== 1) {
+    const selector = { source: 'laya-stage', path: identityTarget.path, expectedCount: 1 };
+    const diagnostic = buildSelectorDiagnostic(snapshot, selector, {
+      expectedCount: 1,
+      actualCount: matches.length,
+      context: { kind: 'canvas-target-ancestor', identityTarget, spec, matches },
+    });
+    throw new SelectorIdentityError(
+      'CANVAS_TARGET_ANCESTOR_IDENTITY_MISMATCH',
+      `CANVAS_TARGET_ANCESTOR_IDENTITY_MISMATCH expected=1 actual=${matches.length} spec=${JSON.stringify(spec)} diagnosticSha256=${diagnostic.sha256}`,
+      diagnostic,
+    );
+  }
+  const target = matches[0];
+  if (!target.interaction.mouseEnabled || target.interaction.disabled || !target.displayed) {
+    throw new Error(`CANVAS_TARGET_ANCESTOR_NOT_INTERACTIVE: ${target.path}`);
+  }
+  return target;
 }
 
 function pathIsInside(candidate, root) {
@@ -312,7 +348,7 @@ async function inspectStageInput(page, node, point, domPoint, canvas, selector =
     for (const candidate of targetCandidates) {
       if (!uniqueTargets.some(item => item.node === candidate.node)) uniqueTargets.push(candidate);
     }
-    const targetCandidate = uniqueTargets[Number(payload.selector.index || 0)] || null;
+    const targetCandidate = uniqueTargets[Number(payload.liveCandidateIndex || 0)] || null;
     const target = targetCandidate && targetCandidate.node;
     const ownerOf = value => {
       const owners = entries.filter(entry => entry.root && contains(entry.root, value))
@@ -565,7 +601,9 @@ async function inspectStageInput(page, node, point, domPoint, canvas, selector =
     };
   }, {
     operation: 'inspect-canvas-input', schema: CANVAS_INPUT_SCHEMA,
-    indexPath: node.indexPath, selector, logicalPoint: point, domPoint, canvas,
+    indexPath: node.indexPath, selector,
+    liveCandidateIndex: selector.ownerView && selector.boundField ? Number(selector.index || 0) : 0,
+    logicalPoint: point, domPoint, canvas,
   });
   const evaluation = classifyPreInput(input);
   return { ...input, ...evaluation, evaluation };
@@ -632,7 +670,7 @@ async function installInputProbe(page, node, selector, canvas) {
       if (target) candidates = [{ entry: null, node: target }];
     }
     candidates = candidates.filter((candidate, index) => candidates.findIndex(other => other.node === candidate.node) === index);
-    const candidate = candidates[Number(payload.selector.index || 0)] || null;
+    const candidate = candidates[Number(payload.liveCandidateIndex || 0)] || null;
     if (!candidate || candidates.length !== 1) return { pass: false, actualCount: candidates.length, reason: 'live target identity changed' };
     const target = candidate.node;
     const view = candidate.entry && candidate.entry.view || null;
@@ -697,7 +735,9 @@ async function installInputProbe(page, node, selector, canvas) {
     return { pass: true, probeId: payload.probeId, target: trace.target, listenersBefore: trace.listenersBefore, viewBefore: trace.viewBefore };
   }, {
     operation: 'install-canvas-input-probe', schema: CANVAS_INPUT_SCHEMA,
-    probeId, indexPath: node.indexPath, selector, canvas,
+    probeId, indexPath: node.indexPath, selector,
+    liveCandidateIndex: selector.ownerView && selector.boundField ? Number(selector.index || 0) : 0,
+    canvas,
   });
 }
 
@@ -736,23 +776,28 @@ async function probeStageHit(page, node, point = centerOf(node.bounds), options 
 }
 
 async function clickRuntimeTarget(page, snapshot, selector, options = {}) {
-  const target = resolveTarget(snapshot, selector);
+  const identityTarget = resolveTarget(snapshot, selector, { allowNonInteractive: !!options.targetAncestor });
+  const target = options.targetAncestor
+    ? resolveTargetAncestor(snapshot, identityTarget, options.targetAncestor) : identityTarget;
+  const liveSelector = options.targetAncestor
+    ? { source: 'laya-stage', path: target.path, expectedCount: 1 }
+    : selector;
   const logicalPoint = options.point || centerOf(target.bounds);
   const canvas = options.canvasMetrics || await readCanvasMetrics(page, snapshot);
   const point = logicalToDomPoint(logicalPoint, canvas);
   assertPointInViewport(point, viewportOf(page));
-  const hit = await inspectStageInput(page, target, logicalPoint, point, canvas, selector);
+  const hit = await inspectStageInput(page, target, logicalPoint, point, canvas, liveSelector);
   if (hit.applicable && !hit.pass) {
     const code = hit.classification === 'canvas-coordinate-mismatch' ? 'CANVAS_COORDINATE_MISMATCH'
       : hit.classification === 'stack-order-wrong' ? 'CANVAS_STACK_ORDER_WRONG'
         : hit.classification === 'target-identity-changed' ? 'CANVAS_TARGET_IDENTITY_CHANGED'
           : 'CANVAS_OVERLAY_INTERCEPTED';
-    throw canvasInputError(code, snapshot, selector, hit, 'pre-click');
+    throw canvasInputError(code, snapshot, liveSelector, hit, 'pre-click');
   }
-  const installed = await installInputProbe(page, target, selector, canvas);
+  const installed = await installInputProbe(page, target, liveSelector, canvas);
   if (!installed || !installed.pass) {
     const input = { ...hit, probeInstall: installed, evaluation: { pass: false, classification: 'target-identity-changed', reason: installed && installed.reason } };
-    throw canvasInputError('CANVAS_TARGET_IDENTITY_CHANGED', snapshot, selector, input, 'probe-install');
+    throw canvasInputError('CANVAS_TARGET_IDENTITY_CHANGED', snapshot, liveSelector, input, 'probe-install');
   }
   let evidence;
   try {
@@ -766,8 +811,12 @@ async function clickRuntimeTarget(page, snapshot, selector, options = {}) {
   }
   const consumption = classifyInputConsumption(evidence);
   const input = { preflight: hit, evidence, consumption };
-  if (!consumption.pass) throw canvasInputError('CANVAS_EVENT_NOT_DISPATCHED', snapshot, selector, input, 'post-click');
-  return { action: 'click', target, logicalPoint, point, canvas, hit, input };
+  if (!consumption.pass) throw canvasInputError('CANVAS_EVENT_NOT_DISPATCHED', snapshot, liveSelector, input, 'post-click');
+  return {
+    action: 'click', identityTarget, target,
+    targetAncestor: options.targetAncestor || null,
+    logicalPoint, point, canvas, hit, input,
+  };
 }
 
 async function dragRuntimeTarget(page, snapshot, selector, options = {}) {
@@ -808,6 +857,7 @@ module.exports = {
   logicalToDomPoint,
   domToLogicalPoint,
   resolveTarget,
+  resolveTargetAncestor,
   classifyPreInput,
   classifyInputConsumption,
   runtimeObstacleDiagnostic,

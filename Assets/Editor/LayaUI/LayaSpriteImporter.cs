@@ -16,6 +16,9 @@ namespace Shenxiao.Editor.LayaUI
     /// </summary>
     public static class LayaSpriteImporter
     {
+        /// <summary>隔离候选只复用已导入 Sprite，不物化缺图、不改共享 importer。</summary>
+        public static bool ExistingAssetsOnly { get; set; }
+
         private static JObject _uiConfig;
         private static readonly Dictionary<string, Texture2D> _atlasTexCache = new Dictionary<string, Texture2D>();
 
@@ -84,6 +87,15 @@ namespace Shenxiao.Editor.LayaUI
         {
             if (string.IsNullOrEmpty(skin)) return null;
             string assetPath = LayaUISettings.GAMERES_ROOT + "/" + skin;
+            if (ExistingAssetsOnly)
+            {
+                if (!File.Exists(assetPath))
+                {
+                    report.MissingSkin(skin, "isolated candidate: existing imported asset not found");
+                    return null;
+                }
+                return assetPath;
+            }
             if (!File.Exists(assetPath))
             {
                 if (!MaterializePng(skin, assetPath, report)) return null;

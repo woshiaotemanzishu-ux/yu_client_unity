@@ -61,3 +61,19 @@ test('route must explicitly hard-stop or authorize one exact ItemUse identity an
   assert.equal(result.pass, true);
   assert.equal(result.mode, 'controlled-close');
 });
+
+test('route may authorize one runtime-identified ItemUse close with bag and protocol read-only gates', () => {
+  const config = {
+    mode: 'controlled-current-read-only',
+    authorization: { allowQueueMutation: true, maxCloseClicks: 1, maxInstances: 4, scope: 'login-current-item-only' },
+    identitySource: 'ItemUseView.GetTypeId/GetGoodsId',
+    requireBagNonDecrease: true,
+    protocolAssertions: { mode: 'read-only' },
+  };
+  assert.deepEqual(validateItemUseRouteConfig(config), {
+    pass: true, mode: 'controlled-current-read-only', errors: [],
+  });
+  assert.equal(validateItemUseRouteConfig({ ...config, requireBagNonDecrease: false }).pass, false);
+  assert.equal(validateItemUseRouteConfig({ ...config, identitySource: 'display-text' }).pass, false);
+  assert.equal(validateItemUseRouteConfig({ ...config, authorization: { ...config.authorization, maxInstances: 9 } }).pass, false);
+});

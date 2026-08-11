@@ -2,7 +2,12 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { ITEM_USE_CLOSE_AUTHORITY, readItemUseState, verifyItemUseDismissal } = require('../lib/item-use-handler.cjs');
+const {
+  ITEM_USE_CLOSE_AUTHORITY,
+  readItemUseState,
+  verifyItemUseDismissal,
+  evaluateCurrentItemUseFrames,
+} = require('../lib/item-use-handler.cjs');
 
 const before = {
   open: true,
@@ -121,4 +126,40 @@ test('cached ItemUse view is not treated as a runtime-open popup', async () => {
 test('controlled ItemUse authority is pinned to source evidence', () => {
   assert.match(ITEM_USE_CLOSE_AUTHORITY.sha256, /^[a-f0-9]{64}$/);
   assert.equal(ITEM_USE_CLOSE_AUTHORITY.lines, '302-312,382-409');
+});
+
+test('runtime-identified close still requires unique, non-overlapping and stable two-frame geometry', () => {
+  const state = {
+    identityReady: true, typeId: 18030001, goodsId: 9001, animating: false,
+  };
+  const inspection = {
+    exact: true,
+    runtime: {
+      isAnim: false,
+      frameToken: 100,
+      closeHittable: true,
+      closeBounds: { x: 559, y: 627.5, width: 78, height: 81 },
+    },
+  };
+  const second = structuredClone(inspection);
+  second.runtime.frameToken = 101;
+  assert.equal(evaluateCurrentItemUseFrames(state, state, inspection, second).pass, true);
+  second.runtime.closeBounds.x += 2;
+  assert.equal(evaluateCurrentItemUseFrames(state, state, inspection, second).pass, false);
+  second.runtime.closeBounds.x -= 2;
+  second.exact = false;
+  assert.equal(evaluateCurrentItemUseFrames(state, state, inspection, second).pass, false);
+});
+
+test('runtime-identified close rejects identity changes and active animation across the two frames', () => {
+  const firstState = { identityReady: true, typeId: 18030001, goodsId: 9001, animating: false };
+  const secondState = { ...firstState, goodsId: 9002 };
+  const first = {
+    exact: true,
+    runtime: { isAnim: false, frameToken: 100, closeHittable: true, closeBounds: { x: 1, y: 1, width: 20, height: 20 } },
+  };
+  const second = structuredClone(first);
+  second.runtime.frameToken = 101;
+  assert.equal(evaluateCurrentItemUseFrames(firstState, secondState, first, second).pass, false);
+  assert.equal(evaluateCurrentItemUseFrames({ ...firstState, animating: true }, firstState, first, second).pass, false);
 });
