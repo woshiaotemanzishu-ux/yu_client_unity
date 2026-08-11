@@ -10,6 +10,7 @@ const { loadRuntimeOverlayPolicy } = require('./lib/runtime-overlay.cjs');
 const { loadProtocolPolicy } = require('./lib/protocol-probe.cjs');
 const { runRoute } = require('./lib/route-runner.cjs');
 const { serverStatus, startServer, stopServer } = require('./lib/server-lifecycle.cjs');
+const { runTopUiAccount } = require('./lib/gm-account.cjs');
 const { safeStringify, writeJsonAtomic } = require('./lib/safe-json.cjs');
 
 function parseArgs(argv) {
@@ -67,6 +68,27 @@ async function main(argv = process.argv.slice(2)) {
     process.stdout.write(`${safeStringify({ status: report.status, route: report.route, report: path.join(path.resolve(args.output), 'ui-audit-report.json') })}\n`);
     return 0;
   }
+  if (command === 'gm') {
+    const action = args._[1] || '';
+    if (action !== 'top-ui') throw new Error(`UNSUPPORTED_GM_ACTION: ${action || '<missing>'}`);
+    const report = await runTopUiAccount({
+      outputDir: required(args, 'output'),
+      account: required(args, 'account'),
+      password: args.password === true ? null : (args.password || process.env.UIAUDIT_PASSWORD),
+      url: args.url === true ? null : args.url,
+      apply: args.apply === true,
+      allowBlockedReadOnly: args['allow-blocked-read-only'] === true,
+      ensureServer: args['ensure-server'] === true,
+      onProgress: event => process.stderr.write(`[UIAudit GM] ${event.phase} ${safeStringify(event)}\n`),
+    });
+    process.stdout.write(`${safeStringify({
+      status: report.verification ? (report.verification.pass ? 'passed' : 'failed') : 'captured',
+      account: report.account,
+      apply: report.apply,
+      report: report.reportPath,
+    })}\n`);
+    return 0;
+  }
   if (command === 'server') {
     const action = args._[1] || 'status';
     const options = { profileId: args.profile === true ? undefined : args.profile };
@@ -79,7 +101,7 @@ async function main(argv = process.argv.slice(2)) {
     if ((action === 'start' || action === 'stop') && !result.pass) return 1;
     return 0;
   }
-  process.stdout.write('Usage:\n  node Tools/UIAudit/cli.cjs version\n  node Tools/UIAudit/cli.cjs server <status|start|stop> [--profile legacy-h5-local]\n  node Tools/UIAudit/cli.cjs preflight --route <route.json> --output <output/new-run> [--report <file>]\n  node Tools/UIAudit/cli.cjs run [--ensure-server] --route <route.json> --output <output/new-run>\n');
+  process.stdout.write('Usage:\n  node Tools/UIAudit/cli.cjs version\n  node Tools/UIAudit/cli.cjs server <status|start|stop> [--profile legacy-h5-local]\n  node Tools/UIAudit/cli.cjs preflight --route <route.json> --output <output/new-run> [--report <file>]\n  node Tools/UIAudit/cli.cjs run [--ensure-server] --route <route.json> --output <output/new-run>\n  node Tools/UIAudit/cli.cjs gm top-ui [--ensure-server] --account <account> [--password <password>] --output <output/new-run> [--allow-blocked-read-only | --apply]\n');
   return command === 'help' ? 0 : 1;
 }
 

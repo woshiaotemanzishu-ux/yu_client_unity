@@ -18,6 +18,68 @@
   },
   "entries": [
     {
+      "view": "KfHolyAreaRebornTipsView", "action": "allow",
+      "queue": {
+        "kind": "server-push-open",
+        "configured": false,
+        "order": "observed-top-first",
+        "reason": "protocol 28413 may open the notice directly while startup popup cleanup is running"
+      },
+      "identifyNodes": ["KfHolyAreaRebornTipsView", "_gp_go", "tip_lb"],
+      "safeClose": { "kind": "shared-background", "node": "ViewManager._background", "requiresCurrentView": true, "mode": "single-click", "maxClicks": 1 },
+      "dangerousNodes": [{ "node": "_gp_go", "effect": "opens KfHolyAreaEnterView" }],
+      "closeProtocols": [], "closeWrites": [],
+      "reason": "the view explicitly enables click_bg_toClose; startup cleanup uses only its authoritative shared background and never the route button",
+      "sourceEvidence": [
+        { "pathFromLegacyRoot": "h5/src/kfHolyArea/KfHolyAreaRebornTipsView.ts", "lines": "37-45", "fact": "the notice uses the Activity layer and explicitly enables click_bg_toClose" },
+        { "pathFromLegacyRoot": "h5/src/kfHolyArea/KfHolyAreaRebornTipsView.ts", "lines": "70-75", "fact": "only _gp_go performs route navigation" },
+        { "pathFromLegacyRoot": "h5/src/commonController/KfHolyAreaController.ts", "lines": "342-350", "fact": "server push 28413 directly opens the notice" }
+      ],
+      "source": { "pathFromLegacyRoot": "h5/src/kfHolyArea/KfHolyAreaRebornTipsView.ts", "sha256": "107cde0b33cfb5d060ac76e9e0da425df507efaa07f027fd21fd0cd4071d8205" }
+    },
+    {
+      "view": "BaseWindowSkin", "action": "allow",
+      "queue": {
+        "kind": "startup-navigation-aftermath",
+        "configured": false,
+        "order": "observed-top-first",
+        "reason": "function-open close callbacks may navigate into a shared BaseWindowComponent before startup cleanup finishes"
+      },
+      "identifyNodes": ["BaseWindowSkin", "_img_return", "_gp_item_con"],
+      "safeClose": {
+        "kind": "view-node", "node": "_img_return", "requiresCurrentView": true,
+        "mode": "single-click-wait-tween", "maxClicks": 1,
+        "stability": { "kind": "absent-advancing-laya-frames", "consecutiveFrames": 2, "timeoutMs": 3000, "pollMs": 60 }
+      },
+      "dangerousNodes": [{ "node": "_gp_item_con", "effect": "page-specific controls and transactions" }],
+      "closeProtocols": [], "closeWrites": [],
+      "closeSideEffects": ["closes the shared navigation frame; an explicit back_id may open its recorded parent route"],
+      "reason": "the shared return surface only starts BaseWindowComponent's exit tween and navigation cleanup; startup automation never clicks page content",
+      "sourceEvidence": [
+        { "pathFromLegacyRoot": "h5/src/common/BaseWindowComponent.ts", "lines": "359-370", "fact": "LocalCloseFunc closes the frame and optionally returns to an explicit parent route" },
+        { "pathFromLegacyRoot": "h5/src/common/BaseWindowComponent.ts", "lines": "624-628,713-720", "fact": "_img_return calls BaseWindowCloseFunc, which only runs the exit tween before LocalCloseFunc" }
+      ],
+      "source": { "pathFromLegacyRoot": "h5/src/common/BaseWindowComponent.ts", "sha256": "2597a81153a941566f55e7d4389b0bd90aebda86ee4f3d41bfafa223e130dfdd" }
+    },
+    {
+      "view": "FunctionOpenAutoView", "sort": 15, "action": "wait",
+      "identifyNodes": ["FunctionOpenAutoView", "okBtn", "click_bg", "close_tip"],
+      "safeClose": null,
+      "waitForRelease": { "kind": "source-timer-close", "timeoutMs": 15000, "expectedSeconds": 10 },
+      "dangerousNodes": [
+        { "node": "okBtn", "effect": "protocol 13801 plus function-specific close callback" },
+        { "node": "click_bg", "effect": "protocol 13801 plus function-specific close callback" }
+      ],
+      "closeProtocols": [13801],
+      "closeWrites": ["acknowledges that the function-open presentation has been shown"],
+      "reason": "the authoritative view closes itself after ten seconds; startup automation waits for that lifecycle instead of clicking a function-specific action",
+      "sourceEvidence": [
+        { "pathFromLegacyRoot": "h5/src/funcOpen/FunctionOpenAutoView.ts", "lines": "183-201", "fact": "both manual surfaces send 13801 before close" },
+        { "pathFromLegacyRoot": "h5/src/funcOpen/FunctionOpenAutoView.ts", "lines": "283-305", "fact": "the source timer naturally sends 13801 and closes after ten seconds" }
+      ],
+      "source": { "pathFromLegacyRoot": "h5/src/funcOpen/FunctionOpenAutoView.ts", "sha256": "2ad58b82f06b05614231cece3b9729fcfa9d939321c98a7a116a8188d77944d2" }
+    },
+    {
       "view": "OnHookMainView", "sort": 14, "action": "allow",
       "identifyNodes": ["OnHookMainView", "_img_close", "_gp_get_btn"],
       "safeClose": { "kind": "view-node", "node": "_img_close", "mode": "single-click", "maxClicks": 1 },
@@ -29,10 +91,10 @@
     {
       "view": "CongratulationObtainView", "sort": 13, "action": "allow",
       "identifyNodes": ["CongratulationObtainView", "click_bg", "bottom_label"],
-      "safeClose": { "kind": "view-node", "node": "click_bg", "mode": "local-complete-then-close", "maxClicks": 2 },
+      "safeClose": { "kind": "view-node", "node": "click_bg", "mode": "local-complete-then-close", "maxClicks": 2, "point": { "x": 360, "y": 1100 } },
       "dangerousNodes": [{ "node": "bt_use", "effect": "continue item use" }, { "node": "bt_use_ten", "effect": "continue item use" }],
       "closeProtocols": [], "closeWrites": [],
-      "reason": "click_bg only completes the local reveal or closes",
+      "reason": "click_bg only completes the local reveal or closes; the fixed 720x1280 safe point is below the reward list so list items cannot intercept it",
       "source": { "pathFromLegacyRoot": "h5/src/common/CongratulationObtainView.ts", "sha256": "dbac213c849c244450743e8c730f2397f78183bffc1513850e74a6d6506788e4" }
     },
     {
@@ -148,6 +210,40 @@
       "closeProtocols": [], "closeWrites": ["DeleteCurrentItem and pending queue advance"],
       "reason": "generic startup drain must never close ItemUseView; use the controlled ItemUse probe",
       "source": { "pathFromLegacyRoot": "h5/src/common/ItemUseView.ts", "sha256": "61b8f5d0a75962ab3501c9c025793da2a4eafcb4fe91163cc21d5db5f8c9762f" }
+    },
+    {
+      "view": "StarEquipUpMasterView", "action": "allow",
+      "queue": {
+        "kind": "direct-response-open",
+        "configured": false,
+        "configKey": "StarEquipUpMasterView",
+        "order": "observed-top-first",
+        "reason": "the view is absent from ClientConfigPopupLevel and can open directly when protocol 23205 or 23251 reports unclaimed star-master progress"
+      },
+      "trigger": {
+        "responseCmds": [23205, 23251],
+        "condition": "the previous master state exists and total star exceeds the active master level",
+        "open": "StarEquipModel.OPEN_VIEW -> StarEquipUpMasterView"
+      },
+      "identifyNodes": ["StarEquipUpMasterView", "closeBtn", "cancelBtn", "enterBtn"],
+      "safeClose": {
+        "kind": "view-node",
+        "node": "closeBtn",
+        "mode": "single-click",
+        "maxClicks": 1,
+        "requiresCurrentView": true
+      },
+      "dangerousNodes": [{ "node": "enterBtn", "effect": "route navigation to StarEquipMasterView" }],
+      "openSideEffects": ["read-only star-master state has already been consumed before the view opens"],
+      "closeSideEffects": [],
+      "closeProtocols": [],
+      "closeWrites": [],
+      "reason": "closeBtn only calls BaseView1.Close; it does not send a protocol, write state, or navigate",
+      "sourceEvidence": [
+        { "pathFromLegacyRoot": "h5/src/commonController/StarEquipController.ts", "lines": "249-274,345-365", "fact": "response trigger and OPEN_VIEW chain" },
+        { "pathFromLegacyRoot": "h5/src/starEquip/StarEquipUpMasterView.ts", "lines": "20-50", "fact": "closeBtn and cancelBtn are pure close surfaces while enterBtn navigates" }
+      ],
+      "source": { "pathFromLegacyRoot": "h5/src/starEquip/StarEquipUpMasterView.ts", "sha256": "0a4ab4970d301b3925679be1afa1a78af5fc78bcca481ffe4e128cddb25a7641" }
     },
     {
       "view": "CycleimpActlistYesterday", "action": "allow",

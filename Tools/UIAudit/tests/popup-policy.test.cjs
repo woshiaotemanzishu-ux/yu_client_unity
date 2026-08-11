@@ -24,10 +24,51 @@ const cycleimpFixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixture
 const runtimeOwnerBindingFixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'runtime-owner-bindings.json'), 'utf8'));
 
 test('unknown popup is an unconditional hard stop', () => {
-  assert.equal(policy.entries.length, 17);
+  assert.equal(policy.entries.length, 21);
   const decision = decidePopup(policy, 'NeverAuditedPopup');
   assert.equal(decision.action, 'unknown-hard-stop');
   assert.throws(() => assertSafePopupDecision(decision), /POPUP_HARD_STOP/);
+});
+
+test('cross-server holy-area push notice closes only through its owned shared background', () => {
+  const decision = decidePopup(policy, 'KfHolyAreaRebornTipsView');
+  assert.equal(decision.action, 'allow');
+  assert.equal(decision.entry.queue.order, 'observed-top-first');
+  assert.equal(decision.entry.safeClose.kind, 'shared-background');
+  assert.equal(decision.entry.safeClose.requiresCurrentView, true);
+  assert.deepEqual(decision.entry.closeProtocols, []);
+  assert.deepEqual(decision.entry.closeWrites, []);
+  assert.deepEqual(assertSafePopupDecision(decision), decision.entry.safeClose);
+});
+
+test('shared base window startup cleanup uses only the source-backed return surface', () => {
+  const decision = decidePopup(policy, 'BaseWindowSkin');
+  assert.equal(decision.action, 'allow');
+  assert.equal(decision.entry.queue.order, 'observed-top-first');
+  assert.equal(decision.entry.safeClose.node, '_img_return');
+  assert.equal(decision.entry.safeClose.requiresCurrentView, true);
+  assert.equal(decision.entry.safeClose.stability.consecutiveFrames, 2);
+  assert.equal(decision.entry.closeProtocols.length, 0);
+  assert.equal(decision.entry.closeWrites.length, 0);
+  assert.deepEqual(assertSafePopupDecision(decision), decision.entry.safeClose);
+});
+
+test('function-open presentation waits for its authoritative timer instead of clicking', () => {
+  const decision = decidePopup(policy, 'FunctionOpenAutoView');
+  assert.equal(decision.action, 'wait');
+  assert.equal(decision.entry.waitForRelease.timeoutMs, 15000);
+  assert.deepEqual(decision.entry.closeProtocols, [13801]);
+  assert.throws(() => assertSafePopupDecision(decision), /POPUP_HARD_STOP/);
+});
+
+test('star equipment master startup notice has a source-backed pure close surface', () => {
+  const decision = decidePopup(policy, 'StarEquipUpMasterView');
+  assert.equal(decision.action, 'allow');
+  assert.equal(decision.entry.queue.order, 'observed-top-first');
+  assert.equal(decision.entry.safeClose.node, 'closeBtn');
+  assert.equal(decision.entry.closeProtocols.length, 0);
+  assert.equal(decision.entry.closeWrites.length, 0);
+  assert.deepEqual(assertSafePopupDecision(decision), decision.entry.safeClose);
 });
 
 test('Cycleimp yesterday is source-backed, deduplicated and requires observed runtime stack order', () => {
@@ -230,6 +271,12 @@ test('safe startup popups are deduplicated and ordered by authoritative sort', (
   const plan = planPopupDrain(ordered, policy, { observedTopFirst: true });
   assert.equal(plan.pass, true);
   assert.equal(plan.steps.every(step => step.entry.closeProtocols.length === 0 && step.entry.closeWrites.length === 0), true);
+});
+
+test('congratulation popup closes below the reward list instead of clicking an item at center', () => {
+  const decision = decidePopup(policy, 'CongratulationObtainView');
+  assert.deepEqual(decision.entry.safeClose.point, { x: 360, y: 1100 });
+  assert.equal(decision.entry.dangerousNodes.some(item => item.node === 'bt_use'), true);
 });
 
 test('dangerous popup blocks the drain before a close action is fabricated', () => {

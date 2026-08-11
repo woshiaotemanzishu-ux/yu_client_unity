@@ -21,4 +21,6 @@ module.exports = {
   session: require('./lib/session.cjs'),
   report: require('./lib/report.cjs'),
   routeRunner: require('./lib/route-runner.cjs'),
+  gmAccount: require('./lib/gm-account.cjs'),
+  itemUseHandler: require('./lib/item-use-handler.cjs'),
 };

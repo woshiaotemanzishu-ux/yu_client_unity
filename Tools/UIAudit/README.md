@@ -10,7 +10,7 @@ runtime node v3 保留 `runtimeClass`、`identity.systemOverlay`、`hitArea` 与
 
 `Tools/UIAudit` 是 UI 对接/精修路线唯一可复用的老 H5 浏览器执行层。它复用 `Tools/headless/node_modules/puppeteer` 驱动系统 Edge 的真实 Headless 页面；不生成合成截图，不占用前台，也不把可复用代码留在 `output/`。
 
-当前版本为 `1.2.0`。本版本新增完成范围保护、route/step/phase 分层计时，以及资源工具 preview 的严格 CAS 恢复对接。
+当前版本为 `1.2.0`。本版本包含完成范围保护、route/step/phase 分层计时、资源工具 preview 的严格 CAS 恢复，以及基于真实老 H5 运行态的 GM 高阶采集号差量配方。
 
 ## 命令
 
@@ -21,9 +21,19 @@ node Tools/UIAudit/cli.cjs server start --profile legacy-h5-local
 node Tools/UIAudit/cli.cjs preflight --route <route.json> --output <全新 output/run>
 node Tools/UIAudit/cli.cjs run --route <route.json> --output <全新 output/run>
 node Tools/UIAudit/cli.cjs run --ensure-server --route <route.json> --output <全新 output/run>
+node Tools/UIAudit/cli.cjs gm top-ui --account 111111 --password 111111 --allow-blocked-read-only --output <全新 output/run>
+node Tools/UIAudit/cli.cjs gm top-ui --account 111111 --password 111111 --apply --output <全新 output/run>
 node Tools/UIAudit/cli.cjs server stop --profile legacy-h5-local
 node --test Tools/UIAudit/tests/*.test.cjs
 ```
+
+### GM 高阶采集号
+
+`gm top-ui` 不把等级最大值当成“顶级号”。它从老端运行态读取等级、精确转生阶、VIP、货币、功能开放、外形主体、幻形目录和背包物品，再生成幂等差量命令。高转按配置满级门槛与 `301600/301700` 精确任务交错推进；VIP 参数按当前客户端配置和服务端 `VIP_CONVERT` 换算。每条命令前后都拒绝等级/转生回退，满 VIP 后允许经验显示归零，但等级必须达到 VIP15。
+
+只读运行生成 `before + recipe`；`--apply` 还生成逐命令 observation、稳定闸和完全新浏览器会话的 `freshSessionAfter + verification`。最终报告为 `gm-account-report.json`，执行中另用原子覆盖的 `gm-account-progress.json` 保留部分成功状态；正式报告仍拒绝覆盖已有目录。登录密码和 GM 密码都不写入报告，GM 密码只从当前 `yu_server/config/gsrv.config` 读取。
+
+当前 profile 验证“角色/垂神翼影”所需主体、入口、已激活与锁定目录。激活物是路线状态，不属于全局乱灌项；若目标页面需要可激活样本，应由该路线声明精确物品闭包，GM 只发物，真实激活仍由 UI 完成。批量 `finlvtask/finishawakentask/finfiguretask` 已从配方排除，因为真实实验出现过 7 转回退到 5 转。
 
 `preflight` 只用有界 HTTP 检查 `route.url`、HTML 标记和必需 bundle，不启动 Edge、不创建 run 目录。固定检查 ID 是 `route-url-readiness`。`ui-audit.server-observation.v1` 同时记录 listener、PID、进程名/路径/脱敏命令、创建时间/年龄、UIAudit owner state，以及每次 GET/HEAD 的耗时和结果；schema 位于 `schemas/server-observation.schema.json`。
 
@@ -51,7 +61,7 @@ Node 调用方可 `const uiAudit = require('./Tools/UIAudit')`，也可直接 re
 
 ### 启动弹窗
 
-`policies/startup-popups.json` 只允许 source-backed 的精确身份。配置队列弹窗按 `ClientConfigPopupLevel.sort` 处理；真正执行关闭时仍以当前 `Laya.stage` display list 为准，按每层实际 child order top-first 排序，禁止用 loaded-view 枚举顺序猜栈顶。不在该配置且由回包直接打开的弹窗禁止伪造 sort，只能使用真实 runtime stack。栈顶身份无法调和时返回 `POPUP_RUNTIME_STACK_UNRESOLVED`，栈在点击前变化时返回 `POPUP_RUNTIME_STACK_CHANGED`；上层是未知/危险弹窗则先硬停，上层是已授权安全弹窗才先处理它。`CycleimpActlistYesterday` 是直接回包打开的一类：由 `22703` 回包在推送或当日首次登录、榜单非空且角色等级至少 150 时直接打开；唯一安全面是 `_btn_close`。关闭后必须连续两个已推进的 Laya 帧都确认“被点击的具体实例不再打开、也不在 stage 可见”，重复 frame token 或中途重现均不算关闭完成。未知弹窗仍一律 `unknown-hard-stop`。
+`policies/startup-popups.json` 只允许 source-backed 的精确身份，动作分为 `allow/forbid/wait/unknown-hard-stop`。配置队列弹窗按 `ClientConfigPopupLevel.sort` 处理；真正执行关闭时仍以当前 `Laya.stage` display list 为准，按每层实际 child order top-first 排序，禁止用 loaded-view 枚举顺序猜栈顶。不在该配置且由回包直接打开的弹窗禁止伪造 sort，只能使用真实 runtime stack。栈顶身份无法调和时返回 `POPUP_RUNTIME_STACK_UNRESOLVED`，栈在点击前变化时返回 `POPUP_RUNTIME_STACK_CHANGED`；上层是未知/危险弹窗则先硬停，上层是已授权安全弹窗才先处理它。`FunctionOpenAutoView` 使用 `wait` 等待源码 10 秒计时器，随后若 close callback 跳入共享窗框，只允许 `_img_return` 清理；`KfHolyAreaRebornTipsView` 只能通过与 `curr_view` 精确归属的共享背景关闭，禁止点击跳转按钮。`CycleimpActlistYesterday` 是直接回包打开的一类：由 `22703` 回包在推送或当日首次登录、榜单非空且角色等级至少 150 时直接打开；唯一安全面是 `_btn_close`。关闭后必须连续两个已推进的 Laya 帧都确认“被点击的具体实例不再打开、也不在 stage 可见”，重复 frame token 或中途重现均不算关闭完成。未知弹窗仍一律 `unknown-hard-stop`。
 
 稳定关闭不是固定 sleep 后检查 View 名称。公共层以点击时的 `ViewManager`/runtime registry 实例键和根 `stagePath` 锚定具体实例，持续调和 loaded view 的 `HasOpen/isPop`、managed view 根状态和 `Laya.stage` 的可见/`displayedInStage`。`open=false` 但仍保留在 registry、等待延迟销毁的根属于 `closed-cached`，不会被误报为仍打开；关闭请求后 stage 仍可见属于 `closing`，继续等真实推进帧；消失后同名新实例或同一缓存实例重新打开属于 `requeued` 并硬停。稳定闸内不会二次点击。
 
@@ -135,6 +145,8 @@ click/drag 不再把目标自身 `hitTestPoint=true` 当作可达证明。公共
 | `lib/popup-policy.cjs` | `allow/forbid/unknown-hard-stop`、配置队列/observed runtime stack、安全节点与稳定关闭帧 |
 | `lib/popup-lifecycle.cjs` | 被点击实例锚定、loaded/managed/stage 关闭调和与失败分类 |
 | `lib/item-use.cjs` | ItemUse 精确身份、稳定帧、队列和一次受控关闭 |
+| `lib/item-use-handler.cjs` | GM/账号准备阶段的 ItemUse 真实打开态、物品身份、背包不减与纯关闭处理 |
+| `lib/gm-account.cjs` | 老 H5 运行态账号快照、分层差量配方、逐命令防回退和全新会话复验 |
 | `lib/protocol-probe.cjs` | transport 级收发 trace、handler 惰性关联、读写分类、required/forbidden 与 policy 闸 |
 | `lib/route-assertions.cjs` | 节点、条件分支、几何、裁剪和滚动断言 |
 | `lib/runtime-probes.cjs` | 声音调用与 RenderTexture 非透明像素 ready |

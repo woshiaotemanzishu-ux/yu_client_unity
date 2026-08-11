@@ -15,10 +15,19 @@ function validatePopupPolicy(policy) {
   for (const entry of policy && policy.entries || []) {
     if (!entry || !entry.view || names.has(entry.view)) errors.push(`duplicate-or-empty:${entry && entry.view}`);
     names.add(entry && entry.view);
-    if (!['allow', 'forbid'].includes(entry && entry.action)) errors.push(`action:${entry && entry.view}`);
+    if (!['allow', 'forbid', 'wait'].includes(entry && entry.action)) errors.push(`action:${entry && entry.view}`);
     if (entry && entry.action === 'allow' && (!entry.safeClose || !entry.safeClose.kind)) errors.push(`safeClose:${entry.view}`);
     if (entry && entry.action === 'forbid' && entry.safeClose) errors.push(`forbid-safeClose:${entry.view}`);
+    if (entry && entry.action === 'wait') {
+      if (entry.safeClose) errors.push(`wait-safeClose:${entry.view}`);
+      if (!entry.waitForRelease || !Number.isInteger(Number(entry.waitForRelease.timeoutMs))
+          || Number(entry.waitForRelease.timeoutMs) <= 0) errors.push(`waitForRelease:${entry.view}`);
+    }
     const stability = entry && entry.safeClose && entry.safeClose.stability;
+    const point = entry && entry.safeClose && entry.safeClose.point;
+    if (point && (!Number.isFinite(Number(point.x)) || !Number.isFinite(Number(point.y)))) {
+      errors.push(`safe-close-point:${entry.view}`);
+    }
     if (stability) {
       if (stability.kind !== 'absent-advancing-laya-frames') errors.push(`stability-kind:${entry.view}`);
       for (const field of ['consecutiveFrames', 'timeoutMs', 'pollMs']) {

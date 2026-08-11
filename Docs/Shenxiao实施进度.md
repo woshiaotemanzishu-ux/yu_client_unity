@@ -2089,3 +2089,11 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **重复 blocker 晋升**：本轮 UIDAudit 在进入页面前再次复现资源工具 preview stale：PID 11300 同时监听 7074/8091，status 报 running，但 8091 GET `ECONNREFUSED`。该问题不再计为页面缺陷；公共工具增加严格 CAS recover 对接，旧 provider 字段缺失时继续零写硬停。
 - **计时产品化**：新增原子 `route_timing.py`，分开主动工作/环境等待并记录失败 fingerprint、重复失败与估算节省；UIAudit 1.2.0 报告新增 preflight/phase/step timing、最慢步骤和固定 settle 的理论节省上限。真实 ready、动画、稳定帧、Unity/真实 Web 闸仍不可删减。
 - **工具回归**：UIAudit Node 回归 105/105，`route_ledger`、`ui_route_master`、`route_timing` Python 自测及全部 Node 语法检查通过；`git diff --check` 无 whitespace error。工具通过不代表“垂神翼影”页面通过。
+
+## 2026-08-12：111111 高阶采集账号与 GM CLI 实验
+
+- **真实账号结果**：通过老 H5 Headless 同账号运行态把 `111111` 建立为当前配置高阶基线：840 级、7 转 0 阶、VIP15，元宝/绑元/金币各 10 亿，外形主体 1/2/3/4/5/12 均激活。全新浏览器会话复读全部检查为 true；50/51 功能已开，剩余 `敬请期待/lv999` 为占位项。
+- **垂神翼影 profile**：`WingsComponentView/WingsIllusionView/WingsLvSystem` 三入口均可达，主体已激活；19 个幻形保留 1 个已激活和 18 个锁定，没有为“看起来更满”批量灌入激活物。后续若需要验证激活按钮，按当前配置和背包只发一个精确物品闭包，并由真实 UI 执行激活。
+- **流程纠偏**：等级不是顶级态。GM 配方改为入口门槛、精确转生、主体激活、路线物品四层；实测批量 `finlvtask/finishawakentask/finfiguretask` 会造成 7 转回退 5 转，已从通用配方移除。VIP15 达成后经验显示 0 属满级语义，不再误判失败。
+- **公共工具**：新增 `Tools/UIAudit/cli.cjs gm top-ui`、运行时账号快照、差量命令、防回退观察、原子进度和全新会话复验；补齐 FunctionOpen 自然计时、共享窗框返回、跨服圣域直推提示与 ItemUse 缓存态识别。最终补写+双会话复验为 70.1 秒，实际货币命令 277ms，主要成本来自真实登录/启动队列；完整 UIAudit 回归 128/128、技能结构校验通过。
+- **范围保护**：本轮没有修改“角色-人物”、任何 UI Prefab、OutWard 页面实现或 Unity；页面“垂神翼影”仍由后续新任务按运行时转换实验继续，账号准备完成不等于页面验收完成。

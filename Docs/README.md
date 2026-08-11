@@ -15,7 +15,7 @@
 | 任意代码任务 | [Shenxiao重构实施方案](Shenxiao重构实施方案.md)、[Shenxiao编码规范](Shenxiao编码规范.md)、仓库根 [AGENTS.md](../AGENTS.md) |
 | 查看当前完成度、范围和 blocker | [Shenxiao实施进度](Shenxiao实施进度.md) |
 | UI 转换、Prefab、Bind、运行时补图 | [LayaUI转换流水线](LayaUI转换流水线.md)、[UI模块SOP](UI模块SOP.md)、[Unity动态资源开发期可见化规范](Unity动态资源开发期可见化规范.md) |
-| UI 对接、UI 精修、老端对照验收 | [UI对接与精修工作流](UI对接与精修工作流.md)、[UIAudit 公共采集与探针基础设施](RuntimeCompare/UIAudit公共采集与探针基础设施-20260811.md)、[人物与设置面板对标-经验与排障](人物与设置面板对标-经验与排障.md) |
+| UI 对接、UI 精修、老端对照验收、GM 采集账号准备 | [UI对接与精修工作流](UI对接与精修工作流.md)、[UIAudit 公共采集与探针基础设施](RuntimeCompare/UIAudit公共采集与探针基础设施-20260811.md)、[人物与设置面板对标-经验与排障](人物与设置面板对标-经验与排障.md) |
 | UI 分辨率和锚点 | [UI分辨率适配手册](UI分辨率适配手册.md) |
 | 登录、网络和选服 | [Shenxiao登录链路](Shenxiao登录链路.md) |
 | 选角后、主界面、场景接管 | [Shenxiao进游戏链路](Shenxiao进游戏链路.md) |
@@ -47,7 +47,7 @@
 - [设置视觉与运行态对标：第 3 轮（历史结论已被第4轮重开）](RuntimeCompare/设置视觉与运行态对标-第3轮.md)：保留当时四层闸与修复记录；后续用户证据证明仍漏滚动结构、套装条件叶子和页面坐标。
 - [设置结构与套装条件叶子对标：第 4 轮](RuntimeCompare/设置结构与套装条件叶子对标-第4轮.md)：新增目标弹窗身份、滚动容器/真实拖动、页面根坐标和动态品质底图实绘闸；记录第3轮假绿根因与修复。
 - [UI 精修流程稳定性复盘（2026-08-08）](RuntimeCompare/UI精修流程稳定性复盘-20260808.md)：审计“规则完整但执行器可绕过”的根因，落地 schema 6、原子 apply、并发写锁、run/哈希证据、动态特效/滚动结构合同、根页真实 Web 新鲜度与历史更新器封存；同时列出未被工具修复自动关闭的运行态边界。
-- [UIAudit 公共采集与探针基础设施（2026-08-11）](RuntimeCompare/UIAudit公共采集与探针基础设施-20260811.md)：把登录热会话、三来源运行树、真实 Canvas 输入、启动弹窗、ItemUse、协议 trace、preflight 和结构化报告从专项脚本晋升到 `Tools/UIAudit`，并记录 `output/` 只存不可变证据的 Git 迁移。
+- [UIAudit 公共采集与探针基础设施（2026-08-11，08-12 追加）](RuntimeCompare/UIAudit公共采集与探针基础设施-20260811.md)：把登录热会话、三来源运行树、真实 Canvas 输入、启动弹窗、ItemUse、协议 trace、preflight、结构化报告和真实运行态 GM 高阶账号差量配方晋升到 `Tools/UIAudit`，并记录 `output/` 只存不可变证据的 Git 迁移。
 - [角色界面路线清单：第 1 轮](RuntimeCompare/角色界面路线清单-第1轮.md)：角色五个一级页签、人物页二级入口、外观页和首个技能路由疑点的深度优先验收清单。
 - [角色 → 外观 → 时装（FashionMain pos=1）精修与验收](RuntimeCompare/角色-外观-FashionMain-pos1精修-20260811.md)：单 Tab fix-view、22 张当前老端权威图标、拖动释放误点防护、84px 消耗格、3D/资源/cold-warm/双档 old→Unity Web 证据和未授权写事务边界。
 - [人物 → 成就功能线](RuntimeCompare/人物-成就功能线-20260808.md)：成就 7×15 页签树、40901～40909 权威状态、领取前背包门槛、成功特效/飞奖励、31 个奖励资源闭包、schema 6 v2 台账与“先合并当前事实再选叶”的流程纠偏。

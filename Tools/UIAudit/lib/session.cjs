@@ -170,7 +170,9 @@ class HeadlessUiSession {
         }
       }
       if (close.kind === 'view-node') {
-        const click = await clickRuntimeTarget(this.page, before, selector);
+        const click = await clickRuntimeTarget(this.page, before, selector, {
+          point: close.point ? { x: Number(close.point.x), y: Number(close.point.y) } : undefined,
+        });
         clickedTarget = click.target;
         clickInput = click.input;
         clickSnapshot = clickSnapshot || before;
@@ -284,6 +286,7 @@ class HeadlessUiSession {
 
     let clean = 0;
     const runtimeGateStartedAt = new Map();
+    const popupWaitStartedAt = new Map();
     for (let iteration = 0; iteration < (options.maxIterations || 45) && clean < 3; iteration++) {
       const snapshot = await this.snapshot();
       const visible = snapshot.visibleViews;
@@ -319,11 +322,50 @@ class HeadlessUiSession {
         if (unresolved.length) throw new Error(`POPUP_RUNTIME_STACK_UNRESOLVED: ${unresolved.map(item => item.view).join(',')}`);
         const top = popupStack[0] && popupStack[0].view;
         if (!top) throw new Error(`POPUP_RUNTIME_STACK_EMPTY: ${JSON.stringify(blockers)}`);
+        if (!startupBlockers({ visibleViews: [top] }, preset).length) {
+          this.note('popup-drain-deferred-by-passive-overlay', {
+            iteration,
+            view: top,
+            overlay: popupStack[0].overlay || null,
+          });
+          await sleep(options.pollMs || 1000);
+          continue;
+        }
         if (top === 'ItemUseView') {
-          if (typeof options.itemUseHandler !== 'function') throw new Error('ITEM_USE_REQUIRES_CONTROLLED_HANDLER');
+          if (typeof options.itemUseHandler !== 'function') {
+            if (options.allowBlockedReadOnly === true) {
+              this.note('login-read-only-blocked-snapshot', {
+                iteration,
+                view: top,
+                reason: 'ItemUseView requires a controlled, type-specific handler',
+              });
+              return {
+                ...snapshot,
+                readOnlyBlockedBy: {
+                  view: top,
+                  reason: 'ItemUseView requires a controlled, type-specific handler',
+                },
+              };
+            }
+            throw new Error('ITEM_USE_REQUIRES_CONTROLLED_HANDLER');
+          }
           await options.itemUseHandler(this.page, snapshot);
         } else {
           const topPolicy = decidePopup(options.popupPolicy, top);
+          if (topPolicy.action === 'wait') {
+            const currentView = popupStack[0].overlay && popupStack[0].overlay.currentView;
+            const waitKey = `${top}:${currentView && currentView.hashCode || popupStack[0].rootPath || 'visible'}`;
+            const startedAt = popupWaitStartedAt.get(waitKey) || Date.now();
+            popupWaitStartedAt.set(waitKey, startedAt);
+            const elapsedMs = Date.now() - startedAt;
+            const timeoutMs = Number(topPolicy.entry.waitForRelease.timeoutMs);
+            this.note('popup-wait-for-natural-release', {
+              iteration, view: top, elapsedMs, timeoutMs, policy: topPolicy.entry.waitForRelease,
+            });
+            if (elapsedMs > timeoutMs) throw new Error(`POPUP_NATURAL_RELEASE_TIMEOUT: ${top}`);
+            await sleep(options.pollMs || 1000);
+            continue;
+          }
           if (topPolicy.action !== 'allow' && popupStack[0].overlay) {
             throw overlayDiagnostic(snapshot, {
               ...topPolicy,
