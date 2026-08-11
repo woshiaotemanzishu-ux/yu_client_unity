@@ -9,14 +9,13 @@ using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.Role;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.Fashion
 {
     /// <summary>时装部位升级弹窗；候选物只取“已满阶时装/颜色”的真实背包实例。</summary>
     public sealed class FashionLevelView : FashionLevelViewBind
     {
-        private const float ItemStep = 106f;
-
         private sealed class Source
         {
             public BagGoods Goods;
@@ -29,24 +28,40 @@ namespace Shenxiao.Module.Core.Fashion
         private readonly List<FasBagItemRenderer> _cells = new List<FasBagItemRenderer>();
         private int _posId = 1;
         private bool _subscribed;
+        private bool _resetScrollOnNextRefresh;
 
         public override UILayer Layer => UILayer.Popup;
 
         protected override void OnInit()
         {
-            if (flv_closebut_image != null) UIUtil.AddClick(flv_closebut_image, Hide);
+            Image modalMask = transform.Find("__modal_mask")?.GetComponent<Image>();
+            if (modalMask != null) FashionSingleClickTarget.Bind(modalMask, Hide);
+            // 面板底图拦截遮罩点击，只有面板外的暗区才按老端 click_bg_toClose 关闭。
+            if (bg_img != null) bg_img.raycastTarget = true;
+            if (flv_closebut_image != null) FashionSingleClickTarget.Bind(flv_closebut_image, Hide);
             if (flv_devour_but != null) UIUtil.AddClick(flv_devour_but, Submit);
         }
 
         protected override void OnShow(object args)
         {
             _posId = args is int p && p == 1 ? p : 1; // 服务端实际只开放衣服部位升级。
+            _resetScrollOnNextRefresh = true;
+            ResetMaterialScroll();
             Subscribe();
             _ = LoadThenRefresh();
         }
 
-        protected override void OnHide() => Unsubscribe();
-        protected override void OnDispose() => Unsubscribe();
+        protected override void OnHide()
+        {
+            ResetMaterialScroll();
+            Unsubscribe();
+        }
+
+        protected override void OnDispose()
+        {
+            ResetMaterialScroll();
+            Unsubscribe();
+        }
         private void OnDestroy() => Unsubscribe();
 
         private async System.Threading.Tasks.Task LoadThenRefresh()
@@ -108,15 +123,17 @@ namespace Shenxiao.Module.Core.Fashion
             TextMeshProUGUI[] names = { flv_attr_dec0_label, flv_attr_dec1_label, flv_attr_dec2_label };
             TextMeshProUGUI[] cur = { flv_att0_1_label, flv_att0_2_label, flv_att0_3_label };
             TextMeshProUGUI[] nxt = { flv_att1_1_label, flv_att1_2_label, flv_att1_3_label };
+            string part = _posId == 1 ? "时装" : "发饰";
+            string[] suffixes = { "攻击", "防御", "生命" };
             for (int i = 0; i < names.Length; i++)
             {
                 FashionConfigs.AttrValue a = current != null && i < current.AttrAdds.Count ? current.AttrAdds[i] : null;
                 FashionConfigs.AttrValue b = next != null && i < next.AttrAdds.Count ? next.AttrAdds[i] : null;
-                int attrId = a?.AttrId ?? b?.AttrId ?? 0;
-                string attrName = attrId > 0 ? GoodsModel.GetAttrName(attrId) : string.Empty;
-                if (names[i] != null) names[i].text = string.IsNullOrEmpty(attrName) ? "属性" : attrName;
-                if (cur[i] != null) cur[i].text = a == null ? "+0" : ("+" + GoodsModel.FormatAttrValue(a.AttrId, a.Value));
-                if (nxt[i] != null) nxt[i].text = b == null ? "已满阶" : ("+" + GoodsModel.FormatAttrValue(b.AttrId, b.Value));
+                // 老端固定按配置数组顺序解释为攻击/防御/生命，并直接显示百分比；不能拿通用属性名
+                // 和 FormatAttrValue 改写成“攻击 +0 / 生命 +0 / 防御 +0”的另一套语义。
+                if (names[i] != null) names[i].text = part + suffixes[i];
+                if (cur[i] != null) cur[i].text = (a?.Value ?? 0) + "%";
+                if (nxt[i] != null) nxt[i].text = b == null ? "已满阶" : (b.Value + "%");
             }
         }
 
@@ -198,8 +215,6 @@ namespace Shenxiao.Module.Core.Fashion
                 bool show = i < visible;
                 cell.gameObject.SetActive(show);
                 if (!show) continue;
-                RectTransform rt = cell.transform as RectTransform;
-                if (rt != null) rt.anchoredPosition = new Vector2((i % 4) * ItemStep, -(i / 4) * ItemStep);
                 if (i < _sources.Count)
                 {
                     int captured = i;
@@ -210,12 +225,25 @@ namespace Shenxiao.Module.Core.Fashion
             }
             if (flv_scroller != null && flv_scroller.content != null)
             {
-                Vector2 size = flv_scroller.content.sizeDelta;
-                size.y = Mathf.Max(flv_scroller.viewport != null ? flv_scroller.viewport.rect.height : 0f,
-                    Mathf.CeilToInt(visible / 4f) * ItemStep);
-                flv_scroller.content.sizeDelta = size;
+                // 四列 95x95、35/25 间距与动态高度由 Prefab 的 GridLayoutGroup/
+                // ContentSizeFitter 统一驱动，View 不再写坐标或尺寸。
+                LayoutRebuilder.ForceRebuildLayoutImmediate(flv_scroller.content);
+                if (_resetScrollOnNextRefresh)
+                {
+                    _resetScrollOnNextRefresh = false;
+                    ResetMaterialScroll();
+                }
             }
             RefreshSelectedTotal();
+        }
+
+        private void ResetMaterialScroll()
+        {
+            if (flv_scroller == null) return;
+            flv_scroller.StopMovement();
+            if (flv_scroller.content != null)
+                flv_scroller.content.anchoredPosition = Vector2.zero;
+            flv_scroller.verticalNormalizedPosition = 1f;
         }
 
         private void Toggle(int index)

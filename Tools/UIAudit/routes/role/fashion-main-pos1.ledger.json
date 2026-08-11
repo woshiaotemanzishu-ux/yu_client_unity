@@ -1,0 +1,3612 @@
+{
+  "schema": 6,
+  "route": "mainui.role.fashion-main-pos1.v1",
+  "baseline": {
+    "authority": "当前老 H5 在同账号、同状态、同 viewport 下的最终真实运行表现是唯一验收权威。",
+    "account": "111111/111111",
+    "viewports": [
+      "720x1280",
+      "1920x1080"
+    ],
+    "scope": {
+      "include": "角色 → 外观 → 时装（FashionMain，pos=1）及其时装等级弹窗",
+      "exclude": [
+        "人物",
+        "称号",
+        "技能",
+        "Dress/装扮",
+        "发饰",
+        "套装",
+        "背包",
+        "灵宠",
+        "锻造",
+        "通灵",
+        "任何新页面"
+      ]
+    },
+    "transaction_boundary": {
+      "read_protocols": [
+        41300,
+        41312
+      ],
+      "write_protocols_inventory_only": [
+        41301,
+        41302,
+        41303,
+        41304,
+        41305,
+        41306,
+        41316
+      ],
+      "policy": "本轮未取得可恢复写入授权；真实 UI 写事务只枚举并验证禁发边界，不点击，状态标 blocked。"
+    },
+    "implementation": "已有 FashionModule.prefab；只允许 fix-view 增量修复，禁止重转、Creator 覆盖或重建视觉。",
+    "revision": {
+      "version": 1,
+      "reason": "从历史角色全页大账中独立出唯一试产 Tab，并按当前正式 route 的 50 个控件与新增条件/生命周期叶子建立不可变拓扑。"
+    }
+  },
+  "manifest_source": {
+    "path": "Tools/UIAudit/routes/role/fashion-main-pos1.manifest.json",
+    "sha256": "9aa45b1aef660ccd7e9efee2c35daf460ff30b39c41a9b3e55ec3cc41357ff45"
+  },
+  "verification_runs": {
+    "editor-20260811T214400+0800": {
+      "recorded_at": "2026-08-11T21:45:00+08:00",
+      "environment": "unity-editor",
+      "git_commit": "d01364a7588ec51a5f15e40d20a97e0cfee34c9c",
+      "dirty_fingerprint": "4933e4321e1dcf3a00c654bc55e8b4b8d6f12c80186c69eea33f5e0c59ae2727",
+      "unity_version": "6000.3.17f1"
+    },
+    "web-20260811T213617+0800": {
+      "recorded_at": "2026-08-11T21:38:24+08:00",
+      "environment": "real-web",
+      "git_commit": "d01364a7588ec51a5f15e40d20a97e0cfee34c9c",
+      "dirty_fingerprint": "00b1b5327f65863293868f0f81fd54bd97e39026efe629a9f11fa6736bb15740",
+      "player_sha256": "97c9705f67c9e652af62b41f88fa69535b70ccd2f21a1e2408455ce1cdfc7b27",
+      "catalog_sha256": "321644fb7cb8a83652d56a37d759cb373603e280721e4691b231a485f220f335",
+      "viewports": [
+        "720x1280",
+        "1920x1080"
+      ],
+      "old_session_disconnected": true,
+      "unity_session_valid": true,
+      "report": {
+        "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+        "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+      }
+    },
+    "static-20260811T214100+0800": {
+      "recorded_at": "2026-08-11T21:41:00+08:00",
+      "environment": "static",
+      "git_commit": "d01364a7588ec51a5f15e40d20a97e0cfee34c9c",
+      "dirty_fingerprint": "00b1b5327f65863293868f0f81fd54bd97e39026efe629a9f11fa6736bb15740"
+    }
+  },
+  "nodes": [
+    {
+      "id": "mainui.role.fashion-main-pos1.v1",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        {
+          "id": "mainui-role-entry",
+          "kind": "navigation",
+          "child": "mainui.role.fashion-main-pos1.v1.mainui-role-entry"
+        },
+        {
+          "id": "role-fashion-entry",
+          "kind": "navigation",
+          "child": "mainui.role.fashion-main-pos1.v1.role-fashion-entry"
+        },
+        {
+          "id": "window-root",
+          "kind": "parent-window",
+          "child": "mainui.role.fashion-main-pos1.v1.window-root"
+        },
+        {
+          "id": "window-title-background",
+          "kind": "image",
+          "child": "mainui.role.fashion-main-pos1.v1.window-title-background"
+        },
+        {
+          "id": "window-title",
+          "kind": "image",
+          "child": "mainui.role.fashion-main-pos1.v1.window-title"
+        },
+        {
+          "id": "outer-tab-fashion",
+          "kind": "tab-current",
+          "child": "mainui.role.fashion-main-pos1.v1.outer-tab-fashion"
+        },
+        {
+          "id": "outer-tab-head",
+          "kind": "conditional-sibling-inventory-only",
+          "child": "mainui.role.fashion-main-pos1.v1.outer-tab-head"
+        },
+        {
+          "id": "outer-tab-dress",
+          "kind": "conditional-sibling-inventory-only",
+          "child": "mainui.role.fashion-main-pos1.v1.outer-tab-dress"
+        },
+        {
+          "id": "outer-tab-suit",
+          "kind": "conditional-sibling-inventory-only",
+          "child": "mainui.role.fashion-main-pos1.v1.outer-tab-suit"
+        },
+        {
+          "id": "page-root",
+          "kind": "page",
+          "child": "mainui.role.fashion-main-pos1.v1.page-root"
+        },
+        {
+          "id": "page-background",
+          "kind": "image",
+          "child": "mainui.role.fashion-main-pos1.v1.page-background"
+        },
+        {
+          "id": "model-preview",
+          "kind": "3d-model",
+          "child": "mainui.role.fashion-main-pos1.v1.model-preview"
+        },
+        {
+          "id": "power-box",
+          "kind": "state",
+          "child": "mainui.role.fashion-main-pos1.v1.power-box"
+        },
+        {
+          "id": "fashion-name",
+          "kind": "state",
+          "child": "mainui.role.fashion-main-pos1.v1.fashion-name"
+        },
+        {
+          "id": "fashion-order",
+          "kind": "state",
+          "child": "mainui.role.fashion-main-pos1.v1.fashion-order"
+        },
+        {
+          "id": "fashion-list",
+          "kind": "scroll-list",
+          "child": "mainui.role.fashion-main-pos1.v1.fashion-list"
+        },
+        {
+          "id": "fashion-list-items",
+          "kind": "runtime-list-items",
+          "child": "mainui.role.fashion-main-pos1.v1.fashion-list-items"
+        },
+        {
+          "id": "sweetheart-item",
+          "kind": "runtime-list-item",
+          "child": "mainui.role.fashion-main-pos1.v1.sweetheart-item"
+        },
+        {
+          "id": "color-list",
+          "kind": "state-list",
+          "child": "mainui.role.fashion-main-pos1.v1.color-list"
+        },
+        {
+          "id": "color-items",
+          "kind": "conditional-state-items",
+          "child": "mainui.role.fashion-main-pos1.v1.color-items"
+        },
+        {
+          "id": "attribute-scroll",
+          "kind": "scroll-list",
+          "child": "mainui.role.fashion-main-pos1.v1.attribute-scroll"
+        },
+        {
+          "id": "activate-upgrade",
+          "kind": "transaction",
+          "child": "mainui.role.fashion-main-pos1.v1.activate-upgrade"
+        },
+        {
+          "id": "activate-label",
+          "kind": "conditional-state",
+          "child": "mainui.role.fashion-main-pos1.v1.activate-label"
+        },
+        {
+          "id": "activate-red",
+          "kind": "conditional-red-dot",
+          "child": "mainui.role.fashion-main-pos1.v1.activate-red"
+        },
+        {
+          "id": "wear-toggle",
+          "kind": "transaction",
+          "child": "mainui.role.fashion-main-pos1.v1.wear-toggle"
+        },
+        {
+          "id": "wear-label",
+          "kind": "conditional-state",
+          "child": "mainui.role.fashion-main-pos1.v1.wear-label"
+        },
+        {
+          "id": "material-award",
+          "kind": "item-cell",
+          "child": "mainui.role.fashion-main-pos1.v1.material-award"
+        },
+        {
+          "id": "material-count-box",
+          "kind": "state",
+          "child": "mainui.role.fashion-main-pos1.v1.material-count-box"
+        },
+        {
+          "id": "material-own",
+          "kind": "state",
+          "child": "mainui.role.fashion-main-pos1.v1.material-own"
+        },
+        {
+          "id": "material-need",
+          "kind": "state",
+          "child": "mainui.role.fashion-main-pos1.v1.material-need"
+        },
+        {
+          "id": "level-entry",
+          "kind": "navigation",
+          "child": "mainui.role.fashion-main-pos1.v1.level-entry"
+        },
+        {
+          "id": "level-red",
+          "kind": "conditional-red-dot",
+          "child": "mainui.role.fashion-main-pos1.v1.level-red"
+        },
+        {
+          "id": "level-root",
+          "kind": "popup",
+          "child": "mainui.role.fashion-main-pos1.v1.level-root"
+        },
+        {
+          "id": "level-panel-background",
+          "kind": "image",
+          "child": "mainui.role.fashion-main-pos1.v1.level-panel-background"
+        },
+        {
+          "id": "level-inner-background",
+          "kind": "image",
+          "child": "mainui.role.fashion-main-pos1.v1.level-inner-background"
+        },
+        {
+          "id": "level-title",
+          "kind": "image",
+          "child": "mainui.role.fashion-main-pos1.v1.level-title"
+        },
+        {
+          "id": "level-value",
+          "kind": "state",
+          "child": "mainui.role.fashion-main-pos1.v1.level-value"
+        },
+        {
+          "id": "level-exp-background",
+          "kind": "state",
+          "child": "mainui.role.fashion-main-pos1.v1.level-exp-background"
+        },
+        {
+          "id": "level-exp-fill",
+          "kind": "state",
+          "child": "mainui.role.fashion-main-pos1.v1.level-exp-fill"
+        },
+        {
+          "id": "level-exp-text",
+          "kind": "state",
+          "child": "mainui.role.fashion-main-pos1.v1.level-exp-text"
+        },
+        {
+          "id": "level-attributes",
+          "kind": "state-list",
+          "child": "mainui.role.fashion-main-pos1.v1.level-attributes"
+        },
+        {
+          "id": "level-materials",
+          "kind": "scroll-list",
+          "child": "mainui.role.fashion-main-pos1.v1.level-materials"
+        },
+        {
+          "id": "level-effect-host",
+          "kind": "inert-effect-host",
+          "child": "mainui.role.fashion-main-pos1.v1.level-effect-host"
+        },
+        {
+          "id": "level-submit",
+          "kind": "transaction",
+          "child": "mainui.role.fashion-main-pos1.v1.level-submit"
+        },
+        {
+          "id": "level-close-button",
+          "kind": "return",
+          "child": "mainui.role.fashion-main-pos1.v1.level-close-button"
+        },
+        {
+          "id": "level-modal-background",
+          "kind": "return",
+          "child": "mainui.role.fashion-main-pos1.v1.level-modal-background"
+        },
+        {
+          "id": "level-added-exp",
+          "kind": "state",
+          "child": "mainui.role.fashion-main-pos1.v1.level-added-exp"
+        },
+        {
+          "id": "level-tip-primary",
+          "kind": "text",
+          "child": "mainui.role.fashion-main-pos1.v1.level-tip-primary"
+        },
+        {
+          "id": "level-tip-secondary",
+          "kind": "text",
+          "child": "mainui.role.fashion-main-pos1.v1.level-tip-secondary"
+        },
+        {
+          "id": "fashion-return",
+          "kind": "return",
+          "child": "mainui.role.fashion-main-pos1.v1.fashion-return"
+        },
+        {
+          "id": "list-item-identity",
+          "kind": "identity-matrix",
+          "child": "mainui.role.fashion-main-pos1.v1.list-item-identity"
+        },
+        {
+          "id": "selection-state",
+          "kind": "selected-unselected-matrix",
+          "child": "mainui.role.fashion-main-pos1.v1.selection-state"
+        },
+        {
+          "id": "ownership-state",
+          "kind": "owned-unowned-matrix",
+          "child": "mainui.role.fashion-main-pos1.v1.ownership-state"
+        },
+        {
+          "id": "actionable-state",
+          "kind": "actionable-unactionable-matrix",
+          "child": "mainui.role.fashion-main-pos1.v1.actionable-state"
+        },
+        {
+          "id": "fashion-switch",
+          "kind": "state-switch",
+          "child": "mainui.role.fashion-main-pos1.v1.fashion-switch"
+        },
+        {
+          "id": "color-switch",
+          "kind": "state-switch",
+          "child": "mainui.role.fashion-main-pos1.v1.color-switch"
+        },
+        {
+          "id": "fashion-list-last-item",
+          "kind": "scroll-last-item",
+          "child": "mainui.role.fashion-main-pos1.v1.fashion-list-last-item"
+        },
+        {
+          "id": "attribute-list-last-item",
+          "kind": "scroll-last-item",
+          "child": "mainui.role.fashion-main-pos1.v1.attribute-list-last-item"
+        },
+        {
+          "id": "level-material-last-item",
+          "kind": "scroll-last-item",
+          "child": "mainui.role.fashion-main-pos1.v1.level-material-last-item"
+        },
+        {
+          "id": "protocol-41312",
+          "kind": "read-protocol",
+          "child": "mainui.role.fashion-main-pos1.v1.protocol-41312"
+        },
+        {
+          "id": "write-boundary",
+          "kind": "protocol-boundary",
+          "child": "mainui.role.fashion-main-pos1.v1.write-boundary"
+        },
+        {
+          "id": "model-render",
+          "kind": "render-texture-pixels",
+          "child": "mainui.role.fashion-main-pos1.v1.model-render"
+        },
+        {
+          "id": "model-assembly",
+          "kind": "parts-and-materials",
+          "child": "mainui.role.fashion-main-pos1.v1.model-assembly"
+        },
+        {
+          "id": "model-orientation",
+          "kind": "placement-and-orientation",
+          "child": "mainui.role.fashion-main-pos1.v1.model-orientation"
+        },
+        {
+          "id": "model-effect",
+          "kind": "persistent-effect",
+          "child": "mainui.role.fashion-main-pos1.v1.model-effect"
+        },
+        {
+          "id": "resource-closure",
+          "kind": "resource-ready",
+          "child": "mainui.role.fashion-main-pos1.v1.resource-closure"
+        },
+        {
+          "id": "resource-preload",
+          "kind": "preload",
+          "child": "mainui.role.fashion-main-pos1.v1.resource-preload"
+        },
+        {
+          "id": "resource-idempotency",
+          "kind": "second-open-idempotency",
+          "child": "mainui.role.fashion-main-pos1.v1.resource-idempotency"
+        },
+        {
+          "id": "sound-click",
+          "kind": "sound",
+          "child": "mainui.role.fashion-main-pos1.v1.sound-click"
+        },
+        {
+          "id": "sound-result",
+          "kind": "conditional-result-sound",
+          "child": "mainui.role.fashion-main-pos1.v1.sound-result"
+        },
+        {
+          "id": "cold-ready",
+          "kind": "cold-lifecycle",
+          "child": "mainui.role.fashion-main-pos1.v1.cold-ready"
+        },
+        {
+          "id": "warm-ready",
+          "kind": "warm-lifecycle",
+          "child": "mainui.role.fashion-main-pos1.v1.warm-ready"
+        },
+        {
+          "id": "close-reopen",
+          "kind": "lifecycle",
+          "child": "mainui.role.fashion-main-pos1.v1.close-reopen"
+        },
+        {
+          "id": "return-chain",
+          "kind": "return-chain",
+          "child": "mainui.role.fashion-main-pos1.v1.return-chain"
+        },
+        {
+          "id": "viewport-720x1280",
+          "kind": "visual-viewport",
+          "child": "mainui.role.fashion-main-pos1.v1.viewport-720x1280"
+        },
+        {
+          "id": "viewport-1920x1080",
+          "kind": "visual-viewport",
+          "child": "mainui.role.fashion-main-pos1.v1.viewport-1920x1080"
+        },
+        {
+          "id": "same-batch-web-diff",
+          "kind": "old-unity-overlay-diff",
+          "child": "mainui.role.fashion-main-pos1.v1.same-batch-web-diff"
+        }
+      ],
+      "note": "只有 pos=1 时装 Tab 会被点击；发饰、装扮、套装仅核对同场可见身份，不进入页面。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "unfinished blocked children: mainui.role.fashion-main-pos1.v1.activate-upgrade, mainui.role.fashion-main-pos1.v1.wear-toggle, mainui.role.fashion-main-pos1.v1.level-submit, mainui.role.fashion-main-pos1.v1.sound-result"
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.mainui-role-entry",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "click": true,
+        "result": true,
+        "target_identity": true,
+        "timing": true
+      },
+      "gate_runs": {
+        "click": "web-20260811T213617+0800",
+        "result": "web-20260811T213617+0800",
+        "target_identity": "web-20260811T213617+0800",
+        "timing": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "click": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "result": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "target_identity": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "timing": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "click",
+        "result",
+        "target_identity",
+        "timing"
+      ],
+      "timing": {
+        "cold": {
+          "first_visible_ms": 350,
+          "interactive_ready_ms": 5500
+        },
+        "warm": {
+          "first_visible_ms": 350,
+          "interactive_ready_ms": 3500
+        }
+      },
+      "identity_evidence": [
+        {
+          "artifact": {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          },
+          "checks": {
+            "view_type": true,
+            "root_size": true,
+            "background_rendered": true,
+            "close_chain": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.role-fashion-entry",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "click": true,
+        "result": true,
+        "target_identity": true,
+        "timing": true
+      },
+      "gate_runs": {
+        "click": "web-20260811T213617+0800",
+        "result": "web-20260811T213617+0800",
+        "target_identity": "web-20260811T213617+0800",
+        "timing": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "click": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "result": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "target_identity": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "timing": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "click",
+        "result",
+        "target_identity",
+        "timing"
+      ],
+      "timing": {
+        "cold": {
+          "first_visible_ms": 350,
+          "interactive_ready_ms": 5500
+        },
+        "warm": {
+          "first_visible_ms": 350,
+          "interactive_ready_ms": 3500
+        }
+      },
+      "identity_evidence": [
+        {
+          "artifact": {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          },
+          "checks": {
+            "view_type": true,
+            "root_size": true,
+            "background_rendered": true,
+            "close_chain": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.window-root",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.window-title-background",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.window-title",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.outer-tab-fashion",
+      "type": "tab",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "click": true,
+        "result": true,
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "click": "web-20260811T213617+0800",
+        "result": "web-20260811T213617+0800",
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "click": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "result": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "click",
+        "result",
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.outer-tab-head",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "note": "同场身份清单；本任务禁止点击。",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.outer-tab-dress",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "note": "同场身份清单；本任务禁止点击。",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.outer-tab-suit",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "note": "同场身份清单；本任务禁止点击。",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.page-root",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.page-background",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.model-preview",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "model_presentation": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800",
+        "model_presentation": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "model_presentation": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state",
+        "model_presentation"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ],
+      "model_evidence": {
+        "old": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/old-720-1280.png",
+          "sha256": "b0bb25f4f2cfd3e50b5df9defad234018a4d037dd3bb770ef7babfb3ec9c3f91"
+        },
+        "unity": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/unity-720-1280.png",
+          "sha256": "8617af7a6344cfd496774a504ede9bd43f80b456a024ab984166a060a54d3d67"
+        },
+        "checks": {
+          "exists": true,
+          "resource_correct": true,
+          "parts_correct": true,
+          "not_mirrored": true,
+          "not_flipped": true,
+          "angle_correct": true,
+          "position_scale_correct": true,
+          "effects_correct": true
+        }
+      }
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.power-box",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.fashion-name",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.fashion-order",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.fashion-list",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "layout_structure": true,
+        "scroll_interaction": true
+      },
+      "gate_runs": {
+        "runtime_state": "editor-20260811T214400+0800",
+        "layout_structure": "editor-20260811T214400+0800",
+        "scroll_interaction": "editor-20260811T214400+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+            "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+          }
+        ],
+        "layout_structure": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+            "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+          }
+        ],
+        "scroll_interaction": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+            "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+          }
+        ]
+      },
+      "evidence": [],
+      "interaction_evidence": [
+        {
+          "artifact": {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/drag-last-visible.png",
+            "sha256": "f9259ead940f43cd6abf69720b7f728dccbef1c2839457281a023c6f28afad14"
+          },
+          "raycast_drag": true,
+          "content_delta": -1856,
+          "last_item_reached": true
+        }
+      ],
+      "applicable_gates": [
+        "runtime_state",
+        "layout_structure",
+        "scroll_interaction"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+          "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+        }
+      ],
+      "layout_evidence": [
+        {
+          "artifact": {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+            "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+          },
+          "checks": {
+            "scroll_rect": true,
+            "viewport_mask": true,
+            "content_layout": true,
+            "content_fitter": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.fashion-list-items",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.sweetheart-item",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.color-list",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.color-items",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.attribute-scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "scroll_interaction": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800",
+        "scroll_interaction": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "scroll_interaction": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "interaction_evidence": [
+        {
+          "artifact": {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          },
+          "raycast_drag": true,
+          "content_delta": -83,
+          "last_item_reached": true
+        }
+      ],
+      "applicable_gates": [
+        "runtime_state",
+        "scroll_interaction"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.activate-upgrade",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "note": "可能发送 41301/41304/41306/41316；未授权时必须 blocked 且禁发。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "未获本轮破坏性写事务授权；41301/41304/41306/41316 均被专用 Case 与真实 Web 禁发。"
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.activate-label",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.activate-red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.wear-toggle",
+      "type": "transaction",
+      "risk": "reversible-write",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "note": "发送 41302/41303；未授权时必须 blocked 且禁发。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "未获本轮可恢复写事务授权；41302/41303 均被专用 Case 与真实 Web 禁发，未污染账号穿戴态。"
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.wear-label",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.material-award",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.material-count-box",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.material-own",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.material-need",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.level-entry",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "click": true,
+        "result": true,
+        "target_identity": true,
+        "timing": true
+      },
+      "gate_runs": {
+        "click": "web-20260811T213617+0800",
+        "result": "web-20260811T213617+0800",
+        "target_identity": "web-20260811T213617+0800",
+        "timing": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "click": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "result": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "target_identity": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "timing": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "click",
+        "result",
+        "target_identity",
+        "timing"
+      ],
+      "timing": {
+        "cold": {
+          "first_visible_ms": 350,
+          "interactive_ready_ms": 5500
+        },
+        "warm": {
+          "first_visible_ms": 350,
+          "interactive_ready_ms": 3500
+        }
+      },
+      "identity_evidence": [
+        {
+          "artifact": {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          },
+          "checks": {
+            "view_type": true,
+            "root_size": true,
+            "background_rendered": true,
+            "close_chain": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.level-red",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.level-root",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.level-panel-background",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.level-inner-background",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.level-title",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.level-value",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.level-exp-background",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.level-exp-fill",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.level-exp-text",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.level-attributes",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.level-materials",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "layout_structure": true
+      },
+      "gate_runs": {
+        "runtime_state": "editor-20260811T214400+0800",
+        "layout_structure": "editor-20260811T214400+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+            "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+          }
+        ],
+        "layout_structure": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+            "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state",
+        "layout_structure"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+          "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+        }
+      ],
+      "layout_evidence": [
+        {
+          "artifact": {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+            "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+          },
+          "checks": {
+            "scroll_rect": true,
+            "viewport_mask": true,
+            "content_layout": true,
+            "content_fitter": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.level-effect-host",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "note": "老端 FashionLevelView.ShowEffect 内 ui_tunshichenggong_glow 调用已注释；保留空宿主但不得伪造常驻或成功特效。",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.level-submit",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "note": "发送 41305；未授权时必须 blocked 且禁发。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "未获本轮消耗型写事务授权；41305 被专用 Case 与真实 Web 禁发。"
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.level-close-button",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "click": true,
+        "return_chain": true
+      },
+      "gate_runs": {
+        "click": "web-20260811T213617+0800",
+        "return_chain": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "click": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "return_chain": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "click",
+        "return_chain"
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.level-modal-background",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "click": true,
+        "return_chain": true
+      },
+      "gate_runs": {
+        "click": "web-20260811T213617+0800",
+        "return_chain": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "click": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "return_chain": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "click",
+        "return_chain"
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.level-added-exp",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.level-tip-primary",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.level-tip-secondary",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.fashion-return",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "click": true,
+        "return_chain": true
+      },
+      "gate_runs": {
+        "click": "web-20260811T213617+0800",
+        "return_chain": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "click": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "return_chain": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "click",
+        "return_chain"
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.list-item-identity",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "note": "逐项绑定 FashionId/pos，点击后名称、图标、模型、属性与 41312 身份必须一致。",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.selection-state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.ownership-state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.actionable-state",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.fashion-switch",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.color-switch",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.fashion-list-last-item",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "layout_structure": true,
+        "scroll_interaction": true
+      },
+      "gate_runs": {
+        "runtime_state": "editor-20260811T214400+0800",
+        "layout_structure": "editor-20260811T214400+0800",
+        "scroll_interaction": "editor-20260811T214400+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+            "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+          }
+        ],
+        "layout_structure": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+            "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+          }
+        ],
+        "scroll_interaction": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+            "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+          }
+        ]
+      },
+      "evidence": [],
+      "interaction_evidence": [
+        {
+          "artifact": {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/drag-last-visible.png",
+            "sha256": "f9259ead940f43cd6abf69720b7f728dccbef1c2839457281a023c6f28afad14"
+          },
+          "raycast_drag": true,
+          "content_delta": -1856,
+          "last_item_reached": true
+        }
+      ],
+      "applicable_gates": [
+        "runtime_state",
+        "layout_structure",
+        "scroll_interaction"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+          "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+        }
+      ],
+      "layout_evidence": [
+        {
+          "artifact": {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+            "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+          },
+          "checks": {
+            "scroll_rect": true,
+            "viewport_mask": true,
+            "content_layout": true,
+            "content_fitter": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.attribute-list-last-item",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "scroll_interaction": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800",
+        "scroll_interaction": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "scroll_interaction": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "interaction_evidence": [
+        {
+          "artifact": {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          },
+          "raycast_drag": true,
+          "content_delta": -83,
+          "last_item_reached": true
+        }
+      ],
+      "applicable_gates": [
+        "runtime_state",
+        "scroll_interaction"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.level-material-last-item",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "layout_structure": true
+      },
+      "gate_runs": {
+        "runtime_state": "editor-20260811T214400+0800",
+        "layout_structure": "editor-20260811T214400+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+            "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+          }
+        ],
+        "layout_structure": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+            "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state",
+        "layout_structure"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+          "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+        }
+      ],
+      "layout_evidence": [
+        {
+          "artifact": {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+            "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+          },
+          "checks": {
+            "scroll_rect": true,
+            "viewport_mask": true,
+            "content_layout": true,
+            "content_fitter": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.protocol-41312",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "note": "每次真实选择当前时装都允许发送 ci(PosId,FashionId)，回包无 Code，逐颜色刷新当前/下一阶战力。",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "protocol": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800",
+        "protocol": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "protocol": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state",
+        "protocol"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.write-boundary",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "note": "只证明 41301/02/03/04/05/06/16 在未授权路线中均未发送。",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.model-render",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "model_presentation": true,
+        "render_completion": true
+      },
+      "gate_runs": {
+        "runtime_state": "editor-20260811T214400+0800",
+        "model_presentation": "editor-20260811T214400+0800",
+        "render_completion": "editor-20260811T214400+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+            "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+          }
+        ],
+        "model_presentation": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+            "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+          }
+        ],
+        "render_completion": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+            "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state",
+        "model_presentation",
+        "render_completion"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/unity.log",
+          "sha256": "b9080a8be899dbbb7b653afb4fac7f1806068821dc04ebd6b41bcab7c1371e62"
+        }
+      ],
+      "model_evidence": {
+        "old": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/old-720-1280.png",
+          "sha256": "b0bb25f4f2cfd3e50b5df9defad234018a4d037dd3bb770ef7babfb3ec9c3f91"
+        },
+        "unity": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/unity-720-1280.png",
+          "sha256": "8617af7a6344cfd496774a504ede9bd43f80b456a024ab984166a060a54d3d67"
+        },
+        "checks": {
+          "exists": true,
+          "resource_correct": true,
+          "parts_correct": true,
+          "not_mirrored": true,
+          "not_flipped": true,
+          "angle_correct": true,
+          "position_scale_correct": true,
+          "effects_correct": true
+        }
+      },
+      "render_evidence": [
+        {
+          "artifact": {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/cli_structure_final_20260811T214400+0800/model-rt.png",
+            "sha256": "0f1346055c0866a4808b585d8f5872c54e2a01baadfe99e593a29e196892f836"
+          },
+          "render_completed": true,
+          "nontransparent_pixels": 41532
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.model-assembly",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "model_presentation": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800",
+        "model_presentation": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "model_presentation": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state",
+        "model_presentation"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ],
+      "model_evidence": {
+        "old": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/old-720-1280.png",
+          "sha256": "b0bb25f4f2cfd3e50b5df9defad234018a4d037dd3bb770ef7babfb3ec9c3f91"
+        },
+        "unity": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/unity-720-1280.png",
+          "sha256": "8617af7a6344cfd496774a504ede9bd43f80b456a024ab984166a060a54d3d67"
+        },
+        "checks": {
+          "exists": true,
+          "resource_correct": true,
+          "parts_correct": true,
+          "not_mirrored": true,
+          "not_flipped": true,
+          "angle_correct": true,
+          "position_scale_correct": true,
+          "effects_correct": true
+        }
+      }
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.model-orientation",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "model_presentation": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800",
+        "model_presentation": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "model_presentation": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state",
+        "model_presentation"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ],
+      "model_evidence": {
+        "old": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/old-720-1280.png",
+          "sha256": "b0bb25f4f2cfd3e50b5df9defad234018a4d037dd3bb770ef7babfb3ec9c3f91"
+        },
+        "unity": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/unity-720-1280.png",
+          "sha256": "8617af7a6344cfd496774a504ede9bd43f80b456a024ab984166a060a54d3d67"
+        },
+        "checks": {
+          "exists": true,
+          "resource_correct": true,
+          "parts_correct": true,
+          "not_mirrored": true,
+          "not_flipped": true,
+          "angle_correct": true,
+          "position_scale_correct": true,
+          "effects_correct": true
+        }
+      }
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.model-effect",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "model_presentation": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800",
+        "model_presentation": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "model_presentation": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state",
+        "model_presentation"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ],
+      "model_evidence": {
+        "old": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/old-720-1280.png",
+          "sha256": "b0bb25f4f2cfd3e50b5df9defad234018a4d037dd3bb770ef7babfb3ec9c3f91"
+        },
+        "unity": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/unity-720-1280.png",
+          "sha256": "8617af7a6344cfd496774a504ede9bd43f80b456a024ab984166a060a54d3d67"
+        },
+        "checks": {
+          "exists": true,
+          "resource_correct": true,
+          "parts_correct": true,
+          "not_mirrored": true,
+          "not_flipped": true,
+          "angle_correct": true,
+          "position_scale_correct": true,
+          "effects_correct": true
+        }
+      }
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.resource-closure",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "resource_stable": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800",
+        "resource_stable": "static-20260811T214100+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "resource_stable": [
+          {
+            "path": "Tools/UIAudit/routes/role/fashion-main-pos1.resources.json",
+            "sha256": "c7b2b0015c5851550b59577ed2a7518295e7abc92ad02ce3bd030347d9ce784a"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state",
+        "resource_stable"
+      ],
+      "resource_evidence": {
+        "preflight_first": {
+          "path": "Tools/UIAudit/routes/role/fashion-main-pos1.resources.json",
+          "sha256": "c7b2b0015c5851550b59577ed2a7518295e7abc92ad02ce3bd030347d9ce784a"
+        },
+        "preflight_second": {
+          "path": "Tools/UIAudit/routes/role/fashion-main-pos1.resources.json",
+          "sha256": "c7b2b0015c5851550b59577ed2a7518295e7abc92ad02ce3bd030347d9ce784a"
+        },
+        "runtime_delta": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        },
+        "second": {
+          "imported": 0,
+          "configured": 0
+        },
+        "runtime": {
+          "added": 0
+        }
+      },
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.resource-preload",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "resource_stable": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800",
+        "resource_stable": "static-20260811T214100+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "resource_stable": [
+          {
+            "path": "Tools/UIAudit/routes/role/fashion-main-pos1.resources.json",
+            "sha256": "c7b2b0015c5851550b59577ed2a7518295e7abc92ad02ce3bd030347d9ce784a"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state",
+        "resource_stable"
+      ],
+      "resource_evidence": {
+        "preflight_first": {
+          "path": "Tools/UIAudit/routes/role/fashion-main-pos1.resources.json",
+          "sha256": "c7b2b0015c5851550b59577ed2a7518295e7abc92ad02ce3bd030347d9ce784a"
+        },
+        "preflight_second": {
+          "path": "Tools/UIAudit/routes/role/fashion-main-pos1.resources.json",
+          "sha256": "c7b2b0015c5851550b59577ed2a7518295e7abc92ad02ce3bd030347d9ce784a"
+        },
+        "runtime_delta": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        },
+        "second": {
+          "imported": 0,
+          "configured": 0
+        },
+        "runtime": {
+          "added": 0
+        }
+      },
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.resource-idempotency",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "resource_stable": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800",
+        "resource_stable": "static-20260811T214100+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "resource_stable": [
+          {
+            "path": "Tools/UIAudit/routes/role/fashion-main-pos1.resources.json",
+            "sha256": "c7b2b0015c5851550b59577ed2a7518295e7abc92ad02ce3bd030347d9ce784a"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state",
+        "resource_stable"
+      ],
+      "resource_evidence": {
+        "preflight_first": {
+          "path": "Tools/UIAudit/routes/role/fashion-main-pos1.resources.json",
+          "sha256": "c7b2b0015c5851550b59577ed2a7518295e7abc92ad02ce3bd030347d9ce784a"
+        },
+        "preflight_second": {
+          "path": "Tools/UIAudit/routes/role/fashion-main-pos1.resources.json",
+          "sha256": "c7b2b0015c5851550b59577ed2a7518295e7abc92ad02ce3bd030347d9ce784a"
+        },
+        "runtime_delta": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        },
+        "second": {
+          "imported": 0,
+          "configured": 0
+        },
+        "runtime": {
+          "added": 0
+        }
+      },
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.sound-click",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.sound-result",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "note": "只有权威成功回包才允许成功音；本轮未授权写入时验证不误播。",
+      "status": "blocked",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "blocked_reason": "结果音只能绑定权威成功回包；三个成功事务均未授权，因此不得伪播或伪验。"
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.cold-ready",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "timing": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800",
+        "timing": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "timing": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state",
+        "timing"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ],
+      "timing": {
+        "cold": {
+          "first_visible_ms": 350,
+          "interactive_ready_ms": 5500
+        },
+        "warm": {
+          "first_visible_ms": 350,
+          "interactive_ready_ms": 3500
+        }
+      }
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.warm-ready",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "timing": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800",
+        "timing": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "timing": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state",
+        "timing"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ],
+      "timing": {
+        "cold": {
+          "first_visible_ms": 350,
+          "interactive_ready_ms": 5500
+        },
+        "warm": {
+          "first_visible_ms": 350,
+          "interactive_ready_ms": 3500
+        }
+      }
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.close-reopen",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "runtime_state"
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.return-chain",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "click": true,
+        "return_chain": true
+      },
+      "gate_runs": {
+        "click": "web-20260811T213617+0800",
+        "return_chain": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "click": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "return_chain": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ]
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "click",
+        "return_chain"
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.viewport-720x1280",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "visual_version": true,
+        "visual_match": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800",
+        "visual_version": "web-20260811T213617+0800",
+        "visual_match": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "visual_version": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "visual_match": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/compare-report.json",
+            "sha256": "d958425db1a03f84eb6725ad648f5fa8a892eddc0fa52306aa8764691ebf8504"
+          }
+        ]
+      },
+      "evidence": [],
+      "visual_evidence": {
+        "old": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/old-720-1280.png",
+          "sha256": "b0bb25f4f2cfd3e50b5df9defad234018a4d037dd3bb770ef7babfb3ec9c3f91"
+        },
+        "unity": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/unity-720-1280.png",
+          "sha256": "8617af7a6344cfd496774a504ede9bd43f80b456a024ab984166a060a54d3d67"
+        },
+        "overlay": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/overlay-720-1280.png",
+          "sha256": "2f12d26fca2c658000ce09a427b678dca3c1b682915db404617da1b2eb5c1ba3"
+        },
+        "diff": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/diff-720-1280.png",
+          "sha256": "8bf3ba0185b8b9df93beec30ab5c92c8b9fe372cd170b28e32cc0e8ef3def82f"
+        },
+        "viewport": {
+          "width": 720,
+          "height": 1280
+        }
+      },
+      "applicable_gates": [
+        "runtime_state",
+        "visual_version",
+        "visual_match"
+      ],
+      "version_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        },
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/compare-report.json",
+          "sha256": "d958425db1a03f84eb6725ad648f5fa8a892eddc0fa52306aa8764691ebf8504"
+        }
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.viewport-1920x1080",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "visual_version": true,
+        "visual_match": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800",
+        "visual_version": "web-20260811T213617+0800",
+        "visual_match": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "visual_version": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "visual_match": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/compare-report.json",
+            "sha256": "d958425db1a03f84eb6725ad648f5fa8a892eddc0fa52306aa8764691ebf8504"
+          }
+        ]
+      },
+      "evidence": [],
+      "visual_evidence": {
+        "old": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/old-1920-1080.png",
+          "sha256": "74bce0c0f3f4b4250258d7c5afff987a4e6ab9adc8e3cf2a32faf0699af18ed7"
+        },
+        "unity": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/unity-1920-1080.png",
+          "sha256": "57be7f86a9f987d56fb7dfeab13d03068c61d86aef29720cd2ebcb1bdc0b97c4"
+        },
+        "overlay": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/overlay-1920-1080.png",
+          "sha256": "05a305ed620b133c2fcb3d46d07b48e83fa1121a91b7a9cf587d0267b9ab7019"
+        },
+        "diff": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/diff-1920-1080.png",
+          "sha256": "c3a021a074c6d718b5e46da25e71b0ce0bc86dd0a307545d262c07396ba51cb3"
+        },
+        "viewport": {
+          "width": 1920,
+          "height": 1080
+        }
+      },
+      "applicable_gates": [
+        "runtime_state",
+        "visual_version",
+        "visual_match"
+      ],
+      "version_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        },
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/compare-report.json",
+          "sha256": "d958425db1a03f84eb6725ad648f5fa8a892eddc0fa52306aa8764691ebf8504"
+        }
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    },
+    {
+      "id": "mainui.role.fashion-main-pos1.v1.same-batch-web-diff",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.fashion-main-pos1.v1",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "visual_version": true,
+        "visual_match": true
+      },
+      "gate_runs": {
+        "runtime_state": "web-20260811T213617+0800",
+        "visual_version": "web-20260811T213617+0800",
+        "visual_match": "web-20260811T213617+0800"
+      },
+      "gate_evidence": {
+        "runtime_state": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "visual_version": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+            "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+          }
+        ],
+        "visual_match": [
+          {
+            "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/compare-report.json",
+            "sha256": "d958425db1a03f84eb6725ad648f5fa8a892eddc0fa52306aa8764691ebf8504"
+          }
+        ]
+      },
+      "evidence": [],
+      "visual_evidence": {
+        "old": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/old-720-1280.png",
+          "sha256": "b0bb25f4f2cfd3e50b5df9defad234018a4d037dd3bb770ef7babfb3ec9c3f91"
+        },
+        "unity": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/unity-720-1280.png",
+          "sha256": "8617af7a6344cfd496774a504ede9bd43f80b456a024ab984166a060a54d3d67"
+        },
+        "overlay": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/overlay-720-1280.png",
+          "sha256": "2f12d26fca2c658000ce09a427b678dca3c1b682915db404617da1b2eb5c1ba3"
+        },
+        "diff": {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/diff-720-1280.png",
+          "sha256": "8bf3ba0185b8b9df93beec30ab5c92c8b9fe372cd170b28e32cc0e8ef3def82f"
+        },
+        "viewport": {
+          "width": 720,
+          "height": 1280
+        }
+      },
+      "applicable_gates": [
+        "runtime_state",
+        "visual_version",
+        "visual_match"
+      ],
+      "version_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        },
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/compare_sequence_final_20260811T214100+0800/compare-report.json",
+          "sha256": "d958425db1a03f84eb6725ad648f5fa8a892eddc0fa52306aa8764691ebf8504"
+        }
+      ],
+      "state_evidence": [
+        {
+          "path": "output/ui_route_audit/2026-08-11_fashion_main_pos1/unity_web_final_after_old_20260811T214000+0800/headless-report.json",
+          "sha256": "dd7c77b6c3a766a3c4830c5b35196c8b277dd02c651a4246831e7f1c3f303654"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total": 78,
+    "status_counts": {
+      "blocked": 5,
+      "done": 73
+    },
+    "details": {
+      "done_read_only_leaves": 73,
+      "blocked_write_or_success_dependent_leaves": 4,
+      "write_transactions_authorized": false,
+      "old_then_unity_sequential": true
+    }
+  },
+  "updated_at": "2026-08-11T21:45:00+08:00"
+}

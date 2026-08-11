@@ -25,6 +25,12 @@ namespace Shenxiao.Module.Core.Fashion
 
         private FashionController() { }
         private readonly HashSet<long> _pendingPowerRequests = new HashSet<long>();
+        private readonly HashSet<long> _pendingWearRequests = new HashSet<long>();
+        private readonly HashSet<long> _pendingTakeOffRequests = new HashSet<long>();
+        private bool _infoAllPending;
+
+        /// <summary>主页培养成功（41301/41304/41306/41316），由当前显示的 FashionMainView 消费演出。</summary>
+        public event Action MainUpgradeSucceeded;
 
         protected override void Register()
         {
@@ -47,7 +53,12 @@ namespace Shenxiao.Module.Core.Fashion
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
+            FashionPreviewCache.Reset();
+            _infoAllPending = false;
             _pendingPowerRequests.Clear();
+            _pendingWearRequests.Clear();
+            _pendingTakeOffRequests.Clear();
+            MainUpgradeSucceeded = null;
             FashionModel.Instance.Clear();
             base.Dispose();
         }
@@ -57,6 +68,14 @@ namespace Shenxiao.Module.Core.Fashion
         /// 套装快照41313同样在 GAME_START 拉取;服务端也可能在符合数量变化时主动推送同号快照。</summary>
         private async void OnGameStart()
         {
+            // 同一 Controller 会跨重新登录复用；上次断线未回包不能阻止新会话拉快照。
+            FashionPreviewCache.Reset();
+            _infoAllPending = false;
+            _pendingPowerRequests.Clear();
+            _pendingWearRequests.Clear();
+            _pendingTakeOffRequests.Clear();
+            FashionFlow.PreloadChrome();
+            FashionFlow.PreloadWindow();
             await FashionConfigs.EnsureLoaded();
             RequestInfoAll();
             RequestSuitInfo();
@@ -65,6 +84,8 @@ namespace Shenxiao.Module.Core.Fashion
         /// <summary>41300 全量拉取(发空)。</summary>
         public void RequestInfoAll()
         {
+            if (_infoAllPending) return;
+            _infoAllPending = true;
             SendRequest(Proto.FASHION_INFO_ALL);
         }
 
@@ -146,6 +167,7 @@ namespace Shenxiao.Module.Core.Fashion
         public void Wear(int posId, int fashionId, int colorId)
         {
             if (posId <= 0 || fashionId <= 0) return;
+            _pendingWearRequests.Add(WearKey(posId, fashionId, colorId));
             SendRequest(Proto.FASHION_WEAR, "cic", posId, fashionId, colorId);
         }
 
@@ -153,6 +175,7 @@ namespace Shenxiao.Module.Core.Fashion
         public void TakeOff(int posId, int fashionId)
         {
             if (posId <= 0 || fashionId <= 0) return;
+            _pendingTakeOffRequests.Add(PowerKey(posId, fashionId));
             SendRequest(Proto.FASHION_TAKE_OFF, "ci", posId, fashionId);
         }
 
@@ -189,7 +212,7 @@ namespace Shenxiao.Module.Core.Fashion
         public void RequestPower(int posId, int fashionId)
         {
             if (posId <= 0 || fashionId <= 0) return;
-            long key = ((long)posId << 40) | (uint)fashionId;
+            long key = PowerKey(posId, fashionId);
             if (!_pendingPowerRequests.Add(key)) return;
             SendRequest(Proto.FASHION_POWER, "ci", posId, fashionId);
         }
@@ -201,12 +224,16 @@ namespace Shenxiao.Module.Core.Fashion
         {
             int code = (int)r.ReadU32();
             List<FashionModel.PosWire> posList = r.ReadArray(ReadPosWire);
+            _infoAllPending = false;
             if (code != 1)
             {
                 GameLog.Info("Fashion", "41300 code={0}(非1,老端亦静默不显码)", code);
                 return;
             }
+            // 全量快照会清空全部战力缓存；旧 pending 不能阻止当前页重新拉 41312。
+            _pendingPowerRequests.Clear();
             FashionModel.Instance.Apply41300(posList);
+            FashionPreviewCache.RefreshDefault();
             GameLog.Info("Fashion", "41300 全量落地 pos={0} remaining={1}B", posList.Count, r.Remaining);
             EventDispatcher.Emit(GlobalEvent.EVT_FASHION_UPDATE);
         }
@@ -248,7 +275,7 @@ namespace Shenxiao.Module.Core.Fashion
             int code = (int)r.ReadU32();
             int posId = r.ReadU8();
             int fashionId = (int)r.ReadU32();
-            _pendingPowerRequests.Remove(((long)posId << 40) | (uint)fashionId);
+            _pendingPowerRequests.Remove(PowerKey(posId, fashionId));
             int colorId = r.ReadU8();
             int type = r.ReadU8();
             if (code != 1)
@@ -258,6 +285,9 @@ namespace Shenxiao.Module.Core.Fashion
                 return;
             }
             FashionModel.Instance.Apply41301(posId, fashionId, colorId);
+            FashionPreviewCache.RefreshDefault();
+            RequestPowerAfterMutation(posId, fashionId);
+            MainUpgradeSucceeded?.Invoke();
             GameLog.Info("Fashion", "41301 解锁颜色 pos={0} fashion={1} color={2} type={3}", posId, fashionId, colorId, type);
             EventDispatcher.Emit(GlobalEvent.EVT_FASHION_UPDATE);
         }
@@ -269,6 +299,7 @@ namespace Shenxiao.Module.Core.Fashion
             int posId = r.ReadU8();
             int fashionId = (int)r.ReadU32();
             int colorId = r.ReadU8();
+            bool requested = _pendingWearRequests.Remove(WearKey(posId, fashionId, colorId));
             if (code != 1)
             {
                 TipsManager.Toast("穿戴失败(" + code + ")");
@@ -276,6 +307,8 @@ namespace Shenxiao.Module.Core.Fashion
                 return;
             }
             FashionModel.Instance.Apply41302(posId, fashionId, colorId);
+            FashionPreviewCache.RefreshDefault();
+            if (requested) TipsManager.Toast("穿戴成功");
             GameLog.Info("Fashion", "41302 穿戴 pos={0} fashion={1} color={2}", posId, fashionId, colorId);
             EventDispatcher.Emit(GlobalEvent.EVT_FASHION_UPDATE);
         }
@@ -287,12 +320,16 @@ namespace Shenxiao.Module.Core.Fashion
             int code = (int)r.ReadU32();
             int posId = r.ReadU8();
             int fashionId = (int)r.ReadU32();
+            bool requested = _pendingTakeOffRequests.Remove(PowerKey(posId, fashionId));
             if (code != 1)
             {
                 GameLog.Info("Fashion", "41303 code={0}(非1,老端亦静默不显码) pos={1} fashion={2}", code, posId, fashionId);
                 return;
             }
             FashionModel.Instance.Apply41303(posId);
+            FashionPreviewCache.RefreshDefault();
+            // 41303 也可能是服务端被动卸下广播；只有本客户端真实点击过才显示成功提示。
+            if (requested) TipsManager.Toast("卸下成功");
             GameLog.Info("Fashion", "41303 卸下 pos={0} fashion={1}", posId, fashionId);
             EventDispatcher.Emit(GlobalEvent.EVT_FASHION_UPDATE);
         }
@@ -310,6 +347,9 @@ namespace Shenxiao.Module.Core.Fashion
                 return;
             }
             FashionModel.Instance.Apply41304(posId, fashionId);
+            FashionPreviewCache.RefreshDefault();
+            RequestPowerAfterMutation(posId, fashionId);
+            MainUpgradeSucceeded?.Invoke();
             GameLog.Info("Fashion", "41304 激活 pos={0} fashion={1} → 自动补穿", posId, fashionId);
             EventDispatcher.Emit(GlobalEvent.EVT_FASHION_UPDATE);
             Wear(posId, fashionId, 0);   // 对标老端激活成功后自动 Fire(SCMD_REQUEST,41302,pos,fashion,0)
@@ -334,6 +374,9 @@ namespace Shenxiao.Module.Core.Fashion
                 RequestInfoAll();
                 return;
             }
+            // 部位升级会让该部位下所有时装的战力缓存失效。若某件旧的41312仍处于 pending，
+            // 主页面刷新时会被去重集合挡住而长期显示0；先清本部位 pending，再由当前可见项重拉。
+            ClearPendingPowerForPosition(posId);
             TipsManager.Toast("成功");
             GameLog.Info("Fashion", "41305 部位升级 pos={0} lv={1} exp={2}", posId, posLv, posUpgradeNum);
             EventDispatcher.Emit(GlobalEvent.EVT_FASHION_UPDATE);
@@ -355,6 +398,9 @@ namespace Shenxiao.Module.Core.Fashion
                 return;
             }
             FashionModel.Instance.Apply41306(posId, fashionId, colorId, starLv);
+            FashionPreviewCache.RefreshDefault();
+            RequestPowerAfterMutation(posId, fashionId);
+            MainUpgradeSucceeded?.Invoke();
             GameLog.Info("Fashion", "41306 基础色进阶 pos={0} fashion={1} color={2} → {3}星", posId, fashionId, colorId, starLv);
             EventDispatcher.Emit(GlobalEvent.EVT_FASHION_UPDATE);
         }
@@ -365,6 +411,7 @@ namespace Shenxiao.Module.Core.Fashion
         {
             int posId = r.ReadU8();
             int fashionId = (int)r.ReadU32();
+            _pendingPowerRequests.Remove(PowerKey(posId, fashionId));
             List<FashionModel.PowerEntry> powers = r.ReadArray(ReadPowerEntry);
             FashionModel.Instance.Apply41312(posId, fashionId, powers);
             GameLog.Info("Fashion", "41312 战力 pos={0} fashion={1} colors={2}", posId, fashionId, powers.Count);
@@ -464,8 +511,31 @@ namespace Shenxiao.Module.Core.Fashion
                 return;
             }
             FashionModel.Instance.Apply41316(posId, fashionId, colorId, lv);
+            FashionPreviewCache.RefreshDefault();
+            RequestPowerAfterMutation(posId, fashionId);
+            MainUpgradeSucceeded?.Invoke();
             GameLog.Info("Fashion", "41316 彩色进阶 pos={0} fashion={1} color={2} → {3}星", posId, fashionId, colorId, lv);
             EventDispatcher.Emit(GlobalEvent.EVT_FASHION_UPDATE);
+        }
+
+        private static long PowerKey(int posId, int fashionId) => ((long)posId << 40) | (uint)fashionId;
+
+        private static long WearKey(int posId, int fashionId, int colorId) =>
+            ((long)(byte)posId << 56) | ((long)(byte)colorId << 48) | (uint)fashionId;
+
+        private void RequestPowerAfterMutation(int posId, int fashionId)
+        {
+            _pendingPowerRequests.Remove(PowerKey(posId, fashionId));
+            RequestPower(posId, fashionId);
+        }
+
+        private void ClearPendingPowerForPosition(int posId)
+        {
+            var remove = new List<long>();
+            foreach (long key in _pendingPowerRequests)
+                if ((int)(key >> 40) == posId) remove.Add(key);
+            for (int i = 0; i < remove.Count; i++)
+                _pendingPowerRequests.Remove(remove[i]);
         }
 
         /// <summary>41311 外观形象增量广播(⚠仅活下行,本端永不主动请求):RoleId:l,
@@ -508,6 +578,7 @@ namespace Shenxiao.Module.Core.Fashion
             {
                 RoleModel.Instance.Figure.Raw["fashion_model_list"] = list;
             }
+            FashionPreviewCache.RefreshDefault();
             GameLog.Info("Fashion", "41311 本人形象增量落地 equip={0}", list.Count);
             EventDispatcher.Emit(GlobalEvent.EVT_ROLE_FIGURE_UPDATE);
             EventDispatcher.Emit(GlobalEvent.EVT_FASHION_UPDATE);

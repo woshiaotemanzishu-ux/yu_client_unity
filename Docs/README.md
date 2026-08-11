@@ -49,6 +49,7 @@
 - [UI 精修流程稳定性复盘（2026-08-08）](RuntimeCompare/UI精修流程稳定性复盘-20260808.md)：审计“规则完整但执行器可绕过”的根因，落地 schema 6、原子 apply、并发写锁、run/哈希证据、动态特效/滚动结构合同、根页真实 Web 新鲜度与历史更新器封存；同时列出未被工具修复自动关闭的运行态边界。
 - [UIAudit 公共采集与探针基础设施（2026-08-11）](RuntimeCompare/UIAudit公共采集与探针基础设施-20260811.md)：把登录热会话、三来源运行树、真实 Canvas 输入、启动弹窗、ItemUse、协议 trace、preflight 和结构化报告从专项脚本晋升到 `Tools/UIAudit`，并记录 `output/` 只存不可变证据的 Git 迁移。
 - [角色界面路线清单：第 1 轮](RuntimeCompare/角色界面路线清单-第1轮.md)：角色五个一级页签、人物页二级入口、外观页和首个技能路由疑点的深度优先验收清单。
+- [角色 → 外观 → 时装（FashionMain pos=1）精修与验收](RuntimeCompare/角色-外观-FashionMain-pos1精修-20260811.md)：单 Tab fix-view、22 张当前老端权威图标、拖动释放误点防护、84px 消耗格、3D/资源/cold-warm/双档 old→Unity Web 证据和未授权写事务边界。
 - [人物 → 成就功能线](RuntimeCompare/人物-成就功能线-20260808.md)：成就 7×15 页签树、40901～40909 权威状态、领取前背包门槛、成功特效/飞奖励、31 个奖励资源闭包、schema 6 v2 台账与“先合并当前事实再选叶”的流程纠偏。
 - [独立 Laya UI 层：成就样板](RuntimeCompare/独立LayaUI层-成就样板-20260808.md)：Unity WebGL 下层与旧 Laya 成就上层并行运行，验证直接复用旧端视觉、宿主桥打开、真实页签点击、整层关闭清理、输入归还和热重开，并明确完整旧运行时、数据桥及原生平台边界。
 - [共鸣模块 UI 精修与路由验收](RuntimeCompare/共鸣模块UI精修-20260807.md)：共鸣首次 Prefab 落地、四页签 22 部位/46 阶逐叶验收、15221/15222 事务边界、Editor 证据及真实 Web/账号消耗 blocker。

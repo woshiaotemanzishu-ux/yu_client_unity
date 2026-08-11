@@ -14,6 +14,7 @@ const OUT = process.argv[4] || __dirname;
 const URL = process.argv[5] || 'http://127.0.0.1:8090/index.html';
 const ROUTE = process.argv[6] || '';
 const SHOTS = path.join(OUT, '_shots');
+const FASHION_CAPTURE_WIDE = process.env.FASHION_CAPTURE_WIDE === '1';
 
 // 常驻 HUD / 无害视图白名单(可见也不算"挡路弹窗")
 const WHITELIST = /^(MainUI|NameBoard|MessageItem|FirstRechargeBubble|FunctionOpenIcon|UIJoyStick|WaitforOpenViewLoading|FightingUpView|LoginBgView|ActivityIcon|FuncBoardView)/;
@@ -274,6 +275,137 @@ function readCurrentGmPassword() {
       return { viewName: null, nodes: [], error: String(e) };
     }
   }, { vp: viewPattern, nn: nodeName });
+
+  // BaseWindowComponent 内嵌的 BaseItem1（例如 MedalView/TitleMainView）不会独立进入
+  // ViewManager/BASEVIEW_OPEN_OR_CLOSE 注册表。UI 精修不能因此退回静态 scene 坐标，
+  // 这里直接从真实 Laya.stage 找目标根并保存页面根/全局矩形、pivot 与最终文本状态。
+  const captureRuntimeSubtree = async (rootNames, fileName) => {
+    const result = await page.evaluate((names) => {
+      const wanted = new Set(names);
+      const stage = window.Laya && Laya.stage;
+      if (!stage) return { ok: false, reason: 'Laya.stage missing' };
+      const childrenOf = node => node && (node._children || (node.numChildren
+        ? Array.from({ length: node.numChildren }, (_, i) => node.getChildAt(i)) : [])) || [];
+      const roots = [];
+      const find = node => {
+        if (!node) return;
+        if (wanted.has(String(node.name || ''))) roots.push(node);
+        for (const child of childrenOf(node)) find(child);
+      };
+      find(stage);
+      const point = (node, x, y) => {
+        try {
+          const p = node.localToGlobal(new Laya.Point(x, y), true);
+          return { x: Number(p.x.toFixed(3)), y: Number(p.y.toFixed(3)) };
+        } catch (_) { return { x: 0, y: 0 }; }
+      };
+      const serialize = node => {
+        const width = Number(node.width || 0), height = Number(node.height || 0);
+        const corners = [point(node, 0, 0), point(node, width, 0), point(node, 0, height), point(node, width, height)];
+        const xs = corners.map(p => p.x), ys = corners.map(p => p.y);
+        const children = childrenOf(node).map(serialize);
+        return {
+          name: String(node.name || ''),
+          type: node.constructor && node.constructor.name || '',
+          localRect: { x: Number(node.x || 0), y: Number(node.y || 0), width, height },
+          globalBounds: {
+            x: Math.min(...xs), y: Math.min(...ys),
+            width: Math.max(...xs) - Math.min(...xs), height: Math.max(...ys) - Math.min(...ys),
+          },
+          pivot: { x: Number(node.pivotX || 0), y: Number(node.pivotY || 0) },
+          anchor: { x: Number(node.anchorX || 0), y: Number(node.anchorY || 0) },
+          scale: { x: Number(node.scaleX == null ? 1 : node.scaleX), y: Number(node.scaleY == null ? 1 : node.scaleY) },
+          visible: node.visible !== false,
+          effectiveVisible: node.visible !== false && node.alpha !== 0 && !!node.parent,
+          alpha: Number(node.alpha == null ? 1 : node.alpha),
+          text: typeof node.text === 'string' ? node.text : undefined,
+          html: typeof node.innerHTML === 'string' ? node.innerHTML : undefined,
+          skin: typeof node.skin === 'string' ? node.skin : undefined,
+          color: typeof node.color === 'string' ? node.color : undefined,
+          fontSize: Number(node.fontSize || node.size || 0),
+          children,
+        };
+      };
+      return {
+        ok: roots.length > 0,
+        stage: { width: Number(stage.width || 0), height: Number(stage.height || 0) },
+        requested: names,
+        roots: roots.map(serialize),
+      };
+    }, rootNames);
+    fs.writeFileSync(path.join(OUT, fileName), JSON.stringify({
+      schema: 1,
+      capturedAt: new Date().toISOString(),
+      account: ACC,
+      route: ROUTE,
+      result,
+    }, null, 2) + '\n', 'utf8');
+    console.log('RUNTIME SUBTREE', fileName, JSON.stringify({ ok: result.ok, roots: result.roots && result.roots.map(v => v.name) }));
+    if (!result.ok) throw new Error(`runtime subtree missing: ${rootNames.join(',')}`);
+    return result;
+  };
+
+  // 把内嵌 BaseItem1 临时登记到快照注册表，再调用项目统一 pageSnapshot 序列化器。
+  // 该文件可直接作为 LayaSceneConverter 的运行时烤制输入；登记只存在于本次无头页。
+  const captureManagedRuntimePage = async (rootName, baseFile, fileName) => {
+    const snapshot = await page.evaluate(({ rootName, baseFile }) => {
+      const stage = window.Laya && Laya.stage;
+      if (!stage || !window.__sxExportPageSnapshots__) return { error: 'snapshot runtime missing' };
+      const childrenOf = node => node && (node._children || (node.numChildren
+        ? Array.from({ length: node.numChildren }, (_, i) => node.getChildAt(i)) : [])) || [];
+      let root = null;
+      const walk = node => {
+        if (!node || root) return;
+        if (String(node.name || '') === rootName) { root = node; return; }
+        for (const child of childrenOf(node)) walk(child);
+      };
+      walk(stage);
+      if (!root) return { error: `${rootName} root missing` };
+      window.__sxPageSnapshotRegistry__ = window.__sxPageSnapshotRegistry__ || {};
+      const key = `managed_${rootName}`;
+      window.__sxPageSnapshotRegistry__[key] = {
+        name: rootName,
+        view: {
+          display_obj: root,
+          base_file: baseFile,
+          layout_file: rootName,
+          is_loaded: true,
+          HasOpen: () => root.visible !== false && !!root.parent,
+        },
+        source: 'ManagedNestedRuntime',
+        open: true,
+        seenAt: Date.now(),
+      };
+      return window.__sxExportPageSnapshots__([rootName]);
+    }, { rootName, baseFile });
+    if (snapshot.error || !snapshot.views || snapshot.views.length !== 1) {
+      throw new Error(`managed runtime snapshot failed: ${snapshot.error || rootName}`);
+    }
+    fs.writeFileSync(path.join(OUT, fileName), safeStringify(snapshot) + '\n', 'utf8');
+    console.log('MANAGED RUNTIME PAGE', fileName, `nodes=${snapshot.views[0].nodeCount}`);
+    return snapshot;
+  };
+
+  const findVisibleText = async (text) => page.evaluate((target) => {
+    const stage = window.Laya && Laya.stage;
+    if (!stage) return null;
+    const childrenOf = node => node && (node._children || (node.numChildren
+      ? Array.from({ length: node.numChildren }, (_, i) => node.getChildAt(i)) : [])) || [];
+    let match = null;
+    const walk = node => {
+      if (!node || match) return;
+      if (node.visible !== false && String(node.text || '').trim() === target) {
+        try {
+          const p = node.localToGlobal(new Laya.Point((node.width || 0) / 2, (node.height || 0) / 2), true);
+          match = { name: String(node.name || ''), cx: Number(p.x), cy: Number(p.y) };
+          return;
+        } catch (_) {}
+      }
+      for (const child of childrenOf(node)) walk(child);
+    };
+    walk(stage);
+    return match;
+  }, text);
 
   // 登录:清空输入框再输入
   const typeInto = async (x, y, text) => {
@@ -646,13 +778,348 @@ function readCurrentGmPassword() {
     await shot('65_attribute_potion_reopen.png');
   }
 
+  // 人物页[境界]真实基线：从玩家可见入口打开地境/天境外窗。
+  if (ROUTE === 'role-medal') {
+    await page.mouse.click(120, 1218);
+    await page.waitForTimeout(5000);
+    await inject();
+    await shot('60_role_person.png');
+
+    const entry = await findNodes('EquipmentView', '_Group3');
+    console.log('MEDAL ENTRY', JSON.stringify(entry));
+    if (!entry.nodes.length) throw new Error('EquipmentView._Group3 not found');
+    await page.mouse.click(entry.nodes[0].cx, entry.nodes[0].cy);
+    await page.waitForTimeout(5000);
+    await inject();
+    await shot('61_medal_ground.png');
+    await captureRuntimeSubtree(['MedalView'], 'runtime_subtree_MedalView_ground.json');
+    await captureManagedRuntimePage('MedalView', 'medal', 'page_snapshot_MedalView_runtime.json');
+
+    const skyTab = await findVisibleText('天境');
+    console.log('MEDAL SKY TAB', JSON.stringify(skyTab));
+    if (!skyTab) throw new Error('天境 tab not found');
+    await page.mouse.click(skyTab.cx, skyTab.cy);
+    await page.waitForTimeout(5000);
+    await inject();
+    await shot('62_medal_sky.png');
+
+    // 同一个“如月”标题在主展示(scale=3.5)和列表项(scale=5)中各自拥有私有 RT。
+    // 把两个源同时锁回 phase=0，再在 350/700ms 读取真实 RGBA；不截整页、不经过 Canvas 合成。
+    const titleEffectInventory = await page.evaluate(() => {
+      const all = window.UIEffect && window.UIEffect.ALL_UIEFFECT_DIC;
+      if (!all) return [];
+      return Object.keys(all).filter(key => /shenming|title/i.test(key)).map(key => {
+        const info = all[key];
+        const parts = key.split('@');
+        const parents = info && (info.parent_list || info._parent_list) || [];
+        return {
+          key,
+          effectName: parts[0],
+          position: [Number(parts[1]), Number(parts[2])],
+          scale: [Number(parts[3]), Number(parts[4]), Number(parts[5])],
+          parentSize: [Number(parts[6]), Number(parts[7])],
+          loaded: !!(info && info.loaded),
+          rtSize: info && info.render_texture
+            ? [Number(info.render_texture.width || info.render_texture._width || 0),
+              Number(info.render_texture.height || info.render_texture._height || 0)]
+            : null,
+          parents: Array.from(parents).map(parent => ({
+            name: String(parent && parent.name || ''),
+            width: Number(parent && parent.width || 0),
+            height: Number(parent && parent.height || 0),
+          })),
+        };
+      });
+    });
+    console.log('TITLE EFFECT KEY INVENTORY', JSON.stringify(titleEffectInventory));
+    const mainSource = titleEffectInventory.find(entry => entry.effectName === 'effect_shenmingjiemian_01'
+      && entry.scale[0] === 3.5 && entry.scale[1] === 3.5 && entry.scale[2] === 3.5);
+    const itemSource = titleEffectInventory.find(entry => entry.effectName === 'effect_shenmingjiemian_01'
+      && entry.scale[0] === 5 && entry.scale[1] === 5 && entry.scale[2] === 5);
+    if (!mainSource || !itemSource) {
+      throw new Error(`title raw source selection failed: ${JSON.stringify(titleEffectInventory)}`);
+    }
+
+    const titleRaw = await page.evaluate(async ({ mainKey, itemKey }) => {
+      const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
+      const toBase64 = bytes => {
+        let value = '';
+        const chunk = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunk) {
+          value += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(bytes.length, i + chunk)));
+        }
+        return btoa(value);
+      };
+      const all = window.UIEffect && window.UIEffect.ALL_UIEFFECT_DIC;
+      if (!all) return { ok: false, reason: 'UIEffect.ALL_UIEFFECT_DIC missing' };
+      const main = { key: mainKey, info: all[mainKey] };
+      const item = { key: itemKey, info: all[itemKey] };
+      if (!main.info || !item.info || !main.info.loaded || !item.info.loaded
+        || !main.info.render_texture || !item.info.render_texture
+        || !main.info.gameObject || !item.info.gameObject) {
+        return { ok: false, reason: `selected title sources not ready: ${mainKey}|${itemKey}` };
+      }
+      const selected = [
+        { role: 'main', key: main.key, info: main.info, targetMs: 350 },
+        { role: 'item', key: item.key, info: item.info, targetMs: 700 },
+      ];
+      for (const entry of selected) entry.info.gameObject.active = false;
+      await nextFrame();
+      for (const entry of selected) entry.info.gameObject.active = true;
+
+      const startedAt = performance.now();
+      const captures = [];
+      for (const targetMs of [350, 700]) {
+        let now = performance.now();
+        while (now - startedAt < targetMs) now = await nextFrame();
+        for (const entry of selected) {
+          const rt = entry.info.render_texture;
+          const width = Number(rt.width || rt._width || 0);
+          const height = Number(rt.height || rt._height || 0);
+          const pixels = rt.getData(0, 0, width, height, new Uint8Array(width * height * 4));
+          if (!pixels || pixels.length !== width * height * 4) {
+            return { ok: false, reason: `${entry.role} getData returned ${pixels ? pixels.length : 0}` };
+          }
+          captures.push({
+            role: entry.role,
+            key: entry.key,
+            width,
+            height,
+            targetMs,
+            observedMs: Number((now - startedAt).toFixed(3)),
+            rgba: toBase64(pixels),
+          });
+        }
+      }
+      return { ok: true, effectName: 'effect_shenmingjiemian_01', sourceOrigin: 'bottom-left', captures };
+    }, { mainKey: mainSource.key, itemKey: itemSource.key });
+    if (!titleRaw.ok) throw new Error(`title raw capture failed: ${titleRaw.reason}`);
+
+    const rawDir = path.join(OUT, 'old_raw');
+    fs.mkdirSync(rawDir, { recursive: true });
+    const rawManifest = [];
+    for (const capture of titleRaw.captures) {
+      const source = Buffer.from(capture.rgba, 'base64');
+      const pngRgba = Buffer.alloc(source.length);
+      for (let y = 0; y < capture.height; y++) {
+        const sourceY = capture.height - 1 - y;
+        source.copy(pngRgba, y * capture.width * 4,
+          sourceY * capture.width * 4, (sourceY + 1) * capture.width * 4);
+      }
+      let alphaPixels = 0, highSaturationPixels = 0;
+      let alphaSum = 0, saturationSum = 0, redSum = 0, greenSum = 0, blueSum = 0;
+      let xMin = capture.width, yMin = capture.height, xMax = -1, yMax = -1;
+      for (let i = 0; i < source.length; i += 4) {
+        const r = source[i], g = source[i + 1], b = source[i + 2], a = source[i + 3];
+        if (a <= 2) continue;
+        alphaPixels++;
+        alphaSum += a; redSum += r; greenSum += g; blueSum += b;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        const saturation = max ? (max - min) / max : 0;
+        saturationSum += saturation;
+        if (saturation >= 0.4) highSaturationPixels++;
+        const pixel = i / 4, x = pixel % capture.width, y = Math.floor(pixel / capture.width);
+        xMin = Math.min(xMin, x); yMin = Math.min(yMin, y);
+        xMax = Math.max(xMax, x); yMax = Math.max(yMax, y);
+      }
+      const base = `${capture.role}_${String(capture.targetMs).padStart(4, '0')}ms`;
+      const png = encodeRgbaPng(capture.width, capture.height, pngRgba);
+      fs.writeFileSync(path.join(rawDir, base + '.rgba'), source);
+      fs.writeFileSync(path.join(rawDir, base + '.png'), png);
+      rawManifest.push({
+        role: capture.role,
+        effectName: titleRaw.effectName,
+        key: capture.key,
+        width: capture.width,
+        height: capture.height,
+        targetMs: capture.targetMs,
+        observedMs: capture.observedMs,
+        sourceOrigin: titleRaw.sourceOrigin,
+        rgbaSha256: sha256(source),
+        pngSha256: sha256(png),
+        alphaPixels,
+        meanAlpha: alphaPixels ? alphaSum / alphaPixels : 0,
+        meanRgb: alphaPixels ? [redSum / alphaPixels, greenSum / alphaPixels, blueSum / alphaPixels] : [0, 0, 0],
+        meanSaturation: alphaPixels ? saturationSum / alphaPixels : 0,
+        highSaturationShare: alphaPixels ? highSaturationPixels / alphaPixels : 0,
+        bboxBottomLeft: alphaPixels ? { xMin, yMin, xMax, yMax } : null,
+        rgbaFile: base + '.rgba',
+        pngFile: base + '.png',
+      });
+    }
+    fs.writeFileSync(path.join(rawDir, 'manifest.json'), JSON.stringify({
+      schema: 1,
+      capturedAt: new Date().toISOString(),
+      account: ACC,
+      route: ROUTE,
+      effectName: titleRaw.effectName,
+      captures: rawManifest,
+    }, null, 2) + '\n', 'utf8');
+    console.log('TITLE RAW', JSON.stringify(rawManifest.map(v => ({
+      role: v.role, targetMs: v.targetMs, observedMs: v.observedMs,
+      size: `${v.width}x${v.height}`, alphaPixels: v.alphaPixels,
+      meanSaturation: v.meanSaturation, highSaturationShare: v.highSaturationShare,
+    }))));
+
+    await captureRuntimeSubtree(['TitleMainView'], 'runtime_subtree_TitleMainView_sky.json');
+    await captureManagedRuntimePage('TitleMainView', 'title', 'page_snapshot_TitleMainView_runtime.json');
+    await captureManagedRuntimePage('TitleItem', 'title', 'page_snapshot_TitleItem_runtime.json');
+    await captureManagedRuntimePage('TitleAttrItem', 'title', 'page_snapshot_TitleAttrItem_runtime.json');
+  }
+
+  // 人物页[名誉]真实基线：打开名誉窗并记录列表、获取按钮和关闭链。
+  if (ROUTE === 'role-honour') {
+    await page.mouse.click(120, 1218);
+    await page.waitForTimeout(5000);
+    await inject();
+    await shot('60_role_person.png');
+
+    const entry = await findNodes('EquipmentView', '_btn_fame');
+    console.log('HONOUR ENTRY', JSON.stringify(entry));
+    if (!entry.nodes.length) throw new Error('EquipmentView._btn_fame not found');
+    await page.mouse.click(entry.nodes[0].cx, entry.nodes[0].cy);
+    await page.waitForTimeout(3500);
+    await inject();
+    await shot('61_honour.png');
+  }
+
+  // FashionMain(pos=1) 页面专用只读降级路线。登录、选角、进城、弹窗清理由上面的公共链复用；
+  // 这里只保存老端真实 Canvas 的 cold/warm、列表滚动、指定条目、等级弹窗和返回链。
+  if (ROUTE === 'fashion-main-pos1-current') {
+    const routeStartedAt = new Date().toISOString();
+    const steps = [];
+    const clickRoute = async (label, x, y, waitMs) => {
+      const before = Date.now();
+      await page.mouse.click(x, y);
+      await page.waitForTimeout(waitMs);
+      steps.push({ action: 'click', label, point: { x, y }, elapsedMs: Date.now() - before });
+    };
+    const dragRoute = async (label, from, to, waitMs, settleBeforeUpMs = 0) => {
+      const before = Date.now();
+      await page.mouse.move(from.x, from.y);
+      await page.mouse.down();
+      await page.mouse.move(to.x, to.y, { steps: 16 });
+      if (settleBeforeUpMs) await page.waitForTimeout(settleBeforeUpMs);
+      await page.mouse.up();
+      await page.waitForTimeout(waitMs);
+      steps.push({ action: 'drag', label, from, to, elapsedMs: Date.now() - before });
+    };
+
+    await clickRoute('mainui-role', 110, 1219, 5000);
+    await inject();
+    await shot('60_fashion_role_person.png');
+
+    const coldStart = Date.now();
+    await page.mouse.click(75, 538);
+    await page.waitForTimeout(350);
+    await shot('61_fashion_cold_350ms.png');
+    await page.waitForTimeout(650);
+    await shot('61_fashion_cold_1000ms.png');
+    await page.waitForTimeout(2500);
+    await inject();
+    await shot('61_fashion_cold_ready.png');
+    steps.push({ action: 'open', label: 'fashion-cold', elapsedMs: Date.now() - coldStart });
+
+    await clickRoute('fashion-tab-current', 75, 1121, 500);
+    await clickRoute('fashion-list-visible-1', 143, 747, 700);
+    await clickRoute('fashion-list-visible-2', 253, 747, 700);
+    await dragRoute('fashion-list-horizontal', { x: 545, y: 760 }, { x: 193, y: 760 }, 1200);
+    await shot('62_fashion_list_dragged.png');
+    // 先保留真实惯性滚动证据，再用反向慢拖消除惯性并把 12010008 精确放回可见区。
+    await dragRoute('fashion-list-reverse-to-sweetheart', { x: 193, y: 760 },
+      { x: 523, y: 760 }, 900, 650);
+    await shot('62b_fashion_sweetheart_visible.png');
+    await clickRoute('fashion-list-sweetheart', 237, 747, 1800);
+    const selectedFashionName = await page.evaluate(() => {
+      const stage = window.Laya && Laya.stage;
+      const childrenOf = node => node && (node._children || (node.numChildren
+        ? Array.from({ length: node.numChildren }, (_, i) => node.getChildAt(i)) : [])) || [];
+      const candidates = [];
+      const walk = node => {
+        if (!node) return;
+        if (node.visible !== false && String(node.name || '') === '_lb_name') {
+          try {
+            const point = node.localToGlobal(new Laya.Point(0, 0), true);
+            candidates.push({ text: String(node.text || ''), x: Number(point.x), y: Number(point.y) });
+          } catch (_) {}
+        }
+        for (const child of childrenOf(node)) walk(child);
+      };
+      walk(stage);
+      const detailName = candidates.find(value => value.x >= 80 && value.x <= 260
+        && value.y >= 800 && value.y <= 880);
+      return detailName ? detailName.text : null;
+    });
+    if (selectedFashionName !== '甜心宝贝') {
+      throw new Error(`old Fashion identity mismatch: expected 甜心宝贝, got ${selectedFashionName}`);
+    }
+    await shot('63_fashion_sweetheart.png');
+    await dragRoute('fashion-attributes-vertical', { x: 451, y: 1004 }, { x: 451, y: 921 }, 900);
+    await shot('64_fashion_attributes_dragged.png');
+
+    await page.mouse.click(652, 155);
+    await page.waitForTimeout(350);
+    await shot('65_fashion_level_350ms.png');
+    await page.waitForTimeout(650);
+    await shot('65_fashion_level_1000ms.png');
+    await page.waitForTimeout(1700);
+    await inject();
+    await shot('65_fashion_level_ready.png');
+    await clickRoute('fashion-level-close', 656, 325, 900);
+    await shot('66_fashion_level_closed.png');
+    await clickRoute('fashion-return-cold', 667, 1121, 1000);
+    await shot('67_fashion_return_role.png');
+
+    const warmStart = Date.now();
+    await page.mouse.click(75, 538);
+    await page.waitForTimeout(350);
+    await shot('68_fashion_warm_350ms.png');
+    await page.waitForTimeout(650);
+    await shot('68_fashion_warm_1000ms.png');
+    await page.waitForTimeout(1800);
+    await inject();
+    await shot('68_fashion_warm_ready.png');
+    steps.push({ action: 'open', label: 'fashion-warm', elapsedMs: Date.now() - warmStart });
+    if (FASHION_CAPTURE_WIDE) {
+      await page.setViewportSize({ width: 1920, height: 1080 });
+      await page.waitForTimeout(900);
+      await shot('68_fashion_warm_ready_1920x1080.png');
+      steps.push({ action: 'viewport', label: 'fashion-wide-ready',
+        viewport: { width: 1920, height: 1080, deviceScaleFactor: 1 } });
+      await page.setViewportSize({ width: 720, height: 1280 });
+      await page.waitForTimeout(500);
+    }
+    await clickRoute('fashion-return-warm', 667, 1121, 900);
+    await shot('69_fashion_warm_return_role.png');
+
+    const state = await getState();
+    fs.writeFileSync(path.join(OUT, 'fashion-main-pos1-current.json'), JSON.stringify({
+      schema: 1,
+      authority: 'old-h5-real-canvas-runtime',
+      account: ACC,
+      passwordRecorded: false,
+      route: ROUTE,
+      startedAt: routeStartedAt,
+      finishedAt: new Date().toISOString(),
+      viewport: { width: 720, height: 1280, deviceScaleFactor: 1 },
+      viewports: FASHION_CAPTURE_WIDE ? ['720x1280', '1920x1080'] : ['720x1280'],
+      steps,
+      selectedFashionName,
+      finalLoadedViews: state,
+      writeTransactionsAuthorized: false,
+    }, null, 2) + '\n', 'utf8');
+  }
+
   // 导出全部已加载视图,一视图一文件(烤制器格式)
   const list = await page.evaluate(() => window.__sxListLoadedPages__());
   const names = (list.views || []).map(v => v.name);
   console.log('FINAL LOADED:', names.join(', '));
   const exportNames = names.filter(n => EXPORT.test(n)
     || (ROUTE === 'role-instruction' && n === 'InstructionView')
-    || (ROUTE === 'role-attribute-potion' && /EquipmentView|attributePotionView/i.test(n)));
+    || (ROUTE === 'role-attribute-potion' && /EquipmentView|attributePotionView/i.test(n))
+     || (ROUTE === 'role-medal' && /EquipmentView|MedalEnterView|MedalView|TitleMainView/i.test(n))
+     || (ROUTE === 'role-honour' && /EquipmentView|MarriageHonourView/i.test(n))
+     || (ROUTE === 'fashion-main-pos1-current' && /EquipmentView|FashionMainView|FashionLevelView/i.test(n)));
   const snap = await page.evaluate(ns => window.__sxExportPageSnapshots__(ns), exportNames);
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   for (const v of snap.views || []) {

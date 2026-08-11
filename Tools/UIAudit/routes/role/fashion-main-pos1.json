@@ -1,0 +1,370 @@
+{
+  "schema": 1,
+  "id": "mainui.role.fashion-main-pos1",
+  "engine": "legacy-laya",
+  "url": "http://127.0.0.1:8091/index.html",
+  "legacyRoot": "E:/GitProject/yu_client",
+  "snapshotSource": "E:/GitProject/yu_client/tools/yu-resource-tool/frontend/src/utils/pageSnapshot.js",
+  "popupPolicy": "../../policies/startup-popups.json",
+  "protocolPolicy": "../../policies/protocols.json",
+  "viewport": { "width": 720, "height": 1280 },
+  "viewports": [
+    { "id": "mobile", "width": 720, "height": 1280 },
+    { "id": "wide", "width": 1920, "height": 1080 }
+  ],
+  "scope": {
+    "page": "FashionMainView",
+    "positionId": 1,
+    "label": "时装",
+    "include": [
+      "角色人物页到时装入口",
+      "FashionMainView(pos=1)全部固定与条件控件",
+      "时装横向列表、颜色列表、属性滚动、模型与常驻特效",
+      "FashionLevelView只读打开、材料网格、遮罩/关闭链",
+      "cold/warm、返回人物页、两档viewport"
+    ],
+    "exclude": [
+      "发饰(pos=3)",
+      "装扮(DressModule)",
+      "套装(FashionSuitView)",
+      "任何激活、进阶、穿戴、卸下、吞噬或提交写事务"
+    ]
+  },
+  "session": {
+    "accountEnv": "UIAUDIT_ACCOUNT",
+    "passwordEnv": "UIAUDIT_PASSWORD",
+    "expectedAccount": "111111",
+    "singleSession": true,
+    "requireMainUi": true,
+    "itemUse": { "mode": "hard-stop" }
+  },
+  "authority": {
+    "runtime": "old-h5-same-account-same-state-same-viewport",
+    "frozenOldEvidence": "output/ui_route_audit/2026-08-10_role_full_tabs_v1/old_h5_fashionmain_pos1_final_20260810T045518378+0800",
+    "legacyController": "E:/GitProject/yu_client/h5/src/commonController/FashionController.ts",
+    "legacyView": "E:/GitProject/yu_client/h5/src/fashion/FashionMainView.ts",
+    "legacyLevelView": "E:/GitProject/yu_client/h5/src/fashion/FashionLevelView.ts"
+  },
+  "ledgerTopology": {
+    "schema": 6,
+    "route": "mainui.role.fashion-main-pos1.v1",
+    "manifest": {
+      "path": "Tools/UIAudit/routes/role/fashion-main-pos1.manifest.json",
+      "sha256": "9aa45b1aef660ccd7e9efee2c35daf460ff30b39c41a9b3e55ec3cc41357ff45"
+    },
+    "ledger": {
+      "path": "Tools/UIAudit/routes/role/fashion-main-pos1.ledger.json",
+      "sha256": "75196bb237812085fb99ec8a6e86b0f0be40950ac267f29cffc944241e7af919"
+    },
+    "pageNode": "mainui.role.fashion-main-pos1.v1",
+    "nodeCount": 78,
+    "controlAndConditionLeafCount": 77,
+    "expectedStatusBeforeLive": "not-run",
+    "mutation": "route-ledger.py-apply-only",
+    "history": {
+      "preservedManifest": "output/ui_route_audit/2026-08-10_role_full_tabs_v1/route-manifest-v3.json",
+      "preservedLedger": "output/ui_route_audit/2026-08-10_role_full_tabs_v1/route-ledger-v3.json"
+    }
+  },
+  "protocol": {
+    "inboundCommands": [41300, 41312],
+    "semanticMap": [
+      { "cmd": 41300, "direction": "outbound", "fmt": "", "args": [], "classification": "read", "meaning": "时装位置权威快照" },
+      { "cmd": 41312, "direction": "outbound", "fmt": "ci", "args": [1, 12010008], "classification": "read", "meaning": "甜心宝贝真实战力查询" },
+      { "cmd": 41301, "direction": "outbound", "fmt": "cicc", "classification": "write", "meaning": "激活染色" },
+      { "cmd": 41302, "direction": "outbound", "fmt": "cic", "classification": "write", "meaning": "穿戴" },
+      { "cmd": 41303, "direction": "outbound", "fmt": "ci", "classification": "write", "meaning": "卸下" },
+      { "cmd": 41304, "direction": "outbound", "fmt": "ci", "classification": "write", "meaning": "激活基础色" },
+      { "cmd": 41305, "direction": "outbound", "fmt": "custom:c+h+(l+h)*n", "classification": "write", "meaning": "等级吞噬提交" },
+      { "cmd": 41306, "direction": "outbound", "fmt": "cic", "classification": "write", "meaning": "时装进阶" },
+      { "cmd": 41316, "direction": "outbound", "fmt": "cic", "classification": "write", "meaning": "染色进阶" }
+    ],
+    "assertions": {
+      "mode": "read-only",
+      "required": [
+        { "ruleId": "fashion-power-read-41312", "direction": "outbound", "cmd": 41312, "fmt": "ci", "args": [1, 12010008], "min": 1 },
+        { "direction": "inbound", "cmd": 41312, "payloadFields": { "pos_id": 1, "fashion_id": 12010008 }, "min": 1 }
+      ],
+      "forbidden": [
+        { "direction": "outbound", "cmd": 41301 },
+        { "direction": "outbound", "cmd": 41302 },
+        { "direction": "outbound", "cmd": 41303 },
+        { "direction": "outbound", "cmd": 41304 },
+        { "ruleId": "fashion-level-consume-41305", "direction": "outbound", "cmd": 41305 },
+        { "direction": "outbound", "cmd": 41306 },
+        { "direction": "outbound", "cmd": 41316 }
+      ]
+    }
+  },
+  "controls": [
+    {
+      "id": "mainui-role-entry",
+      "kind": "navigation",
+      "risk": "read-only",
+      "selector": { "source": "laya-stage", "skinIncludes": "/mainUI/texture/role.png", "expectedCount": 1 }
+    },
+    {
+      "id": "role-fashion-entry",
+      "kind": "navigation",
+      "risk": "read-only",
+      "selector": { "source": "laya-stage", "view": "EquipmentView", "name": "fashion_gp", "expectedCount": 1 }
+    },
+    {
+      "id": "window-root",
+      "kind": "parent-window",
+      "risk": "read-only",
+      "selector": { "source": "laya-stage", "view": "FashionBaseView", "name": "FashionBaseView", "expectedCount": 1 }
+    },
+    {
+      "id": "window-title-background",
+      "kind": "image",
+      "risk": "read-only",
+      "selector": { "source": "laya-stage", "view": "FashionBaseView", "name": "_img_title_bg", "expectedCount": 1 }
+    },
+    {
+      "id": "window-title",
+      "kind": "image",
+      "risk": "read-only",
+      "selector": { "source": "laya-stage", "view": "FashionBaseView", "name": "_img_title", "skinIncludes": "fashion_icon_image", "expectedCount": 1 }
+    },
+    {
+      "id": "outer-tab-fashion",
+      "kind": "tab-current",
+      "risk": "read-only",
+      "selector": { "source": "laya-stage", "name": "labelDisplay", "text": "时装", "expectedCount": 1 }
+    },
+    {
+      "id": "outer-tab-head",
+      "kind": "conditional-sibling-tab",
+      "risk": "read-only",
+      "selector": { "source": "laya-stage", "name": "labelDisplay", "text": "发饰", "expectedCount": 1 },
+      "routeAction": "inventory-only-out-of-pos1-scope"
+    },
+    {
+      "id": "outer-tab-dress",
+      "kind": "conditional-sibling-tab",
+      "risk": "read-only",
+      "selector": { "source": "laya-stage", "name": "labelDisplay", "text": "装扮", "expectedCount": 1 },
+      "routeAction": "inventory-only-out-of-pos1-scope"
+    },
+    {
+      "id": "outer-tab-suit",
+      "kind": "conditional-sibling-tab",
+      "risk": "read-only",
+      "selector": { "source": "laya-stage", "name": "labelDisplay", "text": "套装", "expectedCount": 1 },
+      "routeAction": "inventory-only-out-of-pos1-scope"
+    },
+    { "id": "page-root", "kind": "page", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "FashionMainView", "expectedCount": 1 } },
+    { "id": "page-background", "kind": "image", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_img_bg", "expectedCount": 1 } },
+    { "id": "model-preview", "kind": "3d-model", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_box_model", "expectedCount": 1 }, "ledgerChild": "mainui.role.full-tabs.v3.person.fashion.tabs.fashion.model" },
+    { "id": "power-box", "kind": "state", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_box_fight", "expectedCount": 1 }, "ledgerChild": "mainui.role.full-tabs.v3.person.fashion.tabs.fashion.power" },
+    { "id": "fashion-name", "kind": "state", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_lb_name", "expectedCount": 1 } },
+    { "id": "fashion-order", "kind": "state", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_lb_order", "expectedCount": 1 } },
+    { "id": "fashion-list", "kind": "scroll-list", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_list_fashion_item", "expectedCount": 1 }, "ledgerChild": "mainui.role.full-tabs.v3.person.fashion.tabs.fashion.list" },
+    { "id": "fashion-list-items", "kind": "runtime-list-items", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "fashion_group", "expectedCount": 6 } },
+    { "id": "sweetheart-item", "kind": "runtime-list-item", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "fashion_group", "dataIdentity": { "fashion_id": 12010008, "pos_id": 1 }, "expectedCount": 1 }, "ledgerChild": "mainui.role.full-tabs.v3.person.fashion.tabs.fashion.selection" },
+    { "id": "color-list", "kind": "state-list", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_box_color_item", "expectedCount": 1 }, "ledgerChild": "mainui.role.full-tabs.v3.person.fashion.tabs.fashion.colors" },
+    { "id": "color-items", "kind": "conditional-state-items", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "bg", "expectedCount": 4 } },
+    { "id": "attribute-scroll", "kind": "scroll-list", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_panel_attr_item", "expectedCount": 1 }, "ledgerChild": "mainui.role.full-tabs.v3.person.fashion.tabs.fashion.attributes" },
+    { "id": "activate-upgrade", "kind": "transaction", "risk": "destructive-write", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_box_activate", "expectedCount": 1 }, "routeAction": "forbidden-not-clicked", "forbiddenProtocols": [41301, 41304, 41306, 41316], "ledgerChild": "mainui.role.full-tabs.v3.person.fashion.tabs.fashion.activate-upgrade" },
+    { "id": "activate-label", "kind": "conditional-state", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_lb_activate_desc", "expectedCount": 1 } },
+    { "id": "activate-red", "kind": "conditional-red-dot", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_img_red", "expectedCount": 1, "visible": false } },
+    { "id": "wear-toggle", "kind": "transaction", "risk": "destructive-write", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_img_box", "expectedCount": 1, "visible": false }, "routeAction": "state-only-not-clicked", "forbiddenProtocols": [41302, 41303], "ledgerChild": "mainui.role.full-tabs.v3.person.fashion.tabs.fashion.wear-toggle" },
+    { "id": "wear-label", "kind": "conditional-state", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_lb_dress_tips", "expectedCount": 1, "visible": false } },
+    { "id": "material-award", "kind": "item-cell", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_box_award", "expectedCount": 1 } },
+    { "id": "material-count-box", "kind": "state", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_box_fashion_num", "expectedCount": 1 } },
+    { "id": "material-own", "kind": "state", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_lb_own", "expectedCount": 1 } },
+    { "id": "material-need", "kind": "state", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_lb_need", "expectedCount": 1 } },
+    { "id": "level-entry", "kind": "navigation", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_img_grade", "expectedCount": 1 }, "ledgerChild": "mainui.role.full-tabs.v3.person.fashion.tabs.fashion.level.open" },
+    { "id": "level-red", "kind": "conditional-red-dot", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_img_grade_red", "expectedCount": 1, "visible": false } },
+    { "id": "level-root", "kind": "popup", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "FashionLevelView", "expectedCount": 1 } },
+    { "id": "level-panel-background", "kind": "image", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "bg_img", "expectedCount": 1 } },
+    { "id": "level-inner-background", "kind": "image", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "bg_img_1", "expectedCount": 1 } },
+    { "id": "level-title", "kind": "image", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "top_img", "expectedCount": 1 } },
+    { "id": "level-value", "kind": "state", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "flv_level_label", "expectedCount": 1 } },
+    { "id": "level-exp-background", "kind": "state", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "exp_bg_image", "expectedCount": 1 } },
+    { "id": "level-exp-fill", "kind": "state", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "exp_num_image", "expectedCount": 1 } },
+    { "id": "level-exp-text", "kind": "state", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "exp_label", "expectedCount": 1 } },
+    { "id": "level-attributes", "kind": "state-list", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "flv_attrs_group", "expectedCount": 1 } },
+    { "id": "level-materials", "kind": "scroll-list", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "flv_scroller", "expectedCount": 1 }, "ledgerChild": "mainui.role.full-tabs.v3.person.fashion.tabs.fashion.level.materials" },
+    { "id": "level-effect-host", "kind": "inert-effect-host", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "effect_group", "expectedCount": 1 }, "expectedConsumer": "none", "legacyEvidence": "FashionLevelView.ts:164-170 commented ui_tunshichenggong_glow" },
+    { "id": "level-submit", "kind": "transaction", "risk": "destructive-write", "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "flv_devour_but", "expectedCount": 1 }, "routeAction": "forbidden-not-clicked", "forbiddenProtocols": [41305], "ledgerChild": "mainui.role.full-tabs.v3.person.fashion.tabs.fashion.level.submit" },
+    { "id": "level-close-button", "kind": "return", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "flv_closebut_image", "expectedCount": 1 }, "ledgerChild": "mainui.role.full-tabs.v3.person.fashion.tabs.fashion.level.close" },
+    { "id": "level-modal-background", "kind": "return", "risk": "read-only", "selector": { "source": "laya-stage", "skinIncludes": "common/texture/com_sub_bg_7.png", "expectedCount": 1 }, "safePoint720": { "x": 20, "y": 200 }, "ledgerChild": "mainui.role.full-tabs.v3.person.fashion.tabs.fashion.level.close" },
+    { "id": "level-added-exp", "kind": "state", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "flv_add_exp_label", "expectedCount": 1 } },
+    { "id": "level-tip-primary", "kind": "text", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "tips_label", "expectedCount": 1 } },
+    { "id": "level-tip-secondary", "kind": "text", "risk": "read-only", "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "tips_label1", "expectedCount": 1 } },
+    { "id": "fashion-return", "kind": "return", "risk": "read-only", "selector": { "source": "laya-stage", "name": "_img_return0", "expectedCount": 1 } }
+  ],
+  "liveGates": [
+    { "id": "PUBLIC_UIAUDIT_RESOURCE_TOOL_PREVIEW_STALE_STATE", "status": "degraded-known-tool", "owner": "019fef31-4587-7a30-987f-8aab45eb55bb", "routeMayPatchPublicTool": false, "pageContinuation": "reuse-existing-old-baseline-and-direct-headless" },
+    { "id": "cold-warm-sampling", "status": "needs-live", "actionLabels": ["04_cold_target_350ms", "05_cold_target_1000ms", "42_warm_target_350ms", "43_warm_target_1000ms"] },
+    { "id": "node-and-geometry", "status": "needs-live", "actionLabels": ["06a_assert_main_nodes", "06b_assert_main_geometry", "33a_assert_level_nodes", "33b_assert_level_geometry"] },
+    { "id": "scroll-and-identity", "status": "needs-live", "actionLabels": ["20a_assert_fashion_list_scroll", "21_select_sweetheart_12010008", "24a_assert_sweetheart_identity", "29a_assert_attributes_scroll"] },
+    { "id": "model-render-texture", "status": "needs-live", "actionLabels": ["06c_wait_model_rt_ready", "44a_wait_warm_model_rt_ready", "52a_wait_wide_model_rt_ready"] },
+    { "id": "logical-sound", "status": "needs-live", "actionLabels": ["20b_assert_drag_silent", "21b_assert_sweetheart_single_sound", "30b_assert_level_open_single_sound", "34b_assert_level_background_close_single_sound", "37b_assert_level_button_close_single_sound"] },
+    { "id": "protocol-transport", "status": "needs-live", "actionLabels": ["22_assert_sweetheart_power_read", "38a_assert_level_write_transport_absent", "62_final_read_only_protocols"] },
+    { "id": "same-viewport-old-unity-diff", "status": "needs-live", "viewports": ["720x1280", "1920x1080"], "requiredArtifacts": ["old", "unity", "overlay", "diff"] },
+    { "id": "write-transactions", "status": "blocked-not-authorized", "protocols": [41301, 41302, 41303, 41304, 41305, 41306, 41316] }
+  ],
+  "steps": [
+    { "action": "snapshot", "label": "00_mainui_ready" },
+    { "action": "click", "label": "01_open_role", "selector": { "source": "laya-stage", "skinIncludes": "/mainUI/texture/role.png", "expectedCount": 1 } },
+    { "action": "wait-view", "view": "EquipmentView", "visible": true, "timeoutMs": 15000 },
+    { "action": "snapshot", "label": "02_role_person_ready" },
+    { "action": "click", "label": "03_open_fashion_cold", "selector": { "source": "laya-stage", "view": "EquipmentView", "name": "fashion_gp", "expectedCount": 1 }, "settleMs": 350 },
+    { "action": "snapshot", "label": "04_cold_target_350ms", "settleMs": 650, "samplingTargetMs": 350 },
+    { "action": "snapshot", "label": "05_cold_target_1000ms", "samplingTargetMs": 1000 },
+    { "action": "wait-view", "view": "FashionMainView", "visible": true, "timeoutMs": 15000 },
+    { "action": "assert-nodes", "label": "06a_assert_main_nodes", "assertions": [
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "FashionMainView" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_box_model" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_box_fight" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_list_fashion_item" }, "count": { "min": 1, "max": 2 } },
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "fashion_group" }, "count": 6 },
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "bg" }, "count": 4 },
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_panel_attr_item" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_box_activate" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_img_grade" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "FashionBaseView", "name": "_img_title", "skinIncludes": "fashion_icon_image" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "name": "labelDisplay", "text": "时装" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "name": "labelDisplay", "text": "发饰" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "name": "labelDisplay", "text": "装扮" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "name": "labelDisplay", "text": "套装" }, "count": 1 }
+    ] },
+    { "action": "assert-geometry", "label": "06b_assert_main_geometry", "assertions": [
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "FashionMainView", "expectedCount": 1 }, "bounds": { "x": { "eq": 0, "tolerance": 2 }, "y": { "eq": 80, "tolerance": 2 }, "width": { "eq": 720, "tolerance": 2 }, "height": { "eq": 992, "tolerance": 2 } } },
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_box_model", "expectedCount": 1 }, "bounds": { "x": { "eq": 6, "tolerance": 2 }, "y": { "eq": 149, "tolerance": 2 }, "width": { "eq": 709, "tolerance": 2 }, "height": { "eq": 522, "tolerance": 2 } } },
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_panel_attr_item", "expectedCount": 1 }, "bounds": { "x": { "eq": 288, "tolerance": 2 }, "y": { "eq": 898, "tolerance": 2 }, "width": { "eq": 325, "tolerance": 2 }, "height": { "eq": 129, "tolerance": 2 } } },
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_img_grade", "expectedCount": 1 }, "bounds": { "x": { "eq": 606, "tolerance": 2 }, "y": { "eq": 112, "tolerance": 2 }, "width": { "eq": 91, "tolerance": 2 }, "height": { "eq": 85, "tolerance": 2 } } }
+    ] },
+    { "action": "wait-render-ready", "label": "06c_wait_model_rt_ready", "probe": { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_box_model", "expectedCount": 1 }, "propertyPath": ["renderTexture"], "minNonTransparentPixels": 64, "stableFrames": 2, "pollMs": 100, "timeoutMs": 15000 } },
+    { "action": "snapshot", "label": "06_cold_ready_a", "settleMs": 300 },
+    { "action": "snapshot", "label": "07_cold_ready_b" },
+    { "action": "click", "label": "08_current_fashion_tab", "selector": { "source": "laya-stage", "name": "labelDisplay", "text": "时装", "expectedCount": 1 }, "settleMs": 350 },
+    { "action": "snapshot", "label": "09_default_state" },
+    { "action": "click", "label": "10_color_0", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "bg", "dataIdentity": { "color_id": 0 }, "expectedCount": 1 }, "settleMs": 350 },
+    { "action": "snapshot", "label": "11_color_0" },
+    { "action": "click", "label": "12_color_1", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "bg", "dataIdentity": { "color_id": 1 }, "expectedCount": 1 }, "settleMs": 350 },
+    { "action": "snapshot", "label": "13_color_1" },
+    { "action": "click", "label": "14_color_2", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "bg", "dataIdentity": { "color_id": 2 }, "expectedCount": 1 }, "settleMs": 350 },
+    { "action": "snapshot", "label": "15_color_2" },
+    { "action": "click", "label": "16_color_3", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "bg", "dataIdentity": { "color_id": 3 }, "expectedCount": 1 }, "settleMs": 350 },
+    { "action": "snapshot", "label": "17_color_3" },
+    { "action": "reset-sound", "label": "17a_reset_sound_before_list_drag", "traceLabel": "fashion-list-drag" },
+    { "action": "drag", "label": "18_fashion_list_drag_1", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_list_fashion_item", "expectedCount": 1 }, "options": { "deltaX": -220, "deltaY": 0, "steps": 16 }, "settleMs": 450 },
+    { "action": "drag", "label": "19_fashion_list_drag_2", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_list_fashion_item", "expectedCount": 1 }, "options": { "deltaX": -220, "deltaY": 0, "steps": 16 }, "settleMs": 900 },
+    { "action": "snapshot", "label": "20_fashion_list_deep" },
+    { "action": "assert-scroll", "label": "20a_assert_fashion_list_scroll", "beforeLabel": "17_color_3", "assertion": { "containerSelector": { "source": "laya-stage", "view": "FashionMainView", "name": "_list_fashion_item", "expectedCount": 1 }, "axis": "x", "minAbsDelta": 100, "itemSelector": { "source": "laya-stage", "view": "FashionMainView", "name": "fashion_group" }, "requireClipped": true, "lastItemSelector": { "source": "laya-stage", "view": "FashionMainView", "name": "fashion_group", "dataIdentity": { "fashion_id": 12010008, "pos_id": 1 }, "expectedCount": 1 }, "lastItemClipMode": "inside" } },
+    { "action": "assert-sound", "label": "20b_assert_drag_silent", "assertions": { "forbidden": [{ "method": "PlaySoundEffect" }] } },
+    { "action": "reset-sound", "label": "20c_reset_sound_before_sweetheart", "traceLabel": "sweetheart-click" },
+    { "action": "click", "label": "21_select_sweetheart_12010008", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "fashion_group", "dataIdentity": { "fashion_id": 12010008, "pos_id": 1 }, "expectedCount": 1 }, "settleMs": 800 },
+    { "action": "assert-sound", "label": "21b_assert_sweetheart_single_sound", "assertions": { "required": [{ "method": "PlaySoundEffect", "key": "ui/2_dianji", "min": 1, "max": 1 }] } },
+    { "action": "assert-protocol", "label": "22_assert_sweetheart_power_read", "assertions": { "mode": "read-only", "required": [{ "ruleId": "fashion-power-read-41312", "direction": "outbound", "cmd": 41312, "fmt": "ci", "args": [1, 12010008], "min": 1 }, { "direction": "inbound", "cmd": 41312, "payloadFields": { "pos_id": 1, "fashion_id": 12010008 }, "min": 1 }], "forbidden": [{ "direction": "outbound", "cmd": 41301 }, { "direction": "outbound", "cmd": 41302 }, { "direction": "outbound", "cmd": 41303 }, { "direction": "outbound", "cmd": 41304 }, { "ruleId": "fashion-level-consume-41305", "direction": "outbound", "cmd": 41305 }, { "direction": "outbound", "cmd": 41306 }, { "direction": "outbound", "cmd": 41316 }] } },
+    { "action": "snapshot", "label": "23_sweetheart_selected_a", "settleMs": 300 },
+    { "action": "snapshot", "label": "24_sweetheart_selected_b" },
+    { "action": "assert-nodes", "label": "24a_assert_sweetheart_identity", "assertions": [
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "fashion_group", "dataIdentity": { "fashion_id": 12010008, "pos_id": 1 } }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_lb_name", "text": "甜心宝贝" }, "count": 1 }
+    ] },
+    { "action": "snapshot", "label": "25_attributes_before" },
+    { "action": "drag", "label": "26_attributes_drag", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_panel_attr_item", "expectedCount": 1 }, "options": { "deltaX": 0, "deltaY": -83, "steps": 16 } },
+    { "action": "snapshot", "label": "27_attributes_release_0ms", "settleMs": 300 },
+    { "action": "snapshot", "label": "28_attributes_release_300ms", "settleMs": 500 },
+    { "action": "snapshot", "label": "29_attributes_release_800ms" },
+    { "action": "assert-scroll", "label": "29a_assert_attributes_scroll", "beforeLabel": "25_attributes_before", "assertion": { "containerSelector": { "source": "laya-stage", "view": "FashionMainView", "name": "_panel_attr_item", "expectedCount": 1 }, "axis": "y", "minAbsDelta": 20, "itemSelector": { "source": "laya-stage", "view": "FashionMainView", "name": "FashionAttrItem" }, "requireClipped": true } },
+    { "action": "reset-sound", "label": "29b_reset_sound_before_level_open", "traceLabel": "level-open" },
+    { "action": "click", "label": "30_open_level", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_img_grade", "expectedCount": 1 }, "settleMs": 350 },
+    { "action": "snapshot", "label": "31_level_target_350ms", "settleMs": 650, "samplingTargetMs": 350 },
+    { "action": "snapshot", "label": "32_level_target_1000ms", "samplingTargetMs": 1000 },
+    { "action": "wait-view", "view": "FashionLevelView", "visible": true, "timeoutMs": 12000 },
+    { "action": "assert-sound", "label": "30b_assert_level_open_single_sound", "assertions": { "required": [{ "method": "PlaySoundEffect", "key": "ui/2_dianji", "min": 1, "max": 1 }] } },
+    { "action": "assert-nodes", "label": "33a_assert_level_nodes", "assertions": [
+      { "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "FashionLevelView" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "bg_img" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "bg_img_1" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "flv_scroller" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "FasBagItemRenderer" }, "count": 8 },
+      { "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "flv_devour_but" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "flv_closebut_image" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "skinIncludes": "common/texture/com_sub_bg_7.png" }, "count": 1 }
+    ] },
+    { "action": "assert-geometry", "label": "33b_assert_level_geometry", "assertions": [
+      { "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "FashionLevelView", "expectedCount": 1 }, "bounds": { "x": { "eq": 41.5, "tolerance": 2 }, "y": { "eq": 290, "tolerance": 2 }, "width": { "eq": 637, "tolerance": 2 }, "height": { "eq": 700, "tolerance": 2 } } },
+      { "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "flv_scroller", "expectedCount": 1 }, "bounds": { "x": { "eq": 113.5, "tolerance": 2 }, "y": { "eq": 531.5, "tolerance": 2 }, "width": { "eq": 494, "tolerance": 2 }, "height": { "eq": 270, "tolerance": 2 } } },
+      { "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "FasBagItemRenderer", "expectedCount": 8, "index": 0 }, "withinSelector": { "source": "laya-stage", "view": "FashionLevelView", "name": "flv_scroller", "expectedCount": 1 }, "clipMode": "inside" },
+      { "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "FasBagItemRenderer", "expectedCount": 8, "index": 7 }, "withinSelector": { "source": "laya-stage", "view": "FashionLevelView", "name": "flv_scroller", "expectedCount": 1 }, "clipMode": "inside" }
+    ] },
+    { "action": "snapshot", "label": "33_level_ready" },
+    { "action": "reset-sound", "label": "33c_reset_sound_before_level_background_close", "traceLabel": "level-background-close" },
+    { "action": "click", "label": "34_close_level_by_background", "selector": { "source": "laya-stage", "skinIncludes": "common/texture/com_sub_bg_7.png", "expectedCount": 1 }, "options": { "point": { "x": 20, "y": 200 } }, "settleMs": 500 },
+    { "action": "wait-view", "view": "FashionLevelView", "visible": false, "timeoutMs": 12000 },
+    { "action": "assert-sound", "label": "34b_assert_level_background_close_single_sound", "assertions": { "required": [{ "method": "PlaySoundEffect", "key": "ui/2_dianji", "min": 1, "max": 1 }] } },
+    { "action": "snapshot", "label": "35_level_closed_background" },
+    { "action": "reset-sound", "label": "35a_reset_sound_before_level_reopen", "traceLabel": "level-reopen" },
+    { "action": "click", "label": "36_reopen_level", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_img_grade", "expectedCount": 1 }, "settleMs": 500 },
+    { "action": "wait-view", "view": "FashionLevelView", "visible": true, "timeoutMs": 12000 },
+    { "action": "assert-sound", "label": "36b_assert_level_reopen_single_sound", "assertions": { "required": [{ "method": "PlaySoundEffect", "key": "ui/2_dianji", "min": 1, "max": 1 }] } },
+    { "action": "reset-sound", "label": "36c_reset_sound_before_level_button_close", "traceLabel": "level-button-close" },
+    { "action": "click", "label": "37_close_level_by_button", "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "flv_closebut_image", "expectedCount": 1 }, "settleMs": 500 },
+    { "action": "wait-view", "view": "FashionLevelView", "visible": false, "timeoutMs": 12000 },
+    { "action": "assert-sound", "label": "37b_assert_level_button_close_single_sound", "assertions": { "required": [{ "method": "PlaySoundEffect", "key": "ui/2_dianji", "min": 1, "max": 1 }] } },
+    { "action": "snapshot", "label": "38_level_closed_button" },
+    { "action": "assert-protocol", "label": "38a_assert_level_write_transport_absent", "assertions": { "mode": "read-only", "forbidden": [{ "ruleId": "fashion-level-consume-41305", "direction": "outbound", "cmd": 41305 }] } },
+    { "action": "click", "label": "39_return_role_cold", "selector": { "source": "laya-stage", "name": "_img_return0", "expectedCount": 1 }, "settleMs": 350 },
+    { "action": "wait-view", "view": "EquipmentView", "visible": true, "timeoutMs": 12000 },
+    { "action": "snapshot", "label": "40_role_after_cold_return" },
+    { "action": "click", "label": "41_open_fashion_warm", "selector": { "source": "laya-stage", "view": "EquipmentView", "name": "fashion_gp", "expectedCount": 1 }, "settleMs": 350 },
+    { "action": "snapshot", "label": "42_warm_target_350ms", "settleMs": 650, "samplingTargetMs": 350 },
+    { "action": "snapshot", "label": "43_warm_target_1000ms", "samplingTargetMs": 1000 },
+    { "action": "wait-view", "view": "FashionMainView", "visible": true, "timeoutMs": 12000 },
+    { "action": "wait-render-ready", "label": "44a_wait_warm_model_rt_ready", "probe": { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_box_model", "expectedCount": 1 }, "propertyPath": ["renderTexture"], "minNonTransparentPixels": 64, "stableFrames": 2, "pollMs": 100, "timeoutMs": 15000 } },
+    { "action": "assert-geometry", "label": "44b_assert_warm_reset_geometry", "assertions": [
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "FashionAttrItem", "expectedCount": 4, "index": 0 }, "withinSelector": { "source": "laya-stage", "view": "FashionMainView", "name": "_panel_attr_item", "expectedCount": 1 }, "clipMode": "inside" }
+    ] },
+    { "action": "snapshot", "label": "44_warm_ready_a", "settleMs": 300 },
+    { "action": "snapshot", "label": "45_warm_ready_b" },
+    { "action": "click", "label": "46_return_role_warm", "selector": { "source": "laya-stage", "name": "_img_return0", "expectedCount": 1 }, "settleMs": 350 },
+    { "action": "wait-view", "view": "EquipmentView", "visible": true, "timeoutMs": 12000 },
+    { "action": "set-viewport", "label": "47_set_wide", "width": 1920, "height": 1080 },
+    { "action": "snapshot", "label": "48_role_wide" },
+    { "action": "click", "label": "49_open_fashion_wide", "selector": { "source": "laya-stage", "view": "EquipmentView", "name": "fashion_gp", "expectedCount": 1 }, "settleMs": 350 },
+    { "action": "snapshot", "label": "50_wide_target_350ms", "settleMs": 650, "samplingTargetMs": 350 },
+    { "action": "snapshot", "label": "51_wide_target_1000ms", "samplingTargetMs": 1000 },
+    { "action": "wait-view", "view": "FashionMainView", "visible": true, "timeoutMs": 12000 },
+    { "action": "assert-nodes", "label": "52a_assert_wide_main_nodes", "assertions": [
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "FashionMainView" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "fashion_group" }, "count": 6 },
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "bg" }, "count": 4 },
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_panel_attr_item" }, "count": 1 }
+    ] },
+    { "action": "wait-render-ready", "label": "52a_wait_wide_model_rt_ready", "probe": { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_box_model", "expectedCount": 1 }, "propertyPath": ["renderTexture"], "minNonTransparentPixels": 64, "stableFrames": 2, "pollMs": 100, "timeoutMs": 15000 } },
+    { "action": "snapshot", "label": "52_wide_ready" },
+    { "action": "snapshot", "label": "52b_wide_list_before_drag" },
+    { "action": "drag", "label": "53_wide_list_drag", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_list_fashion_item", "expectedCount": 1 }, "options": { "deltaX": -220, "deltaY": 0, "steps": 16 }, "settleMs": 800 },
+    { "action": "assert-scroll", "label": "53a_assert_wide_fashion_list_scroll", "beforeLabel": "52b_wide_list_before_drag", "assertion": { "containerSelector": { "source": "laya-stage", "view": "FashionMainView", "name": "_list_fashion_item", "expectedCount": 1 }, "axis": "x", "minAbsDelta": 50, "lastItemSelector": { "source": "laya-stage", "view": "FashionMainView", "name": "fashion_group", "dataIdentity": { "fashion_id": 12010008, "pos_id": 1 }, "expectedCount": 1 }, "lastItemClipMode": "inside" } },
+    { "action": "click", "label": "54_wide_select_sweetheart_12010008", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "fashion_group", "dataIdentity": { "fashion_id": 12010008, "pos_id": 1 }, "expectedCount": 1 }, "settleMs": 800 },
+    { "action": "assert-nodes", "label": "54a_assert_wide_sweetheart_identity", "assertions": [
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "fashion_group", "dataIdentity": { "fashion_id": 12010008, "pos_id": 1 } }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_lb_name", "text": "甜心宝贝" }, "count": 1 }
+    ] },
+    { "action": "snapshot", "label": "54b_wide_attributes_before" },
+    { "action": "drag", "label": "55_wide_attributes_drag", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_panel_attr_item", "expectedCount": 1 }, "options": { "deltaX": 0, "deltaY": -83, "steps": 16 }, "settleMs": 800 },
+    { "action": "assert-scroll", "label": "55a_assert_wide_attributes_scroll", "beforeLabel": "54b_wide_attributes_before", "assertion": { "containerSelector": { "source": "laya-stage", "view": "FashionMainView", "name": "_panel_attr_item", "expectedCount": 1 }, "axis": "y", "minAbsDelta": 20, "itemSelector": { "source": "laya-stage", "view": "FashionMainView", "name": "FashionAttrItem" }, "requireClipped": true } },
+    { "action": "snapshot", "label": "56_wide_deep_and_attributes" },
+    { "action": "click", "label": "57_wide_open_level", "selector": { "source": "laya-stage", "view": "FashionMainView", "name": "_img_grade", "expectedCount": 1 }, "settleMs": 500 },
+    { "action": "wait-view", "view": "FashionLevelView", "visible": true, "timeoutMs": 12000 },
+    { "action": "assert-nodes", "label": "58a_assert_wide_level_nodes", "assertions": [
+      { "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "FashionLevelView" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "FasBagItemRenderer" }, "count": 8 },
+      { "selector": { "source": "laya-stage", "skinIncludes": "common/texture/com_sub_bg_7.png" }, "count": 1 }
+    ] },
+    { "action": "snapshot", "label": "58_wide_level_ready" },
+    { "action": "click", "label": "59_wide_close_level", "selector": { "source": "laya-stage", "view": "FashionLevelView", "name": "flv_closebut_image", "expectedCount": 1 }, "settleMs": 500 },
+    { "action": "wait-view", "view": "FashionLevelView", "visible": false, "timeoutMs": 12000 },
+    { "action": "click", "label": "60_wide_return_role", "selector": { "source": "laya-stage", "name": "_img_return0", "expectedCount": 1 }, "settleMs": 350 },
+    { "action": "wait-view", "view": "EquipmentView", "visible": true, "timeoutMs": 12000 },
+    { "action": "snapshot", "label": "61_wide_role_return" },
+    { "action": "assert-protocol", "label": "62_final_read_only_protocols", "assertions": { "mode": "read-only", "required": [{ "ruleId": "fashion-power-read-41312", "direction": "outbound", "cmd": 41312, "fmt": "ci", "args": [1, 12010008], "min": 1 }, { "direction": "inbound", "cmd": 41312, "payloadFields": { "pos_id": 1, "fashion_id": 12010008 }, "min": 1 }], "forbidden": [{ "direction": "outbound", "cmd": 41301 }, { "direction": "outbound", "cmd": 41302 }, { "direction": "outbound", "cmd": 41303 }, { "direction": "outbound", "cmd": 41304 }, { "ruleId": "fashion-level-consume-41305", "direction": "outbound", "cmd": 41305 }, { "direction": "outbound", "cmd": 41306 }, { "direction": "outbound", "cmd": 41316 }] } }
+  ]
+}

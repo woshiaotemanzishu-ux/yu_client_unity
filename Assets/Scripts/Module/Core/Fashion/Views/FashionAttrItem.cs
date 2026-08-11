@@ -13,6 +13,8 @@ namespace Shenxiao.Module.Core.Fashion
         /// <summary>curVal=当前档该属性值(无当前档传0);hasNext=false 时显示"已满阶"。</summary>
         public void SetData(int attrId, long curVal, bool hasNext, long nextVal)
         {
+            // 名称与当前值由 Prefab 的 __name_value_row/HorizontalLayoutGroup 按 preferred width
+            // 保持 8px 间距；View 只赋数据，不再把老端运行时坐标重新写回视觉层。
             if (name != null) name.text = GoodsModel.GetAttrName(attrId);
             if (_lb_att0 != null) _lb_att0.text = "+" + GoodsModel.FormatAttrValue(attrId, curVal);
             if (_lb_att1 != null) _lb_att1.text = hasNext ? ("+" + GoodsModel.FormatAttrValue(attrId, nextVal)) : "已满阶";

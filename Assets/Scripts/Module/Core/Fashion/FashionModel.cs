@@ -22,22 +22,24 @@ namespace Shenxiao.Module.Core.Fashion
             public int StarLv;
         }
 
-        /// <summary>已激活的时装本体(对标 IFashionInfo):基础色星级 + 当前穿的颜色 + 已解锁颜色表。</summary>
+        /// <summary>已激活的时装本体(对标 IFashionInfo):当前展示星级 + 当前穿的颜色 + 已激活颜色表。</summary>
         public sealed class FashionEntry
         {
             public int FashionId;
-            public int StarLv;      // 基础色(color 0)星级,41306 更新
+            public int StarLv;      // 当前展示颜色星级；各颜色权威值（含0）在 Colors
             public int NowColorId;  // 当前穿的颜色(0=基础色)
-            public readonly Dictionary<int, ColorEntry> Colors = new Dictionary<int, ColorEntry>(); // 已解锁颜色(不含0)
+            public readonly Dictionary<int, ColorEntry> Colors = new Dictionary<int, ColorEntry>(); // 已激活颜色(包含0)
 
-            /// <summary>取某颜色档当前星级;0=基础色直接读 StarLv,其余查 Colors(未解锁返回 -1)。</summary>
+            /// <summary>
+            /// 协议 color_list 才是每个颜色（含基础色0）的权威。顶层 StarLv 是当前展示色星级，
+            /// 不能用来冒充基础色状态；未激活统一返回0，供下一阶配置从 star=1 判断。
+            /// </summary>
             public int GetStarLv(int colorId)
             {
-                if (colorId == 0) return StarLv;
-                return Colors.TryGetValue(colorId, out ColorEntry e) ? e.StarLv : -1;
+                return Colors.TryGetValue(colorId, out ColorEntry e) ? e.StarLv : 0;
             }
 
-            public bool IsColorUnlocked(int colorId) => colorId == 0 || Colors.ContainsKey(colorId);
+            public bool IsColorUnlocked(int colorId) => Colors.ContainsKey(colorId);
         }
 
         /// <summary>一个穿戴位(pos 1/3)的整体状态:当前穿的时装 id + 部位等级 + 已激活时装表。</summary>
@@ -149,13 +151,15 @@ namespace Shenxiao.Module.Core.Fashion
         {
             InvalidatePower(posId, fashionId);
             PosInfo p = GetOrCreatePos(posId);
-            if (p.WearFashionId <= 0) p.WearFashionId = fashionId;
+            // 老端解锁染色成功即把该件设为当前穿戴，41302 只负责随后确认穿戴色。
+            p.WearFashionId = fashionId;
             FashionEntry e = p.GetActive(fashionId);
             if (e == null)
             {
                 e = new FashionEntry { FashionId = fashionId, StarLv = 1, NowColorId = colorId };
                 p.Active[fashionId] = e;
             }
+            e.StarLv = 1;
             e.NowColorId = colorId;
             e.Colors[colorId] = new ColorEntry { ColorId = colorId, StarLv = 1 };
         }
@@ -166,7 +170,11 @@ namespace Shenxiao.Module.Core.Fashion
             PosInfo p = GetOrCreatePos(posId);
             p.WearFashionId = fashionId;
             FashionEntry e = p.GetActive(fashionId);
-            if (e != null) e.NowColorId = colorId;
+            if (e != null)
+            {
+                e.NowColorId = colorId;
+                e.StarLv = e.GetStarLv(colorId);
+            }
         }
 
         /// <summary>41303 卸下成功套值(对标老端 On41303):⚠也用于被动卸下广播(穿神殿/套装收集/天启顶掉时装时,
@@ -178,11 +186,12 @@ namespace Shenxiao.Module.Core.Fashion
         }
 
         /// <summary>41304 激活成功套值(对标老端 On41304):新建/覆盖为基础色 1 星已激活状态。
-        /// 穿戴由 Controller 紧接着自动发的 41302 完成,这里不动 wear_fashion_id。</summary>
+        /// 老端在 41304 成功时立即同步 wear_fashion_id，再自动补发 41302。</summary>
         public void Apply41304(int posId, int fashionId)
         {
             InvalidatePower(posId, fashionId);
             PosInfo p = GetOrCreatePos(posId);
+            p.WearFashionId = fashionId;
             FashionEntry e = p.GetActive(fashionId);
             if (e == null)
             {
@@ -194,6 +203,7 @@ namespace Shenxiao.Module.Core.Fashion
                 e.StarLv = 1;
                 e.NowColorId = 0;
             }
+            e.Colors[0] = new ColorEntry { ColorId = 0, StarLv = 1 };
         }
 
         /// <summary>41305 成功增量。老端仅在已有部位状态时套值,缺状态由 Controller 重拉41300。</summary>
@@ -213,14 +223,9 @@ namespace Shenxiao.Module.Core.Fashion
             InvalidatePower(posId, fashionId);
             FashionEntry e = GetActive(posId, fashionId);
             if (e == null) return;
-            if (colorId == 0)
-            {
-                e.StarLv = newStarLv;
-            }
-            else if (e.Colors.TryGetValue(colorId, out ColorEntry c))
-            {
-                c.StarLv = newStarLv;
-            }
+            if (!e.Colors.TryGetValue(colorId, out ColorEntry c))
+                e.Colors[colorId] = c = new ColorEntry { ColorId = colorId };
+            c.StarLv = newStarLv;
             if (e.NowColorId == colorId) e.StarLv = newStarLv;
         }
 
