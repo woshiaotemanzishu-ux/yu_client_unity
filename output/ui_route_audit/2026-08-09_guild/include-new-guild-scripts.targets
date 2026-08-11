@@ -1,8 +1,0 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!-- Unity 尚未刷新 .csproj；仅用于本轮不启动 Unity 的静态 Core 编译，将本轮新增 Guild 脚本纳入。 -->
-  <ItemGroup Condition="'$(MSBuildProjectName)' == 'Shenxiao.Module.Core'">
-    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\Guild\GuildHelpRuntime.cs" />
-    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\Guild\GuildJoinRuntime.cs" />
-    <Compile Include="$(MSBuildProjectDirectory)\output\ui_route_audit\2026-08-09_guild\ShopBulkPurchaseView.compile-stub.cs" />
-  </ItemGroup>
-</Project>

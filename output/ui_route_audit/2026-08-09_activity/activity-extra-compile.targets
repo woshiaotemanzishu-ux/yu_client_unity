@@ -1,9 +1,0 @@
-<Project>
-  <ItemGroup Condition="'$(MSBuildProjectName)' == 'Shenxiao.Module.Core'">
-    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\Activity\*.cs" />
-    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\Shop\Views\ShopBulkPurchaseView.cs" />
-    <!-- Shared worktree concurrent runtime files absent from the generated csproj. -->
-    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\Guild\GuildHelpRuntime.cs" />
-    <Compile Include="$(MSBuildProjectDirectory)\Assets\Scripts\Module\Core\Guild\GuildJoinRuntime.cs" />
-  </ItemGroup>
-</Project>

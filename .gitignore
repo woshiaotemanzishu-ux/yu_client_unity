@@ -82,6 +82,9 @@ Desktop.ini
 /Tools/headless/*profile*/
 
 # 本地审计、报表和可搬运交付包（不参与版本同步）
+# output/ 只保存不可变运行证据；公共脚本、策略、schema 与测试必须放在
+# Tools/UIAudit/，不得继续把可复用实现留在证据目录。
+/output/
 /outputs/
 
 # Python 工具的字节码缓存(Tools/LayaUI 等)
