@@ -1,7 +1,11 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Shenxiao.Common.Tips;
 using Shenxiao.Generated.UI.Equip;
+using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
+using Shenxiao.Module.Core.Common;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,6 +26,15 @@ namespace Shenxiao.Module.Core.Equip
     /// </summary>
     public sealed class EquipStrenMasterView : EquipStrenMasterViewBind
     {
+        [SerializeField] private ScrollRect _nextScroll;
+
+        private readonly List<EquipMasterItem> _currentItems = new List<EquipMasterItem>();
+        private readonly List<EquipMasterItem> _nextItems = new List<EquipMasterItem>();
+        private bool _subscribed;
+        private bool _canActivate;
+        private bool _maxLevel;
+        private int _epoch;
+
         protected override void OnInit()
         {
             HideReds();
@@ -31,10 +44,126 @@ namespace Shenxiao.Module.Core.Equip
 
         protected override void OnShow(object args)
         {
-            // 老端 LoadSuccess 请求协议 15261,UPDATE_MASTER_VIEW 回包后铺当前/下一阶属性列表 + 刷等级进度。
-            // 属性列表渲染未移植 → 列表空、等级进度默认降级;协议查询已接真。
-            GameLog.Info("Equip", "EquipStrenMasterView 打开 → 请求 15261(列表渲染/等级进度仍默认降级)");
+            ++_epoch;
+            Subscribe();
             EquipStrenController.Instance.QueryWholeAward();
+            _ = EnsureConfigAndRefreshAsync(_epoch);
+        }
+
+        protected override void OnHide()
+        {
+            ++_epoch;
+            Unsubscribe();
+            HideItems(_currentItems);
+            HideItems(_nextItems);
+            if (Content1 != null) { Content1.StopMovement(); Content1.verticalNormalizedPosition = 1f; }
+            if (_nextScroll != null) { _nextScroll.StopMovement(); _nextScroll.verticalNormalizedPosition = 1f; }
+        }
+
+        protected override void OnDispose()
+        {
+            Unsubscribe();
+            _currentItems.Clear();
+            _nextItems.Clear();
+            base.OnDispose();
+        }
+
+        private void Subscribe()
+        {
+            if (_subscribed) return;
+            EventDispatcher.On(GlobalEvent.EVT_EQUIP_STREN_UPDATE, RefreshView);
+            EventDispatcher.On(GlobalEvent.EVT_EQUIP_WHOLE_UPDATE, RefreshView);
+            _subscribed = true;
+        }
+
+        private void Unsubscribe()
+        {
+            if (!_subscribed) return;
+            EventDispatcher.Off(GlobalEvent.EVT_EQUIP_STREN_UPDATE, RefreshView);
+            EventDispatcher.Off(GlobalEvent.EVT_EQUIP_WHOLE_UPDATE, RefreshView);
+            _subscribed = false;
+        }
+
+        private async Task EnsureConfigAndRefreshAsync(int epoch)
+        {
+            await EquipConfigs.EnsureLoaded();
+            if (this == null || !IsShown || epoch != _epoch) return;
+            RefreshView();
+        }
+
+        private void RefreshView()
+        {
+            int progress = EquipStrenView.TotalStrengthLevel();
+            int activated = EquipWholeAwardModel.Instance.GetWholeLv(1);
+            EquipConfigs.GetWholeRewardPair(1, activated, out bool hasCurrent, out EquipConfigs.WholeReward current,
+                out bool hasNext, out EquipConfigs.WholeReward next);
+
+            _maxLevel = !hasNext;
+            _canActivate = hasNext && progress >= next.NeedLevel;
+            if (lb_stren1 != null) lb_stren1.text = "全身强化";
+            if (lb_stren2 != null)
+            {
+                lb_stren2.text = hasNext ? progress.ToString() : string.Empty;
+                lb_stren2.color = _canActivate ? new Color32(10, 149, 62, 255) : new Color32(255, 79, 80, 255);
+            }
+            if (lb_stren3 != null) lb_stren3.text = hasNext ? ("/" + next.NeedLevel) : progress.ToString();
+            if (cur_tip != null) cur_tip.text = hasNext ? "当前效果" : "已满阶";
+            if (lb_active != null) lb_active.text = _maxLevel ? "已满阶" : "激活";
+            if (btn_active != null) btn_active.color = _canActivate ? Color.white : new Color32(150, 150, 150, 255);
+            if (img_redAc != null) img_redAc.gameObject.SetActive(_canActivate);
+            if (group_cur != null) group_cur.gameObject.SetActive(hasCurrent);
+            if (group_next != null) group_next.gameObject.SetActive(hasNext);
+
+            RenderReward(current.Attributes, hasCurrent, Content1 != null ? Content1.content : null, _currentItems);
+            RenderReward(next.Attributes, hasNext, _nextScroll != null ? _nextScroll.content : null, _nextItems);
+
+            if (transform is RectTransform rt)
+            {
+                Vector2 size = rt.sizeDelta;
+                size.y = hasCurrent && hasNext ? 607f : 377f;
+                rt.sizeDelta = size;
+            }
+        }
+
+        private void RenderReward(IReadOnlyList<EquipConfigs.StrengthAttribute> attrs, bool visible,
+            RectTransform parent, List<EquipMasterItem> items)
+        {
+            int count = visible ? (attrs?.Count ?? 0) : 0;
+            if (_tpl_EquipMasterItem != null && parent != null)
+            {
+                while (items.Count < count)
+                {
+                    GameObject go = Instantiate(_tpl_EquipMasterItem, parent, false);
+                    go.name = "EquipMasterItem_Runtime_" + (items.Count + 1);
+                    go.SetActive(false);
+                    EquipMasterItem item = go.GetComponent<EquipMasterItem>();
+                    if (item == null) { Destroy(go); break; }
+                    item.Show();
+                    items.Add(item);
+                }
+            }
+            for (int i = 0; i < items.Count; i++)
+            {
+                EquipMasterItem item = items[i];
+                if (i >= count)
+                {
+                    if (item.IsShown) item.Hide();
+                    continue;
+                }
+                if (!item.IsShown) item.Show();
+                EquipConfigs.StrengthAttribute attr = attrs[i];
+                string name = attr.AttrId == 0 ? string.Empty : GoodsModel.GetAttrName(attr.AttrId);
+                string value = attr.AttrId == 0
+                    ? ("+" + (attr.PerLevelValue / 100d).ToString("0.##") + "%")
+                    : ("+" + GoodsModel.FormatAttrValue(attr.AttrId, attr.PerLevelValue));
+                item.SetData(name, value);
+            }
+        }
+
+        private static void HideItems(List<EquipMasterItem> items)
+        {
+            foreach (EquipMasterItem item in items)
+                if (item != null && item.IsShown) item.Hide();
         }
 
         private void HideReds()
@@ -52,8 +181,13 @@ namespace Shenxiao.Module.Core.Equip
         {
             BindClick(btn_active, () =>
             {
-                TipsManager.Toast("淬炉宗师条件配置未就绪");
-                GameLog.Warn("Equip", "点击[激活]被阻止：当前/下一阶条件与属性列表尚未形成可验证展示");
+                if (_maxLevel) return;
+                if (!_canActivate)
+                {
+                    TipsManager.Toast("当前天殒淬炉等级不足，无法激活");
+                    return;
+                }
+                EquipStrenController.Instance.ActivateWhole(1);
             });
             BindClick(btn_close, () =>
             {

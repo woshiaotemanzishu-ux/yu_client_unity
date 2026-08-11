@@ -4717,7 +4717,7 @@ MonoBehaviour:
   lb_refi: {fileID: 7993233518361048817}
   _img_red: {fileID: 5620839317657984009}
   _Scroller1: {fileID: 551245815535093214}
-  Content: {fileID: 5278482808700473830}
+  Content: {fileID: 1858760888422011344}
   _img_max: {fileID: 1349003105311738285}
   _gp_huanrao: {fileID: 4863814974032893968}
   _gp_dazao: {fileID: 5605185812126722877}
@@ -5004,9 +5004,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ScrollRect
-  m_Content: {fileID: 5278482808700473830}
-  m_Horizontal: 0
-  m_Vertical: 1
+  m_Content: {fileID: 1858760888422011344}
+  m_Horizontal: 1
+  m_Vertical: 0
   m_MovementType: 1
   m_Elasticity: 0.1
   m_Inertia: 1
@@ -5032,6 +5032,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1858760888422011344}
   - component: {fileID: 4848858139871517045}
+  - component: {fileID: 910000000000000201}
   m_Layer: 0
   m_Name: Content
   m_TagString: Untagged
@@ -5084,6 +5085,20 @@ MonoBehaviour:
   m_ChildScaleWidth: 1
   m_ChildScaleHeight: 1
   m_ReverseArrangement: 0
+--- !u!114 &910000000000000201
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8086212339994764843}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
+  m_HorizontalFit: 2
+  m_VerticalFit: 0
 --- !u!1 &8102626823526360412
 GameObject:
   m_ObjectHideFlags: 0
@@ -5468,9 +5483,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 8520047928046432464}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 215f6b2218498844496107c81f99c9f6, type: 3}
+  m_Script: {fileID: 11500000, guid: b65e1013ae34d6240a6af7d74d4930bb, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Equip.EquipWashItemBind
+  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Equip.EquipWashItem
   _gp: {fileID: 2248273866650844215}
   _Image1: {fileID: 6123538949297434551}
   select_img: {fileID: 1832981040893456088}

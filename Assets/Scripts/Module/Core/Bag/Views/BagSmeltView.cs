@@ -34,6 +34,7 @@ namespace Shenxiao.Module.Core.Bag
         private bool _autoOn = true;
         private bool _oneStarOn = true;
         private bool _subscribed;
+        private bool _scrollToFirstSelectedOnNextRender;
         private int _refreshEpoch;
         private int _autoFuseEpoch;
         private int _lifecycleEpoch;
@@ -55,6 +56,7 @@ namespace Shenxiao.Module.Core.Bag
         {
             _lifecycleEpoch++;
             Subscribe();
+            _scrollToFirstSelectedOnNextRender = true;
             RefreshAutoSetting();
             BagFusionController.Instance.RequestInfo();
             _ = RefreshAsync(true);
@@ -66,6 +68,7 @@ namespace Shenxiao.Module.Core.Bag
             _refreshEpoch++;
             _autoFuseEpoch++;
             Unsubscribe();
+            StopListScroll();
             BagFlow.NotifyActivitySubHidden(this);
         }
 
@@ -148,7 +151,7 @@ namespace Shenxiao.Module.Core.Bag
             foreach (BagGoods goods in BagModel.Instance.BagGoodsList)
                 if (BagFusionConfigs.TryGetFusionExp(goods.TypeId, out _)) _eligible.Add(goods);
 
-            if (resetSelection || _autoOn) SelectSafeDefaults();
+            if (resetSelection) SelectSafeDefaults();
             else
             {
                 var valid = new HashSet<long>();
@@ -235,8 +238,45 @@ namespace Shenxiao.Module.Core.Bag
                 item.SetClickCallBack(() => Toggle(captured));
                 item.SetData(goods.TypeId, goods.GoodsNum, goods.Bind != 0, _selected.ContainsKey(goods.GoodsId));
             }
+            if (_scrollToFirstSelectedOnNextRender)
+            {
+                ScrollToFirstSelected();
+                _scrollToFirstSelectedOnNextRender = false;
+            }
             if (nothingLb != null) nothingLb.gameObject.SetActive(_eligible.Count == 0);
             RefreshExpText();
+        }
+
+        /// <summary>老端每次重建熔炼窗后定位到第一个已选物品，后续回包刷新保留当前位置。</summary>
+        private void ScrollToFirstSelected()
+        {
+            if (_Scroller1 == null) return;
+            StopListScroll();
+            if (_Scroller1.content == null) return;
+
+            int firstSelectedIndex = 0;
+            for (int i = 0; i < _eligible.Count; i++)
+            {
+                if (!_selected.ContainsKey(_eligible[i].GoodsId)) continue;
+                firstSelectedIndex = i;
+                break;
+            }
+
+            int rows = Mathf.CeilToInt(_eligible.Count / (float)Columns);
+            float contentHeight = rows * CellStep;
+            float viewportHeight = _Scroller1.viewport != null ? _Scroller1.viewport.rect.height : 0f;
+            float maxY = Mathf.Max(0f, contentHeight - viewportHeight);
+            float targetY = Mathf.Clamp(firstSelectedIndex / Columns * CellStep, 0f, maxY);
+            Vector2 anchored = _Scroller1.content.anchoredPosition;
+            anchored.y = targetY;
+            _Scroller1.content.anchoredPosition = anchored;
+        }
+
+        private void StopListScroll()
+        {
+            if (_Scroller1 == null) return;
+            _Scroller1.StopMovement();
+            _Scroller1.velocity = Vector2.zero;
         }
 
         private void Toggle(BagGoods goods)
@@ -260,7 +300,16 @@ namespace Shenxiao.Module.Core.Bag
             long need = BagFusionConfigs.GetLevelNeed(BagFusionController.FusionLv);
             if (lvLb != null) lvLb.text = "Lv." + BagFusionController.FusionLv;
             if (expLb != null) expLb.text = need > 0 ? BagFusionController.FusionExp + "/" + need : BagFusionController.FusionExp.ToString();
-            if (curLb != null) curLb.text = "本次吞噬经验：<color=#00b11d>" + add + "</color>";
+            if (expImg != null)
+            {
+                float ratio = need > 0 ? Mathf.Clamp01(BagFusionController.FusionExp / (float)need) : 0f;
+                expImg.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 365f * ratio);
+            }
+            if (curLb != null)
+            {
+                curLb.gameObject.SetActive(add > 0);
+                curLb.text = "本次吞噬经验：<color=#00b11d>" + add + "</color>";
+            }
         }
 
         private void FuseSelected()

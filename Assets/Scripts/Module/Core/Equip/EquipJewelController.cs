@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
@@ -22,6 +23,10 @@ namespace Shenxiao.Module.Core.Equip
 
         /// <summary>15216 合成是否处在服务端语义要求的自循环续发中(对标老端 model.one_key_mark)。</summary>
         private bool _combineOneKeyMark;
+        private readonly HashSet<long> _silentStoneUpgradeRequests = new HashSet<long>();
+
+        /// <summary>15215 的精确结果事件；一键升级必须等待每次权威回包后再选择下一槽，禁止并发扫发。</summary>
+        public event Action<int, int, bool> StoneUpgradeCompleted;
 
         protected override void Register()
         {
@@ -39,6 +44,7 @@ namespace Shenxiao.Module.Core.Equip
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, RequestAllCraveInfo);
             EquipJewelModel.Instance.Clear();
             _combineOneKeyMark = false;
+            _silentStoneUpgradeRequests.Clear();
             base.Dispose();
         }
 
@@ -64,10 +70,14 @@ namespace Shenxiao.Module.Core.Equip
         }
 
         /// <summary>15215 宝石升级(发 "ccc" equip_pos, stone_pos, upgrade_type[0普通/1一键低级宝石/2直升丹])。</summary>
-        public void UpgradeStone(int equipPos, int stonePos, int upgradeType)
+        public void UpgradeStone(int equipPos, int stonePos, int upgradeType, bool silentSuccess = false)
         {
+            long requestKey = StoneUpgradeKey(equipPos, stonePos);
+            if (silentSuccess) _silentStoneUpgradeRequests.Add(requestKey);
+            else _silentStoneUpgradeRequests.Remove(requestKey);
             SendFmt(Proto.EQUIP_JEWEL_STONE_UPGRADE, "ccc", equipPos, stonePos, upgradeType);
-            GameLog.Info("Equip", "upgradeStone 15215 equip_pos={0} stone_pos={1} upgrade_type={2}", equipPos, stonePos, upgradeType);
+            GameLog.Info("Equip", "upgradeStone 15215 equip_pos={0} stone_pos={1} upgrade_type={2} silentSuccess={3}",
+                equipPos, stonePos, upgradeType, silentSuccess);
         }
 
         /// <summary>15254 子功能战力查询(发 "c" sub_mod;轮21 PF 补漏批)。唯一真实调用点是老端
@@ -145,13 +155,16 @@ namespace Shenxiao.Module.Core.Equip
             int equipPos = r.ReadU8();
             int pos = r.ReadU8();
             int typeId = (int)r.ReadU32();
+            long requestKey = StoneUpgradeKey(equipPos, pos);
+            bool silentSuccess = _silentStoneUpgradeRequests.Remove(requestKey);
             if (res != 1)
             {
                 TipsManager.Toast("升级宝石失败(" + res + ")");
                 GameLog.Info("Equip", "15215 fail res={0} equip_pos={1} pos={2}", res, equipPos, pos);
+                StoneUpgradeCompleted?.Invoke(equipPos, pos, false);
                 return;
             }
-            TipsManager.Toast("升级宝石成功");
+            if (!silentSuccess) TipsManager.Toast("升级宝石成功");
             GameLog.Info("Equip", "15215 ok equip_pos={0} pos={1} type_id={2} remaining={3}B", equipPos, pos, typeId, r.Remaining);
 
             BagGoods worn = EquipAutoWear.GetWorn(equipPos);
@@ -173,7 +186,10 @@ namespace Shenxiao.Module.Core.Equip
                 });
             }
             EventDispatcher.Emit(GlobalEvent.EVT_EQUIP_JEWEL_UPDATE);
+            StoneUpgradeCompleted?.Invoke(equipPos, pos, true);
         }
+
+        private static long StoneUpgradeKey(int equipPos, int stonePos) => ((long)equipPos << 32) | (uint)stonePos;
 
         /// <summary>15216 回包:res:i, type_id:i, is_one_key:c。res==1 且 is_one_key==1 → 服务端语义要求自循环续发
         /// (对标老端 on15216:model.one_key_mark=true; SendFmtToGame(15216,"ic",scmd.type_id,1));res==1 且

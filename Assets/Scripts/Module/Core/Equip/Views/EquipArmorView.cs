@@ -96,6 +96,7 @@ namespace Shenxiao.Module.Core.Equip
 
         protected override void OnHide()
         {
+            EquipFlow.CloseSub("ArmorAttrView");
             EventDispatcher.Off(GlobalEvent.EVT_ARMOR_UPDATED, OnArmorUpdated);
             EventDispatcher.Off<uint>(GlobalEvent.EVT_ARMOR_MAKE_RESULT, OnMakeResult);
             EventDispatcher.Off(GlobalEvent.EVT_BAG_UPDATE, OnInventoryOrRoleUpdated);
@@ -501,7 +502,9 @@ namespace Shenxiao.Module.Core.Equip
             if (template == null || parent == null) return null;
             GameObject go = Instantiate(template, parent, false);
             go.name = name;
-            go.SetActive(true);
+            BaseView view = go.GetComponent<BaseView>();
+            if (view != null) view.Show();
+            else go.SetActive(true);
             _rendered.Add(go);
             return go;
         }
@@ -539,6 +542,8 @@ namespace Shenxiao.Module.Core.Equip
             {
                 GameObject go = _rendered[i];
                 if (go == null) continue;
+                BaseView view = go.GetComponent<BaseView>();
+                if (view != null && view.IsShown) view.Hide();
                 if (Application.isPlaying) Destroy(go); else DestroyImmediate(go);
             }
             _rendered.Clear();

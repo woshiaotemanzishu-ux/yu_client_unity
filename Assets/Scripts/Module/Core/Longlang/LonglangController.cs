@@ -17,6 +17,9 @@ namespace Shenxiao.Module.Core.Longlang
         {
             RegisterProtocal(Proto.LONGLANG_ERROR, On62200);
             RegisterProtocal(Proto.LONGLANG_EQUIPMENT, On62201);
+            RegisterProtocal(Proto.LONGLANG_STRENGTHEN, On62202);
+            RegisterProtocal(Proto.LONGLANG_REPLACE, On62203);
+            RegisterProtocal(Proto.LONGLANG_UNLOAD, On62204);
             RegisterProtocal(Proto.LONGLANG_RATING, On62207);
             RegisterProtocal(Proto.LONGLANG_SUIT_PREVIEW, On62208);
             RegisterProtocal(Proto.LONGLANG_SUIT_INFO, On62209);
@@ -33,6 +36,12 @@ namespace Shenxiao.Module.Core.Longlang
         public void RequestSuitPreview(uint goodsTypeId) =>
             SendRequest(Proto.LONGLANG_SUIT_PREVIEW, "i", goodsTypeId);
         public void RequestSuitInfo() => SendRequest(Proto.LONGLANG_SUIT_INFO);
+        public void Strengthen(byte position, byte strengthenType) =>
+            SendRequest(Proto.LONGLANG_STRENGTHEN, "cc", position, strengthenType);
+        public void Replace(byte position, ulong goodsId) =>
+            SendRequest(Proto.LONGLANG_REPLACE, "cl", position, unchecked((long)goodsId));
+        /// <summary>服务端 62204 C2S 严格只有 pos:u8；禁止照抄老端历史尾包。</summary>
+        public void Unload(byte position) => SendRequest(Proto.LONGLANG_UNLOAD, "c", position);
 
         private void SendRequest(int protoId, string format = null, params object[] args)
         {
@@ -52,6 +61,12 @@ namespace Shenxiao.Module.Core.Longlang
                 rr.ReadU8(), unchecked((ulong)rr.ReadU64()), rr.ReadU16()));
             LonglangModel.Instance.ReplaceEquipments(items);
         }
+
+        private void On62202(NetReader r) =>
+            LonglangModel.Instance.ApplyStrength(r.ReadU8(), r.ReadU16());
+
+        private void On62203(NetReader r) => LonglangModel.Instance.ApplyReplaceAck();
+        private void On62204(NetReader r) => LonglangModel.Instance.ApplyUnloadAck();
 
         private void On62207(NetReader r) => LonglangModel.Instance.ReplaceRating(r.ReadU32());
 
@@ -73,4 +88,3 @@ namespace Shenxiao.Module.Core.Longlang
         }
     }
 }
-

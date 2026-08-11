@@ -83,6 +83,7 @@ namespace Shenxiao.Module.Core.Marriage
                 });
                 if (_view._tpl_MarriageHonourItem != null)
                     _view._tpl_MarriageHonourItem.SetActive(false);
+                EnsureScrollRaycastTarget();
                 EnsureMask();
                 _moduleRoot.SetActive(false);
                 return true;
@@ -91,6 +92,18 @@ namespace Shenxiao.Module.Core.Marriage
             {
                 _loading = false;
             }
+        }
+
+        private static void EnsureScrollRaycastTarget()
+        {
+            if (_view?._gp_con == null) return;
+            // RectMask2D 本身不参加 GraphicRaycaster。名誉行中间存在没有 Graphic 的空白，
+            // 从空白处拖动时会穿透到后方全屏遮罩并触发 Close，实际表现就是列表一拖即关。
+            // 命中面挂在 ScrollRect 根上，只负责接住拖动，不改变当前人工 Prefab 的视觉。
+            Image hit = _view._gp_con.GetComponent<Image>();
+            if (hit == null) hit = _view._gp_con.gameObject.AddComponent<Image>();
+            hit.color = new Color(1f, 1f, 1f, 0f);
+            hit.raycastTarget = true;
         }
 
         private static void EnsureMask()

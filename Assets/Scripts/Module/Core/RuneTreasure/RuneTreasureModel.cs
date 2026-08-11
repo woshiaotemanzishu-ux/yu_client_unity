@@ -277,24 +277,63 @@ namespace Shenxiao.Module.Core.RuneTreasure
         public bool HasWeaponNotice => LastWeaponNotice != null;
         public bool HasTaskDelta => LastTaskDelta != null;
 
-        public void ReplaceError(uint code) => LastError = new ErrorSnapshot(code);
-        public void ReplaceRune(RuneSnapshot snapshot) => Rune = snapshot;
-        public void ReplaceRecordPush(RecordPushSnapshot snapshot) => LastRecordPush = snapshot;
+        /// <summary>任一416读侧快照落地后通知当前可见页即时刷新。</summary>
+        public event Action Changed;
+
+        public void ReplaceError(uint code)
+        {
+            LastError = new ErrorSnapshot(code);
+            Changed?.Invoke();
+        }
+
+        public void ReplaceRune(RuneSnapshot snapshot)
+        {
+            Rune = snapshot;
+            Changed?.Invoke();
+        }
+
+        public void ReplaceRecordPush(RecordPushSnapshot snapshot)
+        {
+            LastRecordPush = snapshot;
+            Changed?.Invoke();
+        }
 
         public void ReplacePage(PageSnapshot snapshot)
         {
             _pages[new PageKey(snapshot.HuntType, snapshot.RecordType)] = snapshot;
             _latestDrawWeapon[snapshot.HuntType] = snapshot.DrawWeapon;
+            Changed?.Invoke();
         }
 
-        public void ReplaceLucky(LuckySnapshot snapshot) => _luckies[snapshot.HuntType] = snapshot;
-        public void ReplaceCrossRecords(CrossRecordSnapshot snapshot) =>
+        public void ReplaceLucky(LuckySnapshot snapshot)
+        {
+            _luckies[snapshot.HuntType] = snapshot;
+            Changed?.Invoke();
+        }
+
+        public void ReplaceCrossRecords(CrossRecordSnapshot snapshot)
+        {
             _crossRecords[snapshot.HuntType] = snapshot;
-        public void ReplaceOpenState(OpenStateSnapshot snapshot) =>
+            Changed?.Invoke();
+        }
+
+        public void ReplaceOpenState(OpenStateSnapshot snapshot)
+        {
             _openStates[snapshot.HuntType] = snapshot;
-        public void ReplaceWeaponNotice(byte huntType) =>
+            Changed?.Invoke();
+        }
+
+        public void ReplaceWeaponNotice(byte huntType)
+        {
             LastWeaponNotice = new WeaponNoticeSnapshot(huntType);
-        public void ReplaceTasks(TaskSnapshot snapshot) => _tasks[snapshot.HuntType] = snapshot;
+            Changed?.Invoke();
+        }
+
+        public void ReplaceTasks(TaskSnapshot snapshot)
+        {
+            _tasks[snapshot.HuntType] = snapshot;
+            Changed?.Invoke();
+        }
 
         /// <summary>
         /// 对标老端41621：只修改已有41620条目；重复task_id按delta中最后一项生效，
@@ -303,7 +342,11 @@ namespace Shenxiao.Module.Core.RuneTreasure
         public void ApplyTaskDelta(byte huntType, IReadOnlyList<TaskItem> delta)
         {
             LastTaskDelta = new TaskDeltaSnapshot(huntType, delta);
-            if (!_tasks.TryGetValue(huntType, out TaskSnapshot current)) return;
+            if (!_tasks.TryGetValue(huntType, out TaskSnapshot current))
+            {
+                Changed?.Invoke();
+                return;
+            }
 
             var updated = new List<TaskItem>(current.Tasks.Count);
             for (int i = 0; i < current.Tasks.Count; i++)
@@ -324,6 +367,7 @@ namespace Shenxiao.Module.Core.RuneTreasure
                 updated.Add(new TaskItem(old.TaskId, num, state));
             }
             _tasks[huntType] = new TaskSnapshot(current.Code, huntType, updated);
+            Changed?.Invoke();
         }
 
         public bool TryGetPage(byte huntType, byte recordType, out PageSnapshot snapshot) =>
@@ -352,6 +396,7 @@ namespace Shenxiao.Module.Core.RuneTreasure
             _crossRecords.Clear();
             _openStates.Clear();
             _tasks.Clear();
+            Changed?.Invoke();
         }
 
         private static IReadOnlyList<T> Freeze<T>(IReadOnlyList<T> source)

@@ -16,7 +16,10 @@ namespace Shenxiao.Module.Core.HolySeal
         {
             RegisterProtocal(Proto.HOLY_SEAL_ERROR, On65400);
             RegisterProtocal(Proto.HOLY_SEAL_EQUIPS, On65401);
+            RegisterProtocal(Proto.HOLY_SEAL_STRENGTHEN, On65402);
+            RegisterProtocal(Proto.HOLY_SEAL_REPLACE, On65403);
             RegisterProtocal(Proto.HOLY_SEAL_PILLS, On65405);
+            RegisterProtocal(Proto.HOLY_SEAL_USE_PILL, On65406);
             RegisterProtocal(Proto.HOLY_SEAL_RATING, On65407);
             RegisterProtocal(Proto.HOLY_SEAL_SUIT_PREVIEW, On65408);
             RegisterProtocal(Proto.HOLY_SEAL_SUITS, On65409);
@@ -43,6 +46,14 @@ namespace Shenxiao.Module.Core.HolySeal
             HolySealModel.Instance.ReplacePillSnapshot(reader.ReadArray(r =>
                 new HolySealModel.PillEntry(r.ReadU32(), r.ReadU16(), r.ReadU16())));
         }
+
+        private void On65402(NetReader reader) =>
+            HolySealModel.Instance.ApplyStrength(reader.ReadU8(), reader.ReadU16());
+
+        private void On65403(NetReader reader) => HolySealModel.Instance.ApplyReplaceAck();
+
+        private void On65406(NetReader reader) => HolySealModel.Instance.ApplyPillUse(
+            reader.ReadU32(), reader.ReadU16(), reader.ReadU32());
 
         private void On65408(NetReader reader)
         {
@@ -74,6 +85,15 @@ namespace Shenxiao.Module.Core.HolySeal
             SendRequest(Proto.HOLY_SEAL_SUIT_PREVIEW, "i", goodsTypeId);
 
         public void RequestSuitSnapshot() => SendRequest(Proto.HOLY_SEAL_SUITS);
+
+        public void Strengthen(byte position, byte strengthenType) =>
+            SendRequest(Proto.HOLY_SEAL_STRENGTHEN, "cc", position, strengthenType);
+
+        public void Replace(byte position, ulong goodsId) =>
+            SendRequest(Proto.HOLY_SEAL_REPLACE, "cl", position, unchecked((long)goodsId));
+
+        public void UsePill(uint goodsTypeId, ushort num) =>
+            SendRequest(Proto.HOLY_SEAL_USE_PILL, "ih", goodsTypeId, num);
 
         private static HolySealModel.SuitEntry ReadSuitEntry(NetReader reader) =>
             new HolySealModel.SuitEntry(reader.ReadU32(), reader.ReadU16());

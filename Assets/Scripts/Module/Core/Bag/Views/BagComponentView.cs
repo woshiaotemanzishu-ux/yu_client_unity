@@ -1,14 +1,20 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Shenxiao.Common.Proto;
+using Shenxiao.Common.Tips;
 using Shenxiao.Common.UI3D;
 using Shenxiao.Generated.UI.Bag;
 using Shenxiao.Framework.Event;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.Equip;
+using Shenxiao.Module.Core.FirstRecharge;
+using Shenxiao.Module.Core.Game;
+using Shenxiao.Module.Core.Guard;
 using Shenxiao.Module.Core.Login;
+using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.Resonance;
 using Shenxiao.Module.Core.Role;
 using UnityEngine;
@@ -28,6 +34,9 @@ namespace Shenxiao.Module.Core.Bag
         private const int DefaultVisibleCells = 24;
         private const int EquipmentSlotCount = 10;
         private const float ModelScale = 0.78f;
+        private const int LockedTailCells = 18;
+        private const int LegacyColumns = 6;
+        private const int OneKeyWearRedMaxLevel = 210;
 
         private BagItemRenderer _itemTemplate;
         // 虚拟化格子池:只实例化「可视行数 + 缓冲」个 cell,滚动/数据更新时原地重绑数据,
@@ -35,6 +44,7 @@ namespace Shenxiao.Module.Core.Bag
         private readonly List<BagItemRenderer> _cellPool = new List<BagItemRenderer>();
         private BagGoods[] _slots = System.Array.Empty<BagGoods>();
         private int _slotCount;
+        private int _unlockedSlotCount;
         private int _cols = 1;
         private int _firstVisibleRow = -1;
         private bool _scrollHooked;
@@ -42,24 +52,31 @@ namespace Shenxiao.Module.Core.Bag
         private FightingShowSmallItem _fightingItem;
         private bool _subscribed;
         private int _modelRequestId;
+        private int _conditionalVisualRequestId;
+        private int _guardType1 = 1;
+        private int _guardType2 = 2;
 
         protected override void OnInit()
         {
             HideReds();
             HideTemplates();
             BindButtons();
+            ConfigureOwnedRedProviders();
         }
 
         public void SetItemTemplate(BagItemRenderer template) => _itemTemplate = template;
 
         protected override void OnShow(object args)
         {
+            BagFlow.ApplyWindowTitlePresentation(0);
             Subscribe();
             BuildEquipmentSlots();
             RefreshEquipmentSlots();
             BuildGrid();
             EnsureFightingItem();
             RefreshRoleInfo();
+            RefreshConditionalBlocks();
+            RefreshPageReds();
             ShowRoleModel();
             _ = RefreshAfterGoodsConfigAsync();
         }
@@ -67,7 +84,9 @@ namespace Shenxiao.Module.Core.Bag
         protected override void OnHide()
         {
             Unsubscribe();
+            StopGridScroll();
             _modelRequestId++;
+            _conditionalVisualRequestId++;
             UIModelStage.Clear();
         }
 
@@ -75,6 +94,7 @@ namespace Shenxiao.Module.Core.Bag
         {
             Unsubscribe();
             _modelRequestId++;
+            _conditionalVisualRequestId++;
             UIModelStage.Clear();
         }
 
@@ -82,6 +102,7 @@ namespace Shenxiao.Module.Core.Bag
         {
             Unsubscribe();
             _modelRequestId++;
+            _conditionalVisualRequestId++;
             UIModelStage.Clear();
         }
 
@@ -92,6 +113,11 @@ namespace Shenxiao.Module.Core.Bag
             EventDispatcher.On(GlobalEvent.EVT_EQUIPMENT_UPDATE, RefreshEquipmentSlots);
             EventDispatcher.On(GlobalEvent.EVT_EQUIP_SUIT_UPDATE, RefreshEquipmentSlots);
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.On(GlobalEvent.EVT_FIRST_RECHARGE_UPDATE, RefreshConditionalBlocks);
+            EventDispatcher.On(GlobalEvent.EVT_BAG_UPDATE, RefreshPageReds);
+            EventDispatcher.On(GlobalEvent.EVT_BAG_UPDATE, RefreshConditionalBlocks);
+            EventDispatcher.On(GlobalEvent.EVT_EQUIPMENT_UPDATE, RefreshPageReds);
+            BagMainRedStateProvider.Instance.Changed += ApplyPageRedSnapshot;
             _subscribed = true;
         }
 
@@ -102,22 +128,116 @@ namespace Shenxiao.Module.Core.Bag
             EventDispatcher.Off(GlobalEvent.EVT_EQUIPMENT_UPDATE, RefreshEquipmentSlots);
             EventDispatcher.Off(GlobalEvent.EVT_EQUIP_SUIT_UPDATE, RefreshEquipmentSlots);
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_FIRST_RECHARGE_UPDATE, RefreshConditionalBlocks);
+            EventDispatcher.Off(GlobalEvent.EVT_BAG_UPDATE, RefreshPageReds);
+            EventDispatcher.Off(GlobalEvent.EVT_BAG_UPDATE, RefreshConditionalBlocks);
+            EventDispatcher.Off(GlobalEvent.EVT_EQUIPMENT_UPDATE, RefreshPageReds);
+            BagMainRedStateProvider.Instance.Changed -= ApplyPageRedSnapshot;
             _subscribed = false;
         }
 
         private void OnRoleInfoUpdate()
         {
             RefreshRoleInfo();
+            RefreshConditionalBlocks();
+            RefreshPageReds();
             if (gameObject.activeInHierarchy) ShowRoleModel();
+        }
+
+        /// <summary>对标老端 BagComponentView：守护与龙珠是条件块，未开放时不生成可见入口。</summary>
+        private void RefreshConditionalBlocks()
+        {
+            bool guardOpen = FuncOpenConfig.CheckFuncOpenState("GuardMainView");
+            bool dragonBallOpen = !PlatformModel.IsAlpha
+                                  && FuncOpenConfig.CheckFuncOpenState("DragonBallView");
+            if (_gp_guard1 != null) _gp_guard1.gameObject.SetActive(guardOpen);
+            if (_gp_guard2 != null) _gp_guard2.gameObject.SetActive(guardOpen);
+            if (_gp_dragonball != null) _gp_dragonball.gameObject.SetActive(dragonBallOpen);
+            _ = RefreshConditionalVisualsAsync(guardOpen, dragonBallOpen);
+        }
+
+        private async Task RefreshConditionalVisualsAsync(bool guardOpen, bool dragonBallOpen)
+        {
+            int requestId = ++_conditionalVisualRequestId;
+            ResolveGuardPresentation(out int type1, out bool active1, out int type2, out bool active2);
+            _guardType1 = type1;
+            _guardType2 = type2;
+
+            if (guardOpen)
+            {
+                if (_btn_guard1 != null)
+                {
+                    _btn_guard1.enabled = true;
+                    _btn_guard1.color = active1 ? Color.white : new Color(0.45f, 0.45f, 0.45f, 1f);
+                    await ResManager.SetImageAsync(_btn_guard1, GameResPath.GetIcon("bag", "guard" + type1), false, false);
+                }
+                if (requestId != _conditionalVisualRequestId || !IsShown) return;
+                if (_btn_guard2 != null)
+                {
+                    _btn_guard2.enabled = true;
+                    _btn_guard2.color = active2 ? Color.white : new Color(0.45f, 0.45f, 0.45f, 1f);
+                    await ResManager.SetImageAsync(_btn_guard2, GameResPath.GetIcon("bag", "guard" + type2), false, false);
+                }
+            }
+            if (requestId != _conditionalVisualRequestId || !IsShown) return;
+
+            if (dragonBallOpen && _btn_dragonball != null)
+            {
+                bool firstRechargeDone = FirstRechargeModel.Instance.IsDoneFirstRecharge();
+                _btn_dragonball.enabled = true;
+                _btn_dragonball.color = firstRechargeDone
+                    ? Color.white
+                    : new Color(0.45f, 0.45f, 0.45f, 1f);
+                await ResManager.SetImageAsync(_btn_dragonball,
+                    GameResPath.GetIcon("bag", "dragon_ball"), false, false);
+            }
+        }
+
+        private static void ResolveGuardPresentation(
+            out int type1, out bool active1, out int type2, out bool active2)
+        {
+            type1 = 1;
+            type2 = 2;
+            active1 = false;
+            active2 = false;
+            IReadOnlyList<GuardModel.Circle> circles = GuardModel.Instance.Circles;
+            for (int i = 0; i < circles.Count; i++)
+            {
+                GuardModel.Circle circle = circles[i];
+                if (circle == null || circle.Status != 1) continue;
+                if (circle.Level == 1 || circle.Level == 3)
+                {
+                    type1 = circle.Level;
+                    active1 = true;
+                }
+                else if (circle.Level == 2 || circle.Level == 4)
+                {
+                    type2 = circle.Level;
+                    active2 = true;
+                }
+            }
+
+            if (BagModel.Instance.GetTypeGoodsNum(38040055) > 0)
+            {
+                type1 = 3;
+                active1 = false;
+            }
+            if (BagModel.Instance.GetTypeGoodsNum(38040059) > 0)
+            {
+                type2 = 4;
+                active2 = false;
+            }
         }
 
         /// <summary>登录时 15010 可能早于 config_goods；配置到齐后重绑一次，恢复真实图标和 equip_type 槽位。</summary>
         private async Task RefreshAfterGoodsConfigAsync()
         {
-            await Task.WhenAll(GoodsModel.EnsureLoaded(), ResonanceConfigs.EnsureLoaded());
+            await Task.WhenAll(GoodsModel.EnsureLoaded(), ResonanceConfigs.EnsureLoaded(), FuncOpenConfig.EnsureLoaded());
             if (!IsShown) return;
             RefreshEquipmentSlots();
             BuildGrid();
+            RefreshConditionalBlocks();
+            RefreshPageReds();
         }
 
         private void EnsureFightingItem()
@@ -223,12 +343,12 @@ namespace Shenxiao.Module.Core.Bag
             if (viewW <= 1f) viewW = 580f;
 
             _cols = Mathf.Max(1, Mathf.FloorToInt((viewW + Gap) / (Cell + Gap)));
-            _slotCount = ResolveSlotCount(goods);
-            _slots = BuildSlots(goods, _slotCount);
+            _unlockedSlotCount = ResolveSlotCount(goods);
+            _slotCount = _unlockedSlotCount + LockedTailCells - _unlockedSlotCount % LegacyColumns;
+            _slots = BuildSlots(goods, _unlockedSlotCount);
 
             int rows = Mathf.CeilToInt(_slotCount / (float)_cols);
             content.sizeDelta = new Vector2(content.sizeDelta.x, rows * (Cell + Gap) + Gap);
-
             EnsureCellPool();
             HookScroll();
             RefreshVisibleCells(force: true);
@@ -265,6 +385,13 @@ namespace Shenxiao.Module.Core.Bag
             bag_con.onValueChanged.AddListener(_ => RefreshVisibleCells(force: false));
         }
 
+        private void StopGridScroll()
+        {
+            if (bag_con == null) return;
+            bag_con.StopMovement();
+            bag_con.velocity = Vector2.zero;
+        }
+
         /// <summary>把池内 cell 绑到当前可视窗口对应的槽位;首行未变时整帧 early-out(对齐 SceneMapView 瓦片池思路)。</summary>
         private void RefreshVisibleCells(bool force)
         {
@@ -294,6 +421,21 @@ namespace Shenxiao.Module.Core.Bag
                 var rt = (RectTransform)cell.transform;
                 rt.anchoredPosition = new Vector2(col * (Cell + Gap), -(firstRow + rowOffset) * (Cell + Gap));
                 cell.gameObject.SetActive(true);
+                if (slotIndex >= _unlockedSlotCount)
+                {
+                    int initialCount = slotIndex - _unlockedSlotCount + 1;
+                    cell.SetData(new BagItemData
+                    {
+                        Locked = true,
+                        Click = () => BagFlow.OpenSub("ExpandBagView", new ExpandBagView.Presentation
+                        {
+                            BagPos = BagModel.POS_BAG,
+                            InitialCount = initialCount,
+                        }),
+                    });
+                    continue;
+                }
+
                 BagGoods vo = _slots[slotIndex];
                 cell.SetData(vo != null ? new BagItemData { TypeId = vo.TypeId, Count = vo.GoodsNum, Goods = vo } : null);
             }
@@ -399,6 +541,95 @@ namespace Shenxiao.Module.Core.Bag
             HideNode(smeltRed);
         }
 
+        /// <summary>
+        /// 只注册 Bag 自身可由当前权威快照推导的三类红点。普通使用冷却、守护、龙珠及三个特殊装备页
+        /// 均依赖外部模块状态，保持 unknown，禁止把“暂时无消费者”猜成 false 后扩散到 MainUI。
+        /// </summary>
+        private static void ConfigureOwnedRedProviders()
+        {
+            BagMainRedStateProvider.Instance.ConfigureOwnedProviders(
+                null, HasOneKeyUseRed, HasSmeltRed, HasOneKeyWearRed,
+                null, null, null);
+        }
+
+        private void RefreshPageReds()
+        {
+            ApplyPageRedSnapshot(BagMainRedStateProvider.Instance.Refresh());
+        }
+
+        private void ApplyPageRedSnapshot(BagMainRedStateProvider.Snapshot snapshot)
+        {
+            SetNodeActive(useRed, snapshot.OneKeyUse);
+            SetNodeActive(smeltRed, snapshot.Smelt);
+            SetNodeActive(red_quick, snapshot.OneKeyWear);
+
+            // 这些节点没有 Bag 域内的权威状态源；维持隐藏，直到对应模块显式注入。
+            HideNode(suitRed);
+            HideNode(guard1_red);
+            HideNode(guard2_red);
+            HideNode(dragonball_red);
+        }
+
+        private static bool HasOneKeyUseRed()
+        {
+            int roleLevel = RoleModel.Instance.Level;
+            foreach (BagGoods goods in BagModel.Instance.BagGoodsList)
+            {
+                if (goods == null || goods.GoodsNum <= 0) continue;
+                GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(goods.TypeId);
+                if (basic != null && basic.UseOneKey != 0 && roleLevel >= basic.Level) return true;
+            }
+            return false;
+        }
+
+        private static bool HasSmeltRed()
+        {
+            BagModel model = BagModel.Instance;
+            int maxCell = model.MaxCell;
+            if (maxCell <= 0 || maxCell - model.BagGoodsList.Count > 30) return false;
+
+            foreach (BagGoods goods in model.BagGoodsList)
+            {
+                if (goods == null || goods.GoodsNum <= 0) continue;
+                GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(goods.TypeId);
+                GoodsModel.EquipAttr equip = GoodsModel.GetEquipAttr(goods.TypeId);
+                if (basic == null || equip == null || basic.Color > 4) continue;
+                if (equip.Star != 0 || equip.Stage > 99 || basic.EquipType == 7 || basic.EquipType == 9) continue;
+
+                BagGoods worn = basic.EquipType > 0 ? model.GetEquipmentAt(basic.EquipType) : null;
+                if (worn == null || worn.Rating >= goods.Rating) return true;
+            }
+            return false;
+        }
+
+        private static bool HasOneKeyWearRed()
+        {
+            RoleModel role = RoleModel.Instance;
+            return role.Level < OneKeyWearRedMaxLevel && HasOneKeyWearCandidate();
+        }
+
+        private static bool HasOneKeyWearCandidate()
+        {
+            RoleModel role = RoleModel.Instance;
+            BagModel model = BagModel.Instance;
+            if (!model.HasEquipmentData) return false;
+
+            int roleTurn = role.Figure != null ? role.Figure.turn : 0;
+            foreach (BagGoods goods in model.BagGoodsList)
+            {
+                if (goods == null || goods.GoodsNum <= 0) continue;
+                GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(goods.TypeId);
+                if (basic == null || !GoodsModel.IsEquip(goods.TypeId) || basic.EquipType <= 0) continue;
+                if (basic.CareerId != 0 && basic.CareerId != role.Career) continue;
+                if (basic.Sex != 0 && basic.Sex != role.Sex) continue;
+                if (basic.Level > role.Level || basic.Turn > roleTurn) continue;
+
+                BagGoods worn = model.GetEquipmentAt(basic.EquipType);
+                if (worn == null || goods.Rating > worn.Rating) return true;
+            }
+            return false;
+        }
+
         private void HideTemplates()
         {
             if (_tpl_BagEquipmentIcon != null) _tpl_BagEquipmentIcon.SetActive(false);
@@ -407,14 +638,70 @@ namespace Shenxiao.Module.Core.Bag
 
         private void BindButtons()
         {
-            BindAction(onekeyBtn, () => EquipAutoWear.TryManualWear(), "one key equip");
-            BindToggle(smeltBtn, "BagSmeltView", "smelt");
+            BindAction(onekeyBtn, TryManualOneKeyWear, "one key equip");
+            BindAction(smeltBtn, OpenSmelt, "smelt");
             BindAction(expandBtn, () => BagFlow.OpenSub("ExpandBagView", BagModel.POS_BAG), "expand bag");
-            DisableClickSurface(redequipBtn);
+            BindAction(redequipBtn, () => ResonanceFlow.Open(), "resonance");
             BindToggle(useBtn, "OneKeyUseView", "one key use");
-            BindBtn(_btn_guard1, "guard 1");
-            BindBtn(_btn_guard2, "guard 2");
-            BindBtn(_btn_dragonball, "dragon ball");
+            BindAction(_btn_guard1, () => OpenGuard(_guardType1), "guard 1");
+            BindAction(_btn_guard2, () => OpenGuard(_guardType2), "guard 2");
+            BindAction(_btn_dragonball, OpenDragonBall, "dragon ball");
+        }
+
+        private static void TryManualOneKeyWear()
+        {
+            if (!GoodsModel.IsLoaded || !BagModel.Instance.HasEquipmentData || HasOneKeyWearCandidate())
+            {
+                EquipAutoWear.TryManualWear();
+                return;
+            }
+
+            TipsManager.Confirm(
+                "当前没有更好装备可替换。\n击杀各种大妖可获得极品装备，是否立刻前往？",
+                () => GameLog.Warn("Bag",
+                    "One-key wear destination blocked: target=BossEnterView, index=Field, code=BOSS_FIELD_ROUTE_MISSING"),
+                null,
+                "前往");
+        }
+
+        private static void OpenGuard(int guardType)
+        {
+            const string route = "GuardMainView";
+            if (!MainUIRouter.IsRegistered(route))
+            {
+                GameLog.Warn("Bag", "Guard route blocked: target={0}, requestedType={1}, code=GUARD_ROUTE_STATE_PROVIDER",
+                    route, guardType);
+                return;
+            }
+            GameLog.Info("Bag", "open guard target={0}, requestedType={1}", route, guardType);
+            MainUIRouter.Open(route);
+        }
+
+        private static void OpenDragonBall()
+        {
+            if (!FirstRechargeModel.Instance.IsDoneFirstRecharge())
+            {
+                MainUIRouter.Open("recharge");
+                return;
+            }
+
+            const string route = "DragonBallView";
+            if (!MainUIRouter.IsRegistered(route))
+            {
+                GameLog.Warn("Bag", "DragonBall route blocked: target={0}, code=DRAGONBALL_ROUTE_STATE_PROVIDER", route);
+                return;
+            }
+            MainUIRouter.Open(route);
+        }
+
+        private static void OpenSmelt()
+        {
+            if (!FuncOpenConfig.CheckFuncOpenState("BagSmeltView"))
+            {
+                TipsManager.Toast("熔炼功能尚未开放");
+                return;
+            }
+            BagFlow.ToggleSub("BagSmeltView");
         }
 
         private void BindToggle(Component target, string viewType, string label)
@@ -437,13 +724,6 @@ namespace Shenxiao.Module.Core.Bag
                 GameLog.Info("Bag", "click bag button [{0}]", label);
                 action?.Invoke();
             });
-        }
-
-        private void BindBtn(Component target, string label)
-        {
-            Image img = PrepareClickSurface(target);
-            if (img == null) return;
-            UIUtil.AddClick(img, () => GameLog.Info("Bag", "click bag button [{0}] -> TODO", label));
         }
 
         /// <summary>复合按钮根为唯一命中面；所有图标/文字装饰 Graphic 都关闭 Raycast。</summary>
@@ -472,6 +752,11 @@ namespace Shenxiao.Module.Core.Bag
         private static void HideNode(Component c)
         {
             if (c != null) c.gameObject.SetActive(false);
+        }
+
+        private static void SetNodeActive(Component c, bool active)
+        {
+            if (c != null) c.gameObject.SetActive(active);
         }
     }
 }

@@ -64,6 +64,17 @@ namespace Shenxiao.Module.Core.Equip
             RefreshUpOneEntry();
         }
 
+        protected override void OnHide()
+        {
+            EquipJewelBagItem item = _upOneInstance != null ? _upOneInstance.GetComponent<EquipJewelBagItem>() : null;
+            if (item != null && item.IsShown) item.Hide();
+            if (_Scroller1 != null)
+            {
+                _Scroller1.StopMovement();
+                _Scroller1.verticalNormalizedPosition = 1f;
+            }
+        }
+
         /// <summary>_btn_up/_btn_off 仅在该槽有宝石时才有意义(对标老端 jewel_data_ 真值判定);
         /// 红点(_reddot,是否可合成/升级)依赖 config_equip_stone_lv(未移植)→ 隐藏。</summary>
         private void RefreshHeader()
@@ -81,7 +92,8 @@ namespace Shenxiao.Module.Core.Equip
             bool show = haveNum > 0 && _currentTypeId > 0 && _tpl_EquipJewelBagItem != null;
             if (!show)
             {
-                if (_upOneInstance != null) _upOneInstance.SetActive(false);
+                EquipJewelBagItem hidden = _upOneInstance != null ? _upOneInstance.GetComponent<EquipJewelBagItem>() : null;
+                if (hidden != null && hidden.IsShown) hidden.Hide();
                 GameLog.Info("Equip", "EquipJewelBagView 打开 equip_pos={0} stone_pos={1} type_id={2}(直升丹未显示:" +
                     "haveNum={3}) → 常规宝石列表待对接(config_equip_stone_inlay/config_equip_stone_lv 未移植)",
                     _equipPos, _stonePos, _currentTypeId, haveNum);
@@ -89,11 +101,15 @@ namespace Shenxiao.Module.Core.Equip
             }
             if (_upOneInstance == null)
             {
-                _upOneInstance = Object.Instantiate(_tpl_EquipJewelBagItem, _tpl_EquipJewelBagItem.transform.parent);
+                Transform parent = _Scroller1 != null && _Scroller1.content != null
+                    ? _Scroller1.content
+                    : _tpl_EquipJewelBagItem.transform.parent;
+                _upOneInstance = Object.Instantiate(_tpl_EquipJewelBagItem, parent, false);
+                _upOneInstance.name = "EquipJewelBagItem_UpOne_Runtime";
+                _upOneInstance.SetActive(false);
             }
-            _upOneInstance.SetActive(true);
             EquipJewelBagItem item = _upOneInstance.GetComponent<EquipJewelBagItem>();
-            item?.Show();
+            if (item != null && !item.IsShown) item.Show();
             item?.SetUpOneData(JewelUpGoodsTypeId, haveNum, OnClickUpOne);
             GameLog.Info("Equip", "EquipJewelBagView 打开 equip_pos={0} stone_pos={1} type_id={2} → 直升丹条目已显示," +
                 "常规宝石列表待对接(config_equip_stone_inlay/config_equip_stone_lv 未移植)", _equipPos, _stonePos, _currentTypeId);

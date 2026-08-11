@@ -56,6 +56,12 @@ namespace Shenxiao.Module.Core.Common
             public string BaseAttrList = ""; // base_attrlist(装备基础属性 Erlang term [{attr_id,val},...],key "26",对标 EquipToolTips basic.base_attrlist)
             public int Use;            // use(可使用标记,key "22";==0 不显使用按钮,对标 GoodsTooltips useBtn 隐藏条件 basic.use==0)
             public int UseOneKey;      // use_one_key(key "25";!=0 可进入一键使用列表)
+            public int Bind;           // bind(key "5")，配置默认绑定语义
+            public int Trade;          // trade(key "6")，配置是否允许交易
+            public string IfCustomPrice = ""; // if_custom_price(key "7")，自定义价区间 Erlang term
+            public int MaxOverlap;     // max_overlap(key "17")，堆叠上限
+            public string TradePrice = ""; // trade_price(key "20")，按开服天数的价格/上架数量规则
+            public int CanStorage;     // can_storge(key "37"，服务端历史拼写)，是否可存仓
         }
 
         /// <summary>装备配置行(config_equip_attr[type_id];字段下标见 config_table_default.json:1=stage 2=star 3=base_rating)。
@@ -113,6 +119,9 @@ namespace Shenxiao.Module.Core.Common
         private const string K_INTRO = "2";        // intro(物品介绍/描述)
         private const string K_GETWAY = "3";       // getway(获取途径/来源文本,对标 GoodsTooltips.ways)
         private const string K_GETWAY_URL = "4";   // getway_url([{open_fun_id,arg},...],GoodsTooltips.sourceGp)
+        private const string K_BIND = "5";         // bind
+        private const string K_TRADE = "6";        // trade
+        private const string K_CUSTOM_PRICE = "7"; // if_custom_price
         private const string K_SOURCE = "35";      // 运营来源展示(世界BOSS/运营活动等)
         private const string K_TYPE = "9";         // type(物品大类;==10 装备)
         private const string K_SUBTYPE = "10";     // subtype(子类)
@@ -120,8 +129,10 @@ namespace Shenxiao.Module.Core.Common
         private const string K_ICON = "14";        // goods_icon
         private const string K_CAREER = "15";      // career_id(职业需求 0=通用)
         private const string K_LEVEL = "16";       // level(需求等级)
+        private const string K_MAX_OVERLAP = "17"; // max_overlap
         private const string K_COLOR = "18";       // color/品质 0..8
         private const string K_EXPIRE_TIME = "19"; // expire_time(静态限时标记/描述)
+        private const string K_TRADE_PRICE = "20"; // trade_price
         private const string K_USE = "22";         // use(可使用标记;==0 → GoodsTooltips 不显使用按钮)
         private const string K_USE_ONE_KEY = "25"; // use_one_key(老端 OneKeyUseView 过滤条件)
         private const string K_BASE_ATTR = "26";   // base_attrlist(装备基础属性 Erlang term)
@@ -129,6 +140,7 @@ namespace Shenxiao.Module.Core.Common
         private const string K_TURN = "31";        // turn(转生需求)
         private const string K_EFFECT_ID = "34";   // effect_id(物品槽流光)
         private const string K_EXPIRE_TYPE = "36"; // expire_type(限时文案语义)
+        private const string K_CAN_STORAGE = "37"; // can_storge(配表历史拼写)
 
         // config_equip_attr 数字键(config_table_default.json:goods_id/stage/star/base_rating/class_type/recommend_attr/other_attr)。
         private const string KE_STAGE = "1";
@@ -244,6 +256,12 @@ namespace Shenxiao.Module.Core.Common
                 BaseAttrList = ReadString(obj, K_BASE_ATTR),
                 Use = ReadInt(obj, K_USE),
                 UseOneKey = ReadInt(obj, K_USE_ONE_KEY),
+                Bind = ReadInt(obj, K_BIND),
+                Trade = ReadInt(obj, K_TRADE),
+                IfCustomPrice = ReadString(obj, K_CUSTOM_PRICE),
+                MaxOverlap = ReadInt(obj, K_MAX_OVERLAP),
+                TradePrice = ReadString(obj, K_TRADE_PRICE),
+                CanStorage = ReadInt(obj, K_CAN_STORAGE),
             };
             _cache[typeId] = basic;
             return basic;

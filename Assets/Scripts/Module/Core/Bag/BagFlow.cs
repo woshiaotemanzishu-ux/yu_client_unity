@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.MainUI;
+using TMPro;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Bag
@@ -14,7 +16,8 @@ namespace Shenxiao.Module.Core.Bag
     /// 背包模块编排:五标签窗(对标老端 BagView extends BaseWindowComponent)。**走 BaseWindowSkinView 地基 + 多内容源**(标签内容跨模块,= 老端 viewClassModuleDic)。
     ///
     /// 老端 tabStrList=[背包/仓库/影骸战衣/启示圣铠/九天神祭];内容分散在 bag / holySeal / revelation / longlanguage 模块。
-    /// Unity 已写 背包/仓库(bag,tab0/1)+ 影骸战衣(holySeal,tab2)→ 开放;启示圣铠(revelation)/九天神祭(longlanguage)未写 → disabled。
+    /// 五个标签都有当前可编辑主 Prefab；实际生成项与老端 InitTabList 一致，先走 ConfigFuncOpenCondition，
+    /// 未开放的特殊标签不加载 Prefab、不生成 Tab。特殊装备页只在开放且被选中时拉自己的 15010 容器。
     /// **内容源两形态**:模块组 prefab(根=容器,视图为顶层子,如 BagModule)/ 独立视图 prefab(根即视图,shared-prefab 产物,如 HolySealView.prefab)。
     /// 加载时按需去重;点标签把对应内容 reparent 进窗框内容区 _gp_item_con(懒加载缓存)。
     /// 子窗(一键使用/熔炼/扩展…)经 <see cref="ToggleSub"/>/<see cref="OpenSub"/>(背包面板按钮触发,搜模块组源)。入口 <see cref="BagBootstrap"/>(MainUIRouter "bag");再点图标 <see cref="Toggle"/> 关闭。
@@ -58,17 +61,29 @@ namespace Shenxiao.Module.Core.Bag
         };
         private static readonly string[] TabLabels =
         {
-            "\u80CC\u5305", "\u4ED3\u5E93", "\u5F71\u9AA8\u6218\u8863", "\u542F\u793A\u5723\u94E0", "\u4E5D\u5929\u795E\u7B26"
+            "\u80CC\u5305", "\u4ED3\u5E93", "\u5F71\u9AA8\u6218\u8863", "\u542F\u793A\u5723\u94E0", "\u4E5D\u5929\u795E\u796D"
         };
-        // 5/5 全开(背包/仓库/影骸战衣/启示圣铠/九天神祭);longlanguage 经 LayaBindFiller 大小写不敏感兜底后可正常挂载
-        private static readonly bool[] TabEnabled = { true, true, false, false, false };
         private const int DefaultTab = 0;
 
         private static GameObject _frameRoot;
         // 内容源根:prefab 名 → 实例(去重)
         private static readonly Dictionary<string, GameObject> _contentRoots = new Dictionary<string, GameObject>();
+        private static readonly HashSet<string> _moduleLoading = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private static BaseWindowSkinView _window;
+        private static TextMeshProUGUI _titleOverlay;
+        private static bool[] _tabEnabledSnapshot;
+        private static bool _windowCloseHooked;
         private static bool _loading;
+
+        /// <summary>
+        /// 对标老端 BaseWindowComponent.InitTabList：背包/仓库无开放表条目，始终生成；
+        /// 影骸战衣、启示圣铠、九天神祭按各自 ViewName 的开服天/等级/任务条件过滤。
+        /// </summary>
+        private static bool IsTabEnabled(int index)
+        {
+            if (index < 0 || index >= TabContent.Length) return false;
+            return index <= 1 || FuncOpenConfig.CheckFuncOpenState(TabContent[index]);
+        }
 
         public static void Toggle()
         {
@@ -80,7 +95,68 @@ namespace Shenxiao.Module.Core.Bag
 
         public static void Close()
         {
+            HideContentViews();
             if (_window != null) _window.Hide();
+        }
+
+        /// <summary>
+        /// 老端 BagView 会在影骸战衣、启示圣铠和九天神祭页用完整文字覆盖旧标题位图；
+        /// 旧位图仍分别写着“影装”“天启”等简称，不能作为当前窗口身份。
+        /// 内容页每次 Show 都同步一次，保证缓存页切换及 warm 重开不会残留上一页标题。
+        /// </summary>
+        internal static void ApplyWindowTitlePresentation(int tabIndex)
+        {
+            if (_window == null || _window._img_title == null) return;
+
+            string titleText = tabIndex >= 2 && tabIndex < TabLabels.Length
+                ? TabLabels[tabIndex]
+                : null;
+            if (string.IsNullOrEmpty(titleText))
+            {
+                if (_titleOverlay != null) _titleOverlay.gameObject.SetActive(false);
+                _window._img_title.gameObject.SetActive(true);
+                return;
+            }
+
+            RectTransform imageRect = _window._img_title.rectTransform;
+            if (_titleOverlay != null && _titleOverlay.transform.parent != imageRect.parent)
+            {
+                UnityEngine.Object.Destroy(_titleOverlay.gameObject);
+                _titleOverlay = null;
+            }
+
+            if (_titleOverlay == null)
+            {
+                var go = new GameObject("_bag_module_title_overlay", typeof(RectTransform));
+                var rect = (RectTransform)go.transform;
+                rect.SetParent(imageRect.parent, false);
+                rect.anchorMin = imageRect.anchorMin;
+                rect.anchorMax = imageRect.anchorMax;
+                rect.pivot = imageRect.pivot;
+                rect.anchoredPosition = imageRect.anchoredPosition;
+                rect.sizeDelta = new Vector2(Mathf.Max(300f, imageRect.rect.width), Mathf.Max(44f, imageRect.rect.height));
+
+                _titleOverlay = go.AddComponent<TextMeshProUGUI>();
+                _titleOverlay.alignment = TextAlignmentOptions.Center;
+                _titleOverlay.fontSize = 34f;
+                _titleOverlay.fontStyle = FontStyles.Bold;
+                _titleOverlay.color = new Color(1f, 0.972f, 0.906f, 1f);
+                _titleOverlay.raycastTarget = false;
+                foreach (TextMeshProUGUI text in _window.GetComponentsInChildren<TextMeshProUGUI>(true))
+                {
+                    if (text == _titleOverlay) continue;
+                    _titleOverlay.font = text.font;
+                    _titleOverlay.fontSharedMaterial = text.fontSharedMaterial;
+                    break;
+                }
+            }
+
+            _titleOverlay.text = titleText;
+            _titleOverlay.gameObject.SetActive(true);
+            _titleOverlay.transform.SetAsLastSibling();
+            _window._img_title.gameObject.SetActive(false);
+            if (_window._img_instruction != null && _window._img_instruction.gameObject.activeSelf)
+                _window._img_instruction.transform.SetAsLastSibling();
         }
 
         /// <summary>切换背包模块内子窗(一键使用/熔炼/扩展…),已显则关、未显则开;在所有已加载内容源里按 View 子类名查找。</summary>
@@ -112,6 +188,70 @@ namespace Shenxiao.Module.Core.Bag
         }
 
         /// <summary>
+        /// 打开特殊背包页所属的现有模块子窗。HolySealView/longlanguageView 是独立内容 Prefab，
+        /// 它们的强化、预览、分解等子窗仍保存在各自 Module Prefab，不能把“按钮有点击日志”当成已接线。
+        /// 本入口只做懒加载和真实 BaseView.Show，不复制视觉树；同一模块实例在 Bag 会话内复用。
+        /// </summary>
+        public static void OpenModuleSub(string module, string prefabName, string viewTypeName, object args = null)
+        {
+            _ = OpenModuleSubAsync(module, prefabName, viewTypeName, args);
+        }
+
+        private static async Task OpenModuleSubAsync(string module, string prefabName, string viewTypeName, object args)
+        {
+            if (string.IsNullOrEmpty(module) || string.IsNullOrEmpty(prefabName) || string.IsNullOrEmpty(viewTypeName))
+                return;
+
+            BaseView existing = FindSub(viewTypeName);
+            if (existing != null)
+            {
+                RaiseSubViewRoot(existing);
+                existing.Show(args);
+                return;
+            }
+
+            string rootKey = module + "/" + prefabName;
+            if (_moduleLoading.Contains(rootKey)) return;
+            _moduleLoading.Add(rootKey);
+            try
+            {
+                if (!_contentRoots.TryGetValue(rootKey, out GameObject root) || root == null)
+                {
+                    string address = GameResPath.GetUIPrefab(module, prefabName);
+                    root = await MainUIRouteFallback.InstantiateOrShowAsync(
+                        PRIMARY_MODULE, "Bag", address, ViewManager.GetLayer(UILayer.Window));
+                    if (root == null)
+                    {
+                        GameLog.Error("Bag", "特殊装备子模块加载失败 module={0} prefab={1} view={2}", module, prefabName, viewTypeName);
+                        return;
+                    }
+                    root.name = prefabName;
+                    if (root.GetComponent<BaseView>() != null) root.SetActive(false);
+                    else foreach (Transform child in root.transform) child.gameObject.SetActive(false);
+                    _contentRoots[rootKey] = root;
+                }
+
+                BaseView view = FindSub(viewTypeName);
+                if (view == null)
+                {
+                    GameLog.Error("Bag", "特殊装备子窗不存在 module={0} prefab={1} view={2}", module, prefabName, viewTypeName);
+                    return;
+                }
+                RaiseSubViewRoot(view);
+                view.Show(args);
+            }
+            catch (Exception e)
+            {
+                GameLog.Error("Bag", "特殊装备子窗打开异常 module={0} prefab={1} view={2} error={3}",
+                    module, prefabName, viewTypeName, e.Message);
+            }
+            finally
+            {
+                _moduleLoading.Remove(rootKey);
+            }
+        }
+
+        /// <summary>
         /// 老端 BagSmelt/OneKeyUse/ExpandBag 均在 Activity 层，必须整体高于背包 Window。
         /// 这些子窗仍属于 BagModule prefab；提升承载它们的模块根而不是把子节点拆出 prefab，
         /// 既保留序列化层级，也保证 BagFlow.Reset 能随模块根完整释放。
@@ -128,7 +268,7 @@ namespace Shenxiao.Module.Core.Bag
                     continue;
                 if (root.transform.parent != layer) root.transform.SetParent(layer, false);
                 root.transform.SetAsLastSibling();
-                root.GetComponent<BagActivityModalLayout>()?.Show(view.Hide);
+                root.GetComponent<BagActivityModalLayout>()?.Show(view, view.Hide);
                 return;
             }
 
@@ -160,7 +300,7 @@ namespace Shenxiao.Module.Core.Bag
                         sibling = index;
                     }
                 }
-                if (fallback != null) layout.Show(fallback.Hide);
+                if (fallback != null) layout.Show(fallback, fallback.Hide);
                 else layout.Hide();
                 return;
             }
@@ -178,7 +318,9 @@ namespace Shenxiao.Module.Core.Bag
                 if (root == null) continue;
                 foreach (BaseView v in root.GetComponentsInChildren<BaseView>(true))
                 {
-                    if (v.GetType().Name == viewTypeName) return v;
+                    string typeName = v.GetType().Name;
+                    if (typeName == viewTypeName || typeName == viewTypeName + "Bind" || v.gameObject.name == viewTypeName)
+                        return v;
                 }
             }
             return null;
@@ -186,24 +328,42 @@ namespace Shenxiao.Module.Core.Bag
 
         private static async Task OpenAsync()
         {
+            if (_loading) return;
             if (_frameRoot != null)
             {
-                if (_window != null) _window.Show();
-                return;
+                bool[] current = SnapshotTabEnabled();
+                if (!MatchesTabSnapshot(current))
+                {
+                    Reset();
+                }
+                else
+                {
+                    if (_window != null)
+                    {
+                        _window.Show();
+                        _window.SelectTab(DefaultTab);
+                    }
+                    return;
+                }
             }
 
-            if (_loading) return;
             _loading = true;
 
             string frameKey = GameResPath.GetUIPrefab(FRAME_MODULE, FRAME_PREFAB);
+            var tabEnabled = new bool[TabContent.Length];
             try
             {
+            await FuncOpenConfig.EnsureLoaded();
+            if (!FuncOpenConfig.IsLoaded)
+                GameLog.Error("Bag", "ConfigFuncOpenCondition 未加载，特殊背包标签按公共缺表语义暂视为开放");
+            for (int i = 0; i < tabEnabled.Length; i++) tabEnabled[i] = IsTabEnabled(i);
+
             _frameRoot = await MainUIRouteFallback.InstantiateOrShowAsync(PRIMARY_MODULE, "Bag", frameKey, ViewManager.GetLayer(UILayer.Window));
 
             var needPrefab = new Dictionary<string, string> { { PRIMARY_PREFAB, PRIMARY_MODULE } };
             for (int i = 0; i < TabContent.Length; i++)
             {
-                if (TabEnabled[i] && !needPrefab.ContainsKey(TabPrefab[i])) needPrefab[TabPrefab[i]] = TabModule[i];
+                if (tabEnabled[i] && !needPrefab.ContainsKey(TabPrefab[i])) needPrefab[TabPrefab[i]] = TabModule[i];
             }
             foreach (KeyValuePair<string, string> kv in needPrefab)
             {
@@ -256,7 +416,7 @@ namespace Shenxiao.Module.Core.Bag
             {
                 string viewName = TabContent[i];
                 string prefabName = TabPrefab[i];
-                bool enabled = TabEnabled[i];
+                bool enabled = tabEnabled[i];
                 specs.Add(new TabSpec
                 {
                     Enabled = enabled,
@@ -269,7 +429,63 @@ namespace Shenxiao.Module.Core.Bag
 
             _window.Show();
             _window.Configure(specs, DefaultTab);
+            _window.SetReturnAction(Close);
+            _tabEnabledSnapshot = (bool[])tabEnabled.Clone();
+            HookWindowClose();
             GameLog.Info("Bag", "背包五标签窗打开(BaseWindowSkinView,默认 tab{0} 背包)", DefaultTab);
+        }
+
+        private static bool[] SnapshotTabEnabled()
+        {
+            var result = new bool[TabContent.Length];
+            for (int i = 0; i < result.Length; i++) result[i] = IsTabEnabled(i);
+            return result;
+        }
+
+        private static bool MatchesTabSnapshot(bool[] current)
+        {
+            if (_tabEnabledSnapshot == null || current == null || _tabEnabledSnapshot.Length != current.Length)
+                return false;
+            for (int i = 0; i < current.Length; i++)
+                if (_tabEnabledSnapshot[i] != current[i]) return false;
+            return true;
+        }
+
+        private static void HookWindowClose()
+        {
+            if (_windowCloseHooked) return;
+            EventDispatcher.On(GlobalEvent.EVT_BASE_WINDOW_CLOSED, OnAnyBaseWindowClosed);
+            _windowCloseHooked = true;
+        }
+
+        private static void OnAnyBaseWindowClosed()
+        {
+            if (_window != null && !_window.IsShown) HideContentViews();
+        }
+
+        /// <summary>
+        /// BaseWindowSkin 只控制窗框根显隐；Bag 的内容页与 Activity 子窗必须显式 Hide，
+        /// 才能触发滚动停惯性、3D 清理和子窗遮罩回收。关闭后 warm 重开再从默认背包页 Show。
+        /// </summary>
+        private static void HideContentViews()
+        {
+            var views = new List<BaseView>();
+            if (_window != null)
+            {
+                foreach (BaseView view in _window.GetComponentsInChildren<BaseView>(true))
+                    if (view != null && view != _window && !views.Contains(view)) views.Add(view);
+            }
+            foreach (GameObject root in _contentRoots.Values)
+            {
+                if (root == null) continue;
+                foreach (BaseView view in root.GetComponentsInChildren<BaseView>(true))
+                    if (view != null && view != _window && !views.Contains(view)) views.Add(view);
+            }
+            for (int i = views.Count - 1; i >= 0; i--)
+                if (views[i] != null && views[i].IsShown) views[i].Hide();
+
+            foreach (GameObject root in _contentRoots.Values)
+                if (root != null) root.GetComponent<BagActivityModalLayout>()?.Hide();
         }
 
         /// <summary>从内容源里把名为 viewName 的内容视图 reparent 进窗框内容区(根即视图 / 顶层子两形态),返回其 BaseView。</summary>
@@ -304,14 +520,23 @@ namespace Shenxiao.Module.Core.Bag
 
         internal static void Reset()
         {
+            if (_windowCloseHooked)
+            {
+                EventDispatcher.Off(GlobalEvent.EVT_BASE_WINDOW_CLOSED, OnAnyBaseWindowClosed);
+                _windowCloseHooked = false;
+            }
+            if (_window != null) _window.SetReturnAction(null);
             if (_frameRoot != null) ResManager.ReleaseInstance(_frameRoot);
             foreach (GameObject root in _contentRoots.Values)
             {
                 if (root != null) ResManager.ReleaseInstance(root);
             }
             _contentRoots.Clear();
+            _moduleLoading.Clear();
             _frameRoot = null;
             _window = null;
+            _titleOverlay = null;
+            _tabEnabledSnapshot = null;
             _loading = false;
         }
 

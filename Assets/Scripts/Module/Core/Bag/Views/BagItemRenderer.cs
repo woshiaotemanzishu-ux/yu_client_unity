@@ -1,4 +1,7 @@
+using System;
 using Shenxiao.Generated.UI.Bag;
+using Shenxiao.Framework.UI;
+using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.Role;
 using UnityEngine;
@@ -18,6 +21,7 @@ namespace Shenxiao.Module.Core.Bag
     public sealed class BagItemRenderer : BagItemRendererBind
     {
         private BaseAwardItem _item;
+        private Action _slotClick;
         private bool _inited;
 
         protected override void OnInit()
@@ -36,6 +40,12 @@ namespace Shenxiao.Module.Core.Bag
                 go.SetActive(true);
                 _item = go.GetComponent<BaseAwardItem>();
             }
+            if (defaultImg != null)
+            {
+                defaultImg.raycastTarget = true;
+                UIUtil.AddClick(defaultImg, () => _slotClick?.Invoke());
+            }
+            if (@lock != null) @lock.raycastTarget = false;
             ResetOverlays();
         }
 
@@ -44,8 +54,11 @@ namespace Shenxiao.Module.Core.Bag
         {
             EnsureInit();
             bool hasItem = data != null && data.Count > 0;
+            bool locked = data != null && data.Locked;
+            _slotClick = locked ? data.Click : null;
             ShowEmpty(!hasItem);
             ResetOverlays();
+            SetActive(@lock, locked);
 
             // 真实图标 + 品质底板 + 数量(对标 BaseAwardItem.SetData → GoodsModel.GetGoodsBasicByTypeId → goods_icon/color)。
             if (hasItem && _item != null)
@@ -53,7 +66,7 @@ namespace Shenxiao.Module.Core.Bag
                 bool bound = data.Goods != null && data.Goods.Bind != 0;
                 _item.SetData(data.TypeId, data.Count, bound);
                 // 点击带 BagGoods 实例 → 装备实例 tips(极品 equip_extra_attr / 强化 stren);无实例(完成弹层等)走 BaseAwardItem 默认 Show(typeId,num)。
-                if (data.Goods != null) _item.SetClickCallBack(() => ItemTipsView.Show(data.Goods));
+                if (data.Goods != null) _item.SetClickCallBack(() => ShowItemDetails(data.Goods));
                 else _item.SetClickCallBack(null);
             }
 
@@ -128,6 +141,84 @@ namespace Shenxiao.Module.Core.Bag
             return basic.Turn <= (role.Figure?.turn ?? 0);
         }
 
+        /// <summary>
+        /// 老端先按 config_goods.type/subtype 决定详情身份。现有 IllusionTips 必须直接复用，
+        /// 不能先误开普通小详情；其余尚无 Unity View 的专用详情保持路线 blocked，禁止在此复制共享 UI。
+        /// </summary>
+        private static void ShowItemDetails(BagGoods goods)
+        {
+            if (goods == null) return;
+            GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(goods.TypeId);
+            if (basic == null) return;
+            if (UsesIllusionTips(basic))
+            {
+                IllusionTipsFlow.Show(goods.TypeId);
+                return;
+            }
+
+            if (basic.Type == 39)
+            {
+                BlockUnavailableDetails("BeastToolTips", goods);
+                return;
+            }
+            if (basic.Type == 55)
+            {
+                BlockUnavailableDetails("UnrealToolTips", goods);
+                return;
+            }
+            if (basic.Type == 33)
+            {
+                BlockUnavailableDetails("DiamondGiftView", goods);
+                return;
+            }
+            if (basic.Type == 75 && basic.Subtype == 2)
+            {
+                BlockUnavailableDetails("ItemInfoTips/TreasureMap", goods);
+                return;
+            }
+            if (basic.Type == 32 || basic.Type == 34)
+            {
+                BlockUnavailableDetails("GiftIdentity/config_gift_box", goods);
+                return;
+            }
+            ItemTipsView.Show(goods);
+        }
+
+        private static void BlockUnavailableDetails(string identity, BagGoods goods)
+        {
+            GameLog.Warn("Bag", "物品详情保持 blocked，禁止降级为错误通用身份: view={0} typeId={1} goodsId={2}",
+                identity, goods.TypeId, goods.GoodsId);
+        }
+
+        private static bool UsesIllusionTips(GoodsModel.GoodsBasic basic)
+        {
+            if (basic == null) return false;
+            if (basic.Type == 12 || basic.Type == 74 || basic.Type == 76 || basic.Type == 83) return true;
+            if (basic.Type == 71 && basic.Subtype == 2) return true;
+            switch (basic.Type)
+            {
+                case 16:
+                case 17:
+                case 18:
+                case 19:
+                case 20:
+                case 21:
+                case 22:
+                case 25:
+                    return basic.Subtype == 3;
+                case 38:
+                    return basic.Subtype == 6;
+                case 68:
+                    return basic.Subtype == 0;
+                case 69:
+                    return basic.Subtype == 1;
+                case 73:
+                    return basic.Subtype == 2;
+                default:
+                    return false;
+            }
+        }
+
         private static void SetActive(Component component, bool active)
         {
             if (component != null) component.gameObject.SetActive(active);
@@ -141,5 +232,7 @@ namespace Shenxiao.Module.Core.Bag
         public int TypeId;
         public long Count;
         public BagGoods Goods;
+        public bool Locked;
+        public Action Click;
     }
 }

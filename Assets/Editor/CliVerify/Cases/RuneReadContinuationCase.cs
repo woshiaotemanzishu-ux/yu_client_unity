@@ -173,9 +173,9 @@ namespace Shenxiao.EditorTools
                 if (!oldInitialized && controller.IsInitialized) controller.Dispose();
                 if (!oldInitialized) RestoreHandlers(handlers, AllCommands, oldHandlers);
                 model.Clear();
-                model.RunePoint = oldRunePoint;
-                model.RuneChip = oldRuneChip;
-                model.SumPower = oldSumPower;
+                SetAuto(model, "RunePoint", oldRunePoint);
+                SetAuto(model, "RuneChip", oldRuneChip);
+                SetAuto(model, "SumPower", oldSumPower);
                 model.Slots.AddRange(oldSlots);
                 model.RuneBagGoods.AddRange(oldBag);
                 SetAuto(model, "HasData", oldHasData);

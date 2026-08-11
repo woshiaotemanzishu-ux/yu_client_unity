@@ -39,6 +39,9 @@ namespace Shenxiao.Module.Core.Equip
         public (int refine, int refineHigh) GetSmelt(int equipType)
             => _map.TryGetValue(equipType, out (int refine, int refineHigh) v) ? v : (0, 0);
 
+        /// <summary>是否已经收到指定部位的 15250 权威快照。</summary>
+        public bool HasSmelt(int equipType) => _map.ContainsKey(equipType);
+
         public void Clear() => _map.Clear();
     }
 }

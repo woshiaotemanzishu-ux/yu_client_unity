@@ -1,6 +1,7 @@
 using Shenxiao.Generated.UI.Equip;
 using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.Equip
@@ -16,16 +17,51 @@ namespace Shenxiao.Module.Core.Equip
     /// </summary>
     public sealed class EquipWashGoodsView : EquipWashGoodsViewBind
     {
+        public readonly struct Context
+        {
+            public readonly int EquipType;
+            public readonly long GoodsId;
+            public readonly int LockCount;
+
+            public Context(int equipType, long goodsId, int lockCount)
+            {
+                EquipType = equipType;
+                GoodsId = goodsId;
+                LockCount = lockCount;
+            }
+        }
+
+        private Context _context;
+        [SerializeField] private Image _modalBlocker;
+
         protected override void OnInit()
         {
             HideTemplates();
+            BindModalBlocker();
             BindButtons();
         }
 
         protected override void OnShow(object args)
         {
+            _context = args is Context context ? context : default;
             // 老端 open_callback → InitView:按 pos_info/lock_num 读洗练消耗配置铺材料项。数据未移植 → 列表空。
-            GameLog.Info("Equip", "EquipWashGoodsView 打开 → 待对接 EquipModel/config_equip_wash(洗练材料列表空/属性默认降级)");
+            GameLog.Info("Equip", "EquipWashGoodsView 打开 equip_type={0} goods_id={1} lock_count={2} → " +
+                "config_equip_wash 未落地，材料列表事务保持 blocked", _context.EquipType, _context.GoodsId, _context.LockCount);
+            if (_scr_info != null)
+            {
+                _scr_info.StopMovement();
+                _scr_info.verticalNormalizedPosition = 1f;
+            }
+        }
+
+        protected override void OnHide()
+        {
+            _context = default;
+            if (_scr_info != null)
+            {
+                _scr_info.StopMovement();
+                _scr_info.verticalNormalizedPosition = 1f;
+            }
         }
 
         private void HideTemplates()
@@ -36,10 +72,27 @@ namespace Shenxiao.Module.Core.Equip
         private void BindButtons()
         {
             // _img_close:老端 InitEvent 里 AddClickEvent 关窗(虽不以 btn 命名,但功能即按钮)→ 真关闭。
-            BindBtn(_img_close, () => Hide());
+            BindBtn(_img_close, CloseSelf);
             // btn_unload:老端取消所有材料选中(UnLoadSelect)+ select_callBack_(-2,0) 后关窗;列表本轮未铺格
             // (无子项可清选中),关窗动作先接真(对标老端此按钮的最终效果)。
-            BindBtn(btn_unload, () => Hide());
+            BindBtn(btn_unload, CloseSelf);
+        }
+
+        private void BindModalBlocker()
+        {
+            if (_modalBlocker == null)
+            {
+                GameLog.Error("Equip", "EquipWashGoodsView 缺少 Prefab 全屏模态拦截层");
+                return;
+            }
+            _modalBlocker.raycastTarget = true;
+            UIUtil.ClearClicks(_modalBlocker);
+            UIUtil.AddClick(_modalBlocker, CloseSelf);
+        }
+
+        private void CloseSelf()
+        {
+            EquipFlow.CloseSub(nameof(EquipWashGoodsView));
         }
 
         /// <summary>给按钮 Image 挂点击回调。</summary>
@@ -47,6 +100,7 @@ namespace Shenxiao.Module.Core.Equip
         {
             if (img == null) return;
             img.raycastTarget = true;
+            UIUtil.ClearClicks(img);
             UIUtil.AddClick(img, onClick);
         }
     }

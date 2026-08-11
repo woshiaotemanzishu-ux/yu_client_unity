@@ -1,4 +1,5 @@
 using Shenxiao.Generated.UI.Equip;
+using Shenxiao.Module.Core.Common;
 using Shenxiao.Framework.Util;
 using UnityEngine;
 
@@ -30,16 +31,10 @@ namespace Shenxiao.Module.Core.Equip
         {
             if (type == 1)
             {
-                // 普通属性对比。
-                if (name != null)
-                    name.text = (cdata != null && cdata.Length > 0 ? cdata[0] : "") + "：";
-                if (attr != null)
-                    attr.text = (cdata != null && cdata.Length > 1 ? cdata[1].ToString() : "");
-                if (up != null)
-                {
-                    // 升幅 = 新值 - 当前值;数值文案需 WordManager,这里只在有 ndata 时占位提示「待对接」。
-                    up.text = ndata != null ? "+? (待对接 属性升幅)" : "";
-                }
+                int attrId = ReadInt(cdata, 0);
+                long current = ReadLong(cdata, 1);
+                long next = ReadLong(ndata, 1, current);
+                SetStrengthPreview(attrId, current, next, ndata != null);
             }
             else
             {
@@ -49,7 +44,42 @@ namespace Shenxiao.Module.Core.Equip
                 if (up != null) up.text = "";
             }
 
-            GameLog.Info("Equip", "EquipAttrItem.SetData(type={0}, equipType={1}) → 待对接 WordManager/EquipModel 文案", type, equipType);
+        }
+
+        /// <summary>强化属性预览：真实属性名、当前值和下一级增量。</summary>
+        public void SetStrengthPreview(int attrId, long current, long next, bool hasNext)
+        {
+            string attrName = GoodsModel.GetAttrName(attrId);
+            if (string.IsNullOrEmpty(attrName)) attrName = "属性" + attrId;
+            if (name != null) name.text = attrName + "：";
+            if (attr != null) attr.text = GoodsModel.FormatAttrValue(attrId, current);
+            if (up != null)
+            {
+                long delta = next - current;
+                up.text = hasNext && delta > 0
+                    ? "+" + GoodsModel.FormatAttrValue(attrId, delta)
+                    : string.Empty;
+            }
+        }
+
+        public void SetSmeltPreview(int equipType, int currentRatio, int nextRatio)
+        {
+            string posName = GoodsModel.GetEquipPosName(equipType);
+            if (name != null) name.text = (string.IsNullOrEmpty(posName) ? "装备" : posName) + "神兵淬炼：";
+            if (attr != null) attr.text = (currentRatio / 100d).ToString("0.##") + "%";
+            if (up != null) up.text = nextRatio > 0 ? ("+" + (nextRatio / 100d).ToString("0.##") + "%") : string.Empty;
+        }
+
+        private static int ReadInt(object[] values, int index, int fallback = 0)
+        {
+            if (values == null || index < 0 || index >= values.Length || values[index] == null) return fallback;
+            return System.Convert.ToInt32(values[index]);
+        }
+
+        private static long ReadLong(object[] values, int index, long fallback = 0)
+        {
+            if (values == null || index < 0 || index >= values.Length || values[index] == null) return fallback;
+            return System.Convert.ToInt64(values[index]);
         }
     }
 }

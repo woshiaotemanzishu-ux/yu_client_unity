@@ -1,0 +1,1282 @@
+{
+  "schema": 1,
+  "id": "mainui.bottom.bag.current.read-only",
+  "engine": "legacy-laya",
+  "url": "http://127.0.0.1:8091/index.html",
+  "legacyRoot": "E:/GitProject/yu_client",
+  "snapshotSource": "E:/GitProject/yu_client/tools/yu-resource-tool/frontend/src/utils/pageSnapshot.js",
+  "popupPolicy": "../../policies/startup-popups.json",
+  "protocolPolicy": "../../policies/protocols.json",
+  "viewport": {
+    "width": 720,
+    "height": 1280
+  },
+  "session": {
+    "accountEnv": "UIAUDIT_ACCOUNT",
+    "passwordEnv": "UIAUDIT_PASSWORD",
+    "itemUse": {
+      "mode": "hard-stop"
+    }
+  },
+  "scope": {
+    "route": "MainUI bottom Bag -> BagView",
+    "account": "111111",
+    "mode": "read-only",
+    "sameSessionOrder": [
+      "mainui-entry",
+      "bag",
+      "warehouse",
+      "holy-seal",
+      "revelation",
+      "close",
+      "warm-reopen"
+    ],
+    "excludedNavigation": [
+      "GuardMainView",
+      "DragonBallView"
+    ],
+    "excludedTransactions": "All write, consume, wear, move, expand-confirm, smelt-confirm, decompose, strengthen, compose, devour, market and gift-confirm actions"
+  },
+  "baseline": {
+    "legacyRuntime": "output/ui_route_audit/2026-08-10_bag_refinement_v1/old-h5-runtime-v2/route_summary.json",
+    "legacyVisibleTabs": [
+      "背包",
+      "仓库",
+      "影骸战衣",
+      "启示圣铠"
+    ],
+    "legacyConditionalTabs": [
+      {
+        "label": "九天神祭",
+        "observedState": "not-generated-for-account-state",
+        "logicalIndex": 4
+      }
+    ],
+    "legacyColdOpenMs": 379,
+    "legacyWarmOpenMs": 240,
+    "unityTitleFixState": "static-precheck-only; requires a same-batch Unity Web rerun"
+  },
+  "protocol": {
+    "inboundCommands": [15010],
+    "reads": [
+      { "ruleId": "bag-snapshot-15010", "cmd": 15010, "fmt": "h", "args": [1], "waitInboundCmd": 15010, "timeoutMs": 12000 },
+      { "ruleId": "bag-snapshot-15010", "cmd": 15010, "fmt": "h", "args": [4], "waitInboundCmd": 15010, "timeoutMs": 12000 },
+      { "ruleId": "bag-snapshot-15010", "cmd": 15010, "fmt": "h", "args": [5], "waitInboundCmd": 15010, "timeoutMs": 12000 },
+      { "ruleId": "bag-snapshot-15010", "cmd": 15010, "fmt": "h", "args": [30], "waitInboundCmd": 15010, "timeoutMs": 12000 },
+      { "ruleId": "bag-snapshot-15010", "cmd": 15010, "fmt": "h", "args": [31], "waitInboundCmd": 15010, "timeoutMs": 12000 },
+      { "ruleId": "bag-snapshot-15010", "cmd": 15010, "fmt": "h", "args": [40], "waitInboundCmd": 15010, "timeoutMs": 12000 },
+      { "ruleId": "bag-snapshot-15010", "cmd": 15010, "fmt": "h", "args": [41], "waitInboundCmd": 15010, "timeoutMs": 12000 },
+      { "ruleId": "bag-snapshot-15010", "cmd": 15010, "fmt": "h", "args": [43], "waitInboundCmd": 15010, "timeoutMs": 12000 },
+      { "ruleId": "bag-snapshot-15010", "cmd": 15010, "fmt": "h", "args": [44], "waitInboundCmd": 15010, "timeoutMs": 12000 }
+    ],
+    "assertions": {
+      "mode": "read-only",
+      "required": [
+        { "ruleId": "bag-snapshot-15010", "direction": "outbound", "cmd": 15010, "fmt": "h", "args": [1], "min": 1, "max": 1 },
+        { "ruleId": "bag-snapshot-15010", "direction": "outbound", "cmd": 15010, "fmt": "h", "args": [4], "min": 1, "max": 1 },
+        { "ruleId": "bag-snapshot-15010", "direction": "outbound", "cmd": 15010, "fmt": "h", "args": [5], "min": 1, "max": 1 },
+        { "ruleId": "bag-snapshot-15010", "direction": "outbound", "cmd": 15010, "fmt": "h", "args": [30], "min": 1, "max": 1 },
+        { "ruleId": "bag-snapshot-15010", "direction": "outbound", "cmd": 15010, "fmt": "h", "args": [31], "min": 1, "max": 1 },
+        { "ruleId": "bag-snapshot-15010", "direction": "outbound", "cmd": 15010, "fmt": "h", "args": [40], "min": 1, "max": 1 },
+        { "ruleId": "bag-snapshot-15010", "direction": "outbound", "cmd": 15010, "fmt": "h", "args": [41], "min": 1, "max": 1 },
+        { "ruleId": "bag-snapshot-15010", "direction": "outbound", "cmd": 15010, "fmt": "h", "args": [43], "min": 1, "max": 1 },
+        { "ruleId": "bag-snapshot-15010", "direction": "outbound", "cmd": 15010, "fmt": "h", "args": [44], "min": 1, "max": 1 }
+      ],
+      "forbidden": [
+        { "direction": "outbound", "cmd": 14901 },
+        { "direction": "outbound", "cmd": 15002 },
+        { "direction": "outbound", "cmd": 15003 },
+        { "direction": "outbound", "cmd": 15019 },
+        { "direction": "outbound", "cmd": 15021 },
+        { "direction": "outbound", "cmd": 15025 },
+        { "direction": "outbound", "cmd": 15050 },
+        { "direction": "outbound", "cmd": 15086 },
+        { "direction": "outbound", "cmd": 15201 },
+        { "direction": "outbound", "cmd": 15302 },
+        { "direction": "outbound", "cmd": 28601 },
+        { "direction": "outbound", "cmd": 28602 },
+        { "direction": "outbound", "cmd": 28603 },
+        { "direction": "outbound", "cmd": 28604 },
+        { "direction": "outbound", "cmd": 28605 },
+        { "direction": "outbound", "cmd": 28607 },
+        { "direction": "outbound", "cmd": 65402 },
+        { "direction": "outbound", "cmd": 65403 },
+        { "direction": "outbound", "cmd": 65404 },
+        { "direction": "outbound", "cmd": 65406 },
+        { "direction": "outbound", "cmd": 65408 }
+      ]
+    }
+  },
+  "protocolBoundary": {
+    "authoritativeReads": [
+      { "container": "equip", "ruleId": "bag-snapshot-15010", "cmd": 15010, "fmt": "h", "args": [1] },
+      { "container": "bag", "ruleId": "bag-snapshot-15010", "cmd": 15010, "fmt": "h", "args": [4] },
+      { "container": "warehouse", "ruleId": "bag-snapshot-15010", "cmd": 15010, "fmt": "h", "args": [5] },
+      { "container": "holy-seal-bag", "ruleId": "bag-snapshot-15010", "cmd": 15010, "fmt": "h", "args": [30] },
+      { "container": "holy-seal-equip", "ruleId": "bag-snapshot-15010", "cmd": 15010, "fmt": "h", "args": [31] },
+      { "container": "revelation-equip", "ruleId": "bag-snapshot-15010", "cmd": 15010, "fmt": "h", "args": [40] },
+      { "container": "revelation-bag", "ruleId": "bag-snapshot-15010", "cmd": 15010, "fmt": "h", "args": [41] },
+      { "container": "longlang-bag", "ruleId": "bag-snapshot-15010", "cmd": 15010, "fmt": "h", "args": [43] },
+      { "container": "longlang-equip", "ruleId": "bag-snapshot-15010", "cmd": 15010, "fmt": "h", "args": [44] }
+    ],
+    "writeControls": [
+      { "control": "bag.one-key-equip", "cmd": 15201, "policy": "do-not-click" },
+      { "control": "bag.item-or-gift-use", "cmd": 15050, "policy": "do-not-click" },
+      { "control": "bag.optional-gift-confirm", "cmd": 15086, "policy": "do-not-click" },
+      { "control": "bag.sell", "cmd": 15021, "policy": "do-not-click" },
+      { "control": "bag.smelt-confirm", "cmd": 15025, "policy": "do-not-click" },
+      { "control": "bag.expand-confirm", "cmd": 15002, "policy": "do-not-click" },
+      { "control": "warehouse.deposit-takeout-double-click", "cmd": 15003, "policy": "do-not-click" },
+      { "control": "holy-seal.strengthen-wear-unwear-soul", "cmds": [65402, 65403, 65404, 65406, 65408], "policy": "hard-negative-do-not-click" },
+      { "control": "revelation.write-actions", "cmds": [28601, 28602, 28603, 28604, 28605, 28607], "policy": "hard-negative-do-not-click" }
+    ]
+  },
+  "controls": [
+    {
+      "id": "mainui-bag-entry",
+      "kind": "navigation",
+      "risk": "read-only",
+      "selector": { "source": "laya-stage", "view": "MainUIDownView", "name": "_img_icon", "skinIncludes": "mainUI/texture/bag.png", "expectedCount": 1 },
+      "liveGates": ["click", "result", "target_identity", "timing", "runtime_state"]
+    },
+    {
+      "id": "bag-window-return",
+      "kind": "return",
+      "risk": "read-only",
+      "selector": { "source": "laya-stage", "name": "_img_return", "expectedCount": 1 },
+      "liveGates": ["click", "return_chain"]
+    },
+    {
+      "id": "bag-tab-strip",
+      "kind": "tabs",
+      "risk": "read-only",
+      "selector": { "source": "laya-stage", "name": "TabButtonOneSkin", "expectedCount": 4 },
+      "labels": ["背包", "仓库", "影骸战衣", "启示圣铠"],
+      "conditionalLabel": "九天神祭",
+      "liveGates": ["runtime_state", "click", "result", "visual_match"]
+    },
+    {
+      "id": "bag-title",
+      "kind": "state-matrix",
+      "risk": "read-only",
+      "selectors": {
+        "bitmap": { "source": "laya-stage", "name": "_img_title", "expectedCount": 1 },
+        "overlay": { "source": "laya-stage", "name": "_bag_module_title_overlay" }
+      },
+      "states": [
+        { "tab": "背包", "renderedBy": "bag.title_name bitmap" },
+        { "tab": "仓库", "renderedBy": "bag.title_name bitmap" },
+        { "tab": "影骸战衣", "requiredText": "影骸战衣", "forbiddenText": "影装" },
+        { "tab": "启示圣铠", "requiredText": "启示圣铠", "forbiddenText": "天启" },
+        { "tab": "九天神祭", "requiredTextWhenGenerated": "九天神祭" }
+      ],
+      "liveGates": ["runtime_state", "visual_match", "page_space_geometry"]
+    },
+    {
+      "id": "bag-currency-strip",
+      "kind": "state-matrix",
+      "risk": "read-only",
+      "selector": { "source": "laya-stage", "view": "MainUITopView", "name": "MainUIMoneyItem", "expectedCount": 3 },
+      "currencies": ["diamond", "bind_diamond", "gold"],
+      "liveGates": ["runtime_state", "visual_match"]
+    },
+    {
+      "id": "bag-role-summary",
+      "kind": "read",
+      "risk": "read-only",
+      "selectors": [
+        { "source": "laya-stage", "view": "BagComponentView", "name": "nameLb", "expectedCount": 1 },
+        { "source": "laya-stage", "view": "BagComponentView", "name": "FightingShowSmallItem", "expectedCount": 1 }
+      ],
+      "liveGates": ["runtime_state", "visual_match"]
+    },
+    {
+      "id": "bag-role-model",
+      "kind": "model",
+      "risk": "read-only",
+      "selector": { "source": "laya-stage", "view": "BagComponentView", "name": "modelGp", "expectedCount": 1 },
+      "liveGates": ["model_presentation", "render_completion", "visual_match"]
+    },
+    {
+      "id": "bag-equipped-slots",
+      "kind": "item-grid",
+      "risk": "read-only",
+      "selector": { "source": "laya-stage", "view": "BagComponentView", "name": "BagEquipmentIcon", "expectedCount": 10 },
+      "states": ["filled", "empty", "resonance-effect", "detail"],
+      "liveGates": ["runtime_state", "target_identity", "visual_match", "effect_match"]
+    },
+    {
+      "id": "bag-grid",
+      "kind": "scroll-grid",
+      "risk": "read-only",
+      "selector": { "source": "laya-stage", "view": "BagComponentView", "name": "bag_con", "expectedCount": 1 },
+      "itemSelector": { "source": "laya-stage", "view": "BagComponentView", "name": "bagItemRenderer" },
+      "states": ["filled", "empty", "locked-expand", "item-red", "first-item", "last-item"],
+      "liveGates": ["layout_structure", "scroll_interaction", "runtime_state", "visual_match", "resource_stable"]
+    },
+    {
+      "id": "bag-main-actions",
+      "kind": "button-group",
+      "risk": "mixed",
+      "items": [
+        { "id": "one-key-equip", "name": "onekeyBtn", "risk": "destructive-write", "policy": "inventory-only; do-not-click" },
+        { "id": "smelt", "name": "smeltBtn", "risk": "read-only-open" },
+        { "id": "resonance", "name": "redequipBtn", "risk": "read-only-navigation" },
+        { "id": "expand", "name": "expandBtn", "risk": "read-only-open" },
+        { "id": "one-key-use", "name": "useBtn", "risk": "read-only-open" },
+        { "id": "guard-one", "name": "_btn_guard1", "risk": "read-only-navigation", "policy": "blocked-do-not-click" },
+        { "id": "guard-two", "name": "_btn_guard2", "risk": "read-only-navigation", "policy": "blocked-do-not-click" },
+        { "id": "dragon-ball", "name": "_btn_dragonball", "risk": "conditional-navigation", "policy": "blocked-do-not-click" }
+      ],
+      "redStates": ["suitRed", "useRed", "smeltRed", "guard1_red", "guard2_red", "dragonball_red"],
+      "liveGates": ["runtime_state", "component_state_matrix", "visual_match"]
+    },
+    {
+      "id": "warehouse-bag-grid",
+      "kind": "scroll-grid",
+      "risk": "mixed",
+      "selector": { "source": "laya-stage", "view": "WarehouseView", "name": "_Scroller1", "expectedCount": 1 },
+      "states": ["filled", "empty", "locked-expand", "goods-detail", "equip-detail", "double-click-deposit", "last-item"],
+      "writePolicy": "deposit and double-click are forbidden in this route",
+      "liveGates": ["layout_structure", "scroll_interaction", "target_identity", "visual_match"]
+    },
+    {
+      "id": "warehouse-storage-grid",
+      "kind": "scroll-grid",
+      "risk": "mixed",
+      "selector": { "source": "laya-stage", "view": "WarehouseView", "name": "_Scroller2", "expectedCount": 1 },
+      "states": ["filled", "empty", "locked-expand", "goods-detail", "equip-detail", "double-click-takeout", "last-item"],
+      "writePolicy": "takeout and double-click are forbidden in this route",
+      "liveGates": ["layout_structure", "scroll_interaction", "target_identity", "visual_match"]
+    },
+    {
+      "id": "warehouse-actions",
+      "kind": "button-group",
+      "risk": "read-only-open",
+      "items": [
+        { "id": "expand-storage", "name": "expandBtn1" },
+        { "id": "expand-bag", "name": "expandBtn2" },
+        { "id": "smelt", "name": "smeltBtn" },
+        { "id": "resonance", "name": "redequipBtn" },
+        { "id": "one-key-use", "name": "useBtn" }
+      ],
+      "liveGates": ["click", "result", "target_identity", "return_chain"]
+    },
+    {
+      "id": "holy-main",
+      "kind": "page",
+      "risk": "mixed",
+      "rootSelector": { "source": "laya-stage", "view": "HolySealView", "name": "HolySealView", "expectedCount": 1 },
+      "backgroundSelector": { "source": "laya-stage", "view": "HolySealView", "name": "_img_bg", "skinIncludes": "ui_seal_bg.jpg", "expectedCount": 1 },
+      "equipped": { "name": "_gp_equips", "states": ["filled", "empty", "selected", "detail"] },
+      "bagList": { "name": "_list_bag", "states": ["filled", "empty", "scroll", "last-item", "detail"] },
+      "buttons": [
+        { "id": "main-route", "name": "_btn_holy", "risk": "read-only-navigation" },
+        { "id": "attr", "name": "_img_attr", "risk": "read-only-open" },
+        { "id": "instruction", "name": "_img_tips", "risk": "read-only-open" },
+        { "id": "strengthen", "name": "_gp_stren", "risk": "read-only-open" },
+        { "id": "preview", "name": "_gp_preview", "risk": "read-only-open" },
+        { "id": "decompose", "name": "_gp_decompose", "risk": "read-only-open" },
+        { "id": "composite", "name": "_gp_composite", "risk": "read-only-navigation" },
+        { "id": "soul", "name": "_gp_soul", "risk": "read-only-open" }
+      ],
+      "redStates": ["_img_stren_red", "_img_preview_red", "_img_decompose_red", "_img_composite_red", "_img_soul_red"],
+      "liveGates": ["runtime_state", "visual_match", "layout_structure", "scroll_interaction", "resource_stable"]
+    },
+    {
+      "id": "revelation-main",
+      "kind": "page",
+      "risk": "mixed",
+      "rootSelector": { "source": "laya-stage", "view": "RevelationEquipView", "name": "RevelationEquipView", "expectedCount": 1 },
+      "backgroundSelector": { "source": "laya-stage", "view": "RevelationEquipView", "name": "img_bg", "skinIncludes": "ui_Apocalypse_bg.jpg", "expectedCount": 1 },
+      "equipped": { "name": "equipGp", "states": ["ten-slots", "filled", "empty", "selected", "detail"] },
+      "bagList": { "name": "gp_bag", "states": ["filled", "empty", "scroll", "last-item", "detail"] },
+      "buttons": [
+        { "id": "suit", "name": "suitBtn", "risk": "read-only-open" },
+        { "id": "source", "name": "getBtn", "risk": "read-only-navigation" },
+        { "id": "compose", "name": "comBtn", "risk": "read-only-navigation" },
+        { "id": "devour", "name": "soulBtn", "risk": "read-only-open" },
+        { "id": "attr", "name": "propBtn", "risk": "read-only-open" }
+      ],
+      "redStates": ["comRed", "devourRed"],
+      "liveGates": ["runtime_state", "visual_match", "layout_structure", "scroll_interaction", "resource_stable"]
+    },
+    {
+      "id": "longlang-tab-gate",
+      "kind": "conditional-state",
+      "risk": "read-only",
+      "observedState": "tab and longlanguageView are not generated for the current account state",
+      "forbiddenInference": "Do not attribute this old-client account/config gate to Unity and do not use GM to manufacture the final page state",
+      "liveGates": ["runtime_state", "component_state_matrix"]
+    }
+  ],
+  "detailIdentityMatrix": [
+    {
+      "id": "goods-tips",
+      "view": "GoodsTooltips",
+      "trigger": "generic goods",
+      "readControls": ["content", "close", "background-close", "sell-open", "market-sell-open"],
+      "writeControls": ["use", "sell-confirm", "market-sell-confirm"]
+    },
+    {
+      "id": "equip-tips",
+      "view": "EquipToolTips",
+      "trigger": "type 10 equipment",
+      "readControls": ["current-panel", "candidate-panel", "close", "background-close", "sell-open", "market-sell-open"],
+      "writeControls": ["wear", "sell-confirm", "market-sell-confirm"]
+    },
+    {
+      "id": "god-beast-tips",
+      "view": "BeastToolTips",
+      "trigger": "type 39",
+      "readControls": ["content-scroll", "close", "background-close"],
+      "writeControls": []
+    },
+    {
+      "id": "unreal-tips",
+      "view": "UnrealToolTips",
+      "trigger": "UnrealModel.goods_type",
+      "readControls": ["content-scroll", "close", "background-close"],
+      "writeControls": []
+    },
+    {
+      "id": "illusion-tips",
+      "view": "IllusionTips",
+      "trigger": "type 12, IlluType, 74, 76, 83 or GodBefall stage",
+      "readControls": ["model-state", "content-scroll", "source-list", "source-jump", "background-close"],
+      "writeControls": ["use"]
+    },
+    {
+      "id": "diamond-gift",
+      "view": "DiamondGiftView",
+      "trigger": "type 33",
+      "readControls": ["reward-list", "reward-detail", "price-state", "close", "background-close"],
+      "writeControls": ["open"]
+    },
+    {
+      "id": "item-info-treasure",
+      "view": "ItemInfoTips",
+      "trigger": "type 75 subtype 2",
+      "readControls": ["content", "item-list", "previous", "next", "probability", "jackpot", "background-close"],
+      "writeControls": ["use"]
+    },
+    {
+      "id": "item-info-gift",
+      "view": "ItemInfoTips",
+      "trigger": "type 32 or 34 with config_gift_box.show_new=1",
+      "readControls": ["content", "select-gift-open", "background-close"],
+      "writeControls": ["use-direct", "select-gift-confirm"]
+    },
+    {
+      "id": "holy-seal-tips",
+      "view": "HolySealToolTips",
+      "trigger": "HolySeal equipped slot or bag item",
+      "readControls": ["content", "close", "background-close", "dismantle-open", "market-sell-open"],
+      "writeControls": ["replace", "unload", "dismantle-confirm", "market-sell-confirm"]
+    },
+    {
+      "id": "revelation-tips",
+      "view": "RevelationToolTips",
+      "trigger": "Revelation equipped slot or bag item",
+      "readControls": ["content", "close", "background-close", "market-sell-open"],
+      "writeControls": ["replace", "unload", "market-sell-confirm"]
+    }
+  ],
+  "activityWindows": [
+    {
+      "id": "bag-smelt",
+      "view": "BagSmeltView",
+      "openFrom": ["BagComponentView.smeltBtn", "WarehouseView.smeltBtn"],
+      "controls": ["_Scroller1", "select", "propBtn", "autoGp", "oneStarGp", "useBtn", "closeBtn", "background-close"],
+      "childWindows": [
+        { "view": "SmeltPropView", "controls": ["content-scroll", "close", "background-close"] },
+        { "view": "AlertTypeTwo", "states": ["high-value-confirm", "auto-confirm"], "controls": ["confirm", "cancel", "background-close"] }
+      ],
+      "writeControls": ["useBtn", "alert-confirm"],
+      "lifecycle": "background click closes only the current Smelt window; the next Warehouse tab click must not be consumed"
+    },
+    {
+      "id": "bag-expand",
+      "view": "ExpandBagView",
+      "openFrom": ["BagComponentView.expandBtn", "bag locked cell", "WarehouseView.expandBtn1", "WarehouseView.expandBtn2", "warehouse locked cells"],
+      "controls": ["reduce_btn", "increase_btn", "maxBtn", "input_bg", "itemGp", "right_cost", "enter_btn", "cancel_btn", "close_btn", "background-close", "min-limit", "max-limit", "insufficient-alert"],
+      "childWindows": [
+        { "view": "CalculatorView", "controls": ["digits", "backspace", "close-key", "background-close"] },
+        { "view": "GoodsTooltips", "controls": ["cost-content", "close", "background-close"] },
+        { "view": "AlertTypeTwo", "controls": ["confirm", "cancel", "background-close"] }
+      ],
+      "writeControls": ["enter_btn", "insufficient-alert.confirm"]
+    },
+    {
+      "id": "one-key-use",
+      "view": "OneKeyUseView",
+      "openFrom": ["BagComponentView.useBtn", "WarehouseView.useBtn"],
+      "controls": ["Content1 category tabs", "_Scroller2", "select", "nothingLb", "useBtn", "closeBtn", "background-close"],
+      "states": ["generated-categories", "selected-category", "empty", "last-item"],
+      "writeControls": ["useBtn"]
+    },
+    {
+      "id": "one-key-equip-alert",
+      "view": "AlertTypeOne",
+      "openFrom": ["BagComponentView.onekeyBtn when no better equipment exists"],
+      "controls": ["go", "close", "background-close"],
+      "writeControls": [],
+      "parentWriteControl": "BagComponentView.onekeyBtn when better equipment exists"
+    }
+  ],
+  "blocked": [
+    {
+      "scope": "route-runtime",
+      "code": "PUBLIC_UIAUDIT_PROTOCOL_TRACE_LIFECYCLE_GAP",
+      "reason": "The shared protocol trace lifecycle is not yet authoritative across the full login, page-read and final assertion sequence. Keep this route at static preflight only until the public owner fixes and revalidates Tools/UIAudit."
+    },
+    {
+      "control": "BagComponentView._btn_guard1",
+      "code": "GUARD_ROUTE_STATE_PROVIDER",
+      "reason": "Bag can reproduce the old visibility gate, but the owned code has no real GuardMainView flow/state provider. Do not replace it with Toast or a fake open."
+    },
+    {
+      "control": "BagComponentView._btn_guard2",
+      "code": "GUARD_ROUTE_STATE_PROVIDER",
+      "reason": "Bag can reproduce the old visibility gate, but the owned code has no real GuardMainView flow/state provider. Do not replace it with Toast or a fake open."
+    },
+    {
+      "control": "BagComponentView._btn_dragonball",
+      "code": "DRAGONBALL_ROUTE_STATE_PROVIDER",
+      "reason": "When 14311 open=false the old-client semantics are the first-recharge redirect. The completed-recharge DragonBallView branch lacks a real owned View/Flow/state provider and remains blocked."
+    }
+  ],
+  "liveGateMatrix": {
+    "oldH5": [
+      "common-runner route replay with current startup popup policy",
+      "all four visible tabs and conditional fifth-tab absence",
+      "per-tab title identity and selected-state",
+      "Bag, Warehouse, HolySeal and Revelation real drag/content delta/clip/last item",
+      "each visible grid cell detail View identity/root/background/close chain",
+      "Smelt, Expand and OneKeyUse overlay/background close and reopen lifecycle",
+      "read-only protocol trace with zero write/unknown/malformed events"
+    ],
+    "currentUnityWeb": [
+      "same source/dirty/Player/catalog fingerprint",
+      "720x1280 and wide viewport real Canvas replay",
+      "MainUI entry and four generated tabs plus conditional fifth",
+      "影骸战衣 and 启示圣铠 title text after the current source fix",
+      "real GraphicRaycaster drag/content delta/clip/last item",
+      "per-cell specialized detail identity and backdrop layering",
+      "Smelt background closes only Smelt and does not consume the following Warehouse click",
+      "HolySeal and Revelation background/list/slot/selection states",
+      "close then warm reopen with cold/warm timing",
+      "resource added/imported/configured delta is zero",
+      "old/unity/overlay/diff artifacts"
+    ]
+  },
+  "steps": [
+    { "action": "snapshot", "label": "00_mainui_ready" },
+    {
+      "action": "click",
+      "label": "01_open_bag",
+      "selector": { "source": "laya-stage", "view": "MainUIDownView", "name": "_img_icon", "skinIncludes": "mainUI/texture/bag.png", "expectedCount": 1 },
+      "settleMs": 50
+    },
+    { "action": "snapshot", "label": "02_bag_open_350ms", "samplingTargetMs": 350, "samplingToleranceMs": 250 },
+    { "action": "snapshot", "label": "03_bag_open_1000ms", "samplingTargetMs": 1000, "samplingToleranceMs": 250 },
+    { "action": "wait-view", "label": "04_wait_bag_ready", "view": "BagComponentView", "visible": true, "timeoutMs": 12000 },
+    { "action": "snapshot", "label": "05_bag_ready" },
+    {
+      "action": "assert-nodes",
+      "label": "05a_bag_shell_and_primary_controls",
+      "assertions": [
+        { "selector": { "source": "laya-stage", "name": "BaseWindowSkin", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "BagComponentView", "name": "BagComponentView", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "BagComponentView", "name": "BagEquipmentIcon" }, "count": 10 },
+        { "selector": { "source": "laya-stage", "view": "BagComponentView", "name": "bagItemRenderer" }, "count": 30 },
+        { "selector": { "source": "laya-stage", "view": "BagComponentView", "name": "onekeyBtn", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "BagComponentView", "name": "smeltBtn", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "BagComponentView", "name": "expandBtn", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "BagComponentView", "name": "useBtn", "expectedCount": 1 }, "exists": true, "count": 1 }
+      ]
+    },
+    {
+      "action": "branch",
+      "label": "05b_conditional_longlang_tab",
+      "condition": {
+        "kind": "nodes",
+        "selector": { "source": "laya-stage", "name": "TabButtonOneSkin", "visible": false },
+        "count": 5
+      },
+      "then": [
+        {
+          "action": "assert-nodes",
+          "label": "05b_then_longlang_generated",
+          "assertions": [
+            { "selector": { "source": "laya-stage", "name": "TabButtonOneSkin", "visible": false }, "count": 5 },
+            { "selector": { "source": "laya-stage", "name": "TabButtonOneSkin" }, "count": 5 },
+            { "selector": { "source": "laya-stage", "text": "九天神祭" }, "exists": true, "count": { "min": 1 } }
+          ]
+        }
+      ],
+      "else": [
+        {
+          "action": "assert-nodes",
+          "label": "05b_else_longlang_not_generated",
+          "assertions": [
+            { "selector": { "source": "laya-stage", "name": "TabButtonOneSkin", "visible": false }, "count": 4 },
+            { "selector": { "source": "laya-stage", "name": "TabButtonOneSkin" }, "count": 4 },
+            { "selector": { "source": "laya-stage", "text": "九天神祭", "visible": false }, "exists": false },
+            { "selector": { "source": "loaded-view", "view": "longlanguageView", "name": "longlanguageView", "visible": false }, "exists": false }
+          ]
+        }
+      ]
+    },
+    {
+      "action": "assert-geometry",
+      "label": "05c_bag_grid_geometry",
+      "assertion": {
+        "selector": { "source": "laya-stage", "view": "BagComponentView", "name": "bag_con", "expectedCount": 1 },
+        "bounds": {
+          "x": { "eq": 19, "tolerance": 2 },
+          "y": { "eq": 697, "tolerance": 2 },
+          "width": { "eq": 580, "tolerance": 2 },
+          "height": { "eq": 358, "tolerance": 2 }
+        }
+      }
+    },
+    {
+      "action": "drag",
+      "label": "06_bag_grid_drag",
+      "selector": { "source": "laya-stage", "view": "BagComponentView", "name": "bag_con", "expectedCount": 1 },
+      "options": { "deltaY": -240, "steps": 16 },
+      "settleMs": 350
+    },
+    {
+      "action": "assert-scroll",
+      "label": "06a_bag_grid_scroll_contract",
+      "beforeLabel": "05_bag_ready",
+      "assertion": {
+        "axis": "y",
+        "containerSelector": { "source": "laya-stage", "view": "BagComponentView", "name": "bag_con", "expectedCount": 1 },
+        "viewportSelector": { "source": "laya-stage", "view": "BagComponentView", "name": "bag_con", "expectedCount": 1 },
+        "itemSelector": { "source": "laya-stage", "view": "BagComponentView", "name": "bagItemRenderer" },
+        "requireClipped": true,
+        "lastItemSelector": { "source": "laya-stage", "view": "BagComponentView", "name": "item29", "expectedCount": 1 },
+        "lastItemClipMode": "inside",
+        "minAbsDelta": 1
+      }
+    },
+    {
+      "action": "assert-geometry",
+      "label": "06b_bag_last_item_inside_viewport",
+      "assertion": {
+        "selector": { "source": "laya-stage", "view": "BagComponentView", "name": "item29", "expectedCount": 1 },
+        "withinSelector": { "source": "laya-stage", "view": "BagComponentView", "name": "bag_con", "expectedCount": 1 },
+        "clipMode": "inside"
+      }
+    },
+    { "action": "snapshot", "label": "07_bag_grid_after_drag" },
+    {
+      "action": "click",
+      "label": "10_tab_warehouse",
+      "selector": { "source": "laya-stage", "name": "TabButtonOneSkin", "expectedCount": 4, "index": 1 },
+      "settleMs": 50
+    },
+    { "action": "snapshot", "label": "11_warehouse_350ms", "samplingTargetMs": 350, "samplingToleranceMs": 250 },
+    { "action": "snapshot", "label": "12_warehouse_1000ms", "samplingTargetMs": 1000, "samplingToleranceMs": 250 },
+    { "action": "wait-view", "label": "13_wait_warehouse_ready", "view": "WarehouseView", "visible": true, "timeoutMs": 12000 },
+    { "action": "snapshot", "label": "14_warehouse_ready" },
+    {
+      "action": "assert-nodes",
+      "label": "14a_warehouse_controls",
+      "assertions": [
+        { "selector": { "source": "laya-stage", "view": "WarehouseView", "name": "WarehouseView", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "WarehouseView", "name": "_Scroller1", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "WarehouseView", "name": "_Scroller2", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "WarehouseView", "name": "expandBtn1", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "WarehouseView", "name": "expandBtn2", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "WarehouseView", "name": "smeltBtn", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "WarehouseView", "name": "useBtn", "expectedCount": 1 }, "exists": true, "count": 1 }
+      ]
+    },
+    {
+      "action": "assert-geometry",
+      "label": "14b_warehouse_grid_geometry",
+      "assertions": [
+        {
+          "selector": { "source": "laya-stage", "view": "WarehouseView", "name": "_Scroller1", "expectedCount": 1 },
+          "bounds": {
+            "x": { "eq": 19, "tolerance": 2 },
+            "y": { "eq": 103, "tolerance": 2 },
+            "width": { "eq": 580, "tolerance": 2 },
+            "height": { "eq": 451.592, "tolerance": 2 }
+          }
+        },
+        {
+          "selector": { "source": "laya-stage", "view": "WarehouseView", "name": "_Scroller2", "expectedCount": 1 },
+          "bounds": {
+            "x": { "eq": 19, "tolerance": 2 },
+            "y": { "eq": 697, "tolerance": 2 },
+            "width": { "eq": 580, "tolerance": 2 },
+            "height": { "eq": 358, "tolerance": 2 }
+          }
+        }
+      ]
+    },
+    {
+      "action": "drag",
+      "label": "15_warehouse_bag_grid_drag",
+      "selector": { "source": "laya-stage", "view": "WarehouseView", "name": "_Scroller1", "expectedCount": 1 },
+      "options": { "deltaY": -260, "steps": 16 },
+      "settleMs": 350
+    },
+    {
+      "action": "assert-scroll",
+      "label": "15a_warehouse_bag_scroll_contract",
+      "beforeLabel": "14_warehouse_ready",
+      "assertion": {
+        "axis": "y",
+        "containerSelector": { "source": "laya-stage", "view": "WarehouseView", "name": "_Scroller1", "expectedCount": 1 },
+        "viewportSelector": { "source": "laya-stage", "view": "WarehouseView", "name": "_Scroller1", "expectedCount": 1 },
+        "itemSelector": { "source": "laya-stage", "view": "WarehouseView", "name": "bagItemRenderer" },
+        "requireClipped": true,
+        "lastItemSelector": { "source": "laya-stage", "view": "WarehouseView", "name": "item35", "expectedCount": 1 },
+        "lastItemClipMode": "inside",
+        "minAbsDelta": 1
+      }
+    },
+    {
+      "action": "assert-geometry",
+      "label": "15b_warehouse_bag_last_item_inside",
+      "assertion": {
+        "selector": { "source": "laya-stage", "view": "WarehouseView", "name": "item35", "expectedCount": 1 },
+        "withinSelector": { "source": "laya-stage", "view": "WarehouseView", "name": "_Scroller1", "expectedCount": 1 },
+        "clipMode": "inside"
+      }
+    },
+    { "action": "snapshot", "label": "16_warehouse_bag_grid_after_drag" },
+    {
+      "action": "drag",
+      "label": "17_warehouse_storage_grid_drag",
+      "selector": { "source": "laya-stage", "view": "WarehouseView", "name": "_Scroller2", "expectedCount": 1 },
+      "options": { "deltaY": -260, "steps": 16 },
+      "settleMs": 350
+    },
+    {
+      "action": "assert-scroll",
+      "label": "17a_warehouse_storage_scroll_contract",
+      "beforeLabel": "16_warehouse_bag_grid_after_drag",
+      "assertion": {
+        "axis": "y",
+        "containerSelector": { "source": "laya-stage", "view": "WarehouseView", "name": "_Scroller2", "expectedCount": 1 },
+        "viewportSelector": { "source": "laya-stage", "view": "WarehouseView", "name": "_Scroller2", "expectedCount": 1 },
+        "itemSelector": { "source": "laya-stage", "view": "WarehouseView", "name": "bagItemRenderer" },
+        "requireClipped": true,
+        "lastItemSelector": { "source": "laya-stage", "view": "WarehouseView", "name": "item29", "expectedCount": 2, "index": 1 },
+        "lastItemClipMode": "inside",
+        "minAbsDelta": 1
+      }
+    },
+    {
+      "action": "assert-geometry",
+      "label": "17b_warehouse_storage_last_item_inside",
+      "assertion": {
+        "selector": { "source": "laya-stage", "view": "WarehouseView", "name": "item29", "expectedCount": 2, "index": 1 },
+        "withinSelector": { "source": "laya-stage", "view": "WarehouseView", "name": "_Scroller2", "expectedCount": 1 },
+        "clipMode": "inside"
+      }
+    },
+    { "action": "snapshot", "label": "18_warehouse_storage_grid_after_drag" },
+    {
+      "action": "click",
+      "label": "20_tab_holy_seal",
+      "selector": { "source": "laya-stage", "name": "TabButtonOneSkin", "expectedCount": 4, "index": 2 },
+      "settleMs": 50
+    },
+    { "action": "snapshot", "label": "21_holy_seal_350ms", "samplingTargetMs": 350, "samplingToleranceMs": 250 },
+    { "action": "snapshot", "label": "22_holy_seal_1000ms", "samplingTargetMs": 1000, "samplingToleranceMs": 250 },
+    { "action": "wait-view", "label": "23_wait_holy_seal_ready", "view": "HolySealView", "visible": true, "timeoutMs": 12000 },
+    { "action": "snapshot", "label": "24_holy_seal_ready" },
+    {
+      "action": "assert-nodes",
+      "label": "24a_holy_seal_identity_and_title",
+      "assertions": [
+        { "selector": { "source": "laya-stage", "view": "HolySealView", "name": "HolySealView", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "HolySealView", "name": "_img_bg", "skinIncludes": "ui_seal_bg.jpg", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "HolySealView", "name": "HolySealEquipItem" }, "count": 11 },
+        { "selector": { "source": "laya-stage", "view": "HolySealView", "name": "HolySealBagItem" }, "count": 30 },
+        { "selector": { "source": "laya-stage", "text": "影骸战衣" }, "exists": true, "count": { "min": 1 } },
+        { "selector": { "source": "laya-stage", "text": "影装" }, "exists": false }
+      ]
+    },
+    {
+      "action": "assert-geometry",
+      "label": "24b_holy_seal_list_geometry",
+      "assertion": {
+        "selector": { "source": "laya-stage", "view": "HolySealView", "name": "_list_bag", "expectedCount": 1 },
+        "bounds": {
+          "x": { "eq": 17, "tolerance": 2 },
+          "y": { "eq": 698, "tolerance": 2 },
+          "width": { "eq": 580, "tolerance": 2 },
+          "height": { "eq": 360, "tolerance": 2 }
+        }
+      }
+    },
+    {
+      "action": "drag",
+      "label": "25_holy_seal_bag_drag",
+      "selector": { "source": "laya-stage", "view": "HolySealView", "name": "_list_bag", "expectedCount": 1 },
+      "options": { "deltaY": -220, "steps": 16 },
+      "settleMs": 350
+    },
+    {
+      "action": "assert-scroll",
+      "label": "25a_holy_seal_scroll_contract",
+      "beforeLabel": "24_holy_seal_ready",
+      "assertion": {
+        "axis": "y",
+        "containerSelector": { "source": "laya-stage", "view": "HolySealView", "name": "_list_bag", "expectedCount": 1 },
+        "viewportSelector": { "source": "laya-stage", "view": "HolySealView", "name": "_list_bag", "expectedCount": 1 },
+        "itemSelector": { "source": "laya-stage", "view": "HolySealView", "name": "HolySealBagItem" },
+        "requireClipped": true,
+        "lastItemSelector": { "source": "laya-stage", "view": "HolySealView", "name": "item29", "expectedCount": 1 },
+        "lastItemClipMode": "inside",
+        "minAbsDelta": 1
+      }
+    },
+    {
+      "action": "assert-geometry",
+      "label": "25b_holy_seal_last_item_inside",
+      "assertion": {
+        "selector": { "source": "laya-stage", "view": "HolySealView", "name": "item29", "expectedCount": 1 },
+        "withinSelector": { "source": "laya-stage", "view": "HolySealView", "name": "_list_bag", "expectedCount": 1 },
+        "clipMode": "inside"
+      }
+    },
+    { "action": "snapshot", "label": "26_holy_seal_bag_after_drag" },
+    {
+      "action": "click",
+      "label": "27_open_holy_seal_bag_detail",
+      "selector": { "source": "laya-stage", "view": "HolySealView", "name": "HolySealBagItem", "expectedCount": 30, "index": 0 },
+      "settleMs": 350
+    },
+    { "action": "wait-view", "label": "27a_wait_holy_seal_detail", "view": "HolySealToolTips", "visible": true, "timeoutMs": 12000 },
+    {
+      "action": "assert-nodes",
+      "label": "27b_holy_seal_detail_identity",
+      "assertions": [
+        { "selector": { "source": "loaded-view", "view": "HolySealToolTips", "name": "HolySealToolTips", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "name": "_btn_close", "expectedCount": 1 }, "exists": true, "count": 1 }
+      ]
+    },
+    {
+      "action": "assert-geometry",
+      "label": "27c_holy_seal_detail_geometry",
+      "assertion": {
+        "selector": { "source": "laya-stage", "name": "HolySealToolTips", "expectedCount": 1 },
+        "bounds": { "width": { "min": 200 }, "height": { "min": 200 } }
+      }
+    },
+    {
+      "action": "click",
+      "label": "27d_close_holy_seal_detail",
+      "selector": { "source": "laya-stage", "name": "_btn_close", "expectedCount": 1 },
+      "settleMs": 200
+    },
+    { "action": "wait-view", "label": "27e_wait_holy_seal_detail_closed", "view": "HolySealToolTips", "visible": false, "timeoutMs": 12000 },
+    {
+      "action": "click",
+      "label": "30_tab_revelation",
+      "selector": { "source": "laya-stage", "name": "TabButtonOneSkin", "expectedCount": 4, "index": 3 },
+      "settleMs": 50
+    },
+    { "action": "snapshot", "label": "31_revelation_350ms", "samplingTargetMs": 350, "samplingToleranceMs": 250 },
+    { "action": "snapshot", "label": "32_revelation_1000ms", "samplingTargetMs": 1000, "samplingToleranceMs": 250 },
+    { "action": "wait-view", "label": "33_wait_revelation_ready", "view": "RevelationEquipView", "visible": true, "timeoutMs": 12000 },
+    { "action": "snapshot", "label": "34_revelation_ready" },
+    {
+      "action": "assert-nodes",
+      "label": "34a_revelation_identity_and_title",
+      "assertions": [
+        { "selector": { "source": "laya-stage", "view": "RevelationEquipView", "name": "RevelationEquipView", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "RevelationEquipView", "name": "img_bg", "skinIncludes": "ui_Apocalypse_bg.jpg", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "RevelationEquipView", "name": "RevelationEquipItem" }, "count": 10 },
+        { "selector": { "source": "laya-stage", "view": "RevelationEquipView", "name": "RevelationBagItem" }, "count": 24 },
+        { "selector": { "source": "laya-stage", "text": "启示圣铠" }, "exists": true, "count": { "min": 1 } },
+        { "selector": { "source": "laya-stage", "text": "天启" }, "exists": false }
+      ]
+    },
+    {
+      "action": "assert-geometry",
+      "label": "34b_revelation_list_geometry",
+      "assertion": {
+        "selector": { "source": "laya-stage", "view": "RevelationEquipView", "name": "gp_bag", "expectedCount": 1 },
+        "bounds": {
+          "x": { "eq": 19, "tolerance": 2 },
+          "y": { "eq": 697, "tolerance": 2 },
+          "width": { "eq": 580, "tolerance": 2 },
+          "height": { "eq": 358, "tolerance": 2 }
+        }
+      }
+    },
+    {
+      "action": "drag",
+      "label": "35_revelation_bag_drag",
+      "selector": { "source": "laya-stage", "view": "RevelationEquipView", "name": "gp_bag", "expectedCount": 1 },
+      "options": { "deltaY": -220, "steps": 16 },
+      "settleMs": 350
+    },
+    {
+      "action": "assert-scroll",
+      "label": "35a_revelation_scroll_contract",
+      "beforeLabel": "34_revelation_ready",
+      "assertion": {
+        "axis": "y",
+        "containerSelector": { "source": "laya-stage", "view": "RevelationEquipView", "name": "gp_bag", "expectedCount": 1 },
+        "viewportSelector": { "source": "laya-stage", "view": "RevelationEquipView", "name": "gp_bag", "expectedCount": 1 },
+        "itemSelector": { "source": "laya-stage", "view": "RevelationEquipView", "name": "RevelationBagItem" },
+        "requireClipped": true,
+        "lastItemSelector": { "source": "laya-stage", "view": "RevelationEquipView", "name": "item23", "expectedCount": 1 },
+        "lastItemClipMode": "inside",
+        "minAbsDelta": 1
+      }
+    },
+    {
+      "action": "assert-geometry",
+      "label": "35b_revelation_last_item_inside",
+      "assertion": {
+        "selector": { "source": "laya-stage", "view": "RevelationEquipView", "name": "item23", "expectedCount": 1 },
+        "withinSelector": { "source": "laya-stage", "view": "RevelationEquipView", "name": "gp_bag", "expectedCount": 1 },
+        "clipMode": "inside"
+      }
+    },
+    { "action": "snapshot", "label": "36_revelation_bag_after_drag" },
+    {
+      "action": "click",
+      "label": "37_open_revelation_bag_detail",
+      "selector": { "source": "laya-stage", "view": "RevelationEquipView", "name": "RevelationBagItem", "expectedCount": 24, "index": 0 },
+      "settleMs": 350
+    },
+    { "action": "wait-view", "label": "37a_wait_revelation_detail", "view": "RevelationToolTips", "visible": true, "timeoutMs": 12000 },
+    {
+      "action": "assert-nodes",
+      "label": "37b_revelation_detail_identity",
+      "assertions": [
+        { "selector": { "source": "loaded-view", "view": "RevelationToolTips", "name": "RevelationToolTips", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "name": "_btn_close", "expectedCount": 1 }, "exists": true, "count": 1 }
+      ]
+    },
+    {
+      "action": "assert-geometry",
+      "label": "37c_revelation_detail_geometry",
+      "assertion": {
+        "selector": { "source": "laya-stage", "name": "RevelationToolTips", "expectedCount": 1 },
+        "bounds": { "width": { "min": 200 }, "height": { "min": 200 } }
+      }
+    },
+    {
+      "action": "click",
+      "label": "37d_close_revelation_detail",
+      "selector": { "source": "laya-stage", "name": "_btn_close", "expectedCount": 1 },
+      "settleMs": 200
+    },
+    { "action": "wait-view", "label": "37e_wait_revelation_detail_closed", "view": "RevelationToolTips", "visible": false, "timeoutMs": 12000 },
+    {
+      "action": "click",
+      "label": "38_return_to_bag_tab",
+      "selector": { "source": "laya-stage", "name": "TabButtonOneSkin", "expectedCount": 4, "index": 0 },
+      "settleMs": 250
+    },
+    { "action": "wait-view", "label": "38a_wait_bag_for_activity", "view": "BagComponentView", "visible": true, "timeoutMs": 12000 },
+    {
+      "action": "click",
+      "label": "38b_open_smelt",
+      "selector": { "source": "laya-stage", "view": "BagComponentView", "name": "smeltBtn", "expectedCount": 1 },
+      "settleMs": 350
+    },
+    { "action": "wait-view", "label": "38c_wait_smelt", "view": "BagSmeltView", "visible": true, "timeoutMs": 12000 },
+    {
+      "action": "assert-nodes",
+      "label": "38d_smelt_identity_and_backdrop",
+      "assertions": [
+        { "selector": { "source": "loaded-view", "view": "BagSmeltView", "name": "BagSmeltView", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "BagSmeltView", "name": "_Scroller1", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "BagSmeltView", "name": "closeBtn", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "skinIncludes": "com_sub_bg_7", "expectedCount": 1 }, "exists": true, "count": 1 }
+      ]
+    },
+    {
+      "action": "assert-geometry",
+      "label": "38e_smelt_backdrop_geometry",
+      "assertion": {
+        "selector": { "source": "laya-stage", "skinIncludes": "com_sub_bg_7", "expectedCount": 1 },
+        "bounds": { "width": { "min": 720 }, "height": { "min": 1280 } }
+      }
+    },
+    {
+      "action": "click",
+      "label": "38f_close_smelt_by_background",
+      "selector": { "source": "laya-stage", "skinIncludes": "com_sub_bg_7", "expectedCount": 1 },
+      "options": { "point": { "x": 12, "y": 320 } },
+      "settleMs": 250
+    },
+    { "action": "wait-view", "label": "38g_wait_smelt_background_closed", "view": "BagSmeltView", "visible": false, "timeoutMs": 12000 },
+    {
+      "action": "click",
+      "label": "38h_warehouse_click_after_smelt_close",
+      "selector": { "source": "laya-stage", "name": "TabButtonOneSkin", "expectedCount": 4, "index": 1 },
+      "settleMs": 250
+    },
+    { "action": "wait-view", "label": "38i_assert_warehouse_not_consumed", "view": "WarehouseView", "visible": true, "timeoutMs": 12000 },
+    {
+      "action": "click",
+      "label": "38j_return_to_bag_after_smelt_chain",
+      "selector": { "source": "laya-stage", "name": "TabButtonOneSkin", "expectedCount": 4, "index": 0 },
+      "settleMs": 250
+    },
+    { "action": "wait-view", "label": "38k_wait_bag_after_smelt_chain", "view": "BagComponentView", "visible": true, "timeoutMs": 12000 },
+    {
+      "action": "click",
+      "label": "38l_open_expand",
+      "selector": { "source": "laya-stage", "view": "BagComponentView", "name": "expandBtn", "expectedCount": 1 },
+      "settleMs": 350
+    },
+    { "action": "wait-view", "label": "38m_wait_expand", "view": "ExpandBagView", "visible": true, "timeoutMs": 12000 },
+    {
+      "action": "assert-nodes",
+      "label": "38n_expand_controls_and_backdrop",
+      "assertions": [
+        { "selector": { "source": "loaded-view", "view": "ExpandBagView", "name": "ExpandBagView", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "ExpandBagView", "name": "reduce_btn", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "ExpandBagView", "name": "increase_btn", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "ExpandBagView", "name": "maxBtn", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "ExpandBagView", "name": "enter_btn", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "skinIncludes": "com_sub_bg_7", "expectedCount": 1 }, "exists": true, "count": 1 }
+      ]
+    },
+    {
+      "action": "click",
+      "label": "38o_close_expand_by_background",
+      "selector": { "source": "laya-stage", "skinIncludes": "com_sub_bg_7", "expectedCount": 1 },
+      "options": { "point": { "x": 12, "y": 320 } },
+      "settleMs": 250
+    },
+    { "action": "wait-view", "label": "38p_wait_expand_background_closed", "view": "ExpandBagView", "visible": false, "timeoutMs": 12000 },
+    {
+      "action": "click",
+      "label": "38q_open_one_key_use",
+      "selector": { "source": "laya-stage", "view": "BagComponentView", "name": "useBtn", "expectedCount": 1 },
+      "settleMs": 350
+    },
+    { "action": "wait-view", "label": "38r_wait_one_key_use", "view": "OneKeyUseView", "visible": true, "timeoutMs": 12000 },
+    {
+      "action": "assert-nodes",
+      "label": "38s_one_key_use_controls_and_backdrop",
+      "assertions": [
+        { "selector": { "source": "loaded-view", "view": "OneKeyUseView", "name": "OneKeyUseView", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "OneKeyUseView", "name": "Content1", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "OneKeyUseView", "name": "_Scroller2", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "OneKeyUseView", "name": "useBtn", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "skinIncludes": "com_sub_bg_7", "expectedCount": 1 }, "exists": true, "count": 1 }
+      ]
+    },
+    {
+      "action": "click",
+      "label": "38t_close_one_key_use_by_background",
+      "selector": { "source": "laya-stage", "skinIncludes": "com_sub_bg_7", "expectedCount": 1 },
+      "options": { "point": { "x": 12, "y": 320 } },
+      "settleMs": 250
+    },
+    { "action": "wait-view", "label": "38u_wait_one_key_use_background_closed", "view": "OneKeyUseView", "visible": false, "timeoutMs": 12000 },
+    {
+      "action": "assert-nodes",
+      "label": "38v_no_activity_modal_remains",
+      "assertions": [
+        { "selector": { "source": "loaded-view", "view": "BagSmeltView", "name": "BagSmeltView" }, "exists": false },
+        { "selector": { "source": "loaded-view", "view": "ExpandBagView", "name": "ExpandBagView" }, "exists": false },
+        { "selector": { "source": "loaded-view", "view": "OneKeyUseView", "name": "OneKeyUseView" }, "exists": false },
+        { "selector": { "source": "laya-stage", "skinIncludes": "com_sub_bg_7" }, "exists": false }
+      ]
+    },
+    {
+      "action": "click",
+      "label": "40_close_bag_window",
+      "selector": { "source": "laya-stage", "name": "_img_return", "expectedCount": 1 },
+      "settleMs": 350
+    },
+    { "action": "wait-view", "label": "41_wait_bag_closed", "view": "BaseWindowSkin", "visible": false, "timeoutMs": 12000 },
+    { "action": "snapshot", "label": "42_mainui_after_close" },
+    {
+      "action": "click",
+      "label": "50_warm_reopen_bag",
+      "selector": { "source": "laya-stage", "view": "MainUIDownView", "name": "_img_icon", "skinIncludes": "mainUI/texture/bag.png", "expectedCount": 1 },
+      "settleMs": 50
+    },
+    { "action": "snapshot", "label": "51_warm_reopen_350ms", "samplingTargetMs": 350, "samplingToleranceMs": 250 },
+    { "action": "snapshot", "label": "52_warm_reopen_1000ms", "samplingTargetMs": 1000, "samplingToleranceMs": 250 },
+    { "action": "wait-view", "label": "53_wait_warm_ready", "view": "BagComponentView", "visible": true, "timeoutMs": 12000 },
+    { "action": "snapshot", "label": "54_warm_reopen_ready" },
+    {
+      "action": "assert-nodes",
+      "label": "55_warm_reopen_identity",
+      "assertions": [
+        { "selector": { "source": "laya-stage", "view": "BagComponentView", "name": "BagComponentView", "expectedCount": 1 }, "exists": true, "count": 1 },
+        { "selector": { "source": "laya-stage", "name": "TabButtonOneSkin" }, "count": 4 },
+        { "selector": { "source": "laya-stage", "view": "BagComponentView", "name": "bagItemRenderer" }, "count": 30 }
+      ]
+    },
+    {
+      "action": "click",
+      "label": "56_open_representative_bag_detail",
+      "selector": { "source": "laya-stage", "view": "BagComponentView", "name": "bagItemRenderer", "expectedCount": 30, "index": 0 },
+      "settleMs": 350
+    },
+    {
+      "action": "branch",
+      "label": "57_bag_detail_identity_branch",
+      "condition": {
+        "kind": "nodes",
+        "selector": { "source": "loaded-view", "view": "EquipToolTips", "name": "EquipToolTips" },
+        "exists": true
+      },
+      "then": [
+        {
+          "action": "assert-nodes",
+          "label": "57_then_equip_tooltips",
+          "assertions": [
+            { "selector": { "source": "loaded-view", "view": "EquipToolTips", "name": "EquipToolTips" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "name": "closeBtn" }, "count": { "min": 1 } }
+          ]
+        },
+        {
+          "action": "assert-geometry",
+          "label": "57_then_equip_tooltips_geometry",
+          "assertion": {
+            "selector": { "source": "laya-stage", "name": "EquipToolTips", "expectedCount": 1 },
+            "bounds": { "width": { "min": 200 }, "height": { "min": 200 } }
+          }
+        }
+      ],
+      "else": [
+        {
+          "action": "branch",
+          "label": "57_else_goods_tooltips_branch",
+          "condition": {
+            "kind": "nodes",
+            "selector": { "source": "loaded-view", "view": "GoodsTooltips", "name": "GoodsTooltips" },
+            "exists": true
+          },
+          "then": [
+            {
+              "action": "assert-nodes",
+              "label": "57_then_goods_tooltips",
+              "assertions": [
+                { "selector": { "source": "loaded-view", "view": "GoodsTooltips", "name": "GoodsTooltips" }, "count": 1 },
+                { "selector": { "source": "laya-stage", "name": "okBtn" }, "count": { "min": 1 } }
+              ]
+            },
+            {
+              "action": "assert-geometry",
+              "label": "57_then_goods_tooltips_geometry",
+              "assertion": {
+                "selector": { "source": "laya-stage", "name": "GoodsTooltips", "expectedCount": 1 },
+                "bounds": { "width": { "min": 200 }, "height": { "min": 200 } }
+              }
+            }
+          ],
+          "else": [
+            {
+              "action": "branch",
+              "label": "57_else_beast_tooltips_branch",
+              "condition": {
+                "kind": "nodes",
+                "selector": { "source": "loaded-view", "view": "BeastToolTips", "name": "BeastToolTips" },
+                "exists": true
+              },
+              "then": [
+                {
+                  "action": "assert-nodes",
+                  "label": "57_then_beast_tooltips",
+                  "assertions": [
+                    { "selector": { "source": "loaded-view", "view": "BeastToolTips", "name": "BeastToolTips" }, "count": 1 },
+                    { "selector": { "source": "laya-stage", "name": "closeBtn" }, "count": { "min": 1 } }
+                  ]
+                },
+                {
+                  "action": "assert-geometry",
+                  "label": "57_then_beast_tooltips_geometry",
+                  "assertion": {
+                    "selector": { "source": "laya-stage", "name": "BeastToolTips", "expectedCount": 1 },
+                    "bounds": { "width": { "min": 200 }, "height": { "min": 200 } }
+                  }
+                }
+              ],
+              "else": [
+                {
+                  "action": "branch",
+                  "label": "57_else_unreal_tooltips_branch",
+                  "condition": {
+                    "kind": "nodes",
+                    "selector": { "source": "loaded-view", "view": "UnrealToolTips", "name": "UnrealToolTips" },
+                    "exists": true
+                  },
+                  "then": [
+                    {
+                      "action": "assert-nodes",
+                      "label": "57_then_unreal_tooltips",
+                      "assertions": [
+                        { "selector": { "source": "loaded-view", "view": "UnrealToolTips", "name": "UnrealToolTips" }, "count": 1 },
+                        { "selector": { "source": "laya-stage", "name": "closeBtn" }, "count": { "min": 1 } }
+                      ]
+                    },
+                    {
+                      "action": "assert-geometry",
+                      "label": "57_then_unreal_tooltips_geometry",
+                      "assertion": {
+                        "selector": { "source": "laya-stage", "name": "UnrealToolTips", "expectedCount": 1 },
+                        "bounds": { "width": { "min": 200 }, "height": { "min": 200 } }
+                      }
+                    }
+                  ],
+                  "else": [
+                    {
+                      "action": "branch",
+                      "label": "57_else_illusion_tips_branch",
+                      "condition": {
+                        "kind": "nodes",
+                        "selector": { "source": "loaded-view", "view": "IllusionTips", "name": "IllusionTips" },
+                        "exists": true
+                      },
+                      "then": [
+                        {
+                          "action": "assert-nodes",
+                          "label": "57_then_illusion_tips",
+                          "assertions": [
+                            { "selector": { "source": "loaded-view", "view": "IllusionTips", "name": "IllusionTips" }, "count": 1 },
+                            { "selector": { "source": "laya-stage", "name": "detail_scroller" }, "count": { "min": 1 } }
+                          ]
+                        },
+                        {
+                          "action": "assert-geometry",
+                          "label": "57_then_illusion_tips_geometry",
+                          "assertion": {
+                            "selector": { "source": "laya-stage", "name": "IllusionTips", "expectedCount": 1 },
+                            "bounds": { "width": { "min": 200 }, "height": { "min": 200 } }
+                          }
+                        }
+                      ],
+                      "else": [
+                        {
+                          "action": "branch",
+                          "label": "57_else_diamond_gift_branch",
+                          "condition": {
+                            "kind": "nodes",
+                            "selector": { "source": "loaded-view", "view": "DiamondGiftView", "name": "DiamondGiftView" },
+                            "exists": true
+                          },
+                          "then": [
+                            {
+                              "action": "assert-nodes",
+                              "label": "57_then_diamond_gift",
+                              "assertions": [
+                                { "selector": { "source": "loaded-view", "view": "DiamondGiftView", "name": "DiamondGiftView" }, "count": 1 },
+                                { "selector": { "source": "laya-stage", "view": "DiamondGiftView", "name": "_btn_close", "expectedCount": 1 }, "count": 1 }
+                              ]
+                            },
+                            {
+                              "action": "assert-geometry",
+                              "label": "57_then_diamond_gift_geometry",
+                              "assertion": {
+                                "selector": { "source": "laya-stage", "view": "DiamondGiftView", "name": "DiamondGiftView", "expectedCount": 1 },
+                                "bounds": { "width": { "min": 200 }, "height": { "min": 200 } }
+                              }
+                            }
+                          ],
+                          "else": [
+                            {
+                              "action": "assert-nodes",
+                              "label": "57_else_item_info_tips",
+                              "assertions": [
+                                { "selector": { "source": "loaded-view", "view": "ItemInfoTips", "name": "ItemInfoTips" }, "count": 1 },
+                                { "selector": { "source": "laya-stage", "name": "detail_scroller" }, "count": { "min": 1 } }
+                              ]
+                            },
+                            {
+                              "action": "assert-geometry",
+                              "label": "57_else_item_info_tips_geometry",
+                              "assertion": {
+                                "selector": { "source": "laya-stage", "name": "ItemInfoTips", "expectedCount": 1 },
+                                "bounds": { "width": { "min": 200 }, "height": { "min": 200 } }
+                              }
+                            },
+                            {
+                              "action": "branch",
+                              "label": "57_item_info_treasure_or_gift",
+                              "condition": {
+                                "kind": "nodes",
+                                "selector": { "source": "laya-stage", "name": "probabilityImg" },
+                                "exists": true
+                              },
+                              "then": [
+                                {
+                                  "action": "assert-nodes",
+                                  "label": "57_item_info_treasure_state",
+                                  "assertions": [
+                                    { "selector": { "source": "laya-stage", "name": "probabilityImg" }, "count": 1 },
+                                    { "selector": { "source": "laya-stage", "name": "jackpotImg" }, "count": 1 }
+                                  ]
+                                }
+                              ],
+                              "else": [
+                                {
+                                  "action": "assert-nodes",
+                                  "label": "57_item_info_gift_state",
+                                  "assertions": [
+                                    { "selector": { "source": "laya-stage", "name": "probabilityImg" }, "exists": false },
+                                    { "selector": { "source": "laya-stage", "name": "jackpotImg" }, "exists": false },
+                                    { "selector": { "source": "laya-stage", "name": "useBtn" }, "count": { "min": 1 } }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "action": "assert-protocol",
+      "label": "90_assert_read_only",
+      "assertions": {
+        "mode": "read-only",
+        "forbidden": [
+          { "direction": "outbound", "cmd": 14901 },
+          { "direction": "outbound", "cmd": 15002 },
+          { "direction": "outbound", "cmd": 15003 },
+          { "direction": "outbound", "cmd": 15019 },
+          { "direction": "outbound", "cmd": 15021 },
+          { "direction": "outbound", "cmd": 15025 },
+          { "direction": "outbound", "cmd": 15050 },
+          { "direction": "outbound", "cmd": 15086 },
+          { "direction": "outbound", "cmd": 15201 },
+          { "direction": "outbound", "cmd": 15302 },
+          { "direction": "outbound", "cmd": 28601 },
+          { "direction": "outbound", "cmd": 28602 },
+          { "direction": "outbound", "cmd": 28603 },
+          { "direction": "outbound", "cmd": 28604 },
+          { "direction": "outbound", "cmd": 28605 },
+          { "direction": "outbound", "cmd": 28607 },
+          { "direction": "outbound", "cmd": 65402 },
+          { "direction": "outbound", "cmd": 65403 },
+          { "direction": "outbound", "cmd": 65404 },
+          { "direction": "outbound", "cmd": 65406 },
+          { "direction": "outbound", "cmd": 65408 }
+        ]
+      }
+    }
+  ]
+}

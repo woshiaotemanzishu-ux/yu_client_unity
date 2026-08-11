@@ -14,6 +14,7 @@ namespace Shenxiao.Module.Core.Equip
     public sealed class ArmorAttrView : ArmorAttrViewBind
     {
         private readonly List<GameObject> _items = new List<GameObject>();
+        [SerializeField] private Image _modalBlocker;
         private int _loadVersion;
 
         protected override void OnInit()
@@ -24,8 +25,23 @@ namespace Shenxiao.Module.Core.Equip
             if (_img_bg != null)
             {
                 _img_bg.raycastTarget = true;
-                UIUtil.AddClick(_img_bg, Hide);
+                UIUtil.ClearClicks(_img_bg);
             }
+            if (_modalBlocker != null)
+            {
+                _modalBlocker.raycastTarget = true;
+                UIUtil.ClearClicks(_modalBlocker);
+                UIUtil.AddClick(_modalBlocker, CloseSelf);
+            }
+            else
+            {
+                Debug.LogError("[Equip] ArmorAttrView 缺少 Prefab 全屏模态拦截层");
+            }
+        }
+
+        private static void CloseSelf()
+        {
+            EquipFlow.CloseSub(nameof(ArmorAttrView));
         }
 
         protected override void OnShow(object args)
@@ -69,7 +85,8 @@ namespace Shenxiao.Module.Core.Equip
                 GameObject go = Instantiate(_tpl_ArmorAttrItem, Content, false);
                 go.name = "ArmorTotalAttr_" + data.AttrId;
                 ArmorAttrItemBind bind = go.GetComponent<ArmorAttrItemBind>();
-                go.SetActive(true);
+                if (bind != null) bind.Show();
+                else go.SetActive(true);
                 if (bind != null)
                 {
                     string name = GoodsModel.GetAttrName(data.AttrId);
@@ -91,6 +108,8 @@ namespace Shenxiao.Module.Core.Equip
             {
                 GameObject go = _items[i];
                 if (go == null) continue;
+                BaseView view = go.GetComponent<BaseView>();
+                if (view != null && view.IsShown) view.Hide();
                 if (Application.isPlaying) Destroy(go); else DestroyImmediate(go);
             }
             _items.Clear();

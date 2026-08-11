@@ -12,6 +12,12 @@ namespace Shenxiao.Module.Core.Bag
     /// <summary>背包/仓库扩容。每扩一格消耗 2 个 38250026；材料不足时由服务端自动购买链补足，最终以 15002 为准。</summary>
     public sealed class ExpandBagView : ExpandBagViewBind
     {
+        public sealed class Presentation
+        {
+            public int BagPos;
+            public int InitialCount;
+        }
+
         public override UILayer Layer => UILayer.Popup;
 
         public const int ExpandGoodsTypeId = 38250026;
@@ -38,10 +44,19 @@ namespace Shenxiao.Module.Core.Bag
 
         protected override void OnShow(object args)
         {
-            _bagPos = args is int pos && pos == BagModel.POS_WAREHOUSE ? BagModel.POS_WAREHOUSE : BagModel.POS_BAG;
+            int initialCount = 0;
+            if (args is Presentation presentation)
+            {
+                _bagPos = presentation.BagPos == BagModel.POS_WAREHOUSE ? BagModel.POS_WAREHOUSE : BagModel.POS_BAG;
+                initialCount = presentation.InitialCount;
+            }
+            else
+            {
+                _bagPos = args is int pos && pos == BagModel.POS_WAREHOUSE ? BagModel.POS_WAREHOUSE : BagModel.POS_BAG;
+            }
             long available = BagModel.Instance.GetTypeGoodsNum(ExpandGoodsTypeId);
             int maxByItem = (int)Math.Min(_inputLimit, available / ExpandNeedPerCell);
-            SetCount(maxByItem > 0 ? maxByItem : 1, false);
+            SetCount(initialCount > 0 ? initialCount : (maxByItem > 0 ? maxByItem : 1), false);
             Subscribe();
         }
 
@@ -96,7 +111,7 @@ namespace Shenxiao.Module.Core.Bag
                 BagModel.Instance.GetTypeGoodsNum(ExpandGoodsTypeId) / ExpandNeedPerCell);
             if (max <= 0)
             {
-                TipsManager.Toast("扩容道具不足");
+                TipsManager.Toast("已达最大扩充容量");
                 return;
             }
             SetCount(max, false);
@@ -130,6 +145,7 @@ namespace Shenxiao.Module.Core.Bag
 
             long shortage = need - owned;
             TipsManager.Confirm("当前扩容道具不足 " + shortage + " 个，是否使用自动购买补足？", send);
+            Hide();
         }
 
         private static void BindBtn(Component target, Action onClick)

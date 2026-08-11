@@ -620,7 +620,7 @@ namespace Shenxiao.Module.Core.Tasks
                 OutWard.OutWardShellView.Show(); return;   // 翼影24/圣器92/神兵41:RoleView 页签未移植,先走壳(16005 通用升星)
             }
             if (task.TaskTipsType == 91) { OnHook.OnHookShellView.Show(); return; }                               // 101211 挂机收益(13216)
-            if (task.TaskTipsType == 50) { Rune.RuneWearShellView.Show(); return; }                               // 101525 御魂强化(16702)
+            if (task.TaskTipsType == 50) { Rune.RuneFlow.Open(); return; }                                        // 101525 御魂强化→真实九霄劫魄页(16702)
             if (task.TaskTipsType == 73) { Compose.ComposeShellView.Show(); return; }                             // 101725 神装合成(15020)
             if (task.TaskTipsType == 35) { Jjc.JjcShellView.Show(); return; }                                     // 101465 排位(28001-03;壳警示服务端断链)
             if (task.TaskTipsType == TIP_SUIT_CLT) { SuitCollect.SuitCollectShellView.Show(); return; }           // 100391 套装收集(15256/57)
@@ -636,7 +636,7 @@ namespace Shenxiao.Module.Core.Tasks
                 Dungeon.DungeonRuneShellView.Show(); return;                                                      // 100980/101522 御魂本(61001/03/20)
             }
             if (task.TaskTipsType == TIP_JOIN_GUILD) { Guild.GuildJoinShellView.Show(); return; }                 // 101080 结社(40001/03/04)
-            if (task.TaskTipsType == TIP_RUNE_NUM) { Rune.RuneWearShellView.Show(); return; }                     // 100990 灵魄镶嵌(16700/01)
+            if (task.TaskTipsType == TIP_RUNE_NUM) { Rune.RuneFlow.Open(); return; }                              // 100990 灵魄镶嵌→真实九霄劫魄页(16700/01)
 
             // 4) 主线出现的「开系统面板」类(面板未移植)→ 结构化降级,先于通用寻路
             //(老端这些 case 不走坐标寻路:LV 开升级提醒、FinDunType 开副本入口等)。

@@ -182,6 +182,21 @@ namespace Shenxiao.Module.Core.Bag
                     list.Count, BagModel.Instance.WarehouseGoodsList.Count, r.Remaining);
                 return;
             }
+            if (pos == BagModel.POS_RUNE_BAG)
+            {
+                foreach (BagGoods g in list) Rune.RuneModel.Instance.UpsertRuneBag(ToRuneBagGoods(g));
+                GameLog.Info("Bag", "15017 rune_bag rich delta: goods={0} count={1} remaining={2}B",
+                    list.Count, Rune.RuneModel.Instance.RuneBagGoods.Count, r.Remaining);
+                return;
+            }
+            if (BagModel.IsBagSpecialContainer(pos))
+            {
+                foreach (BagGoods g in list) BagModel.Instance.UpsertBagSpecialContainer(pos, g);
+                BagModel.Instance.NotifyContainerChanged(pos);
+                GameLog.Info("Bag", "15017 bag special pos={0} delta={1} count={2} remaining={3}B",
+                    pos, list.Count, BagModel.Instance.GetContainer(pos).Count, r.Remaining);
+                return;
+            }
             if (BagModel.IsPetEquipContainer(pos))
             {
                 foreach (BagGoods g in list) BagModel.Instance.UpsertPetEquipContainer(pos, g);
@@ -257,6 +272,23 @@ namespace Shenxiao.Module.Core.Bag
                 EventDispatcher.Emit(GlobalEvent.EVT_WAREHOUSE_UPDATE);
                 GameLog.Info("Bag", "15018 warehouse num delta: goods={0} warehouse={1} remaining={2}B",
                     list.Count, BagModel.Instance.WarehouseGoodsList.Count, r.Remaining);
+                return;
+            }
+            if (pos == BagModel.POS_RUNE_BAG)
+            {
+                foreach ((long goodsId, long num, int typeId) it in list)
+                    Rune.RuneModel.Instance.UpdateRuneBagNum(it.goodsId, it.typeId, it.num);
+                GameLog.Info("Bag", "15018 rune_bag num delta: goods={0} count={1} remaining={2}B",
+                    list.Count, Rune.RuneModel.Instance.RuneBagGoods.Count, r.Remaining);
+                return;
+            }
+            if (BagModel.IsBagSpecialContainer(pos))
+            {
+                foreach ((long goodsId, long num, int typeId) it in list)
+                    BagModel.Instance.UpdateBagSpecialContainerNum(pos, it.goodsId, it.typeId, it.num);
+                BagModel.Instance.NotifyContainerChanged(pos);
+                GameLog.Info("Bag", "15018 bag special pos={0} delta={1} count={2} remaining={3}B",
+                    pos, list.Count, BagModel.Instance.GetContainer(pos).Count, r.Remaining);
                 return;
             }
             if (BagModel.IsPetEquipContainer(pos))
@@ -969,6 +1001,12 @@ namespace Shenxiao.Module.Core.Bag
                 GameLog.Info("Bag", "15010 warehouse: cellNum={0} maxCell={1} goods={2} remaining={3}B",
                     cellNum, maxCell, list.Count, r.Remaining);
             }
+            else if (BagModel.IsBagSpecialContainer(pos))
+            {
+                BagModel.Instance.SetBagSpecialContainerFull(pos, maxCell, list);
+                GameLog.Info("Bag", "15010 bag special pos={0} cellNum={1} maxCell={2} goods={3} remaining={4}B",
+                    pos, cellNum, maxCell, list.Count, r.Remaining);
+            }
             else if (BagModel.IsLungContainer(pos))
             {
                 BagModel.Instance.SetLungContainerFull(pos, maxCell, list);
@@ -991,7 +1029,7 @@ namespace Shenxiao.Module.Core.Bag
             {
                 // 例外(第19轮工单-灵魄镶嵌):15010 单 handler 已被本控制器独占注册,符文背包(rune_bag pos)
                 // 只能在此顺路接住、转存到 Rune.RuneModel,不新开协议注册。≤10 行,不改其余分支行为。
-                var runeBag = list.ConvertAll(g => new Rune.RuneModel.BagGoodsVo(g.GoodsId, g.TypeId, g.GoodsNum));
+                var runeBag = list.ConvertAll(ToRuneBagGoods);
                 Rune.RuneModel.Instance.SetRuneBag(runeBag);
                 GameLog.Info("Bag", "15010 rune_bag: goods={0} remaining={1}B", list.Count, r.Remaining);
             }
@@ -1028,9 +1066,9 @@ namespace Shenxiao.Module.Core.Bag
             g.Cell = r.ReadU16();            // cell:h
             g.GoodsNum = r.ReadU32();        // goods_num:i
             g.Bind = r.ReadU8();             // bind:c
-            r.ReadU8();                      // trade:c
-            r.ReadU8();                      // sell:c
-            r.ReadU8();                      // is_drop:c
+            g.Trade = r.ReadU8();            // trade:c
+            g.Sell = r.ReadU8();             // sell:c
+            g.IsDrop = r.ReadU8();           // is_drop:c
             g.Color = r.ReadU8();            // color:c
             g.ExpireTime = r.ReadU32();      // expire_time:i
             g.CombatPower = r.ReadU32();     // combat_power:i
@@ -1085,6 +1123,44 @@ namespace Shenxiao.Module.Core.Bag
             }
             if (dragon) g.NextPower = unchecked((ulong)r.ReadU64());
             return g;
+        }
+
+        private static Rune.RuneModel.BagGoodsVo ToRuneBagGoods(BagGoods g)
+        {
+            var extra = new List<Rune.RuneModel.BagExtraAttrVo>();
+            if (g.ExtraAttrs != null)
+            {
+                foreach (EquipExtraAttr item in g.ExtraAttrs)
+                {
+                    extra.Add(new Rune.RuneModel.BagExtraAttrVo(item.Color, item.AttrTypeId,
+                        item.AttrId, item.AttrVal, item.PlusInterval, item.PlusUnit));
+                }
+            }
+
+            var addition = new List<Rune.RuneModel.BagAdditionAttrVo>();
+            if (g.AdditionAttrs != null)
+            {
+                foreach (EquipAdditionAttr item in g.AdditionAttrs)
+                {
+                    addition.Add(new Rune.RuneModel.BagAdditionAttrVo(item.AttrType,
+                        item.AttrValue, item.Color, item.CombatPower));
+                }
+            }
+
+            var awake = new List<Rune.RuneModel.BagAwakeAttrVo>();
+            if (g.AwakeList != null)
+            {
+                foreach (EquipAwakeAttr item in g.AwakeList)
+                {
+                    awake.Add(new Rune.RuneModel.BagAwakeAttrVo(item.AttrType,
+                        unchecked((int)item.AwakeLv), item.AwakeExp));
+                }
+            }
+
+            return new Rune.RuneModel.BagGoodsVo(g.GoodsId, g.TypeId, g.GoodsNum,
+                g.Level, g.Color, g.Bind, g.Cell, g.Stren, g.Rating,
+                g.OverallRating, g.CombatPower, g.ExpireTime, g.EquipStage,
+                g.EquipStar, extra, addition, awake);
         }
     }
 }

@@ -1,0 +1,1000 @@
+{
+  "schema": 1,
+  "id": "pet.partner.current",
+  "engine": "legacy-laya",
+  "url": "http://127.0.0.1:8091/index.html",
+  "legacyRoot": "E:/GitProject/yu_client",
+  "snapshotSource": "E:/GitProject/yu_client/tools/yu-resource-tool/frontend/src/utils/pageSnapshot.js",
+  "popupPolicy": "../../policies/startup-popups.json",
+  "protocolPolicy": "../../policies/protocols.json",
+  "viewport": { "width": 720, "height": 1280 },
+  "session": {
+    "accountEnv": "UIAUDIT_ACCOUNT",
+    "passwordEnv": "UIAUDIT_PASSWORD",
+    "itemUse": { "mode": "hard-stop" }
+  },
+  "scope": {
+    "page": "普通神巫第三 Tab / PartnerBaseView",
+    "account": "111111",
+    "readOnly": true,
+    "doNotNavigate": ["PartnerAwakeMainView", "DemonMainView"],
+    "blocked": [
+      {
+        "id": "DEMON_TAB_ROUTE",
+        "expectation": "第四签天妖灵魄可见且保留完整入口矩形；本路线不点击第四签，Demon 业务页与二级叶保持 blocked"
+      },
+      {
+        "id": "PARTNER_WRITE_TRANSACTIONS",
+        "expectation": "14203/14204/14205/14206/14207 均不得发送"
+      },
+      {
+        "id": "PUBLIC_UIAUDIT_PROTOCOL_TRACE_LIFECYCLE_GAP",
+        "expectation": "公共协议 trace 生命周期修复并经总控回归前，本 route 仅允许静态 preflight；禁止启动真实浏览器或把 assert-protocol 结果用于运行验收"
+      }
+    ]
+  },
+  "runtimeAuthority": {
+    "ordinaryView": "PartnerBaseView",
+    "forbiddenAwakeView": "PartnerAwakeMainView",
+    "snapshotCommands": [14201, 14202],
+    "fixedCompanions": [
+      { "id": 1, "figureId": 1018, "name": "星御·璇玑", "active": true, "stage": 1, "star": 0, "fighting": true },
+      { "id": 2, "figureId": 1023, "name": "乐御·清音", "active": false },
+      { "id": 3, "figureId": 1019, "name": "桃御·落英", "active": false },
+      { "id": 4, "figureId": 1022, "name": "水御·碧澜", "active": false },
+      { "id": 5, "figureId": 1004, "name": "雪御·寒凝", "active": false },
+      { "id": 6, "figureId": 1024, "name": "丝御·织绫", "active": false },
+      { "id": 7, "figureId": 1029, "name": "春御·琉璃", "active": false },
+      { "id": 8, "figureId": 1033, "name": "缘御·月华", "active": false },
+      { "id": 9, "figureId": 1060, "name": "武御·惊鸿", "active": false },
+      { "id": 10, "figureId": 1006, "name": "炎御·灼华", "active": false },
+      { "id": 11, "figureId": 1008, "name": "谷御·丰年", "active": false },
+      { "id": 12, "figureId": 1009, "name": "魁御·朗月", "active": false }
+    ]
+  },
+  "visualContracts": {
+    "tabs": {
+      "count": 4,
+      "labels": ["御风云骑", "剑魄同修", "神巫", "天妖灵魄"],
+      "selectedIndex": 2,
+      "fourthTab": { "rect": [450, 1077, 150, 90], "visible": true, "mouseEnabled": true, "disabled": false }
+    },
+    "stars": {
+      "rect": [182, 157, 357, 34],
+      "count": 10,
+      "itemSize": [33, 34],
+      "spacing": 3,
+      "expectedLit": 0
+    },
+    "selector": {
+      "viewport": [23, 900, 674, 150],
+      "itemSize": [114, 139],
+      "pitch": 124,
+      "initialVisibleIds": [1, 2, 3, 4, 5, 6],
+      "initialPartialRightId": 6,
+      "endVisibleIds": [8, 9, 10, 11, 12],
+      "endPartialLeftId": 7,
+      "endOffset": -804,
+      "lastItemRight": 697,
+      "clipOutsideViewport": true
+    },
+    "attributeActive": {
+      "companionId": 1,
+      "model3dVisible": true,
+      "portrait2dVisible": false,
+      "skillIds": [59520002, 59520003, 59520004, 59520005],
+      "skillUnlockStages": [1, 3, 6, 8],
+      "materialLabel": "升星消耗:",
+      "progress": "0/10",
+      "button": "升星"
+    },
+    "attributeInactive": {
+      "companionId": 12,
+      "model3dVisible": true,
+      "portrait2dVisible": false,
+      "sourceSkillOnly": true,
+      "skillId": 59520052,
+      "skillState": "未激活",
+      "source": "运营活动",
+      "materialLabel": "激活消耗:",
+      "progress": "0/300",
+      "button": "激活"
+    },
+    "biographyInactive": {
+      "companionId": 12,
+      "model3dVisible": false,
+      "portrait2dVisible": true,
+      "tabs": ["未解锁", "未解锁", "未解锁"],
+      "selectedIndex": 0,
+      "unlockLines": [
+        "魁神月和达到1阶10星解锁",
+        "魁神月和达到3阶10星解锁",
+        "魁神月和达到5阶10星解锁"
+      ],
+      "sealVisible": true,
+      "bodyVisible": false
+    },
+    "effects": {
+      "attributeSwitch": { "effectName": "effect_ui_zhuanji", "owner": "page", "renderSize": [108, 275], "dynamicFrames": 2 },
+      "biographySwitch": { "effectName": "effect_ui_shuxing", "owner": "page", "renderSize": [108, 275], "dynamicFrames": 2 },
+      "modelPersistent": { "owner": "model-bone", "requiredInAttribute": true, "forbiddenInBiography": true, "dynamicFrames": 2 }
+    }
+  },
+  "controls": [
+    {
+      "id": "mainui_pet_entry",
+      "kind": "navigation",
+      "selector": { "source": "laya-stage", "view": "MainUIDownView", "name": "_img_icon", "skinIncludes": "mainUI/texture/pet.png", "expectedCount": 1 }
+    },
+    {
+      "id": "pet_tabs",
+      "kind": "tab-list",
+      "selector": { "source": "laya-stage", "name": "TabButtonOneSkin", "expectedCount": 4 }
+    },
+    {
+      "id": "partner_selector",
+      "kind": "horizontal-scroll",
+      "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 }
+    },
+    {
+      "id": "partner_last_item",
+      "kind": "list-item",
+      "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "item4", "expectedCount": 1 }
+    },
+    {
+      "id": "attribute_biography_switch",
+      "kind": "toggle",
+      "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "_btn_switch", "expectedCount": 1 }
+    },
+    {
+      "id": "biography_tabs",
+      "kind": "tab-list",
+      "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "_list_biog_tab", "expectedCount": 1 }
+    },
+    {
+      "id": "return_mainui",
+      "kind": "return",
+      "selector": { "source": "laya-stage", "view": "BaseWindowSkin", "name": "_img_return", "expectedCount": 1 }
+    }
+  ],
+  "protocol": {
+    "inboundCommands": [14201, 14202, 16002, 16006, 16011, 16028],
+    "assertions": {
+      "mode": "read-only",
+      "required": [
+        { "direction": "outbound", "ruleId": "outward-base-read-16002", "cmd": 16002, "fmt": "c", "args": [5], "min": 1 },
+        { "direction": "outbound", "ruleId": "outward-illusion-read-16006", "cmd": 16006, "fmt": "c", "args": [5], "min": 1 },
+        { "direction": "outbound", "ruleId": "outward-star-read-16011", "cmd": 16011, "fmt": "c", "args": [5], "min": 1 },
+        { "direction": "outbound", "ruleId": "outward-level-read-16028", "cmd": 16028, "fmt": "c", "args": [5], "min": 1 },
+        { "direction": "inbound", "cmd": 16002, "min": 1 },
+        { "direction": "inbound", "cmd": 16006, "min": 1 },
+        { "direction": "inbound", "cmd": 16011, "min": 1 },
+        { "direction": "inbound", "cmd": 16028, "min": 1 }
+      ],
+      "forbidden": [
+        { "direction": "outbound", "cmd": 14203 },
+        { "direction": "outbound", "cmd": 14204 },
+        { "direction": "outbound", "cmd": 14205 },
+        { "direction": "outbound", "cmd": 14206 },
+        { "direction": "outbound", "cmd": 14207 }
+      ]
+    }
+  },
+  "steps": [
+    { "action": "snapshot", "label": "00_mainui_ready" },
+    {
+      "action": "assert-nodes",
+      "label": "01_assert_mainui_identity",
+      "assertions": [
+        { "selector": { "source": "loaded-view", "view": "MainUIDownView" }, "exists": true },
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "PartnerBaseView" }, "exists": false },
+        { "selector": { "source": "laya-stage", "view": "PartnerAwakeMainView", "name": "PartnerAwakeMainView" }, "exists": false }
+      ]
+    },
+    { "action": "reset-sound", "label": "02_reset_page_sound", "traceLabel": "partner-page-open" },
+    {
+      "action": "click",
+      "label": "03_open_pet",
+      "selector": { "source": "laya-stage", "view": "MainUIDownView", "name": "_img_icon", "skinIncludes": "mainUI/texture/pet.png", "expectedCount": 1 },
+      "settleMs": 100
+    },
+    { "action": "wait-view", "label": "04_wait_pet_shell", "view": "BaseWindowSkin", "visible": true, "timeoutMs": 12000 },
+    { "action": "snapshot", "label": "05_pet_shell" },
+    {
+      "action": "assert-nodes",
+      "label": "06_assert_four_tabs_and_demon_entry",
+      "assertions": [
+        { "selector": { "source": "laya-stage", "name": "TabButtonOneSkin" }, "count": 4 },
+        { "selector": { "source": "laya-stage", "view": "BaseWindowSkin", "name": "labelDisplay", "text": "御风云骑" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "BaseWindowSkin", "name": "labelDisplay", "text": "剑魄同修" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "BaseWindowSkin", "name": "labelDisplay", "text": "神巫" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "BaseWindowSkin", "name": "labelDisplay", "text": "天妖灵魄" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "DemonMainView", "name": "DemonMainView" }, "exists": false }
+      ]
+    },
+    {
+      "action": "assert-geometry",
+      "label": "07_assert_demon_entry_geometry",
+      "assertions": [
+        {
+          "selector": { "source": "laya-stage", "name": "TabButtonOneSkin", "expectedCount": 4, "index": 3 },
+          "bounds": {
+            "x": { "eq": 450, "tolerance": 1 },
+            "y": { "eq": 1077, "tolerance": 1 },
+            "width": { "eq": 150, "tolerance": 1 },
+            "height": { "eq": 90, "tolerance": 1 }
+          }
+        }
+      ]
+    },
+    {
+      "action": "click",
+      "label": "08_open_partner_tab",
+      "selector": { "source": "laya-stage", "name": "TabButtonOneSkin", "expectedCount": 4, "index": 2 }
+    },
+    { "action": "wait-view", "label": "09_wait_partner", "view": "PartnerBaseView", "visible": true, "timeoutMs": 12000 },
+    { "action": "snapshot", "label": "10_partner_350ms", "samplingTargetMs": 350, "samplingToleranceMs": 250 },
+    {
+      "action": "assert-nodes",
+      "label": "11_assert_ordinary_partner_branch",
+      "assertions": [
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "PartnerBaseView" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerAwakeMainView", "name": "PartnerAwakeMainView" }, "exists": false },
+        { "selector": { "source": "laya-stage", "view": "BaseWindowSkin", "name": "labelDisplay", "text": "神巫" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "BaseWindowSkin", "name": "labelDisplay", "text": "天妖灵魄" }, "count": 1 }
+      ]
+    },
+    { "action": "snapshot", "label": "12_partner_1000ms", "samplingTargetMs": 1000, "samplingToleranceMs": 250 },
+    {
+      "action": "wait-render-ready",
+      "label": "13_wait_partner_model_rt_ready",
+      "probe": {
+        "selector": { "source": "laya-stage", "name": "New Sprite3D", "type": "ut", "expectedCount": 3, "index": 2 },
+        "propertyPath": ["renderTarget"],
+        "alphaThreshold": 0,
+        "sampleStride": 4,
+        "minNonTransparentPixels": 128,
+        "stableFrames": 2,
+        "pollMs": 100,
+        "timeoutMs": 12000
+      }
+    },
+    { "action": "snapshot", "label": "14_partner_ready_a", "settleMs": 700 },
+    {
+      "action": "branch",
+      "label": "15_assert_active_attribute_branch",
+      "condition": {
+        "kind": "nodes",
+        "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "PartnerSkillItem" },
+        "count": 4
+      },
+      "then": [
+        {
+          "action": "assert-nodes",
+          "label": "15a_active_attribute_nodes",
+          "assertions": [
+            { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "gp_model" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "_img_biog" }, "exists": false },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "PartnerSkillItem" }, "count": 4 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "lock" }, "count": 3 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "unlock_cond", "text": "3阶\n激活" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "unlock_cond", "text": "6阶\n激活" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "unlock_cond", "text": "8阶\n激活" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "source" }, "exists": false },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "gp_up" }, "count": 4 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "up_value", "text": "30" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "up_value", "text": "600" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "up_value", "text": "15" }, "count": 2 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "desc", "text": "升星消耗:" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "progerssvalue", "text": "0/10" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "btn_text", "text": "升星" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "name": "model_pet_1018" }, "count": { "min": 1 } },
+            { "selector": { "source": "laya-stage", "name": "effect_model_pet_1018_Bip001" }, "count": 1 }
+          ]
+        },
+        {
+          "action": "assert-geometry",
+          "label": "15b_active_attribute_geometry",
+          "assertions": [
+            {
+              "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "gp_model", "expectedCount": 1 },
+              "bounds": {
+                "x": { "eq": -20, "tolerance": 1 },
+                "y": { "eq": 80, "tolerance": 1 },
+                "width": { "eq": 775, "tolerance": 1 },
+                "height": { "eq": 584, "tolerance": 1 }
+              }
+            },
+            {
+              "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "_gp_star", "expectedCount": 1 },
+              "bounds": {
+                "x": { "eq": 182, "tolerance": 1 },
+                "y": { "eq": 157, "tolerance": 1 },
+                "width": { "eq": 357, "tolerance": 1 },
+                "height": { "eq": 34, "tolerance": 1 }
+              }
+            },
+            {
+              "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "PartnerSkillItem", "expectedCount": 4, "index": 0 },
+              "bounds": { "x": { "eq": 194, "tolerance": 1 }, "y": { "eq": 588, "tolerance": 1 }, "width": { "eq": 77, "tolerance": 1 }, "height": { "eq": 77, "tolerance": 1 } }
+            },
+            {
+              "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "PartnerSkillItem", "expectedCount": 4, "index": 1 },
+              "bounds": { "x": { "eq": 279, "tolerance": 1 }, "y": { "eq": 588, "tolerance": 1 }, "width": { "eq": 77, "tolerance": 1 }, "height": { "eq": 77, "tolerance": 1 } }
+            },
+            {
+              "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "PartnerSkillItem", "expectedCount": 4, "index": 2 },
+              "bounds": { "x": { "eq": 364, "tolerance": 1 }, "y": { "eq": 588, "tolerance": 1 }, "width": { "eq": 77, "tolerance": 1 }, "height": { "eq": 77, "tolerance": 1 } }
+            },
+            {
+              "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "PartnerSkillItem", "expectedCount": 4, "index": 3 },
+              "bounds": { "x": { "eq": 449, "tolerance": 1 }, "y": { "eq": 588, "tolerance": 1 }, "width": { "eq": 77, "tolerance": 1 }, "height": { "eq": 77, "tolerance": 1 } }
+            },
+            {
+              "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "gp_attrs", "expectedCount": 1 },
+              "bounds": { "x": { "eq": 34, "tolerance": 1 }, "y": { "eq": 729, "tolerance": 1 }, "width": { "eq": 653, "tolerance": 1 }, "height": { "eq": 80, "tolerance": 1 } }
+            },
+            {
+              "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "item", "expectedCount": 1 },
+              "bounds": { "x": { "eq": 134, "tolerance": 1 }, "y": { "eq": 800, "tolerance": 1 }, "width": { "eq": 87, "tolerance": 1 }, "height": { "eq": 87, "tolerance": 1 } }
+            },
+            {
+              "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "progressbg", "expectedCount": 1 },
+              "bounds": { "x": { "eq": 233, "tolerance": 1 }, "y": { "eq": 849, "tolerance": 1 }, "width": { "eq": 304, "tolerance": 1 }, "height": { "eq": 30, "tolerance": 1 } }
+            }
+          ]
+        }
+      ],
+      "else": [
+        {
+          "action": "assert-nodes",
+          "label": "15z_fail_wrong_initial_branch",
+          "assertions": [
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "PartnerSkillItem" }, "count": 4 }
+          ]
+        }
+      ]
+    },
+    {
+      "action": "assert-nodes",
+      "label": "16_assert_stars_and_attribute_effect_owner",
+      "assertions": [
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "Partnerstar" }, "count": 10 },
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "_box_att_eff" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "_box_biog_eff" }, "exists": false },
+        { "selector": { "source": "laya-stage", "name": "effect_ui_shuxing" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "name": "effect_ui_zhuanji" }, "count": 1 }
+      ]
+    },
+    {
+      "action": "assert-geometry",
+      "label": "17_assert_ten_star_slots",
+      "assertions": [
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "Partnerstar", "expectedCount": 10, "index": 0 }, "bounds": { "x": { "eq": 182, "tolerance": 1 }, "y": { "eq": 157, "tolerance": 1 }, "width": { "eq": 33, "tolerance": 1 }, "height": { "eq": 34, "tolerance": 1 } } },
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "Partnerstar", "expectedCount": 10, "index": 1 }, "bounds": { "x": { "eq": 218, "tolerance": 1 }, "y": { "eq": 157, "tolerance": 1 }, "width": { "eq": 33, "tolerance": 1 }, "height": { "eq": 34, "tolerance": 1 } } },
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "Partnerstar", "expectedCount": 10, "index": 2 }, "bounds": { "x": { "eq": 254, "tolerance": 1 }, "y": { "eq": 157, "tolerance": 1 }, "width": { "eq": 33, "tolerance": 1 }, "height": { "eq": 34, "tolerance": 1 } } },
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "Partnerstar", "expectedCount": 10, "index": 3 }, "bounds": { "x": { "eq": 290, "tolerance": 1 }, "y": { "eq": 157, "tolerance": 1 }, "width": { "eq": 33, "tolerance": 1 }, "height": { "eq": 34, "tolerance": 1 } } },
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "Partnerstar", "expectedCount": 10, "index": 4 }, "bounds": { "x": { "eq": 326, "tolerance": 1 }, "y": { "eq": 157, "tolerance": 1 }, "width": { "eq": 33, "tolerance": 1 }, "height": { "eq": 34, "tolerance": 1 } } },
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "Partnerstar", "expectedCount": 10, "index": 5 }, "bounds": { "x": { "eq": 362, "tolerance": 1 }, "y": { "eq": 157, "tolerance": 1 }, "width": { "eq": 33, "tolerance": 1 }, "height": { "eq": 34, "tolerance": 1 } } },
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "Partnerstar", "expectedCount": 10, "index": 6 }, "bounds": { "x": { "eq": 398, "tolerance": 1 }, "y": { "eq": 157, "tolerance": 1 }, "width": { "eq": 33, "tolerance": 1 }, "height": { "eq": 34, "tolerance": 1 } } },
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "Partnerstar", "expectedCount": 10, "index": 7 }, "bounds": { "x": { "eq": 434, "tolerance": 1 }, "y": { "eq": 157, "tolerance": 1 }, "width": { "eq": 33, "tolerance": 1 }, "height": { "eq": 34, "tolerance": 1 } } },
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "Partnerstar", "expectedCount": 10, "index": 8 }, "bounds": { "x": { "eq": 470, "tolerance": 1 }, "y": { "eq": 157, "tolerance": 1 }, "width": { "eq": 33, "tolerance": 1 }, "height": { "eq": 34, "tolerance": 1 } } },
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "Partnerstar", "expectedCount": 10, "index": 9 }, "bounds": { "x": { "eq": 506, "tolerance": 1 }, "y": { "eq": 157, "tolerance": 1 }, "width": { "eq": 33, "tolerance": 1 }, "height": { "eq": 34, "tolerance": 1 } } }
+      ]
+    },
+    { "action": "snapshot", "label": "18_partner_ready_b" },
+    { "action": "snapshot", "label": "19_selector_before_drag" },
+    {
+      "action": "assert-nodes",
+      "label": "20_assert_selector_initial_cards",
+      "assertions": [
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "item0" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "item1" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "item2" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "item3" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "item4" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "item5" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "item6" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "select", "skinIncludes": "com_selectbg4.png" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "fighting" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "unactive" }, "count": 6 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "bg", "skinIncludes": "uihb_012a.png" }, "count": 2 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "bg", "skinIncludes": "uihb_013a.png" }, "count": 2 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "bg", "skinIncludes": "uihb_014a.png" }, "count": 2 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "bg", "skinIncludes": "uihb_015a.png" }, "count": 1 }
+      ]
+    },
+    {
+      "action": "assert-geometry",
+      "label": "21_assert_selector_initial_clip",
+      "assertions": [
+        {
+          "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 },
+          "bounds": { "x": { "eq": 23, "tolerance": 1 }, "y": { "eq": 900, "tolerance": 1 }, "width": { "eq": 674, "tolerance": 1 }, "height": { "eq": 150, "tolerance": 1 } }
+        },
+        {
+          "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "item0", "expectedCount": 1 },
+          "bounds": { "x": { "eq": 23, "tolerance": 1 }, "y": { "eq": 900, "tolerance": 1 }, "width": { "eq": 114, "tolerance": 1 }, "height": { "eq": 139, "tolerance": 1 } },
+          "withinSelector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 },
+          "clipMode": "inside"
+        },
+        {
+          "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "item5", "expectedCount": 1 },
+          "withinSelector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 },
+          "clipMode": "partial"
+        },
+        {
+          "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "item6", "expectedCount": 1 },
+          "withinSelector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 },
+          "clipMode": "outside"
+        },
+        {
+          "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "select", "skinIncludes": "com_selectbg4.png", "expectedCount": 1 },
+          "withinSelector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 },
+          "clipMode": "partial"
+        }
+      ]
+    },
+    { "action": "reset-sound", "label": "22_reset_selector_sound", "traceLabel": "select-id12" },
+    {
+      "action": "drag",
+      "label": "23_selector_drag_1",
+      "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 },
+      "options": { "start": { "x": 600, "y": 925 }, "end": { "x": 120, "y": 925 }, "steps": 16 },
+      "settleMs": 250
+    },
+    { "action": "snapshot", "label": "24_selector_after_drag_1" },
+    {
+      "action": "assert-scroll",
+      "label": "25_assert_selector_drag_1",
+      "beforeLabel": "19_selector_before_drag",
+      "assertion": {
+        "containerSelector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 },
+        "axis": "x",
+        "minAbsDelta": 1,
+        "itemSelector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "PartnerItem" },
+        "viewportSelector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 },
+        "requireClipped": true
+      }
+    },
+    {
+      "action": "drag",
+      "label": "26_selector_drag_2",
+      "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 },
+      "options": { "start": { "x": 600, "y": 925 }, "end": { "x": 120, "y": 925 }, "steps": 16 },
+      "settleMs": 250
+    },
+    { "action": "snapshot", "label": "27_selector_after_drag_2" },
+    {
+      "action": "assert-scroll",
+      "label": "28_assert_selector_drag_2",
+      "beforeLabel": "24_selector_after_drag_1",
+      "assertion": {
+        "containerSelector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 },
+        "axis": "x",
+        "minAbsDelta": 1,
+        "itemSelector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "PartnerItem" },
+        "viewportSelector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 },
+        "requireClipped": true
+      }
+    },
+    {
+      "action": "drag",
+      "label": "29_selector_drag_to_end",
+      "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 },
+      "options": { "start": { "x": 600, "y": 925 }, "end": { "x": 120, "y": 925 }, "steps": 16 },
+      "settleMs": 250
+    },
+    { "action": "snapshot", "label": "30_selector_at_end" },
+    {
+      "action": "assert-scroll",
+      "label": "31_assert_selector_end_reached",
+      "beforeLabel": "27_selector_after_drag_2",
+      "assertion": {
+        "containerSelector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 },
+        "axis": "x",
+        "minAbsDelta": 1,
+        "itemSelector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "PartnerItem" },
+        "viewportSelector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 },
+        "requireClipped": true,
+        "lastItemSelector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "item4", "expectedCount": 1 },
+        "lastItemClipMode": "inside"
+      }
+    },
+    {
+      "action": "assert-nodes",
+      "label": "32_assert_selector_end_cards",
+      "assertions": [
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "bg", "skinIncludes": "uihb_015a.png" }, "count": 6 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "unactive" }, "count": 6 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "name_res", "text": "魁御·朗月" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "icon", "skinIncludes": "/1009.png" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "item4" }, "count": 1 }
+      ]
+    },
+    {
+      "action": "assert-geometry",
+      "label": "33_assert_selector_end_clip",
+      "assertions": [
+        {
+          "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "item6", "expectedCount": 1 },
+          "bounds": { "x": { "eq": -37, "tolerance": 1 }, "y": { "eq": 900, "tolerance": 1 }, "width": { "eq": 114, "tolerance": 1 }, "height": { "eq": 139, "tolerance": 1 } },
+          "withinSelector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 },
+          "clipMode": "partial"
+        },
+        {
+          "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "item4", "expectedCount": 1 },
+          "bounds": { "x": { "eq": 583, "tolerance": 1 }, "y": { "eq": 900, "tolerance": 1 }, "width": { "eq": 114, "tolerance": 1 }, "height": { "eq": 139, "tolerance": 1 } },
+          "withinSelector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 },
+          "clipMode": "inside"
+        }
+      ]
+    },
+    {
+      "action": "click",
+      "label": "34_select_last_partner",
+      "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "item4", "expectedCount": 1 }
+    },
+    { "action": "snapshot", "label": "35_last_partner_350ms", "samplingTargetMs": 350, "samplingToleranceMs": 250 },
+    { "action": "snapshot", "label": "36_last_partner_1000ms", "samplingTargetMs": 1000, "samplingToleranceMs": 250 },
+    {
+      "action": "wait-render-ready",
+      "label": "37_wait_last_partner_model_rt_ready",
+      "probe": {
+        "selector": { "source": "laya-stage", "name": "New Sprite3D", "type": "ut", "expectedCount": 3, "index": 2 },
+        "propertyPath": ["renderTarget"],
+        "alphaThreshold": 0,
+        "sampleStride": 4,
+        "minNonTransparentPixels": 128,
+        "stableFrames": 2,
+        "pollMs": 100,
+        "timeoutMs": 12000
+      }
+    },
+    { "action": "snapshot", "label": "38_last_partner_ready_a", "settleMs": 700 },
+    {
+      "action": "branch",
+      "label": "39_assert_inactive_attribute_branch",
+      "condition": {
+        "kind": "nodes",
+        "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "source" },
+        "count": 1
+      },
+      "then": [
+        {
+          "action": "assert-nodes",
+          "label": "39a_inactive_attribute_nodes",
+          "assertions": [
+            { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "gp_model" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "_img_biog" }, "exists": false },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "source" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "source_skill" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "PartnerSkillItem" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "gp_skill" }, "exists": false },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "gp_up" }, "exists": false },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "value", "text": "7200" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "value", "text": "144000" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "value", "text": "3600" }, "count": 2 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "desc", "text": "激活消耗:" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "progerssvalue", "text": "0/300" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "btn_text", "text": "激活" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "name": "model_pet_1009" }, "count": { "min": 1 } },
+            { "selector": { "source": "laya-stage", "name": "model_pet_1018" }, "exists": false },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "select", "skinIncludes": "com_selectbg4.png" }, "count": 1 }
+          ]
+        },
+        {
+          "action": "assert-geometry",
+          "label": "39b_inactive_attribute_geometry",
+          "assertions": [
+            {
+              "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "source_skill", "expectedCount": 1 },
+              "bounds": { "x": { "eq": 154, "tolerance": 1 }, "y": { "eq": 586, "tolerance": 1 }, "width": { "eq": 412.671875, "tolerance": 1 }, "height": { "eq": 78, "tolerance": 1 } }
+            },
+            {
+              "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "item", "expectedCount": 1 },
+              "bounds": { "x": { "eq": 134, "tolerance": 1 }, "y": { "eq": 800, "tolerance": 1 }, "width": { "eq": 87, "tolerance": 1 }, "height": { "eq": 87, "tolerance": 1 } }
+            },
+            {
+              "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "progressbg", "expectedCount": 1 },
+              "bounds": { "x": { "eq": 233, "tolerance": 1 }, "y": { "eq": 849, "tolerance": 1 }, "width": { "eq": 304, "tolerance": 1 }, "height": { "eq": 30, "tolerance": 1 } }
+            },
+            {
+              "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "item4", "expectedCount": 1 },
+              "bounds": { "x": { "eq": 583, "tolerance": 1 }, "y": { "eq": 900, "tolerance": 1 }, "width": { "eq": 114, "tolerance": 1 }, "height": { "eq": 139, "tolerance": 1 } },
+              "withinSelector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 },
+              "clipMode": "inside"
+            },
+            {
+              "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "select", "skinIncludes": "com_selectbg4.png", "expectedCount": 1 },
+              "withinSelector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 },
+              "clipMode": "partial"
+            }
+          ]
+        }
+      ],
+      "else": [
+        {
+          "action": "assert-nodes",
+          "label": "39z_fail_wrong_last_partner_branch",
+          "assertions": [
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "source" }, "count": 1 }
+          ]
+        }
+      ]
+    },
+    {
+      "action": "assert-sound",
+      "label": "40_assert_last_partner_voice_once",
+      "assertions": {
+        "required": [
+          { "method": "PlaySoundEffect", "key": "NPC_Voice04b", "min": 1, "max": 1 }
+        ]
+      }
+    },
+    { "action": "snapshot", "label": "41_last_partner_ready_b" },
+    {
+      "action": "click",
+      "label": "42_switch_to_biography",
+      "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "_btn_switch", "expectedCount": 1 }
+    },
+    { "action": "snapshot", "label": "43_biography_350ms", "samplingTargetMs": 350, "samplingToleranceMs": 250, "settleMs": 700 },
+    {
+      "action": "branch",
+      "label": "44_assert_biography_branch",
+      "condition": {
+        "kind": "nodes",
+        "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "_box_biog" },
+        "count": 1
+      },
+      "then": [
+        {
+          "action": "assert-nodes",
+          "label": "44a_biography_nodes",
+          "assertions": [
+            { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "_box_biog" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "_box_att" }, "exists": false },
+            { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "_img_biog" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "gp_model" }, "exists": false },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "_box_biog" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "_box_att" }, "exists": false },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "_list_biog_tab" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "PartnerBiogTabItem" }, "count": 3 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "tab_1_text", "text": "未解锁" }, "count": 3 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "_img_biog_lock" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "_panel_biog" }, "exists": false },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "tab_1_img", "skinIncludes": "ui_role_btn_1.png" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "tab_1_img", "skinIncludes": "ui_role_btn_2.png" }, "count": 2 },
+            { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "_box_biog_eff" }, "count": 1 },
+            { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "_box_att_eff" }, "exists": false }
+          ]
+        },
+        {
+          "action": "assert-geometry",
+          "label": "44b_biography_geometry",
+          "assertions": [
+            {
+              "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "_img_biog", "expectedCount": 1 },
+              "bounds": { "x": { "eq": 134.5, "tolerance": 1 }, "y": { "eq": 217.4, "tolerance": 1 }, "width": { "eq": 455, "tolerance": 1 }, "height": { "eq": 444.6, "tolerance": 1 } }
+            },
+            {
+              "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "_list_biog_tab", "expectedCount": 1 },
+              "bounds": { "x": { "eq": 19.5, "tolerance": 1 }, "y": { "eq": 634, "tolerance": 1 }, "width": { "eq": 676, "tolerance": 1 }, "height": { "eq": 60, "tolerance": 1 } }
+            },
+            {
+              "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "_img_biog_lock", "expectedCount": 1 },
+              "bounds": { "x": { "eq": 63, "tolerance": 1 }, "y": { "eq": 734, "tolerance": 1 }, "width": { "eq": 594, "tolerance": 1 }, "height": { "eq": 152, "tolerance": 1 } }
+            },
+            {
+              "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "_btn_switch", "expectedCount": 1 },
+              "bounds": { "x": { "eq": 59, "tolerance": 1 }, "y": { "eq": 80, "tolerance": 1 }, "width": { "eq": 56, "tolerance": 1 }, "height": { "eq": 142, "tolerance": 1 } }
+            },
+            {
+              "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "tab_1_img", "skinIncludes": "ui_role_btn_1.png", "expectedCount": 1 },
+              "bounds": { "x": { "eq": 22.5, "tolerance": 1 }, "y": { "eq": 645, "tolerance": 1 }, "width": { "eq": 188, "tolerance": 1 }, "height": { "eq": 42, "tolerance": 1 } }
+            }
+          ]
+        }
+      ],
+      "else": [
+        {
+          "action": "assert-nodes",
+          "label": "44z_fail_missing_biography_branch",
+          "assertions": [
+            { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "_box_biog" }, "count": 1 }
+          ]
+        }
+      ]
+    },
+    {
+      "action": "assert-nodes",
+      "label": "45_assert_biography_effect_assets",
+      "assertions": [
+        { "selector": { "source": "laya-stage", "name": "effect_ui_shuxing" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "name": "effect_ui_zhuanji" }, "count": 1 }
+      ]
+    },
+    { "action": "snapshot", "label": "46_biography_dynamic_b" },
+    {
+      "action": "click",
+      "label": "47_biography_tab_1",
+      "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "_list_biog_tab", "expectedCount": 1 },
+      "options": { "point": { "x": 117, "y": 664 } },
+      "settleMs": 250
+    },
+    { "action": "snapshot", "label": "48_biography_tab_1_state" },
+    {
+      "action": "assert-geometry",
+      "label": "49_assert_biography_tab_1_selected",
+      "assertions": [
+        {
+          "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "tab_1_img", "skinIncludes": "ui_role_btn_1.png", "expectedCount": 1 },
+          "bounds": { "x": { "eq": 22.5, "tolerance": 1 }, "y": { "eq": 645, "tolerance": 1 }, "width": { "eq": 188, "tolerance": 1 }, "height": { "eq": 42, "tolerance": 1 } }
+        },
+        {
+          "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "_html_biog_title", "expectedCount": 1 },
+          "bounds": { "x": { "eq": 44, "tolerance": 1 }, "y": { "eq": 698.5, "tolerance": 1 }, "height": { "eq": 24, "tolerance": 1 }, "width": { "min": 240, "max": 340 } }
+        }
+      ]
+    },
+    {
+      "action": "click",
+      "label": "50_biography_tab_2",
+      "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "_list_biog_tab", "expectedCount": 1 },
+      "options": { "point": { "x": 312, "y": 664 } },
+      "settleMs": 250
+    },
+    { "action": "snapshot", "label": "51_biography_tab_2_state" },
+    {
+      "action": "assert-geometry",
+      "label": "52_assert_biography_tab_2_selected",
+      "assertions": [
+        {
+          "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "tab_1_img", "skinIncludes": "ui_role_btn_1.png", "expectedCount": 1 },
+          "bounds": { "x": { "eq": 217.5, "tolerance": 1 }, "y": { "eq": 645, "tolerance": 1 }, "width": { "eq": 188, "tolerance": 1 }, "height": { "eq": 42, "tolerance": 1 } }
+        },
+        {
+          "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "_html_biog_title", "expectedCount": 1 },
+          "bounds": { "x": { "eq": 44, "tolerance": 1 }, "y": { "eq": 698.5, "tolerance": 1 }, "height": { "eq": 24, "tolerance": 1 }, "width": { "min": 240, "max": 340 } }
+        }
+      ]
+    },
+    {
+      "action": "click",
+      "label": "53_biography_tab_3",
+      "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "_list_biog_tab", "expectedCount": 1 },
+      "options": { "point": { "x": 507, "y": 664 } },
+      "settleMs": 250
+    },
+    { "action": "snapshot", "label": "54_biography_tab_3_state" },
+    {
+      "action": "assert-geometry",
+      "label": "55_assert_biography_tab_3_selected",
+      "assertions": [
+        {
+          "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "tab_1_img", "skinIncludes": "ui_role_btn_1.png", "expectedCount": 1 },
+          "bounds": { "x": { "eq": 412.5, "tolerance": 1 }, "y": { "eq": 645, "tolerance": 1 }, "width": { "eq": 188, "tolerance": 1 }, "height": { "eq": 42, "tolerance": 1 } }
+        },
+        {
+          "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "_html_biog_title", "expectedCount": 1 },
+          "bounds": { "x": { "eq": 44, "tolerance": 1 }, "y": { "eq": 698.5, "tolerance": 1 }, "height": { "eq": 24, "tolerance": 1 }, "width": { "min": 240, "max": 340 } }
+        }
+      ]
+    },
+    {
+      "action": "click",
+      "label": "56_switch_to_attribute",
+      "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "_btn_switch", "expectedCount": 1 }
+    },
+    { "action": "snapshot", "label": "57_attribute_restored_350ms", "samplingTargetMs": 350, "samplingToleranceMs": 250 },
+    {
+      "action": "assert-nodes",
+      "label": "58_assert_attribute_restored",
+      "assertions": [
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "gp_model" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "_img_biog" }, "exists": false },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "source" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "progerssvalue", "text": "0/300" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "btn_text", "text": "激活" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "name": "model_pet_1009" }, "count": { "min": 1 } },
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "_box_att_eff" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "_box_biog_eff" }, "exists": false }
+      ]
+    },
+    {
+      "action": "wait-render-ready",
+      "label": "59_wait_attribute_restored_rt",
+      "probe": {
+        "selector": { "source": "laya-stage", "name": "New Sprite3D", "type": "ut", "expectedCount": 3, "index": 2 },
+        "propertyPath": ["renderTarget"],
+        "alphaThreshold": 0,
+        "sampleStride": 4,
+        "minNonTransparentPixels": 128,
+        "stableFrames": 2,
+        "pollMs": 100,
+        "timeoutMs": 12000
+      }
+    },
+    { "action": "snapshot", "label": "60_attribute_restored_ready_a", "settleMs": 700 },
+    { "action": "snapshot", "label": "61_attribute_restored_ready_b" },
+    { "action": "set-viewport", "label": "62_set_wide", "width": 1920, "height": 1080, "settleMs": 350 },
+    { "action": "snapshot", "label": "63_wide_attribute" },
+    {
+      "action": "assert-nodes",
+      "label": "64_assert_wide_identity",
+      "assertions": [
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "PartnerBaseView" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "BaseWindowSkin", "name": "labelDisplay", "text": "天妖灵魄" }, "count": 1 }
+      ]
+    },
+    {
+      "action": "assert-geometry",
+      "label": "65_assert_wide_logical_geometry",
+      "assertions": [
+        {
+          "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 },
+          "bounds": { "x": { "eq": 23, "tolerance": 1 }, "y": { "eq": 900, "tolerance": 1 }, "width": { "eq": 674, "tolerance": 1 }, "height": { "eq": 150, "tolerance": 1 } }
+        },
+        {
+          "selector": { "source": "laya-stage", "name": "TabButtonOneSkin", "expectedCount": 4, "index": 3 },
+          "bounds": { "x": { "eq": 450, "tolerance": 1 }, "y": { "eq": 1077, "tolerance": 1 }, "width": { "eq": 150, "tolerance": 1 }, "height": { "eq": 90, "tolerance": 1 } }
+        }
+      ]
+    },
+    { "action": "set-viewport", "label": "66_restore_mobile", "width": 720, "height": 1280, "settleMs": 350 },
+    {
+      "action": "assert-sound",
+      "label": "67_assert_no_voice_duplicate_before_close",
+      "assertions": {
+        "required": [
+          { "method": "PlaySoundEffect", "key": "NPC_Voice04b", "min": 1, "max": 1 }
+        ]
+      }
+    },
+    { "action": "reset-sound", "label": "68_reset_close_sound", "traceLabel": "partner-close" },
+    {
+      "action": "click",
+      "label": "69_close_partner",
+      "selector": { "source": "laya-stage", "view": "BaseWindowSkin", "name": "_img_return", "expectedCount": 1 },
+      "settleMs": 350
+    },
+    { "action": "wait-view", "label": "70_wait_partner_closed", "view": "PartnerBaseView", "visible": false, "timeoutMs": 8000 },
+    {
+      "action": "assert-nodes",
+      "label": "71_assert_partner_cleanup",
+      "assertions": [
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "PartnerBaseView" }, "exists": false },
+        { "selector": { "source": "laya-stage", "name": "model_pet_1009" }, "exists": false },
+        { "selector": { "source": "laya-stage", "name": "effect_ui_shuxing" }, "exists": false },
+        { "selector": { "source": "laya-stage", "name": "effect_ui_zhuanji" }, "exists": false },
+        { "selector": { "source": "loaded-view", "view": "MainUIDownView" }, "exists": true }
+      ]
+    },
+    {
+      "action": "assert-sound",
+      "label": "72_assert_no_late_voice_after_close",
+      "assertions": {
+        "forbidden": [
+          { "method": "PlaySoundEffect", "key": "NPC_Voice04b" }
+        ]
+      }
+    },
+    { "action": "snapshot", "label": "73_mainui_after_close" },
+    { "action": "reset-sound", "label": "74_reset_warm_sound", "traceLabel": "partner-warm-open" },
+    {
+      "action": "click",
+      "label": "75_warm_open_pet",
+      "selector": { "source": "laya-stage", "view": "MainUIDownView", "name": "_img_icon", "skinIncludes": "mainUI/texture/pet.png", "expectedCount": 1 }
+    },
+    { "action": "wait-view", "label": "76_wait_warm_partner", "view": "PartnerBaseView", "visible": true, "timeoutMs": 12000 },
+    { "action": "snapshot", "label": "77_warm_partner_350ms", "samplingTargetMs": 350, "samplingToleranceMs": 250 },
+    { "action": "snapshot", "label": "78_warm_partner_1000ms", "samplingTargetMs": 1000, "samplingToleranceMs": 250 },
+    {
+      "action": "assert-nodes",
+      "label": "79_assert_warm_state_restored",
+      "assertions": [
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "PartnerBaseView" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerAwakeMainView", "name": "PartnerAwakeMainView" }, "exists": false },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "source" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "progerssvalue", "text": "0/300" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "item4" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "select", "skinIncludes": "com_selectbg4.png" }, "count": 1 },
+        { "selector": { "source": "laya-stage", "name": "model_pet_1009" }, "count": { "min": 1 } },
+        { "selector": { "source": "laya-stage", "view": "BaseWindowSkin", "name": "labelDisplay", "text": "天妖灵魄" }, "count": 1 }
+      ]
+    },
+    {
+      "action": "assert-geometry",
+      "label": "80_assert_warm_last_item_visible",
+      "assertions": [
+        {
+          "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "item4", "expectedCount": 1 },
+          "bounds": { "x": { "eq": 583, "tolerance": 1 }, "y": { "eq": 900, "tolerance": 1 }, "width": { "eq": 114, "tolerance": 1 }, "height": { "eq": 139, "tolerance": 1 } },
+          "withinSelector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 },
+          "clipMode": "inside"
+        },
+        {
+          "selector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "select", "skinIncludes": "com_selectbg4.png", "expectedCount": 1 },
+          "withinSelector": { "source": "laya-stage", "view": "PartnerDetailsView", "name": "itemScroll", "expectedCount": 1 },
+          "clipMode": "partial"
+        }
+      ]
+    },
+    {
+      "action": "wait-render-ready",
+      "label": "81_wait_warm_partner_rt_ready",
+      "probe": {
+        "selector": { "source": "laya-stage", "name": "New Sprite3D", "type": "ut", "expectedCount": 3, "index": 2 },
+        "propertyPath": ["renderTarget"],
+        "alphaThreshold": 0,
+        "sampleStride": 4,
+        "minNonTransparentPixels": 128,
+        "stableFrames": 2,
+        "pollMs": 100,
+        "timeoutMs": 12000
+      }
+    },
+    { "action": "snapshot", "label": "82_warm_partner_ready_a", "settleMs": 700 },
+    { "action": "snapshot", "label": "83_warm_partner_ready_b" },
+    {
+      "action": "assert-sound",
+      "label": "84_assert_warm_restore_has_no_voice_replay",
+      "assertions": {
+        "forbidden": [
+          { "method": "PlaySoundEffect", "key": "NPC_Voice04b" }
+        ]
+      }
+    },
+    {
+      "action": "assert-protocol",
+      "label": "85_assert_read_only_protocol",
+      "assertions": {
+        "mode": "read-only",
+        "required": [
+          { "direction": "outbound", "ruleId": "outward-base-read-16002", "cmd": 16002, "fmt": "c", "args": [5], "min": 1 },
+          { "direction": "outbound", "ruleId": "outward-illusion-read-16006", "cmd": 16006, "fmt": "c", "args": [5], "min": 1 },
+          { "direction": "outbound", "ruleId": "outward-star-read-16011", "cmd": 16011, "fmt": "c", "args": [5], "min": 1 },
+          { "direction": "outbound", "ruleId": "outward-level-read-16028", "cmd": 16028, "fmt": "c", "args": [5], "min": 1 }
+        ],
+        "forbidden": [
+          { "direction": "outbound", "cmd": 14203 },
+          { "direction": "outbound", "cmd": 14204 },
+          { "direction": "outbound", "cmd": 14205 },
+          { "direction": "outbound", "cmd": 14206 },
+          { "direction": "outbound", "cmd": 14207 }
+        ]
+      }
+    },
+    { "action": "reset-sound", "label": "86_reset_final_close_sound", "traceLabel": "partner-final-close" },
+    {
+      "action": "click",
+      "label": "87_final_close",
+      "selector": { "source": "laya-stage", "view": "BaseWindowSkin", "name": "_img_return", "expectedCount": 1 },
+      "settleMs": 350
+    },
+    { "action": "wait-view", "label": "88_wait_final_closed", "view": "PartnerBaseView", "visible": false, "timeoutMs": 8000 },
+    {
+      "action": "assert-nodes",
+      "label": "89_assert_final_cleanup",
+      "assertions": [
+        { "selector": { "source": "laya-stage", "view": "PartnerBaseView", "name": "PartnerBaseView" }, "exists": false },
+        { "selector": { "source": "laya-stage", "name": "model_pet_1009" }, "exists": false },
+        { "selector": { "source": "laya-stage", "name": "effect_ui_shuxing" }, "exists": false },
+        { "selector": { "source": "laya-stage", "name": "effect_ui_zhuanji" }, "exists": false },
+        { "selector": { "source": "loaded-view", "view": "MainUIDownView" }, "exists": true }
+      ]
+    },
+    {
+      "action": "assert-sound",
+      "label": "90_assert_final_no_late_voice",
+      "assertions": {
+        "forbidden": [
+          { "method": "PlaySoundEffect", "key": "NPC_Voice04b" }
+        ]
+      }
+    },
+    { "action": "snapshot", "label": "91_final_mainui" }
+  ]
+}

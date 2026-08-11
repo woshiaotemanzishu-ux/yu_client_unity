@@ -153,7 +153,15 @@ namespace Shenxiao.Module.Core.PetEquip
             }
             ApplyType(_requestedType);
             _window.Show();
+            _window.SetReturnAction(ReturnToPet);
             _window.Configure(specs, 0);
+        }
+
+        private static void ReturnToPet()
+        {
+            int typeId = _requestedType;
+            Close();
+            Shenxiao.Module.Core.Pet.PetFlow.Open(typeId == PetEquipController.TYPE_PARTNER ? 1 : 0);
         }
 
         private static BaseView ReparentPage(PetEquipPageMode mode, RectTransform parent)

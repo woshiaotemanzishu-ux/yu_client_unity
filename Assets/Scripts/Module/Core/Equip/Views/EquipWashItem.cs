@@ -3,6 +3,7 @@ using Shenxiao.Generated.UI.Equip;
 using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Bag;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -30,7 +31,11 @@ namespace Shenxiao.Module.Core.Equip
         /// <summary>对标老端构造函数 this.is_lock = true(默认锁定,等 SetUnlocked 才解锁)。</summary>
         private bool _isLock = true;
         private bool _hasData;
+        private EquipmentItem _equipmentItem;
+        private BaseAwardItem _awardItem;
         private System.Action<int, long> _onSelect;
+
+        public int EquipType => _equipType;
 
         protected override void OnInit()
         {
@@ -86,7 +91,8 @@ namespace Shenxiao.Module.Core.Equip
 
         /// <summary>填最小数据(对标 SetData):名称走 Common.GoodsModel 真配置(GetGoodsBasicByTypeId)、段位文本直填。
         /// 洗魄进度(wash_attr 颜色)/神炼等级/红点/免费标依赖 EquipModel+config_equip_wash/attr(未移植)→ 仅占位。</summary>
-        public void SetData(int equipType, long goodsId, int typeId, int division)
+        public void SetData(int equipType, long goodsId, int typeId, int division,
+            GameObject equipmentTemplate = null, GoodsDetailVo detail = null)
         {
             _equipType = equipType;
             _goodsId = goodsId;
@@ -96,7 +102,46 @@ namespace Shenxiao.Module.Core.Equip
             if (_lb_name != null) _lb_name.text = basic != null ? basic.Name : "";
             if (_lb_level != null) _lb_level.text = "洗魄段位:" + division + "段";
             if (_bit_refine_lv != null) _bit_refine_lv.text = "";
+            EnsureEquipmentItem(equipmentTemplate);
+            if (_equipmentItem != null)
+            {
+                if (_hasData)
+                {
+                    if (!_equipmentItem.IsShown) _equipmentItem.Show();
+                    _equipmentItem.SetData(typeId, 1);
+                    _equipmentItem.SetClickCallBack(() =>
+                    {
+                        BagGoods worn = EquipAutoWear.GetWorn(_equipType);
+                        if (worn != null) ItemTipsView.ShowEquipped(worn);
+                    });
+                }
+                else if (_equipmentItem.IsShown) _equipmentItem.Hide();
+            }
+            else if (_awardItem != null)
+            {
+                if (_hasData)
+                {
+                    if (!_awardItem.IsShown) _awardItem.Show();
+                    _awardItem.SetData(typeId, 1);
+                    _awardItem.SetClickCallBack(() =>
+                    {
+                        BagGoods worn = EquipAutoWear.GetWorn(_equipType);
+                        if (worn != null) ItemTipsView.ShowEquipped(worn);
+                    });
+                }
+                else if (_awardItem.IsShown) _awardItem.Hide();
+            }
+            RefreshWashProgress(detail?.WashAttrs?.Count ?? 0);
             SetSelect(false);
+        }
+
+        public void SetRefinementLevel(int level)
+        {
+            if (_bit_refine_lv != null)
+            {
+                _bit_refine_lv.gameObject.SetActive(level > 0);
+                _bit_refine_lv.text = level > 0 ? ("神炼" + level + "级") : string.Empty;
+            }
         }
 
         public void SetSelect(bool selected)
@@ -108,6 +153,35 @@ namespace Shenxiao.Module.Core.Equip
         {
             if (tips != null) tips.gameObject.SetActive(_isLock);
             if (_img_mask != null) _img_mask.gameObject.SetActive(_isLock);
+        }
+
+        private void EnsureEquipmentItem(GameObject template)
+        {
+            if (_equipmentItem != null || _awardItem != null || template == null || award_group == null) return;
+            GameObject go = Instantiate(template, award_group, false);
+            go.name = "EquipmentItem_Runtime";
+            go.SetActive(false);
+            if (go.transform is RectTransform rt)
+            {
+                rt.anchoredPosition = Vector2.zero;
+                rt.localScale = Vector3.one * 0.82f;
+            }
+            _equipmentItem = go.GetComponent<EquipmentItem>();
+            if (_equipmentItem == null) _awardItem = go.GetComponent<BaseAwardItem>();
+            if (_equipmentItem == null && _awardItem == null) Destroy(go);
+        }
+
+        private void RefreshWashProgress(int count)
+        {
+            Image[] progress = { wash0, wash1, wash2, wash3 };
+            for (int i = 0; i < progress.Length; i++)
+                if (progress[i] != null) progress[i].gameObject.SetActive(i < count);
+        }
+
+        protected override void OnHide()
+        {
+            if (_equipmentItem != null && _equipmentItem.IsShown) _equipmentItem.Hide();
+            if (_awardItem != null && _awardItem.IsShown) _awardItem.Hide();
         }
 
         private void BindClick(Component target, System.Action onClick)

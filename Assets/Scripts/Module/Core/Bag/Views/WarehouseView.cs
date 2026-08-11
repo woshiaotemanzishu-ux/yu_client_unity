@@ -6,6 +6,7 @@ using Shenxiao.Framework.Event;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Resonance;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,6 +23,7 @@ namespace Shenxiao.Module.Core.Bag
         private const float ItemScale = 0.72f;
         private const int MinBagCells = 24;
         private const int MinWarehouseCells = 18;
+        private const int LockedTailCells = 18;
         private const double DoubleClickSeconds = 0.32d;
 
         private readonly List<BaseAwardItem> _bagCells = new List<BaseAwardItem>();
@@ -41,11 +43,12 @@ namespace Shenxiao.Module.Core.Bag
             BindAction(expandBtn2, () => BagFlow.OpenSub("ExpandBagView", BagModel.POS_BAG));
             BindAction(smeltBtn, () => BagFlow.OpenSub("BagSmeltView"));
             BindAction(useBtn, () => BagFlow.OpenSub("OneKeyUseView"));
-            DisableClickSurface(redequipBtn);
+            BindAction(redequipBtn, ResonanceFlow.Open);
         }
 
         protected override void OnShow(object args)
         {
+            BagFlow.ApplyWindowTitlePresentation(1);
             Subscribe();
             RefreshAll();
             if (!BagModel.Instance.HasWarehouseData)
@@ -55,7 +58,11 @@ namespace Shenxiao.Module.Core.Bag
         protected override void OnHide()
         {
             _clickEpoch++;
+            _lastGoodsId = 0;
+            _lastPos = 0;
+            _lastClickTime = 0d;
             Unsubscribe();
+            StopScrolls();
         }
 
         protected override void OnDispose()
@@ -95,17 +102,18 @@ namespace Shenxiao.Module.Core.Bag
             int minCells, int pos, List<BaseAwardItem> pool)
         {
             if (scroll == null || scroll.content == null || _tpl_BaseAwardItem == null) return;
-            int slotCount = Mathf.Max(minCells, Mathf.Max(maxCell, goods?.Count ?? 0));
+            int unlockedCount = Mathf.Max(minCells, Mathf.Max(maxCell, goods?.Count ?? 0));
             if (goods != null)
             {
                 for (int i = 0; i < goods.Count; i++)
-                    if (goods[i] != null) slotCount = Mathf.Max(slotCount, goods[i].Cell);
+                    if (goods[i] != null) unlockedCount = Mathf.Max(unlockedCount, goods[i].Cell);
             }
+            int slotCount = unlockedCount + LockedTailCells - unlockedCount % Columns;
 
             EnsurePool(scroll.content, pool, slotCount, pos);
-            BagGoods[] slots = BuildSlots(goods, slotCount);
+            BagGoods[] slots = BuildSlots(goods, unlockedCount);
             int rows = Mathf.CeilToInt(slotCount / (float)Columns);
-            scroll.content.sizeDelta = new Vector2(scroll.content.sizeDelta.x, rows * CellStep);
+            scroll.content.sizeDelta = new Vector2(Columns * CellStep, rows * CellStep);
 
             for (int i = 0; i < pool.Count; i++)
             {
@@ -113,6 +121,18 @@ namespace Shenxiao.Module.Core.Bag
                 bool active = i < slotCount;
                 cell.gameObject.SetActive(active);
                 if (!active) continue;
+
+                if (i >= unlockedCount)
+                {
+                    int initialCount = i - unlockedCount + 1;
+                    cell.SetClickCallBack(() => BagFlow.OpenSub("ExpandBagView", new ExpandBagView.Presentation
+                    {
+                        BagPos = pos,
+                        InitialCount = initialCount,
+                    }));
+                    cell.SetData(0, 0, true);
+                    continue;
+                }
 
                 BagGoods vo = slots[i];
                 if (vo == null)
@@ -201,6 +221,19 @@ namespace Shenxiao.Module.Core.Bag
             ItemTipsView.ShowWarehouse(goods, pos == BagModel.POS_WAREHOUSE);
         }
 
+        private void StopScrolls()
+        {
+            StopScroll(_Scroller1);
+            StopScroll(_Scroller2);
+        }
+
+        private static void StopScroll(ScrollRect scroll)
+        {
+            if (scroll == null) return;
+            scroll.StopMovement();
+            scroll.velocity = Vector2.zero;
+        }
+
         private static void BindAction(Component target, Action action)
         {
             Image image = PrepareClickSurface(target);
@@ -222,11 +255,5 @@ namespace Shenxiao.Module.Core.Bag
             return image;
         }
 
-        private static void DisableClickSurface(Component target)
-        {
-            if (target == null) return;
-            foreach (Graphic graphic in target.GetComponentsInChildren<Graphic>(true))
-                graphic.raycastTarget = false;
-        }
     }
 }

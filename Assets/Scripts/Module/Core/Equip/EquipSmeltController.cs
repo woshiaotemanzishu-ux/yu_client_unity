@@ -43,12 +43,12 @@ namespace Shenxiao.Module.Core.Equip
             GameLog.Info("Equip", "smeltOne 15251 equip_type={0} type=1", equipType);
         }
 
-        /// <summary>15251 一键精炼(发 "cc" 0,2;equip_type 传 0,对标 EquipSmeltView.ts:187 btnStrAll,
-        /// 同 15205 一键强化的 equip_type=0 约定)。</summary>
-        public void SmeltAll()
+        /// <summary>15251 一键精炼(发 "cc" 当前选中 equip_type,2；老端 EquipSmeltView.ts:175-187
+        /// 明确沿用当前部位，不是 15205 一键强化的 equip_type=0 语义)。</summary>
+        public void SmeltAll(int equipType)
         {
-            SendFmt(Proto.EQUIP_SMELT_DO, "cc", 0, 2);
-            GameLog.Info("Equip", "smeltAll 15251 equip_type=0 type=2");
+            SendFmt(Proto.EQUIP_SMELT_DO, "cc", equipType, 2);
+            GameLog.Info("Equip", "smeltAll 15251 equip_type={0} type=2", equipType);
         }
 
         /// <summary>15250 回包:res:i, equip_type:c, refine:h, refine_high:h。res==1 才落库;查询失败只日志不弹 toast。</summary>
@@ -98,7 +98,7 @@ namespace Shenxiao.Module.Core.Equip
             }
             else
             {
-                TipsManager.Toast("精炼成功");
+                // 老端成功分支直接播放页面演出并刷新，不额外弹成功 toast。
             }
             GameLog.Info("Equip", "15251 ok res1={0} type={1} count={2} remaining={3}B",
                 res1, type, refineInfo.Count, r.Remaining);

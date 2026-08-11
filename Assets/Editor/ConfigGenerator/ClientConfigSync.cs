@@ -62,6 +62,16 @@ namespace Shenxiao.EditorTools.ConfigGen
         // 登录链路用到的服务端表(头像=config_dress_up_cfg type5 的 screen 字段)
         private static readonly string[] SYNC_LIST_SERVER =
         {
+            "config_rune_pos",
+            "config_rune_all_show",
+            "config_rune_attr_num",
+            "config_rune_attr_coefficient",
+            "config_rune_exchange",
+            "config_rune_wake_up",
+            "config_rune_wake_up_exp",
+            "config_rune_wake_up_lv",
+            "config_rune_awake_skill",
+            "config_rune_skill",
             "config_achievement",              // 成就条目/条件/奖励
             "config_achievement_star_reward",  // 成就阶段属性与升阶点数
             "config_achievement_category",     // category→type/subtype 分类
@@ -121,6 +131,9 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_equip_stren_lv",          // 强化消耗+属性(⚠数字键,列序 part/stren/object_list/attr_list,主键 "part@stren")
             "config_equip_stren_lv_key",      // 强化等级索引
             "config_equip_strengthen_max",    // 强化上限(主键 "stage@color@pos")
+            "config_equip_refine_max",        // 神铸/精炼上限
+            "config_equip_wash_unlock_lv",    // 洗魄属性槽解锁等级
+            "config_equip_whole_reward",      // 强化大师全身奖励
             "config_equip_stone_pos_unlock",  // 装备详情 6 个宝石孔位的阶数/VIP解锁条件
             "config_equip_stone_lv",          // 已镶嵌宝石的属性展示
             "config_reincarnation_cfg",       // 装备职业/性别/转生限制文案

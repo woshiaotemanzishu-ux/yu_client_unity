@@ -18,8 +18,14 @@
         public const int HOLY_SEAL_ERROR = 65400;
         /// <summary>影骸战衣装备快照。C2S 严格空包；S2C u16×{pos:u8,goods_id:u64,stren:u16}。</summary>
         public const int HOLY_SEAL_EQUIPS = 65401;
+        /// <summary>影骸战衣强化。C2S pos:u8,stren_type:u8；S2C pos:u8,stren_lv:u16。</summary>
+        public const int HOLY_SEAL_STRENGTHEN = 65402;
+        /// <summary>影骸战衣穿戴/替换。C2S pos:u8,goods_id:u64；S2C 空 ACK，权威装备随后由65401刷新。</summary>
+        public const int HOLY_SEAL_REPLACE = 65403;
         /// <summary>影骸战衣魂珠快照。C2S 严格空包；S2C u16×{goods_type_id:u32,num:u16,limit:u16}。</summary>
         public const int HOLY_SEAL_PILLS = 65405;
+        /// <summary>影骸战衣圣魂丹使用。C2S goods_type_id:u32,num:u16；S2C 同键加 code:u32，code=0成功。</summary>
+        public const int HOLY_SEAL_USE_PILL = 65406;
         /// <summary>影骸战衣原始评分。C2S 严格空包；S2C rating:u32。</summary>
         public const int HOLY_SEAL_RATING = 65407;
         /// <summary>影骸战衣套装预览。C2S goods_type_id:u32；S2C u16×{suit_id:u32,num:u16},code:u32，不回显请求键。</summary>
@@ -1218,6 +1224,12 @@
         public const int LONGLANG_ERROR = 62200;
         /// <summary>龙语装备/强化全量。C2S严格空包；S2C保留装备wire顺序与重复部位。</summary>
         public const int LONGLANG_EQUIPMENT = 62201;
+        /// <summary>龙语强化。C2S pos:u8,stren_type:u8；S2C pos:u8,stren_lv:u16。</summary>
+        public const int LONGLANG_STRENGTHEN = 62202;
+        /// <summary>龙语穿戴/替换。C2S pos:u8,goods_id:u64；S2C 空 ACK。</summary>
+        public const int LONGLANG_REPLACE = 62203;
+        /// <summary>龙语脱下。C2S 严格只有 pos:u8；S2C 空 ACK，禁止照抄老端历史尾包。</summary>
+        public const int LONGLANG_UNLOAD = 62204;
         /// <summary>龙语总评分显式查询。C2S严格空包；S2C: rating:u32。</summary>
         public const int LONGLANG_RATING = 62207;
         /// <summary>龙语套装显式预览。C2S: goods_type_id:u32；S2C为套装表加raw code:u32。</summary>
@@ -1305,8 +1317,22 @@
         public const int DEMON_PAINTINGS = 18307;
         /// <summary>使魔转盘祝福值快照。C2S 空包；S2C: bless_value:u32。</summary>
         public const int DEMON_BLESSING = 50901;
+        /// <summary>天启家族统一失败出口。S2C-only res:u32。</summary>
+        public const int REVELATION_ERROR = 28600;
+        /// <summary>天启穿戴。C2S goods_id:u64；S2C res:u32,goods_id:u64,old_goods_id:u64,type_id:u32,cell_pos:u8。</summary>
+        public const int REVELATION_EQUIP = 28601;
+        /// <summary>天启脱下。C2S goods_id:u64；S2C res:u32,goods_id:u64,cell:u16。</summary>
+        public const int REVELATION_UNLOAD = 28602;
+        /// <summary>天启吞噬材料。C2S pos:u8 + u16×goods_id:u64；S2C pos:u8,lv:u8,exp:u32。</summary>
+        public const int REVELATION_DEVOUR = 28603;
+        /// <summary>天启聚灵升级。C2S pos:u8；S2C pos:u8,lv:u8,exp:u32。</summary>
+        public const int REVELATION_GATHER_UP = 28604;
+        /// <summary>天启技能激活/升级。C2S skill_id:u32；S2C skill_id:u32,lv:u16。</summary>
+        public const int REVELATION_SKILL_UP = 28605;
         /// <summary>天启主状态快照。C2S 空包；S2C 为标量与三类全量列表。</summary>
         public const int REVELATION_INFO = 28606;
+        /// <summary>天启套装形象使用/取消。C2S figure:u16；S2C max_figure_id:u16,current_figure_id:u16。</summary>
+        public const int REVELATION_FIGURE = 28607;
         /// <summary>天启装备战力刷新。C2S 空包；S2C: power:u64，仅在已有28606快照时覆盖。</summary>
         public const int REVELATION_POWER = 28609;
         /// <summary>怪物图鉴已激活 PicId 全量快照。C2S 空包；S2C: pic_list:u16×pic_id:u32。</summary>

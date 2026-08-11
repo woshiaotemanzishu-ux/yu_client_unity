@@ -1,0 +1,155 @@
+{
+  "schema": 1,
+  "id": "mainui.treasure.rune-treasure.equip-treasure.readonly",
+  "engine": "legacy-laya",
+  "url": "http://127.0.0.1:8091/index.html",
+  "legacyRoot": "E:/GitProject/yu_client",
+  "snapshotSource": "E:/GitProject/yu_client/tools/yu-resource-tool/frontend/src/utils/pageSnapshot.js",
+  "popupPolicy": "../../policies/startup-popups.json",
+  "protocolPolicy": "../../policies/protocols.json",
+  "viewport": { "width": 720, "height": 1280 },
+  "session": {
+    "accountEnv": "UIAUDIT_ACCOUNT",
+    "passwordEnv": "UIAUDIT_PASSWORD",
+    "itemUse": {
+      "authorization": {
+        "allowQueueMutation": true,
+        "maxCloseClicks": 1,
+        "scope": "only the identified offline AFK card close_btn; enter/background/use/purchase remain forbidden"
+      },
+      "expected": {
+        "view": "ItemUseView",
+        "typeId": 38070001,
+        "name": "离线挂机卡",
+        "bottom": "剩余不足2小时",
+        "enter": "购买",
+        "closeNode": "close_btn"
+      },
+      "queueSpecs": [
+        { "id": "delay_show_list", "root": "ItemUseModel", "singleton": "GetInstance", "path": ["delay_show_list"] },
+        { "id": "delay_list_cache", "root": "ItemUseModel", "singleton": "GetInstance", "path": ["delay_list_cache"] }
+      ],
+      "queueAssertions": {
+        "unchanged": ["delay_show_list", "delay_list_cache"],
+        "changed": []
+      },
+      "protocolAssertions": {
+        "mode": "read-only",
+        "forbidden": [
+          { "direction": "outbound", "cmd": 14901 },
+          { "direction": "outbound", "cmd": 15021 },
+          { "direction": "outbound", "cmd": 15050 },
+          { "direction": "outbound", "cmd": 15201 },
+          { "direction": "outbound", "cmd": 15302 },
+          { "direction": "outbound", "cmd": 41604 },
+          { "direction": "outbound", "cmd": 41605 },
+          { "direction": "outbound", "cmd": 41606 },
+          { "direction": "outbound", "cmd": 41607 },
+          { "direction": "outbound", "cmd": 41609 },
+          { "direction": "outbound", "cmd": 41622 }
+        ]
+      },
+      "timeoutMs": 15000
+    }
+  },
+  "protocol": {
+    "inboundCommands": [15010],
+    "assertions": {
+      "mode": "read-only",
+      "forbidden": [
+        { "direction": "outbound", "cmd": 14901 },
+        { "direction": "outbound", "cmd": 15021 },
+        { "direction": "outbound", "cmd": 15050 },
+        { "direction": "outbound", "cmd": 15201 },
+        { "direction": "outbound", "cmd": 15302 },
+        { "direction": "outbound", "cmd": 41604 },
+        { "direction": "outbound", "cmd": 41605 },
+        { "direction": "outbound", "cmd": 41606 },
+        { "direction": "outbound", "cmd": 41607 },
+        { "direction": "outbound", "cmd": 41609 },
+        { "direction": "outbound", "cmd": 41622 }
+      ]
+    }
+  },
+  "controls": [
+    { "id": "mainui_treasure", "risk": "read-only", "selector": { "source": "laya-stage", "skinIncludes": "/treasure.png", "expectedCount": 1 } },
+    { "id": "rune_treasure_entry", "risk": "read-only", "selector": { "source": "laya-stage", "view": "RuneMainUIView", "name": "_btn_xb", "expectedCount": 1 } },
+    { "id": "pending_result_reveal_close", "risk": "read-only-local", "selector": { "source": "laya-stage", "view": "RuneTreasureResultView", "name": "_btn_click", "expectedCount": 1 } },
+    { "id": "equip_treasure_tab", "risk": "read-only", "selector": { "source": "laya-stage", "view": "BaseWindowSkin", "text": "神兵夺宝", "expectedCount": 1 } },
+    { "id": "reward_preview", "risk": "read-only", "selector": { "source": "laya-stage", "view": "EquipTreasureMainView", "name": "allBtn", "expectedCount": 1 } },
+    { "id": "total_record", "risk": "read-only", "selector": { "source": "laya-stage", "view": "EquipTreasureMainView", "name": "total_image", "expectedCount": 1 } },
+    { "id": "personal_record", "risk": "read-only", "selector": { "source": "laya-stage", "view": "EquipTreasureMainView", "name": "person_image", "expectedCount": 1 } },
+    { "id": "record_scroller", "risk": "read-only", "selector": { "source": "laya-stage", "view": "EquipTreasureMainView", "name": "record_scroller", "expectedCount": 1 } },
+    { "id": "score_shop", "risk": "read-only-open", "selector": { "source": "laya-stage", "view": "EquipTreasureMainView", "name": "score_btn", "expectedCount": 1 } },
+    { "id": "treasure_bag", "risk": "read-only-open", "selector": { "source": "laya-stage", "view": "EquipTreasureMainView", "name": "bag_btn", "expectedCount": 1 } },
+    { "id": "one_draw", "risk": "forbidden-write", "selector": { "source": "laya-stage", "view": "EquipTreasureMainView", "name": "oneBtn" } },
+    { "id": "ten_draw", "risk": "forbidden-write", "selector": { "source": "laya-stage", "view": "EquipTreasureMainView", "name": "tenBtn" } },
+    { "id": "fifty_draw", "risk": "forbidden-write", "selector": { "source": "laya-stage", "view": "EquipTreasureMainView", "name": "fiftyBtn" } },
+    { "id": "exchange", "risk": "forbidden-write", "selector": { "source": "laya-stage", "name": "exchange_btn" } },
+    { "id": "take_or_claim", "risk": "forbidden-write", "selector": { "source": "laya-stage", "name": "get_btn" } },
+    { "id": "return_to_rune", "risk": "read-only", "selector": { "source": "laya-stage", "view": "BaseWindowSkin", "name": "_img_return", "expectedCount": 1 } }
+  ],
+  "steps": [
+    { "action": "snapshot", "label": "00_mainui_ready" },
+    { "action": "click", "label": "01_open_outer_treasure", "selector": { "source": "laya-stage", "skinIncludes": "/treasure.png", "expectedCount": 1 }, "settleMs": 1200 },
+    { "action": "wait-view", "view": "SecretTreasureMainView", "visible": true, "timeoutMs": 15000 },
+    { "action": "snapshot", "label": "02_outer_treasure_ready" },
+    { "action": "click", "label": "03_open_nested_rune_treasure", "selector": { "source": "laya-stage", "view": "RuneMainUIView", "name": "_btn_xb", "expectedCount": 1 }, "settleMs": 900 },
+    { "action": "wait-view", "view": "RuneTreasureResultView", "visible": true, "timeoutMs": 15000 },
+    { "action": "snapshot", "label": "04_pending_result_initial" },
+    { "action": "click", "label": "05_pending_result_reveal", "selector": { "source": "laya-stage", "view": "RuneTreasureResultView", "name": "_btn_click", "expectedCount": 1 }, "settleMs": 700 },
+    { "action": "snapshot", "label": "06_pending_result_revealed" },
+    { "action": "click", "label": "07_pending_result_close", "selector": { "source": "laya-stage", "view": "RuneTreasureResultView", "name": "_btn_click", "expectedCount": 1 }, "settleMs": 700 },
+    { "action": "wait-view", "view": "RuneTreasureResultView", "visible": false, "timeoutMs": 8000 },
+    { "action": "snapshot", "label": "08_nested_shell_ready" },
+    { "action": "click", "label": "09_select_equip_treasure", "selector": { "source": "laya-stage", "view": "BaseWindowSkin", "text": "神兵夺宝", "expectedCount": 1 }, "settleMs": 350 },
+    { "action": "wait-view", "view": "EquipTreasureMainView", "visible": true, "timeoutMs": 15000 },
+    { "action": "snapshot", "label": "10_equip_treasure_350ms" },
+    { "action": "snapshot", "label": "11_equip_treasure_ready", "settleMs": 650 },
+    { "action": "click", "label": "12_open_reward_preview", "selector": { "source": "laya-stage", "view": "EquipTreasureMainView", "name": "allBtn", "expectedCount": 1 }, "settleMs": 700 },
+    { "action": "wait-view", "view": "EquipTreaseRewardView", "visible": true, "timeoutMs": 10000 },
+    { "action": "snapshot", "label": "13_reward_preview" },
+    { "action": "click", "label": "14_close_reward_preview", "selector": { "source": "laya-stage", "view": "EquipTreaseRewardView", "name": "_btn_close", "expectedCount": 1 }, "settleMs": 500 },
+    { "action": "wait-view", "view": "EquipTreaseRewardView", "visible": false, "timeoutMs": 8000 },
+    { "action": "click", "label": "15_select_total_record", "selector": { "source": "laya-stage", "view": "EquipTreasureMainView", "name": "total_image", "expectedCount": 1 }, "settleMs": 350 },
+    { "action": "drag", "label": "16_drag_total_record", "selector": { "source": "laya-stage", "view": "EquipTreasureMainView", "name": "record_scroller", "expectedCount": 1 }, "options": { "deltaY": -180, "steps": 18 }, "settleMs": 500 },
+    { "action": "snapshot", "label": "17_total_record_scrolled" },
+    { "action": "click", "label": "18_select_personal_record", "selector": { "source": "laya-stage", "view": "EquipTreasureMainView", "name": "person_image", "expectedCount": 1 }, "settleMs": 350 },
+    { "action": "drag", "label": "19_drag_personal_record", "selector": { "source": "laya-stage", "view": "EquipTreasureMainView", "name": "record_scroller", "expectedCount": 1 }, "options": { "deltaY": -180, "steps": 18 }, "settleMs": 500 },
+    { "action": "snapshot", "label": "20_personal_record_scrolled" },
+    { "action": "click", "label": "21_open_score_shop", "selector": { "source": "laya-stage", "view": "EquipTreasureMainView", "name": "score_btn", "expectedCount": 1 }, "settleMs": 700 },
+    { "action": "wait-view", "view": "EquipTreasureShopView", "visible": true, "timeoutMs": 10000 },
+    { "action": "snapshot", "label": "22_score_shop" },
+    { "action": "click", "label": "23_close_score_shop", "selector": { "source": "laya-stage", "view": "EquipTreasureShopView", "name": "close_btn", "expectedCount": 1 }, "settleMs": 500 },
+    { "action": "wait-view", "view": "EquipTreasureShopView", "visible": false, "timeoutMs": 8000 },
+    { "action": "click", "label": "24_open_treasure_bag", "selector": { "source": "laya-stage", "view": "EquipTreasureMainView", "name": "bag_btn", "expectedCount": 1 }, "settleMs": 700 },
+    { "action": "wait-view", "view": "EquipTreasureBagView", "visible": true, "timeoutMs": 10000 },
+    { "action": "snapshot", "label": "25_treasure_bag" },
+    { "action": "click", "label": "26_close_treasure_bag", "selector": { "source": "laya-stage", "view": "EquipTreasureBagView", "name": "close_btn", "expectedCount": 1 }, "settleMs": 500 },
+    { "action": "wait-view", "view": "EquipTreasureBagView", "visible": false, "timeoutMs": 8000 },
+    { "action": "set-viewport", "label": "27_set_wide", "width": 1280, "height": 720 },
+    { "action": "snapshot", "label": "28_equip_treasure_wide", "settleMs": 700 },
+    { "action": "set-viewport", "label": "29_restore_portrait", "width": 720, "height": 1280 },
+    { "action": "snapshot", "label": "30_equip_treasure_portrait_restored", "settleMs": 700 },
+    { "action": "click", "label": "31_return_to_rune_parent", "selector": { "source": "laya-stage", "view": "BaseWindowSkin", "name": "_img_return", "expectedCount": 1 }, "settleMs": 700 },
+    { "action": "wait-view", "view": "RuneMainUIView", "visible": true, "timeoutMs": 10000 },
+    { "action": "snapshot", "label": "32_rune_parent_returned" },
+    { "action": "click", "label": "33_warm_open_nested_rune_treasure", "selector": { "source": "laya-stage", "view": "RuneMainUIView", "name": "_btn_xb", "expectedCount": 1 }, "settleMs": 700 },
+    { "action": "click", "label": "34_warm_select_equip_treasure", "selector": { "source": "laya-stage", "view": "BaseWindowSkin", "text": "神兵夺宝", "expectedCount": 1 }, "settleMs": 350 },
+    { "action": "wait-view", "view": "EquipTreasureMainView", "visible": true, "timeoutMs": 12000 },
+    { "action": "snapshot", "label": "35_equip_treasure_warm_reopen" },
+    { "action": "assert-protocol", "label": "36_readonly_protocol_gate", "assertions": { "mode": "read-only", "forbidden": [
+      { "direction": "outbound", "cmd": 14901 },
+      { "direction": "outbound", "cmd": 15021 },
+      { "direction": "outbound", "cmd": 15050 },
+      { "direction": "outbound", "cmd": 15201 },
+      { "direction": "outbound", "cmd": 15302 },
+      { "direction": "outbound", "cmd": 41604 },
+      { "direction": "outbound", "cmd": 41605 },
+      { "direction": "outbound", "cmd": 41606 },
+      { "direction": "outbound", "cmd": 41607 },
+      { "direction": "outbound", "cmd": 41609 },
+      { "direction": "outbound", "cmd": 41622 }
+    ] } }
+  ]
+}

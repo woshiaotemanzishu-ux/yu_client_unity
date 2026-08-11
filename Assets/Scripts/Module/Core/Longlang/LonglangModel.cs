@@ -83,6 +83,11 @@ namespace Shenxiao.Module.Core.Longlang
         public RatingSnapshot Rating { get; private set; }
         public PreviewSnapshot LastPreview { get; private set; }
         public SuitInfoSnapshot SuitInfo { get; private set; }
+        public byte LastStrengthPosition { get; private set; }
+        public ushort LastStrengthLevel { get; private set; }
+        public uint ReplaceAckVersion { get; private set; }
+        public uint UnloadAckVersion { get; private set; }
+        public event Action Changed;
 
         public bool HasError => LastError != null;
         public bool HasEquipments => Equipments != null;
@@ -90,12 +95,25 @@ namespace Shenxiao.Module.Core.Longlang
         public bool HasPreview => LastPreview != null;
         public bool HasSuitInfo => SuitInfo != null;
 
-        public void ReplaceError(uint code, string args) => LastError = new ErrorSnapshot(code, args);
-        public void ReplaceEquipments(IReadOnlyList<Equipment> items) => Equipments = new EquipmentSnapshot(items);
-        public void ReplaceRating(uint rating) => Rating = new RatingSnapshot(rating);
-        public void ReplacePreview(IReadOnlyList<SuitEntry> suits, uint code) =>
+        public void ReplaceError(uint code, string args) { LastError = new ErrorSnapshot(code, args); Changed?.Invoke(); }
+        public void ReplaceEquipments(IReadOnlyList<Equipment> items) { Equipments = new EquipmentSnapshot(items); Changed?.Invoke(); }
+        public void ReplaceRating(uint rating) { Rating = new RatingSnapshot(rating); Changed?.Invoke(); }
+        public void ReplacePreview(IReadOnlyList<SuitEntry> suits, uint code)
+        {
             LastPreview = new PreviewSnapshot(suits, code);
-        public void ReplaceSuitInfo(IReadOnlyList<SuitEntry> suits) => SuitInfo = new SuitInfoSnapshot(suits);
+            Changed?.Invoke();
+        }
+        public void ReplaceSuitInfo(IReadOnlyList<SuitEntry> suits) { SuitInfo = new SuitInfoSnapshot(suits); Changed?.Invoke(); }
+
+        public void ApplyStrength(byte position, ushort level)
+        {
+            LastStrengthPosition = position;
+            LastStrengthLevel = level;
+            Changed?.Invoke();
+        }
+
+        public void ApplyReplaceAck() { ReplaceAckVersion++; Changed?.Invoke(); }
+        public void ApplyUnloadAck() { UnloadAckVersion++; Changed?.Invoke(); }
 
         /// <summary>兼容老端字典语义：同一部位重复时，wire中最后一项生效。</summary>
         public bool TryGetEquipment(byte position, out Equipment equipment)
@@ -121,6 +139,11 @@ namespace Shenxiao.Module.Core.Longlang
             Rating = null;
             LastPreview = null;
             SuitInfo = null;
+            LastStrengthPosition = 0;
+            LastStrengthLevel = 0;
+            ReplaceAckVersion = 0;
+            UnloadAckVersion = 0;
+            Changed?.Invoke();
         }
 
         private static IReadOnlyList<T> Freeze<T>(IReadOnlyList<T> source)
@@ -132,4 +155,3 @@ namespace Shenxiao.Module.Core.Longlang
         }
     }
 }
-

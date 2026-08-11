@@ -41,6 +41,7 @@ namespace Shenxiao.Module.Core.Pet
         private int _typeId = 1;
         private bool _subscribed;
         private PetEquipOutItemBind[] _petEquipSlots;
+        private PetRoundItemBind[] _crystalSlots;
         private UIModelStage _modelStage;
         private int _modelEpoch;
         private string _modelKey;
@@ -65,6 +66,7 @@ namespace Shenxiao.Module.Core.Pet
             HideStaticStates();
             ApplyRoleOutwardStaticState();
             BindButtons();
+            BindCrystalSlots();
             BindPetEquipSlots();
             Subscribe();
         }
@@ -90,6 +92,12 @@ namespace Shenxiao.Module.Core.Pet
 
         protected override void OnHide()
         {
+            OutWardModel.OutWardVo vo = OutWardModel.Instance.Get(_typeId);
+            if ((_typeId == 1 || _typeId == 2) && vo != null && vo.AutoBuy == 1)
+            {
+                // Old H5 resets auto-buy whenever the cultivation page is destroyed/reopened.
+                OutWardController.Instance.SetAutoBuy(_typeId, 0);
+            }
             ClearOutwardModel();
             MainUIGuideManager.Instance.HideMainUiFinger(this);
         }
@@ -116,6 +124,7 @@ namespace Shenxiao.Module.Core.Pet
             EventDispatcher.On(GlobalEvent.EVT_TASK_ONE_UPDATED, OnTaskUpdate);
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleOrFuncOpenUpdate);
             EventDispatcher.On(GlobalEvent.EVT_FUNC_OPEN_UPDATE, OnRoleOrFuncOpenUpdate);
+            EventDispatcher.On<int>(GlobalEvent.EVT_OUTWARD_CRYSTAL_UPDATE, OnCrystalUpdate);
             EventDispatcher.On<int>(GlobalEvent.EVT_PET_EQUIP_UPDATE, OnPetEquipUpdate);
             EventDispatcher.On<int>(GlobalEvent.EVT_PET_EQUIP_BAG_UPDATE, OnPetEquipBagUpdate);
         }
@@ -129,6 +138,7 @@ namespace Shenxiao.Module.Core.Pet
             EventDispatcher.Off(GlobalEvent.EVT_TASK_ONE_UPDATED, OnTaskUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleOrFuncOpenUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_FUNC_OPEN_UPDATE, OnRoleOrFuncOpenUpdate);
+            EventDispatcher.Off<int>(GlobalEvent.EVT_OUTWARD_CRYSTAL_UPDATE, OnCrystalUpdate);
             EventDispatcher.Off<int>(GlobalEvent.EVT_PET_EQUIP_UPDATE, OnPetEquipUpdate);
             EventDispatcher.Off<int>(GlobalEvent.EVT_PET_EQUIP_BAG_UPDATE, OnPetEquipBagUpdate);
         }
@@ -155,6 +165,13 @@ namespace Shenxiao.Module.Core.Pet
             if (!this) { Unsubscribe(); return; }
             if (!gameObject.activeInHierarchy) return;
             RefreshPetEquipEntry();
+        }
+
+        private void OnCrystalUpdate(int typeId)
+        {
+            if (!this) { Unsubscribe(); return; }
+            if (!gameObject.activeInHierarchy || typeId != _typeId) return;
+            SetCrystals();
         }
 
         private void OnPetEquipUpdate(int typeId)
@@ -210,11 +227,10 @@ namespace Shenxiao.Module.Core.Pet
             if (roleOutward && level_text != null) level_text.text = "Lv." + vo.Star;
             SetAutoBuy(vo.AutoBuy == 1);
             SetSkills(vo.Skills);
-            if (roleOutward)
-            {
-                SetBaseAppearanceState(vo);
-                RefreshOutwardModel(vo, career);
-            }
+            if (roleOutward) SetBaseAppearanceState(vo);
+            // 坐骑/伙伴与角色外显一样都由 config_mount_stage.ride_figure 决定当前模型。
+            // 旧实现只在 type=3/4/5/12 进入模型链，导致灵宠窗口两个已开放页签永远没有 3D。
+            RefreshOutwardModel(vo, career);
         }
 
         /// <summary>技能球(skill_group 烤入的 PetRoundItem 实例,对标老端 SetSkillData):16002 skill_list 有几个填几个,
@@ -267,7 +283,7 @@ namespace Shenxiao.Module.Core.Pet
             IReadOnlyList<int> goods = OutWardConfigs.GetCrystalGoodsIds(_typeId);
             IReadOnlyList<(int goodsId, int times, int timesLim)> counters =
                 OutWardModel.Instance.GetCrystalCounters(_typeId);
-            PetRoundItemBind[] slots = crystal_group.GetComponentsInChildren<PetRoundItemBind>(true);
+            PetRoundItemBind[] slots = _crystalSlots ?? new PetRoundItemBind[0];
             for (int i = 0; i < slots.Length; i++)
             {
                 bool has = i < goods.Count;
@@ -425,7 +441,7 @@ namespace Shenxiao.Module.Core.Pet
                 return;
             if (prefab == null)
             {
-                GameLog.Warn("OutWard", "role outward model missing: type={0} address={1}", _typeId, address);
+                GameLog.Warn("OutWard", "outward model missing: type={0} address={1}", _typeId, address);
                 _modelKey = null;
                 return;
             }
@@ -468,6 +484,8 @@ namespace Shenxiao.Module.Core.Pet
         {
             switch (typeId)
             {
+                case 1: module = "mount"; prefix = "h"; fallback = "default_horse"; return true;
+                case 2: module = "spirit"; prefix = "s"; fallback = "default_sprite"; return true;
                 case 3: module = "wing"; prefix = "w"; fallback = "default_wing"; return true;
                 case 4: module = "fabao"; prefix = "a"; fallback = "default_artifact"; return true;
                 case 5: module = "weapon"; prefix = "d"; fallback = "default_weapon"; return true;
@@ -528,17 +546,75 @@ namespace Shenxiao.Module.Core.Pet
             if (bag_btn != null)
             {
                 bag_btn.raycastTarget = true;
-                UIUtil.AddClick(bag_btn, () => PetEquipFlow.Open(_typeId));
+                UIUtil.AddClick(bag_btn, OpenPetEquip);
             }
             // 幻化(IllusionBaseView):数据层已通(轮24 PI——OutWardController/OutWardModel 已落地
             // 16003/16006-16009/16020/16022/16027 全链 + 4 张幻化专属配表),UI 待烤(prefab/View 未搭建,
             // 本按钮仍是 BindDegrade 通用桩,点击只弹"待开放" toast)。
             BindDegrade(illusion_btn, "幻化 IllusionBaseView");
-            BindDegrade(_Image14, "自动购买切换");
-            BindDegrade(autoImg, "自动购买切换");
+            if (autoGp != null) UIUtil.AddClick(autoGp, ToggleAutoBuy);
             BindDegrade(select_1, "培养线页签(当前页)");
             BindDegrade(select_2, "等级线页签 OutwardLvSystem");
             BindDegrade(btn_switch, "培养线/等级线切换 OutwardLvSystem");
+        }
+
+        private void BindCrystalSlots()
+        {
+            if (crystal_group == null)
+            {
+                _crystalSlots = new PetRoundItemBind[0];
+                return;
+            }
+
+            var slots = new List<PetRoundItemBind>();
+            foreach (PetRoundItemBind slot in crystal_group.GetComponentsInChildren<PetRoundItemBind>(true))
+            {
+                if (slot == null || slot.gameObject == _tpl_PetRoundItem) continue;
+                int index = slots.Count;
+                slots.Add(slot);
+                if (slot.click_group != null) UIUtil.AddClick(slot.click_group, () => OnCrystalSlot(index));
+            }
+            _crystalSlots = slots.ToArray();
+        }
+
+        private void ToggleAutoBuy()
+        {
+            if (_typeId != 1 && _typeId != 2) return;
+            OutWardModel.OutWardVo vo = OutWardModel.Instance.Get(_typeId);
+            if (vo == null) return;
+            OutWardController.Instance.SetAutoBuy(_typeId, vo.AutoBuy == 1 ? 0 : 1);
+        }
+
+        private void OnCrystalSlot(int index)
+        {
+            IReadOnlyList<int> goods = OutWardConfigs.GetCrystalGoodsIds(_typeId);
+            if (index < 0 || index >= goods.Count) return;
+
+            int goodsId = goods[index];
+            int times = 0;
+            int limit = 0;
+            IReadOnlyList<(int goodsId, int times, int timesLim)> counters =
+                OutWardModel.Instance.GetCrystalCounters(_typeId);
+            if (counters != null)
+            {
+                for (int i = 0; i < counters.Count; i++)
+                {
+                    if (counters[i].goodsId != goodsId) continue;
+                    times = counters[i].times;
+                    limit = counters[i].timesLim;
+                    break;
+                }
+            }
+
+            // Old H5 only consumes directly in this state. Other states open PetCrystalView,
+            // which is intentionally kept as a separate blocked leaf until its real detail/purchase UI exists.
+            if (limit <= 0 || times >= limit || CountInBag(goodsId) <= 0)
+            {
+                GameLog.Info("Pet", "Crystal detail leaf is blocked: type={0} goods={1} times={2}/{3}",
+                    _typeId, goodsId, times, limit);
+                return;
+            }
+            OutWardController.Instance.UseCrystal(_typeId, goodsId);
         }
 
         private void BindPetEquipSlots()
@@ -557,7 +633,7 @@ namespace Shenxiao.Module.Core.Pet
                 if (slot._Image1 != null)
                 {
                     slot._Image1.raycastTarget = true;
-                    UIUtil.AddClick(slot._Image1, () => PetEquipFlow.Open(_typeId));
+                    UIUtil.AddClick(slot._Image1, OpenPetEquip);
                 }
             }
             _petEquipSlots = slots.ToArray();
@@ -624,6 +700,15 @@ namespace Shenxiao.Module.Core.Pet
             {
                 OutWardController.Instance.StarUpGeneric(_typeId);
             }
+        }
+
+        private void OpenPetEquip()
+        {
+            int typeId = _typeId;
+            // 装备页与灵宠页同属 Window 层。先沿 Pet 的真实 Close 路径收掉内容模型/引导，
+            // PetEquip 返回时再按原 type 恢复；避免仅被公共窗管理器隐藏外框后内容仍常驻。
+            PetFlow.Close();
+            PetEquipFlow.Open(typeId);
         }
 
         private void BindDegrade(Image target, string label)

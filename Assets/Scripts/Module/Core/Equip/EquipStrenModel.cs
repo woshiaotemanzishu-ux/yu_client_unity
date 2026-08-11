@@ -16,6 +16,9 @@ namespace Shenxiao.Module.Core.Equip
 
         public bool HasData => _strenMap.Count > 0;
 
+        /// <summary>指定部位是否已经收到过 15204/15205 的权威强化快照。</summary>
+        public bool HasStren(int equipType) => _strenMap.ContainsKey(equipType);
+
         /// <summary>15204 查询回包套值(res==1 时由控制器调用)。</summary>
         public void Apply15204(int equipType, int stren)
         {

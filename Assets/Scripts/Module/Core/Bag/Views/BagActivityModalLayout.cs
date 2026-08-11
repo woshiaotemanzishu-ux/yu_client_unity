@@ -16,12 +16,30 @@ namespace Shenxiao.Module.Core.Bag
 
         public Image Blocker => blocker;
 
-        public void Show(Action close)
+        public void Show(BaseView activeView, Action close)
         {
             if (blocker == null) return;
+            PlaceDirectlyBelow(activeView);
             UIUtil.ClearClicks(blocker);
             UIUtil.AddClick(blocker, close);
             blocker.gameObject.SetActive(true);
+        }
+
+        /// <summary>共享遮罩始终位于当前最上层 Activity 子窗正下方，避免点击上层外侧穿透到底层子窗。</summary>
+        private void PlaceDirectlyBelow(BaseView activeView)
+        {
+            if (activeView == null || blocker == null || blocker.transform.parent == null) return;
+
+            Transform sibling = activeView.transform;
+            Transform commonParent = blocker.transform.parent;
+            while (sibling != null && sibling.parent != commonParent) sibling = sibling.parent;
+            if (sibling == null) return;
+
+            sibling.SetAsLastSibling();
+            int siblingIndex = sibling.GetSiblingIndex();
+            int blockerIndex = blocker.transform.GetSiblingIndex();
+            int targetIndex = blockerIndex < siblingIndex ? siblingIndex - 1 : siblingIndex;
+            blocker.transform.SetSiblingIndex(targetIndex);
         }
 
         public void Hide()

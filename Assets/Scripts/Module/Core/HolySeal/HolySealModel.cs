@@ -63,30 +63,42 @@ namespace Shenxiao.Module.Core.HolySeal
         public uint SuitPreviewCode { get; private set; }
         public bool HasSuitSnapshot { get; private set; }
         public IReadOnlyList<SuitEntry> SuitSnapshot { get; private set; } = Array.Empty<SuitEntry>();
+        public byte LastStrengthPosition { get; private set; }
+        public ushort LastStrengthLevel { get; private set; }
+        public uint LastPillTypeId { get; private set; }
+        public ushort LastPillNum { get; private set; }
+        public uint LastPillCode { get; private set; }
+        public uint ReplaceAckVersion { get; private set; }
+
+        public event Action Changed;
 
         public void ReplaceError(uint errorCode, string errorArgs)
         {
             HasError = true;
             LastErrorCode = errorCode;
             LastErrorArgs = errorArgs;
+            Changed?.Invoke();
         }
 
         public void ReplaceRating(uint totalRating)
         {
             HasRating = true;
             TotalRating = totalRating;
+            Changed?.Invoke();
         }
 
         public void ReplaceEquipSnapshot(List<EquipEntry> entries)
         {
             HasEquipSnapshot = true;
             EquipSnapshot = (entries ?? new List<EquipEntry>()).AsReadOnly();
+            Changed?.Invoke();
         }
 
         public void ReplacePillSnapshot(List<PillEntry> entries)
         {
             HasPillSnapshot = true;
             PillSnapshot = (entries ?? new List<PillEntry>()).AsReadOnly();
+            Changed?.Invoke();
         }
 
         public void ReplaceSuitPreview(List<SuitEntry> entries, uint code)
@@ -94,12 +106,35 @@ namespace Shenxiao.Module.Core.HolySeal
             HasSuitPreview = true;
             SuitPreview = (entries ?? new List<SuitEntry>()).AsReadOnly();
             SuitPreviewCode = code;
+            Changed?.Invoke();
         }
 
         public void ReplaceSuitSnapshot(List<SuitEntry> entries)
         {
             HasSuitSnapshot = true;
             SuitSnapshot = (entries ?? new List<SuitEntry>()).AsReadOnly();
+            Changed?.Invoke();
+        }
+
+        public void ApplyStrength(byte position, ushort strength)
+        {
+            LastStrengthPosition = position;
+            LastStrengthLevel = strength;
+            Changed?.Invoke();
+        }
+
+        public void ApplyReplaceAck()
+        {
+            ReplaceAckVersion++;
+            Changed?.Invoke();
+        }
+
+        public void ApplyPillUse(uint goodsTypeId, ushort num, uint code)
+        {
+            LastPillTypeId = goodsTypeId;
+            LastPillNum = num;
+            LastPillCode = code;
+            Changed?.Invoke();
         }
 
         public void Reset()
@@ -118,6 +153,13 @@ namespace Shenxiao.Module.Core.HolySeal
             SuitPreviewCode = 0;
             HasSuitSnapshot = false;
             SuitSnapshot = Array.Empty<SuitEntry>();
+            LastStrengthPosition = 0;
+            LastStrengthLevel = 0;
+            LastPillTypeId = 0;
+            LastPillNum = 0;
+            LastPillCode = 0;
+            ReplaceAckVersion = 0;
+            Changed?.Invoke();
         }
     }
 }

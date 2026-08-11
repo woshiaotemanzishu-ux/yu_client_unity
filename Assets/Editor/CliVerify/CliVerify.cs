@@ -582,6 +582,12 @@ namespace Shenxiao.EditorTools
             Run(RoleRealmHonourCase.Run, 300.0);
         }
 
+        /// <summary>人物→境界→天境称号特效的完整、部分与离屏裁切专项。</summary>
+        public static void RoleRealmTitleClip()
+        {
+            Run(RoleRealmTitleClipCase.Run, 300.0);
+        }
+
         /// <summary>人物页技能入口、主动/被动/天赋页签、返回、关闭与重开的真实射线路由。</summary>
         public static void RoleSkillRoute()
         {

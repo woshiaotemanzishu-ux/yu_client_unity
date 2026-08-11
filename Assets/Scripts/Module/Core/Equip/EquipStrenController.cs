@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
@@ -18,6 +19,25 @@ namespace Shenxiao.Module.Core.Equip
 
         private EquipStrenController() { }
 
+        public readonly struct StrengthResult
+        {
+            public readonly int Result;
+            public readonly int FailedEquipType;
+            public readonly int Type;
+            public readonly IReadOnlyList<(int equipType, int stren)> Items;
+
+            public StrengthResult(int result, int failedEquipType, int type,
+                IReadOnlyList<(int equipType, int stren)> items)
+            {
+                Result = result;
+                FailedEquipType = failedEquipType;
+                Type = type;
+                Items = items;
+            }
+        }
+
+        public event Action<StrengthResult> StrengthCompleted;
+
         protected override void Register()
         {
             RegisterProtocal(Proto.EQUIP_STREN_INFO, On15204);
@@ -29,6 +49,7 @@ namespace Shenxiao.Module.Core.Equip
 
         public override void Dispose()
         {
+            StrengthCompleted = null;
             EquipStrenModel.Instance.Clear();
             EquipWholeAwardModel.Instance.Clear();
             base.Dispose();
@@ -80,15 +101,28 @@ namespace Shenxiao.Module.Core.Equip
             List<(int equipType, int stren)> strenInfo = r.ReadArray(ReadStrenInfo);
             if (res != 1)
             {
-                TipsManager.Toast("强化失败(" + res + ")");   // 常见=铜币不足/已到上限,错误码表未移植,显码降级
+                if (res != 1520090) TipsManager.Toast("强化失败(" + res + ")");
                 GameLog.Info("Equip", "15205 fail res={0} res1={1} type={2}", res, res1, type);
+                StrengthCompleted?.Invoke(new StrengthResult(res, res1, type, strenInfo));
+                return;
+            }
+            if (strenInfo.Count == 0)
+            {
+                TipsManager.Toast("强化失败");
+                GameLog.Info("Equip", "15205 res=1 但 stren_info 为空 type={0}", type);
+                StrengthCompleted?.Invoke(new StrengthResult(0, res1, type, strenInfo));
                 return;
             }
             EquipStrenModel.Instance.Apply15205(strenInfo);
-            TipsManager.Toast("强化成功");
+            foreach ((int equipType, int stren) in strenInfo)
+            {
+                Shenxiao.Module.Core.Bag.BagGoods worn = Shenxiao.Module.Core.Equip.EquipAutoWear.GetWorn(equipType);
+                if (worn != null) worn.Stren = stren;
+            }
             GameLog.Info("Equip", "15205 ok res1={0} type={1} count={2} total={3} remaining={4}B",
                 res1, type, strenInfo.Count, EquipStrenModel.Instance.TotalStren(), r.Remaining);
             EventDispatcher.Emit(GlobalEvent.EVT_EQUIP_STREN_UPDATE);
+            StrengthCompleted?.Invoke(new StrengthResult(1, res1, type, strenInfo));
         }
 
         private static (int equipType, int stren) ReadStrenInfo(NetReader r)
@@ -126,7 +160,6 @@ namespace Shenxiao.Module.Core.Equip
                 return;
             }
             EquipWholeAwardModel.Instance.Update(type, wholeLv);
-            TipsManager.Toast("激活成功");
             GameLog.Info("Equip", "15260 ok type={0} whole_lv={1} remaining={2}B", type, wholeLv, r.Remaining);
             EventDispatcher.Emit(GlobalEvent.EVT_EQUIP_WHOLE_UPDATE);
         }

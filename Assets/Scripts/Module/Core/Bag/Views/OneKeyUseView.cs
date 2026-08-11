@@ -40,6 +40,7 @@ namespace Shenxiao.Module.Core.Bag
         private readonly HashSet<long> _selected = new HashSet<long>();
         private readonly List<BaseAwardItem> _itemPool = new List<BaseAwardItem>();
         private bool _subscribed;
+        private bool _hasShownOnce;
         private int _refreshEpoch;
 
         protected override void OnInit()
@@ -53,13 +54,16 @@ namespace Shenxiao.Module.Core.Bag
         protected override void OnShow(object args)
         {
             Subscribe();
-            _ = RefreshAsync(true);
+            bool firstShow = !_hasShownOnce;
+            _hasShownOnce = true;
+            _ = RefreshAsync(firstShow, firstShow);
         }
 
         protected override void OnHide()
         {
             _refreshEpoch++;
             Unsubscribe();
+            StopListScroll();
             BagFlow.NotifyActivitySubHidden(this);
         }
 
@@ -86,7 +90,7 @@ namespace Shenxiao.Module.Core.Bag
             _subscribed = false;
         }
 
-        private void OnBagUpdate() => _ = RefreshAsync(true);
+        private void OnBagUpdate() => _ = RefreshAsync(true, false);
 
         private void BuildTabs()
         {
@@ -108,7 +112,7 @@ namespace Shenxiao.Module.Core.Bag
             }
         }
 
-        private async Task RefreshAsync(bool selectAll)
+        private async Task RefreshAsync(bool selectAllItems, bool resetCategories)
         {
             int epoch = ++_refreshEpoch;
             await GoodsModel.EnsureLoaded();
@@ -123,14 +127,18 @@ namespace Shenxiao.Module.Core.Bag
                     _eligible.Add(goods);
             }
 
-            if (selectAll)
+            if (resetCategories)
             {
-                _selected.Clear();
                 foreach (Category category in _categories)
                 {
                     category.Selected = true;
                     category.Tab?.SetSelect(true);
                 }
+            }
+
+            if (selectAllItems)
+            {
+                _selected.Clear();
                 foreach (BagGoods goods in _eligible) _selected.Add(goods.GoodsId);
             }
             else
@@ -189,6 +197,13 @@ namespace Shenxiao.Module.Core.Bag
                 item.SetData(goods.TypeId, goods.GoodsNum, goods.Bind != 0, _selected.Contains(goods.GoodsId));
             }
             if (nothingLb != null) nothingLb.gameObject.SetActive(_eligible.Count == 0);
+        }
+
+        private void StopListScroll()
+        {
+            if (_Scroller2 == null) return;
+            _Scroller2.StopMovement();
+            _Scroller2.velocity = Vector2.zero;
         }
 
         private void ToggleItem(BagGoods goods)

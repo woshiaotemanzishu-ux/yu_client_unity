@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Shenxiao.Module.Core.Common;
 
@@ -80,7 +81,13 @@ namespace Shenxiao.Module.Core.Bag
         private readonly List<BagGoods> _babyEquipBag = new List<BagGoods>();
         private readonly List<BagGoods> _lungEquip = new List<BagGoods>();
         private readonly List<BagGoods> _lungBag = new List<BagGoods>();
+        // 背包页三条专属装备线的权威 15010 容器。必须按 pos 分片，不能混回主背包。
+        private readonly Dictionary<int, List<BagGoods>> _bagSpecialContainers = new Dictionary<int, List<BagGoods>>();
+        private readonly HashSet<int> _bagSpecialContainersReady = new HashSet<int>();
         private static readonly IReadOnlyList<BagGoods> EmptyContainer = new BagGoods[0];
+
+        /// <summary>专属容器全量或增量变化；View 只订阅自己当前页的 pos。</summary>
+        public event Action<int> ContainerChanged;
 
         /// <summary>各槽位容量(对标 GoodsModel.xxx_max_cell 系列字段;15002 扩容成功后按 pos 更新,见 BagController.On15002)。</summary>
         private readonly Dictionary<int, int> _maxCellByPos = new Dictionary<int, int>();
@@ -176,7 +183,68 @@ namespace Shenxiao.Module.Core.Bag
             if (pos == POS_BABY_BAG) return _babyEquipBag;
             if (pos == POS_LUNG_EQUIP) return _lungEquip;
             if (pos == POS_LUNG_BAG) return _lungBag;
+            if (_bagSpecialContainers.TryGetValue(pos, out List<BagGoods> special)) return special;
             return _petEquipContainers.TryGetValue(pos, out List<BagGoods> list) ? list : EmptyContainer;
+        }
+
+        /// <summary>背包页直接消费的神印/天启/龙语背包与已穿戴六个容器。</summary>
+        public static bool IsBagSpecialContainer(int pos)
+        {
+            return pos == POS_HOLY_SEAL_BAG || pos == POS_HOLY_SEAL ||
+                   pos == POS_REVELATION_EQUIP || pos == POS_REVELATION_BAG ||
+                   pos == POS_LONGLANG_BAG || pos == POS_LONGLANG_EQUIP;
+        }
+
+        public bool HasContainerData(int pos)
+        {
+            if (pos == POS_BAG) return HasData;
+            if (pos == POS_EQUIP) return HasEquipmentData;
+            if (pos == POS_WAREHOUSE) return HasWarehouseData;
+            return _bagSpecialContainersReady.Contains(pos);
+        }
+
+        internal void SetBagSpecialContainerFull(int pos, int maxCell, List<BagGoods> goods)
+        {
+            if (!IsBagSpecialContainer(pos)) return;
+            if (!_bagSpecialContainers.TryGetValue(pos, out List<BagGoods> target))
+            {
+                target = new List<BagGoods>();
+                _bagSpecialContainers[pos] = target;
+            }
+            target.Clear();
+            if (goods != null) target.AddRange(goods);
+            SetMaxCell(pos, maxCell);
+            _bagSpecialContainersReady.Add(pos);
+            ContainerChanged?.Invoke(pos);
+        }
+
+        internal void UpsertBagSpecialContainer(int pos, BagGoods vo)
+        {
+            if (!IsBagSpecialContainer(pos) || vo == null) return;
+            if (!_bagSpecialContainers.TryGetValue(pos, out List<BagGoods> target))
+            {
+                target = new List<BagGoods>();
+                _bagSpecialContainers[pos] = target;
+            }
+            UpsertList(target, vo);
+            _bagSpecialContainersReady.Add(pos);
+        }
+
+        internal void UpdateBagSpecialContainerNum(int pos, long goodsId, int typeId, long num)
+        {
+            if (!IsBagSpecialContainer(pos)) return;
+            if (!_bagSpecialContainers.TryGetValue(pos, out List<BagGoods> target))
+            {
+                target = new List<BagGoods>();
+                _bagSpecialContainers[pos] = target;
+            }
+            UpdateListNum(target, goodsId, typeId, num);
+            _bagSpecialContainersReady.Add(pos);
+        }
+
+        internal void NotifyContainerChanged(int pos)
+        {
+            if (IsBagSpecialContainer(pos)) ContainerChanged?.Invoke(pos);
         }
 
         public static bool IsLungContainer(int pos) => pos == POS_LUNG_EQUIP || pos == POS_LUNG_BAG;
@@ -445,6 +513,8 @@ namespace Shenxiao.Module.Core.Bag
             _babyEquipBag.Clear();
             _lungEquip.Clear();
             _lungBag.Clear();
+            _bagSpecialContainers.Clear();
+            _bagSpecialContainersReady.Clear();
             HasBabyEquipData = false;
             HasBabyEquipBagData = false;
             HasLungEquipData = false;
@@ -473,6 +543,9 @@ namespace Shenxiao.Module.Core.Bag
         public int Color;      // color:c(品质 0..8)
         public int Cell;       // cell:h(格子序号)
         public int Bind;       // bind:c(0=不绑定;公会仓库捐献等"仅非绑定可用"场景过滤用,对标老端 GetShowEquips info.bind!=0)
+        public int Trade;      // trade:c(实例是否可交易；特殊装备详情上架按钮以实例态为准)
+        public int Sell;       // sell:c(实例出售标记；保留 wire 事实，禁止在详情层猜测)
+        public int IsDrop;     // is_drop:c(实例掉落标记)
         public uint ExpireTime; // expire_time:i(实例限时角标；0=不限时)
 
         // —— 装备实例态(非装备物品恒 0/null;装备 tips「极品/强化」实例行用,待活服实装备 + 实例透传)——
