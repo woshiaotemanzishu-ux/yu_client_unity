@@ -157,9 +157,14 @@ async function executeStep(context, step, index) {
 function attachFailureDiagnostic(report, outputDir, error) {
   if (!error || !error.diagnostic) return null;
   const diagnosticPath = writeSelectorDiagnostic(outputDir, error.diagnostic);
-  const lifecycle = error.diagnostic.context && error.diagnostic.context.kind === 'popup-close-lifecycle';
+  const contextKind = error.diagnostic.context && error.diagnostic.context.kind;
+  const lifecycle = contextKind === 'popup-close-lifecycle';
+  const canvasInput = contextKind === 'canvas-input';
+  const popupStack = contextKind === 'popup-runtime-stack';
   const artifact = addArtifact(report, outputDir, diagnosticPath,
-    lifecycle ? 'popup-close-lifecycle-diagnostic' : 'selector-identity-diagnostic');
+    lifecycle ? 'popup-close-lifecycle-diagnostic'
+      : canvasInput ? 'canvas-input-diagnostic'
+        : popupStack ? 'popup-runtime-stack-diagnostic' : 'selector-identity-diagnostic');
   report.failure = {
     code: error.code || 'SELECTOR_IDENTITY_FAILURE',
     diagnostic: {

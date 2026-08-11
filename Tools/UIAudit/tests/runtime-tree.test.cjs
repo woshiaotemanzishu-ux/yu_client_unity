@@ -31,6 +31,32 @@ test('runtime selectors match an exact data identity subset', () => {
   assert.equal(findNodes(snapshot, { source: 'laya-stage', name: 'fashion_group', dataIdentity: { fashion_id: 1 } }).length, 0);
 });
 
+test('stage normalization retains render order, effective alpha, hit policy and mask diagnostics', () => {
+  const raw = structuredClone(fixture);
+  const target = raw.stage.nodes.find(node => node.name === 'close_btn');
+  Object.assign(target, {
+    childIndex: target.indexPath[target.indexPath.length - 1],
+    alpha: 0.5,
+    effectiveAlpha: 0.25,
+    zOrder: 7,
+    hitTestPrior: true,
+    mouseState: 2,
+    mask: {
+      name: 'modal_mask', type: 'Sprite', visible: true, alpha: 1,
+      bounds: { x: 0, y: 0, width: 720, height: 1280 }, hitTestCenter: true,
+    },
+  });
+  const snapshot = normalizeRuntimeSources(raw);
+  const node = findNodes(snapshot, { source: 'laya-stage', view: 'ItemUseView', name: 'close_btn' })[0];
+  assert.equal(node.schema, 'ui-audit.runtime-node.v2');
+  assert.equal(node.childIndex, target.childIndex);
+  assert.equal(node.effectiveAlpha, 0.25);
+  assert.equal(node.zOrder, 7);
+  assert.equal(node.interaction.hitTestPrior, true);
+  assert.equal(node.interaction.mouseState, 2);
+  assert.equal(node.state.mask.name, 'modal_mask');
+});
+
 test('loaded and managed stagePath assign a non-View-suffixed owner to its complete stage subtree', () => {
   const snapshot = normalizeRuntimeSources(ownerBindingFixture);
   const root = findNodes(snapshot, {

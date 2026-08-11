@@ -20,6 +20,18 @@ function normalizeRect(rect) {
   return value.width >= 0 && value.height >= 0 ? value : null;
 }
 
+function normalizeMask(mask) {
+  if (!mask) return null;
+  return {
+    name: String(mask.name || ''),
+    type: String(mask.type || mask.constructorName || ''),
+    visible: mask.visible !== false,
+    alpha: finite(mask.alpha, 1),
+    bounds: normalizeRect(mask.bounds),
+    hitTestCenter: mask.hitTestCenter == null ? null : !!mask.hitTestCenter,
+  };
+}
+
 function identitySubsetMatches(actual, expected) {
   if (expected == null || typeof expected !== 'object' || Array.isArray(expected)) return actual === expected;
   if (actual == null || typeof actual !== 'object' || Array.isArray(actual)) return false;
@@ -141,6 +153,8 @@ function normalizedNode(raw, context = {}) {
     indexPath: Array.isArray(raw && raw.indexPath) ? raw.indexPath.map(Number) : null,
     parentPath: raw && raw.parentPath || context.parentPath || null,
     depth: finite(raw && raw.depth, context.depth || 0),
+    childIndex: raw && raw.childIndex != null ? finite(raw.childIndex)
+      : Array.isArray(raw && raw.indexPath) && raw.indexPath.length ? finite(raw.indexPath[raw.indexPath.length - 1]) : null,
     name,
     type,
     visible: raw && raw.visible !== false && raw && raw.effectiveVisible !== false,
@@ -160,6 +174,7 @@ function normalizedNode(raw, context = {}) {
       y: finite(raw && raw.scale && raw.scale.y != null ? raw.scale.y : raw && raw.scaleY, 1),
     },
     alpha: finite(raw && raw.alpha, 1),
+    effectiveAlpha: finite(raw && raw.effectiveAlpha, finite(raw && raw.alpha, 1)),
     zOrder: finite(raw && raw.zOrder),
     text: typeof (raw && raw.text) === 'string' ? raw.text : '',
     html: typeof (raw && raw.html) === 'string' ? raw.html : '',
@@ -173,6 +188,8 @@ function normalizedNode(raw, context = {}) {
     interaction: {
       mouseEnabled: raw && raw.mouseEnabled !== false,
       mouseThrough: !!(raw && raw.mouseThrough),
+      hitTestPrior: !!(raw && raw.hitTestPrior),
+      mouseState: raw && raw.mouseState == null ? null : finite(raw.mouseState),
       disabled: !!(raw && raw.disabled),
       hitTestCenter: raw && raw.hitTestCenter == null ? null : !!raw.hitTestCenter,
     },
@@ -184,6 +201,7 @@ function normalizedNode(raw, context = {}) {
       dataIdentity: raw && raw.dataIdentity || null,
       scroll: raw && raw.scroll || null,
       scrollRect: normalizeRect(raw && raw.scrollRect),
+      mask: normalizeMask(raw && raw.mask),
     },
   };
 }
@@ -545,12 +563,14 @@ async function collectRuntimeSources(page, options = {}) {
         evidence: owner.evidence,
         instances: owner.instances,
       }) : null;
-      const walk = (node, parentVisible, parentPath, indexPath, depth, activeOwner) => {
+      const walk = (node, parentVisible, parentAlpha, parentPath, indexPath, depth, activeOwner) => {
         if (!node || depth > maxDepth || stageResult.nodes.length >= maxNodes) return;
         const name = String(node.name || '');
         const type = String(node.constructor && node.constructor.name || '');
         const path = `${parentPath ? `${parentPath}/` : ''}${name || type || 'node'}[${indexPath[indexPath.length - 1] || 0}]`;
-        const visible = parentVisible && node.visible !== false && Number(node.alpha == null ? 1 : node.alpha) !== 0;
+        const localAlpha = Number(node.alpha == null ? 1 : node.alpha);
+        const effectiveAlpha = parentAlpha * localAlpha;
+        const visible = parentVisible && node.visible !== false && effectiveAlpha !== 0;
         const relativePath = indexPath[0] === 0 ? indexPath.slice(1) : indexPath;
         const exactOwner = ownerByPath.get(relativePath.join('.')) || null;
         const heuristicOwner = !exactOwner && /View$/.test(name)
@@ -565,8 +585,23 @@ async function collectRuntimeSources(page, options = {}) {
         }
         const vBar = node.vScrollBar || (node._scrollBar && node._scrollBar.isVertical ? node._scrollBar : null);
         const hBar = node.hScrollBar || (node._scrollBar && !node._scrollBar.isVertical ? node._scrollBar : null);
+        const mask = node.mask || node._cacheStyle && node._cacheStyle.mask || null;
+        let maskInfo = null;
+        if (mask) {
+          const maskBounds = boundsOf(mask);
+          let maskHitTestCenter = null;
+          if (maskBounds && maskBounds.width > 0 && maskBounds.height > 0 && typeof mask.hitTestPoint === 'function') {
+            try { maskHitTestCenter = !!mask.hitTestPoint(maskBounds.x + maskBounds.width / 2, maskBounds.y + maskBounds.height / 2); } catch (_) {}
+          }
+          maskInfo = {
+            name: String(mask.name || ''), type: String(mask.constructor && mask.constructor.name || ''),
+            visible: mask.visible !== false, alpha: Number(mask.alpha == null ? 1 : mask.alpha),
+            bounds: maskBounds, hitTestCenter: maskHitTestCenter,
+          };
+        }
         stageResult.nodes.push({
           name, type, view: nextOwner && nextOwner.view || null, path, parentPath: parentPath || null, indexPath, depth,
+          childIndex: indexPath[indexPath.length - 1],
           ownerIdentity: publicOwner(nextOwner, !!exactOwner || !!heuristicOwner),
           bindings: bindingsByNode.get(node) || [],
           visible, displayedInStage: node.displayedInStage !== false, bounds,
@@ -574,12 +609,13 @@ async function collectRuntimeSources(page, options = {}) {
           pivot: { x: Number(node.pivotX || 0), y: Number(node.pivotY || 0) },
           anchor: { x: Number(node.anchorX || 0), y: Number(node.anchorY || 0) },
           scale: { x: Number(node.scaleX == null ? 1 : node.scaleX), y: Number(node.scaleY == null ? 1 : node.scaleY) },
-          alpha: Number(node.alpha == null ? 1 : node.alpha), zOrder: Number(node.zOrder || 0),
+          alpha: localAlpha, effectiveAlpha, zOrder: Number(node.zOrder || 0),
           text: typeof node.text === 'string' ? node.text : '',
           html: typeof node.innerHTML === 'string' ? node.innerHTML : '',
           skin: typeof node.skin === 'string' ? node.skin : '',
           gray: !!node.gray, disabled: !!node.disabled,
           mouseEnabled: node.mouseEnabled !== false, mouseThrough: !!node.mouseThrough,
+          hitTestPrior: !!node.hitTestPrior, mouseState: Number(node._mouseState == null ? 0 : node._mouseState),
           selected: node.selected === undefined ? null : !!node.selected,
           isAnim: typeof node.is_anim === 'boolean' ? node.is_anim : null,
           frameToken: exactOwner || heuristicOwner ? stageResult.meta.frameToken : null,
@@ -589,10 +625,11 @@ async function collectRuntimeSources(page, options = {}) {
             h: hBar ? { value: Number(hBar.value || 0), min: Number(hBar.min || 0), max: Number(hBar.max || 0) } : null,
           },
           scrollRect: node.scrollRect ? { x: Number(node.scrollRect.x || 0), y: Number(node.scrollRect.y || 0), width: Number(node.scrollRect.width || 0), height: Number(node.scrollRect.height || 0) } : null,
+          mask: maskInfo,
         });
-        childrenOf(node).forEach((child, index) => walk(child, visible, path, indexPath.concat(index), depth + 1, nextOwner));
+        childrenOf(node).forEach((child, index) => walk(child, visible, effectiveAlpha, path, indexPath.concat(index), depth + 1, nextOwner));
       };
-      walk(stage, true, '', [0], 0, null);
+      walk(stage, true, 1, '', [0], 0, null);
     }
     return { capturedAt: new Date().toISOString(), loaded, managed, stage: stageResult, warnings };
   }, { maxDepth, maxNodes });
@@ -637,6 +674,7 @@ function findExactNode(snapshot, selector = {}) {
 module.exports = {
   NODE_SCHEMA,
   normalizeRect,
+  normalizeMask,
   identitySubsetMatches,
   normalizeBinding,
   reconcileStageOwnership,

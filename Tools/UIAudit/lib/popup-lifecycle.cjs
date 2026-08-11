@@ -127,7 +127,7 @@ function observePopupLifecycle(snapshot, instanceRef) {
   };
 }
 
-function classifyPopupCloseFailure(samples) {
+function classifyPopupCloseFailure(samples, inputEvidence = null) {
   const observations = (samples || []).map(sample => sample && sample.lifecycle).filter(Boolean);
   if (!observations.length) return 'unclassified';
   if (observations.some(item => item.requeued)) return 'requeued';
@@ -138,7 +138,12 @@ function classifyPopupCloseFailure(samples) {
   }
   if (observations[observations.length - 1].present === false) return 'frame-not-advancing';
   if (observations.some(item => item.phase === 'closing')) return 'closing-timeout';
-  if (observations.every(item => item.phase === 'open' && !item.closeRequested)) return 'click-not-consumed';
+  if (observations.every(item => item.phase === 'open' && !item.closeRequested)) {
+    const consumption = inputEvidence && inputEvidence.consumption;
+    if (consumption && consumption.classification === 'target-click-consumed') return 'business-handled-but-not-closed';
+    if (consumption && consumption.classification === 'event-not-dispatched') return 'event-not-dispatched';
+    return 'click-not-consumed';
+  }
   if (observations.some(item => item.exactRegistered)) return 'still-visible-or-managed';
   return 'unclassified';
 }

@@ -97,6 +97,21 @@ test('an open exact instance after the click is classified as click-not-consumed
   assert.equal(classifyPopupCloseFailure(samples), 'click-not-consumed');
 });
 
+test('a dispatched bound-field click with an unchanged open lifecycle is business-handled-but-not-closed', () => {
+  const samples = lifecycleSamples(fixture.clickNotConsumed);
+  const input = {
+    consumption: { pass: true, classification: 'target-click-consumed' },
+    evidence: {
+      targetEvents: [{ type: 'click', listenerCountBefore: 3, dispatched: true }],
+      semanticCalls: [{ name: 'Close' }],
+    },
+  };
+  const result = popupCloseStability(samples, fixture.view, stabilityPolicy, { input });
+  assert.equal(result.pass, false);
+  assert.equal(result.classification, 'business-handled-but-not-closed');
+  assert.equal(classifyPopupCloseFailure(samples, input), 'business-handled-but-not-closed');
+});
+
 test('a newly registered same-view instance is requeued, not mistaken for the clicked instance closing', () => {
   const samples = lifecycleSamples(fixture.requeued);
   assert.equal(samples[0].lifecycle.present, false);

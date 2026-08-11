@@ -74,6 +74,48 @@ function dedupePopupQueue(items) {
   return result;
 }
 
+function compareStagePathsTopFirst(leftPath, rightPath) {
+  const left = Array.isArray(leftPath) ? leftPath.map(Number) : [];
+  const right = Array.isArray(rightPath) ? rightPath.map(Number) : [];
+  const length = Math.min(left.length, right.length);
+  for (let index = 0; index < length; index++) {
+    if (left[index] !== right[index]) return right[index] - left[index];
+  }
+  return right.length - left.length;
+}
+
+function observePopupStack(snapshot, items) {
+  const deduped = dedupePopupQueue(items);
+  const nodes = Array.isArray(snapshot && snapshot.nodes) ? snapshot.nodes : [];
+  const rootsByView = new Map();
+  for (const node of nodes) {
+    const owner = node && node.identity && node.identity.owner;
+    if (node.source !== 'laya-stage' || !node.visible || !node.displayed || !owner || !owner.isRoot || !owner.view) continue;
+    if (!rootsByView.has(owner.view)) rootsByView.set(owner.view, []);
+    rootsByView.get(owner.view).push(node);
+  }
+  const observed = deduped.map(item => {
+    const roots = (rootsByView.get(item.view) || []).sort((left, right) => compareStagePathsTopFirst(left.indexPath, right.indexPath));
+    const root = roots[0] || null;
+    return {
+      ...item,
+      source: root ? 'laya-stage' : item.source || null,
+      resolved: !!root,
+      stagePath: root && root.indexPath || null,
+      rootPath: root && root.path || null,
+      childIndex: root && root.childIndex != null ? root.childIndex
+        : root && Array.isArray(root.indexPath) ? root.indexPath[root.indexPath.length - 1] : null,
+      zOrder: root && Number.isFinite(Number(root.zOrder)) ? Number(root.zOrder) : null,
+      instance: root && root.identity && root.identity.owner && root.identity.owner.instances || [],
+    };
+  });
+  return observed.sort((left, right) => {
+    if (left.resolved !== right.resolved) return left.resolved ? -1 : 1;
+    if (!left.resolved) return 0;
+    return compareStagePathsTopFirst(left.stagePath, right.stagePath);
+  });
+}
+
 function orderPopupQueue(items, policy) {
   const deduped = dedupePopupQueue(items);
   const runtimeStackViews = deduped
@@ -94,7 +136,7 @@ function orderPopupQueue(items, policy) {
   });
 }
 
-function popupCloseStability(samples, viewName, stability) {
+function popupCloseStability(samples, viewName, stability, options = {}) {
   if (!stability || stability.kind !== 'absent-advancing-laya-frames') {
     throw new Error(`POPUP_STABILITY_INVALID: ${viewName}`);
   }
@@ -135,7 +177,7 @@ function popupCloseStability(samples, viewName, stability) {
     samples: Array.isArray(samples) ? samples.length : 0,
     frameTokens,
     phases,
-    classification: stableFrames >= requiredFrames ? 'closed-stable' : classifyPopupCloseFailure(samples),
+    classification: stableFrames >= requiredFrames ? 'closed-stable' : classifyPopupCloseFailure(samples, options.input),
   };
 }
 
@@ -176,6 +218,8 @@ module.exports = {
   getPopupEntry,
   decidePopup,
   dedupePopupQueue,
+  compareStagePathsTopFirst,
+  observePopupStack,
   orderPopupQueue,
   planPopupDrain,
   assertSafePopupDecision,

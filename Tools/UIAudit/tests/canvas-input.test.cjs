@@ -5,10 +5,19 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
 const { normalizeRuntimeSources } = require('../lib/runtime-tree.cjs');
-const { resolveTarget, clickRuntimeTarget, dragRuntimeTarget } = require('../lib/canvas-input.cjs');
+const {
+  resolveTarget,
+  logicalToDomPoint,
+  domToLogicalPoint,
+  classifyPreInput,
+  classifyInputConsumption,
+  clickRuntimeTarget,
+  dragRuntimeTarget,
+} = require('../lib/canvas-input.cjs');
 
 const fixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'runtime-sources.json'), 'utf8'));
 const ownerBindingFixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'runtime-owner-bindings.json'), 'utf8'));
+const inputFixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'canvas-input-consumption.json'), 'utf8'));
 const snapshot = normalizeRuntimeSources(fixture);
 const ownerBindingSnapshot = normalizeRuntimeSources(ownerBindingFixture);
 const canvasMetrics = { x: 0, y: 0, width: 720, height: 1280, logicalWidth: 720, logicalHeight: 1280 };
@@ -18,7 +27,33 @@ function fakePage() {
   return {
     calls,
     viewport: () => ({ width: 720, height: 1280 }),
-    evaluate: async () => ({ applicable: true, pass: true, reason: null }),
+    evaluate: async (_function, payload) => {
+      if (payload && payload.operation === 'inspect-canvas-input') {
+        const target = {
+          path: payload.indexPath.join('/'), indexPath: payload.indexPath,
+          ownerView: payload.selector.ownerView || payload.selector.view || null,
+          hitAtPoint: true,
+        };
+        return {
+          schema: 'ui-audit.canvas-input.v1', applicable: true,
+          targetResolution: { actualCount: 1, currentIndexPath: payload.indexPath },
+          target, targetChain: [target], topmost: target, topmostChain: [target], capture: null,
+          mapping: { roundTripPass: true, pointInsideCanvas: true, domCanvasTop: true },
+        };
+      }
+      if (payload && payload.operation === 'install-canvas-input-probe') {
+        return { pass: true, probeId: payload.probeId, listenersBefore: { click: 1 } };
+      }
+      if (payload && payload.operation === 'finish-canvas-input-probe') {
+        return {
+          schema: 'ui-audit.canvas-input.v1', probeId: payload.probeId,
+          domEvents: [{ type: 'mousedown' }, { type: 'mouseup' }, { type: 'click' }],
+          targetEvents: [{ type: 'click', listenerCountBefore: 1, dispatched: true }],
+          semanticCalls: [{ name: 'Close' }],
+        };
+      }
+      throw new Error(`unexpected page.evaluate payload: ${JSON.stringify(payload)}`);
+    },
     mouse: {
       click: async (...args) => calls.push(['click', ...args]),
       move: async (...args) => calls.push(['move', ...args]),
@@ -49,6 +84,90 @@ test('wide canvas maps logical Laya coordinates through the real DOM rectangle',
   const result = await clickRuntimeTarget(page, snapshot, { source: 'laya-stage', view: 'ItemUseView', name: 'close_btn', expectedCount: 1 }, { canvasMetrics: wideCanvas });
   assert.deepEqual(result.logicalPoint, { x: 594, y: 344 });
   assert.deepEqual(result.point, { x: 1311, y: 290.25 });
+});
+
+test('canvas transform mapping round-trips logical coordinates in a scrolled wide viewport', () => {
+  const metrics = {
+    x: 420, y: 0, width: 1080, height: 1080, logicalWidth: 720, logicalHeight: 1280,
+    scrollX: 20, scrollY: 40,
+    canvasTransform: { a: 1.5, b: 0, c: 0, d: 0.84375, tx: 440, ty: 40 },
+  };
+  const logical = { x: 594, y: 344 };
+  const dom = logicalToDomPoint(logical, metrics);
+  assert.deepEqual(dom, { x: 1311, y: 290.25 });
+  assert.deepEqual(domToLogicalPoint(dom, metrics), logical);
+});
+
+test('pre-input classifier distinguishes coordinate, overlay and runtime stack failures', () => {
+  const base = {
+    schema: inputFixture.schema,
+    targetResolution: { actualCount: 1 },
+    target: inputFixture.target,
+    targetChain: [inputFixture.target],
+    mapping: inputFixture.mappingPass,
+    capture: null,
+  };
+  assert.deepEqual(classifyPreInput({ ...base, topmost: inputFixture.target }), {
+    pass: true, classification: 'topmost-target-ready', reason: null,
+  });
+  assert.equal(classifyPreInput({ ...base, mapping: inputFixture.mappingMismatch, topmost: inputFixture.target }).classification, 'canvas-coordinate-mismatch');
+  assert.equal(classifyPreInput({ ...base, topmost: inputFixture.sameViewOverlay }).classification, 'overlay-intercepted');
+  assert.equal(classifyPreInput({ ...base, topmost: inputFixture.otherViewTop }).classification, 'stack-order-wrong');
+  assert.equal(inputFixture.otherViewTop.mask.name, 'modal_mask');
+});
+
+test('input consumption requires a real canvas down/up and a dispatched target click listener', () => {
+  assert.deepEqual(classifyInputConsumption(inputFixture.consumed), {
+    pass: true, classification: 'target-click-consumed', reason: null, closeSemanticObserved: true,
+  });
+  assert.equal(classifyInputConsumption(inputFixture.notDispatched).classification, 'event-not-dispatched');
+});
+
+test('topmost overlay hard-stops before browser input and preserves the occlusion chain', async () => {
+  const page = fakePage();
+  page.evaluate = async (_function, payload) => {
+    if (payload.operation === 'inspect-canvas-input') {
+      return {
+        schema: inputFixture.schema, applicable: true,
+        targetResolution: { actualCount: 1 }, target: inputFixture.target,
+        targetChain: [inputFixture.target], topmost: inputFixture.otherViewTop,
+        topmostChain: [inputFixture.otherViewTop], capture: null, mapping: inputFixture.mappingPass,
+      };
+    }
+    throw new Error(`unexpected operation: ${payload.operation}`);
+  };
+  await assert.rejects(
+    clickRuntimeTarget(page, ownerBindingSnapshot, {
+      source: 'laya-stage', ownerView: 'CycleimpActlistYesterday', boundField: '_btn_close', expectedCount: 1,
+    }, { canvasMetrics }),
+    error => {
+      assert.equal(error.code, 'CANVAS_STACK_ORDER_WRONG');
+      assert.equal(error.diagnostic.context.input.topmost.ownerView, 'DailyActTipView');
+      assert.equal(error.diagnostic.context.input.topmostChain[0].mask.name, 'modal_mask');
+      return true;
+    },
+  );
+  assert.equal(page.calls.length, 0);
+});
+
+test('missing Laya target click is classified after exactly one browser click', async () => {
+  const page = fakePage();
+  const originalEvaluate = page.evaluate;
+  page.evaluate = async (fn, payload) => {
+    if (payload.operation === 'finish-canvas-input-probe') return { ...inputFixture.notDispatched, schema: inputFixture.schema, probeId: payload.probeId };
+    return originalEvaluate(fn, payload);
+  };
+  await assert.rejects(
+    clickRuntimeTarget(page, snapshot, {
+      source: 'laya-stage', view: 'ItemUseView', name: 'close_btn', expectedCount: 1,
+    }, { canvasMetrics }),
+    error => {
+      assert.equal(error.code, 'CANVAS_EVENT_NOT_DISPATCHED');
+      assert.equal(error.diagnostic.context.input.consumption.classification, 'event-not-dispatched');
+      return true;
+    },
+  );
+  assert.equal(page.calls.filter(call => call[0] === 'click').length, 1);
 });
 
 test('owner-view plus bound-field resolves one hittable node when field and runtime names differ', () => {

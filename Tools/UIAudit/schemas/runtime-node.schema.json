@@ -1,14 +1,18 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "ui-audit.runtime-node.v1",
+  "$id": "ui-audit.runtime-node.v2",
   "type": "object",
   "required": ["schema", "source", "path", "name", "visible", "interaction", "state"],
   "properties": {
-    "schema": { "const": "ui-audit.runtime-node.v1" },
+    "schema": { "const": "ui-audit.runtime-node.v2" },
     "source": { "enum": ["loaded-view", "managed-view", "laya-stage", "unknown"] },
     "path": { "type": "string" },
     "name": { "type": "string" },
     "visible": { "type": "boolean" },
+    "childIndex": { "type": ["integer", "null"] },
+    "alpha": { "type": "number" },
+    "effectiveAlpha": { "type": "number" },
+    "zOrder": { "type": "number" },
     "identity": {
       "type": "object",
       "required": ["ownerView", "runtimeName", "bindings"],

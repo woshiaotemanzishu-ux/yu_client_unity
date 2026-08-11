@@ -7,7 +7,7 @@ const { pathToFileURL } = require('url');
 const { createRequire } = require('module');
 const { findEdgeExecutable } = require('./preflight.cjs');
 const { collectRuntimeSnapshot, findNodes } = require('./runtime-tree.cjs');
-const { decidePopup, assertSafePopupDecision, popupCloseStability } = require('./popup-policy.cjs');
+const { decidePopup, assertSafePopupDecision, popupCloseStability, observePopupStack } = require('./popup-policy.cjs');
 const { clickRuntimeTarget } = require('./canvas-input.cjs');
 const { createPopupInstanceRef, observePopupLifecycle } = require('./popup-lifecycle.cjs');
 const { buildSelectorDiagnostic, SelectorIdentityError } = require('./selector-diagnostic.cjs');
@@ -29,6 +29,12 @@ const LEGACY_720_LOGIN = Object.freeze({
 });
 
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+function startupBlockers(snapshot, preset = LEGACY_720_LOGIN) {
+  const passive = new RegExp(preset.passiveViewPattern);
+  return (snapshot && snapshot.visibleViews || []).filter(name => !passive.test(name)
+    && name !== preset.mainView && !/^LoginLoadingView$/.test(name));
+}
 
 function loadPuppeteer(repoRoot) {
   const packagePath = path.join(repoRoot, 'Tools', 'headless', 'node_modules', 'puppeteer', 'package.json');
@@ -106,7 +112,7 @@ class HeadlessUiSession {
     await this.page.keyboard.type(String(value), { delay: 20 });
   }
 
-  async closeAllowlistedPopup(viewName, popupPolicy) {
+  async closeAllowlistedPopup(viewName, popupPolicy, runtime = {}) {
     const decision = decidePopup(popupPolicy, viewName);
     const close = assertSafePopupDecision(decision);
     const maxClicks = Number(close.maxClicks || 1);
@@ -116,12 +122,36 @@ class HeadlessUiSession {
     let instanceRef = null;
     let clickedTarget = null;
     let clickSnapshot = null;
+    let clickInput = null;
     for (let clickIndex = 0; clickIndex < maxClicks; clickIndex++) {
       const before = await this.snapshot();
       if (!before.visibleViews.includes(viewName)) return { closed: true, clicks: clickIndex, decision };
+      if (close.requiresCurrentView && runtime.preset) {
+        const blockers = startupBlockers(before, runtime.preset);
+        const stack = observePopupStack(before, blockers);
+        const unresolved = stack.filter(item => !item.resolved);
+        if (unresolved.length || !stack.length || stack[0].view !== viewName) {
+          const diagnostic = buildSelectorDiagnostic(before, selector, {
+            expectedCount: 1,
+            actualCount: findNodes(before, selector).length,
+            context: {
+              kind: 'popup-runtime-stack',
+              requestedView: viewName,
+              observedTopFirst: stack,
+              unresolved: unresolved.map(item => item.view),
+            },
+          });
+          throw new SelectorIdentityError(
+            'POPUP_RUNTIME_STACK_CHANGED',
+            `POPUP_RUNTIME_STACK_CHANGED requested=${viewName} observed=${JSON.stringify(stack)} diagnosticSha256=${diagnostic.sha256}`,
+            diagnostic,
+          );
+        }
+      }
       if (close.kind === 'view-node') {
         const click = await clickRuntimeTarget(this.page, before, selector);
         clickedTarget = click.target;
+        clickInput = click.input;
         clickSnapshot = clickSnapshot || before;
         instanceRef = instanceRef || createPopupInstanceRef(before, viewName, selector, click.target);
       } else if (close.kind === 'shared-background') {
@@ -146,13 +176,14 @@ class HeadlessUiSession {
       this.note('popup-close-click', {
         view: viewName, clickIndex, selector, instance: instanceRef,
         target: clickedTarget ? { path: clickedTarget.path, indexPath: clickedTarget.indexPath } : null,
+        input: clickInput,
       });
       if (!close.stability) await sleep(close.mode && close.mode.includes('tween') ? 900 : 300);
     }
     if (close.stability) {
       const samples = [];
       const deadline = Date.now() + Number(close.stability.timeoutMs);
-      let stability = popupCloseStability(samples, viewName, close.stability);
+      let stability = popupCloseStability(samples, viewName, close.stability, { input: clickInput });
       let lastSnapshot = null;
       while (Date.now() <= deadline && !stability.pass) {
         lastSnapshot = await this.snapshot();
@@ -163,7 +194,7 @@ class HeadlessUiSession {
           stage: lastSnapshot.stage,
           lifecycle,
         });
-        stability = popupCloseStability(samples, viewName, close.stability);
+        stability = popupCloseStability(samples, viewName, close.stability, { input: clickInput });
         if (!stability.pass) await sleep(Number(close.stability.pollMs));
       }
       this.note('popup-close-stability', { view: viewName, stability });
@@ -180,6 +211,7 @@ class HeadlessUiSession {
             kind: 'popup-close-lifecycle',
             instance: instanceRef,
             evaluation: stability,
+            input: clickInput,
             samples,
             initialSelector: initialDiagnostic ? {
               capturedAt: initialDiagnostic.capturedAt,
@@ -197,7 +229,7 @@ class HeadlessUiSession {
           diagnostic,
         );
       }
-      return { closed: true, clicks: maxClicks, decision, stability };
+      return { closed: true, clicks: maxClicks, decision, stability, input: clickInput };
     }
     const after = await this.snapshot();
     if (after.visibleViews.includes(viewName)) throw new Error(`POPUP_DID_NOT_CLOSE: ${viewName}`);
@@ -229,26 +261,29 @@ class HeadlessUiSession {
     this.note('login-submit', { account: options.account, accountEcho: true });
     await sleep(options.postSubmitWaitMs || 8000);
 
-    const passive = new RegExp(preset.passiveViewPattern);
     let clean = 0;
     for (let iteration = 0; iteration < (options.maxIterations || 45) && clean < 3; iteration++) {
       const snapshot = await this.snapshot();
       const visible = snapshot.visibleViews;
       const inMain = visible.includes(preset.mainView);
-      const blockers = visible.filter(name => !passive.test(name) && name !== preset.mainView && !/^LoginLoadingView$/.test(name));
-      this.note('login-state', { iteration, inMain, blockers });
+      const blockers = startupBlockers(snapshot, preset);
+      const popupStack = inMain && blockers.length ? observePopupStack(snapshot, blockers) : [];
+      this.note('login-state', { iteration, inMain, blockers, popupStack });
       const transition = Object.entries(preset.transitions).find(([name]) => visible.includes(name));
       if (transition && (transition[0] !== 'DialogueView' || !inMain)) {
         clean = 0;
         await this.page.mouse.click(transition[1].x, transition[1].y);
       } else if (inMain && blockers.length) {
         clean = 0;
-        const top = blockers[blockers.length - 1];
+        const unresolved = popupStack.filter(item => !item.resolved);
+        if (unresolved.length) throw new Error(`POPUP_RUNTIME_STACK_UNRESOLVED: ${unresolved.map(item => item.view).join(',')}`);
+        const top = popupStack[0] && popupStack[0].view;
+        if (!top) throw new Error(`POPUP_RUNTIME_STACK_EMPTY: ${JSON.stringify(blockers)}`);
         if (top === 'ItemUseView') {
           if (typeof options.itemUseHandler !== 'function') throw new Error('ITEM_USE_REQUIRES_CONTROLLED_HANDLER');
           await options.itemUseHandler(this.page, snapshot);
         } else {
-          await this.closeAllowlistedPopup(top, options.popupPolicy);
+          await this.closeAllowlistedPopup(top, options.popupPolicy, { preset });
         }
       } else if (inMain) clean++;
       await sleep(options.pollMs || 1000);
@@ -283,5 +318,6 @@ module.exports = {
   sleep,
   loadPuppeteer,
   loadPageSnapshotScript,
+  startupBlockers,
   HeadlessUiSession,
 };

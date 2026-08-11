@@ -1,0 +1,95 @@
+{
+  "schema": "ui-audit.canvas-input.v1",
+  "target": {
+    "path": "Ue[0]/UIRoot[2]/Activity[2]/CycleimpActlistYesterday[1]/_btn_close[4]",
+    "indexPath": [0, 2, 2, 1, 4],
+    "name": "_btn_close",
+    "ownerView": "CycleimpActlistYesterday",
+    "childIndex": 4,
+    "zOrder": 0,
+    "visible": true,
+    "displayed": true,
+    "alpha": 1,
+    "effectiveAlpha": 1,
+    "mouseEnabled": true,
+    "mouseThrough": false,
+    "hitTestPrior": false,
+    "mouseState": 2,
+    "disabled": false,
+    "hitAtPoint": true,
+    "mask": null
+  },
+  "sameViewOverlay": {
+    "path": "Ue[0]/UIRoot[2]/Activity[2]/CycleimpActlistYesterday[1]/click_guard[5]",
+    "indexPath": [0, 2, 2, 1, 5],
+    "name": "click_guard",
+    "ownerView": "CycleimpActlistYesterday",
+    "childIndex": 5,
+    "zOrder": 1,
+    "visible": true,
+    "displayed": true,
+    "alpha": 0.01,
+    "effectiveAlpha": 0.01,
+    "mouseEnabled": true,
+    "mouseThrough": false,
+    "hitTestPrior": false,
+    "mouseState": 2,
+    "disabled": false,
+    "hitAtPoint": true,
+    "mask": null
+  },
+  "otherViewTop": {
+    "path": "Ue[0]/UIRoot[2]/Activity[2]/DailyActTipView[2]/close[3]",
+    "indexPath": [0, 2, 2, 2, 3],
+    "name": "close",
+    "ownerView": "DailyActTipView",
+    "childIndex": 3,
+    "zOrder": 0,
+    "visible": true,
+    "displayed": true,
+    "alpha": 1,
+    "effectiveAlpha": 1,
+    "mouseEnabled": true,
+    "mouseThrough": false,
+    "hitTestPrior": false,
+    "mouseState": 2,
+    "disabled": false,
+    "hitAtPoint": true,
+    "mask": {
+      "name": "modal_mask",
+      "visible": true,
+      "alpha": 1,
+      "bounds": { "x": 0, "y": 0, "width": 720, "height": 1280 },
+      "hitAtPoint": true
+    }
+  },
+  "mappingPass": {
+    "logicalPoint": { "x": 626.5, "y": 182 },
+    "domPoint": { "x": 1229.75, "y": 153.5625 },
+    "runtimeRoundTrip": { "x": 626.5, "y": 182 },
+    "roundTripError": 0,
+    "roundTripPass": true,
+    "pointInsideCanvas": true,
+    "domCanvasTop": true
+  },
+  "mappingMismatch": {
+    "logicalPoint": { "x": 626.5, "y": 182 },
+    "domPoint": { "x": 626.5, "y": 182 },
+    "runtimeRoundTrip": { "x": 137.6667, "y": 215.7037 },
+    "roundTripError": 490.0,
+    "roundTripPass": false,
+    "pointInsideCanvas": true,
+    "domCanvasTop": true,
+    "reason": "browser point was not mapped through the current canvas transform"
+  },
+  "consumed": {
+    "domEvents": [{ "type": "mousedown" }, { "type": "mouseup" }, { "type": "click" }],
+    "targetEvents": [{ "type": "click", "listenerCountBefore": 3, "dispatched": true }],
+    "semanticCalls": [{ "name": "Close" }]
+  },
+  "notDispatched": {
+    "domEvents": [{ "type": "mousedown" }, { "type": "mouseup" }, { "type": "click" }],
+    "targetEvents": [],
+    "semanticCalls": []
+  }
+}

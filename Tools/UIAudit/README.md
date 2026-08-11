@@ -27,7 +27,7 @@ Node 调用方可 `const uiAudit = require('./Tools/UIAudit')`，也可直接 re
 
 ### 启动弹窗
 
-`policies/startup-popups.json` 只允许 source-backed 的精确身份。配置队列弹窗按 `ClientConfigPopupLevel.sort` 处理；不在该配置且由回包直接打开的弹窗禁止伪造 sort，只能使用真实 visible stack 的 top-first 顺序。`CycleimpActlistYesterday` 是后一类：由 `22703` 回包在推送或当日首次登录、榜单非空且角色等级至少 150 时直接打开；唯一安全面是 `_btn_close`。关闭后必须连续两个已推进的 Laya 帧都确认“被点击的具体实例不再打开、也不在 stage 可见”，重复 frame token 或中途重现均不算关闭完成。未知弹窗仍一律 `unknown-hard-stop`。
+`policies/startup-popups.json` 只允许 source-backed 的精确身份。配置队列弹窗按 `ClientConfigPopupLevel.sort` 处理；真正执行关闭时仍以当前 `Laya.stage` display list 为准，按每层实际 child order top-first 排序，禁止用 loaded-view 枚举顺序猜栈顶。不在该配置且由回包直接打开的弹窗禁止伪造 sort，只能使用真实 runtime stack。栈顶身份无法调和时返回 `POPUP_RUNTIME_STACK_UNRESOLVED`，栈在点击前变化时返回 `POPUP_RUNTIME_STACK_CHANGED`；上层是未知/危险弹窗则先硬停，上层是已授权安全弹窗才先处理它。`CycleimpActlistYesterday` 是直接回包打开的一类：由 `22703` 回包在推送或当日首次登录、榜单非空且角色等级至少 150 时直接打开；唯一安全面是 `_btn_close`。关闭后必须连续两个已推进的 Laya 帧都确认“被点击的具体实例不再打开、也不在 stage 可见”，重复 frame token 或中途重现均不算关闭完成。未知弹窗仍一律 `unknown-hard-stop`。
 
 稳定关闭不是固定 sleep 后检查 View 名称。公共层以点击时的 `ViewManager`/runtime registry 实例键和根 `stagePath` 锚定具体实例，持续调和 loaded view 的 `HasOpen/isPop`、managed view 根状态和 `Laya.stage` 的可见/`displayedInStage`。`open=false` 但仍保留在 registry、等待延迟销毁的根属于 `closed-cached`，不会被误报为仍打开；关闭请求后 stage 仍可见属于 `closing`，继续等真实推进帧；消失后同名新实例或同一缓存实例重新打开属于 `requeued` 并硬停。稳定闸内不会二次点击。
 
@@ -78,11 +78,23 @@ selector 支持三种可组合的精确身份：`view`（兼容字段）、`owne
 
 `runtime-tree` 先用 loaded/managed 快照中真实 `display_obj` 的 `stagePath` 给整棵 stage 子树归属 owner；再从 `ViewManager`/运行时 registry 的 View 实例枚举“字段直接引用显示节点”的绑定。规范化节点的 `identity.owner` 与 `identity.bindings[]` 会同时保留 owner 来源、根路径、字段名、运行节点名和实例 registry 来源，便于审计别名链；只在两类权威路径都缺失时保留带 `stage-name-heuristic` 标记的旧名称兜底，不能作为绑定证据。
 
-selector 仍支持 `dataIdentity` 子集匹配，例如 `{ "dataIdentity": { "fashion_id": 12010008 } }`。click/drag 始终先在 Laya 逻辑坐标做唯一身份与 `hitTestPoint` 验证，再按真实 Canvas DOM rect 映射到浏览器坐标；1920×1080 宽屏不再误用 720×1280 逻辑坐标直接点击。
+selector 仍支持 `dataIdentity` 子集匹配，例如 `{ "dataIdentity": { "fashion_id": 12010008 } }`。runtime node v2 另外保留 `childIndex/zOrder/alpha/effectiveAlpha`、`mouseEnabled/mouseThrough/hitTestPrior/_mouseState` 和 mask/scroll clip 信息，供栈与输入诊断使用。
+
+click/drag 不再把目标自身 `hitTestPoint=true` 当作可达证明。公共输入层优先锁定 `Laya.Render.canvas.source`，通过当前 `stage._canvasTransform` 做“逻辑坐标 → 浏览器 client 坐标 → Laya 逻辑坐标”往返，并验证 `document.elementFromPoint` 的顶层 DOM 元素仍是该 canvas。随后按当前 Laya `MouseManager.check` 的真实逆序 child traversal 取 topmost hit；只有 topmost 是目标或目标子节点才允许输入。诊断同时保存 stage→目标链、stage→实际命中链、共同祖先后的遮挡分支、每层 `childIndex/zOrder`、鼠标策略、可见性、alpha、mask/scroll clip、独占 capture 与 Canvas 映射。稳定分类为：
+
+- `canvas-coordinate-mismatch`：Canvas transform 往返或边界不一致；
+- `overlay-intercepted`：同一 owner 内的 sibling/DOM overlay/捕获层拦截；
+- `stack-order-wrong`：另一个 View 在当前真实 stage 栈上方；
+- `event-not-dispatched`：浏览器 down/up 已到 canvas，但绑定字段未收到 `Laya.Event.CLICK` 或没有业务 listener；
+- `target-click-consumed`：绑定字段收到 CLICK 且原业务 listener 被派发。
+
+真实 click 只发送一次。输入前安装短生命周期 probe，输入后立即恢复：记录 canvas DOM down/up/click、目标字段的 Laya 事件派发、点击前 listener 数量，以及 `Close/CloseView/Hide/DeleteMe/Remove` 语义调用；不会补第二次点击或改坐标重试。源码依据是老端 `cdn/libs/laya.core.js` 的 `MouseManager.check/_checkAllBaseUI` 与 `TouchManager.sendEvents/onMouseUp`，以及 `h5/src/util/Util.ts::AddClickEvent`。
 
 若唯一身份数量不符，`CANVAS_TARGET_IDENTITY_MISMATCH` 会携带 `ui-audit.selector-diagnostic.v1`。runner 在失败 run 中写入 `selector-diagnostic-*.json`，内容包含目标 View 的最小规范化 stage 子树、按 owner/运行名/绑定字段评分的候选、stage/source 摘要、子树 SHA-256 及诊断内容 SHA-256；`ui-audit-report.json.failure.diagnostic` 和 `artifacts[]` 同时引用它。即使登录阶段尚未产生常规 runtime snapshot，也不会再留下 `runtime-tree=0` 的盲区。
 
-`POPUP_CLOSE_NOT_STABLE` 使用同一不可变诊断通道，artifact 类型为 `popup-close-lifecycle-diagnostic`。除 selector、最终子树和候选外，`context` 还保存点击前子树/哈希、具体实例锚、每次采样的 frame token、loaded/managed/stage 判定来源和最终分类：`click-not-consumed`、`closing-timeout`、`requeued`、`frame-not-advancing` 或 `still-visible-or-managed`。这使失败可以区分点击未消费、关闭过程未完成、缓存实例、帧未推进和队列重新打开，而不靠坐标猜测或页面专用重试。
+输入前失败使用 `canvas-input-diagnostic` 或 `popup-runtime-stack-diagnostic`；仍走同一不可变 selector 诊断写入器，故即使 route steps/runtime-tree/trace 尚为 0，也会落盘目标子树、候选、topmost/遮挡链、Canvas mapping 和内容 SHA-256。
+
+`POPUP_CLOSE_NOT_STABLE` 使用 `popup-close-lifecycle-diagnostic`。除 selector、最终子树和候选外，`context` 保存点击前子树/哈希、具体实例锚、完整输入 probe、每次采样的 frame token、loaded/managed/stage 判定来源和最终分类：`business-handled-but-not-closed`、`event-not-dispatched`、`click-not-consumed`（兼容无旧输入证据）、`closing-timeout`、`requeued`、`frame-not-advancing` 或 `still-visible-or-managed`。其中绑定字段已收到 CLICK、业务 listener 已派发但六帧仍保持 open，会明确归类为 `business-handled-but-not-closed`，不会再与遮挡或坐标错误混在一起。
 
 历史 `step.expect` 不会被当成注释跳过，而是在 schema/preflight 硬停。应改成上述可执行动作。
 
@@ -92,10 +104,10 @@ selector 仍支持 `dataIdentity` 子集匹配，例如 `{ "dataIdentity": { "fa
 |---|---|
 | `lib/session.cjs` | Edge、登录、选角、进城、启动弹窗和热会话 |
 | `lib/safe-json.cjs` | 只丢祖先环、保留共享引用的 JSON 与原子写入 |
-| `lib/runtime-tree.cjs` | loaded/managed/`Laya.stage` 统一节点 schema 与数据身份 |
+| `lib/runtime-tree.cjs` | loaded/managed/`Laya.stage` 统一节点 schema、数据身份、display order 与 mask/输入属性 |
 | `lib/selector-diagnostic.cjs` | selector 失败的最小子树、候选、内容哈希与不可变诊断写入 |
-| `lib/canvas-input.cjs` | Canvas rect 坐标换算、唯一命中后的真实 click/drag |
-| `lib/popup-policy.cjs` | `allow/forbid/unknown-hard-stop`、配置队列/真实栈顺序、安全节点与稳定关闭帧 |
+| `lib/canvas-input.cjs` | Canvas transform 往返、Laya topmost/遮挡链、一次真实 click/drag 与事件消费 probe |
+| `lib/popup-policy.cjs` | `allow/forbid/unknown-hard-stop`、配置队列/observed runtime stack、安全节点与稳定关闭帧 |
 | `lib/popup-lifecycle.cjs` | 被点击实例锚定、loaded/managed/stage 关闭调和与失败分类 |
 | `lib/item-use.cjs` | ItemUse 精确身份、稳定帧、队列和一次受控关闭 |
 | `lib/protocol-probe.cjs` | transport 级收发 trace、handler 惰性关联、读写分类、required/forbidden 与 policy 闸 |

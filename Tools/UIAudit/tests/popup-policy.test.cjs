@@ -7,6 +7,7 @@ const path = require('path');
 const {
   loadPopupPolicy,
   decidePopup,
+  observePopupStack,
   orderPopupQueue,
   planPopupDrain,
   assertSafePopupDecision,
@@ -48,6 +49,30 @@ test('Cycleimp yesterday is source-backed, deduplicated and requires observed ru
   assert.equal(plan.steps[0].entry.closeWrites.length, 0);
 });
 
+test('observed runtime stack uses the current Laya child order instead of loaded-view order', () => {
+  const snapshot = normalizeRuntimeSources(runtimeOwnerBindingFixture);
+  const cycleRoot = snapshot.nodes.find(node => node.source === 'laya-stage'
+    && node.identity && node.identity.owner && node.identity.owner.isRoot
+    && node.identity.owner.view === 'CycleimpActlistYesterday');
+  const upperRoot = structuredClone(cycleRoot);
+  upperRoot.view = 'DailyActTipView';
+  upperRoot.name = 'DailyActTipView';
+  upperRoot.path = 'Stage[0]/DailyActTipView[2]';
+  upperRoot.indexPath = [0, 2];
+  upperRoot.childIndex = 2;
+  upperRoot.identity.ownerView = 'DailyActTipView';
+  upperRoot.identity.runtimeName = 'DailyActTipView';
+  upperRoot.identity.owner.view = 'DailyActTipView';
+  upperRoot.identity.owner.rootStagePath = [2];
+  upperRoot.identity.owner.instances = [{ source: 'RuntimeRegistry', key: 'root_upper' }];
+  snapshot.nodes.push(upperRoot);
+
+  const stack = observePopupStack(snapshot, ['CycleimpActlistYesterday', 'DailyActTipView']);
+  assert.deepEqual(stack.map(item => item.view), ['DailyActTipView', 'CycleimpActlistYesterday']);
+  assert.deepEqual(stack[0].stagePath, [0, 2]);
+  assert.equal(stack[0].instance[0].key, 'root_upper');
+});
+
 test('Cycleimp close needs two distinct advancing Laya frames with the view absent', () => {
   const entry = decidePopup(policy, cycleimpFixture.view).entry;
   const stable = popupCloseStability(cycleimpFixture.stableCloseSamples, cycleimpFixture.view, entry.safeClose.stability);
@@ -77,9 +102,29 @@ test('Cycleimp exact bound-field close clicks once and waits for two advancing a
     viewport: () => ({ width: 720, height: 1280 }),
     evaluate: async (_function, payload) => {
       if (payload && Object.hasOwn(payload, 'logicalWidth')) {
-        return { x: 0, y: 0, width: 720, height: 1280, logicalWidth: 720, logicalHeight: 1280 };
+        return { x: 0, y: 0, width: 720, height: 1280, logicalWidth: 720, logicalHeight: 1280, canvasIndex: 0 };
       }
-      if (payload && payload.indexPath) return { applicable: true, pass: true, reason: null };
+      if (payload && payload.operation === 'inspect-canvas-input') {
+        const target = {
+          path: payload.indexPath.join('/'), indexPath: payload.indexPath,
+          ownerView: payload.selector.ownerView, hitAtPoint: true,
+        };
+        return {
+          schema: 'ui-audit.canvas-input.v1', applicable: true,
+          targetResolution: { actualCount: 1, currentIndexPath: payload.indexPath },
+          target, targetChain: [target], topmost: target, topmostChain: [target], capture: null,
+          mapping: { roundTripPass: true, pointInsideCanvas: true, domCanvasTop: true },
+        };
+      }
+      if (payload && payload.operation === 'install-canvas-input-probe') return { pass: true, probeId: payload.probeId };
+      if (payload && payload.operation === 'finish-canvas-input-probe') {
+        return {
+          schema: 'ui-audit.canvas-input.v1', probeId: payload.probeId,
+          domEvents: [{ type: 'mousedown' }, { type: 'mouseup' }],
+          targetEvents: [{ type: 'click', listenerCountBefore: 1, dispatched: true }],
+          semanticCalls: [{ name: 'Close' }],
+        };
+      }
       throw new Error(`unexpected page.evaluate payload: ${JSON.stringify(payload)}`);
     },
     mouse: { click: async (...args) => mouseCalls.push(args) },
@@ -97,6 +142,58 @@ test('Cycleimp exact bound-field close clicks once and waits for two advancing a
   assert.equal(result.stability.lastFrameToken, 502);
   assert.equal(mouseCalls.length, 1);
   assert.deepEqual(mouseCalls[0].slice(0, 2), [608, 184]);
+});
+
+test('popup close failure diagnostic retains topmost input consumption and lifecycle samples', async () => {
+  const before = normalizeRuntimeSources(runtimeOwnerBindingFixture);
+  const shortPolicy = structuredClone(policy);
+  const entry = shortPolicy.entries.find(item => item.view === 'CycleimpActlistYesterday');
+  entry.safeClose.stability.timeoutMs = 3;
+  entry.safeClose.stability.pollMs = 1;
+  const mouseCalls = [];
+  const session = new HeadlessUiSession({});
+  session.page = {
+    viewport: () => ({ width: 720, height: 1280 }),
+    evaluate: async (_function, payload) => {
+      if (payload && Object.hasOwn(payload, 'logicalWidth')) {
+        return { x: 0, y: 0, width: 720, height: 1280, logicalWidth: 720, logicalHeight: 1280, canvasIndex: 0 };
+      }
+      if (payload.operation === 'inspect-canvas-input') {
+        const target = {
+          path: payload.indexPath.join('/'), indexPath: payload.indexPath,
+          ownerView: payload.selector.ownerView, hitAtPoint: true,
+        };
+        return {
+          schema: 'ui-audit.canvas-input.v1', applicable: true,
+          targetResolution: { actualCount: 1 }, target, targetChain: [target],
+          topmost: target, topmostChain: [target], capture: null,
+          mapping: { roundTripPass: true, pointInsideCanvas: true, domCanvasTop: true },
+        };
+      }
+      if (payload.operation === 'install-canvas-input-probe') return { pass: true, probeId: payload.probeId };
+      if (payload.operation === 'finish-canvas-input-probe') {
+        return {
+          schema: 'ui-audit.canvas-input.v1', probeId: payload.probeId,
+          domEvents: [{ type: 'mousedown' }, { type: 'mouseup' }],
+          targetEvents: [{ type: 'click', listenerCountBefore: 3, dispatched: true }],
+          semanticCalls: [{ name: 'Close' }],
+        };
+      }
+      throw new Error(`unexpected payload: ${JSON.stringify(payload)}`);
+    },
+    mouse: { click: async (...args) => mouseCalls.push(args) },
+  };
+  session.snapshot = async () => before;
+
+  await assert.rejects(session.closeAllowlistedPopup('CycleimpActlistYesterday', shortPolicy), error => {
+    assert.equal(error.code, 'POPUP_CLOSE_NOT_STABLE');
+    assert.equal(error.diagnostic.context.evaluation.classification, 'business-handled-but-not-closed');
+    assert.equal(error.diagnostic.context.input.consumption.classification, 'target-click-consumed');
+    assert.equal(error.diagnostic.context.input.preflight.topmost.ownerView, 'CycleimpActlistYesterday');
+    assert.equal(error.diagnostic.context.samples.length > 0, true);
+    return true;
+  });
+  assert.equal(mouseCalls.length, 1);
 });
 
 test('safe startup popups are deduplicated and ordered by authoritative sort', () => {
