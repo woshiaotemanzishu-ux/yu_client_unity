@@ -23,7 +23,11 @@ node Tools/UIAudit/cli.cjs server stop --profile legacy-h5-local
 node --test Tools/UIAudit/tests/*.test.cjs
 ```
 
-`preflight` 只用有界 HTTP 检查 `route.url`、HTML 标记和必需 bundle，不启动 Edge、不创建 run 目录。固定检查 ID 是 `route-url-readiness`；本地端口未监听返回 `SERVER_NOT_RUNNING`，端口被错误服务占用返回内容/状态类错误。只有所有检查通过，`run` 才创建不可变证据目录并启动 Headless Edge。
+`preflight` 只用有界 HTTP 检查 `route.url`、HTML 标记和必需 bundle，不启动 Edge、不创建 run 目录。固定检查 ID 是 `route-url-readiness`。`ui-audit.server-observation.v1` 同时记录 listener、PID、进程名/路径/脱敏命令、创建时间/年龄、UIAudit owner state，以及每次 GET/HEAD 的耗时和结果；schema 位于 `schemas/server-observation.schema.json`。
+
+稳定分类如下：无 listener 为 `SERVER_NOT_RUNNING`；listener 存在但 HTML/状态/资源不匹配为 `EXTERNAL_SERVER_ROUTE_MISMATCH`；同一外部 PID 持续监听但有界 GET 超时、reset 或矛盾地拒绝连接为 `EXTERNAL_SERVER_UNRESPONSIVE`；探针期间 listener PID 变化为 `EXTERNAL_SERVER_STATE_CHANGED`。底层原因保留在 `causeCode`，每次尝试保留在 `attempts[]`。只有 timeout/reset 且探针前后 listener identity 完全一致时，才按 profile 的 `transientRetry` 做一次有界退避；内容不匹配、连接拒绝、PID 变化和未知错误不重试。重试耗尽后 `retryAllowed=false` 并硬停。
+
+外部 listener 一律 `ownership.owned=false`：`recovery.start/stopOwned/runWithEnsure` 均为空，`automatic.startAllowed/stopAllowed=false`，只允许再次 `server status`，或由用户在 UIAudit 之外检查/重启报告中的外部进程。UIAudit 绝不在占用端口上另起服务，也不停止、杀死或覆盖外部 PID。只有所有检查通过，`run` 才创建不可变证据目录并启动 Headless Edge。
 
 `legacy-h5-local` 是 UIAudit 的标准老 H5 profile：固定 `E:/GitProject/yu_client/h5` 为编译 cwd、`E:/GitProject/yu_client/cdn` 为静态根、`127.0.0.1:8091` 为路线端口。它绕过旧 `npm start` 的 8070 默认值以及 `open:true/openUrl`，在后台内存编译，不打开用户浏览器。`stop` 只终止同时匹配 PID、worker 路径和私有 owner token 的本工具进程，绝不接管或杀死非本工具服务。
 
@@ -122,8 +126,8 @@ click/drag 不再把目标自身 `hitTestPoint=true` 当作可达证明。公共
 | `lib/protocol-probe.cjs` | transport 级收发 trace、handler 惰性关联、读写分类、required/forbidden 与 policy 闸 |
 | `lib/route-assertions.cjs` | 节点、条件分支、几何、裁剪和滚动断言 |
 | `lib/runtime-probes.cjs` | 声音调用与 RenderTexture 非透明像素 ready |
-| `lib/server-readiness.cjs` | 无浏览器 HTTP readiness 与稳定错误分类 |
-| `lib/server-lifecycle.cjs` | 标准 profile 的后台 start/status/owned stop |
+| `lib/server-readiness.cjs` | 无浏览器 GET/HEAD readiness、逐请求耗时与底层网络/内容分类 |
+| `lib/server-lifecycle.cjs` | listener/PID/进程/owner 调和、有界 transient retry、后台 start/status/owned stop |
 | `lib/preflight.cjs` | 版本、依赖、authority、route 合同、URL 与输出闸 |
 | `lib/route-runner.cjs` | 数据化步骤、真实截图/snapshot/trace 和结构报告 |
 

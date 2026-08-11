@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ui-audit.server-observation.v1",
+  "title": "UIAudit server endpoint and ownership observation",
+  "type": "object",
+  "required": ["schema", "endpoint", "ownerState"],
+  "properties": {
+    "schema": { "const": "ui-audit.server-observation.v1" },
+    "endpoint": {
+      "type": "object",
+      "required": ["before", "after"],
+      "properties": {
+        "before": { "$ref": "#/$defs/endpoint" },
+        "after": { "$ref": "#/$defs/endpoint" }
+      }
+    },
+    "ownerState": {
+      "type": "object",
+      "required": ["code", "stale", "ownerPid", "listenerPids"],
+      "properties": {
+        "code": { "type": "string" },
+        "stale": { "type": "boolean" },
+        "ownerPid": { "type": ["integer", "null"] },
+        "listenerPids": { "type": "array", "items": { "type": "integer" } }
+      }
+    },
+    "externalState": {
+      "type": ["object", "null"],
+      "properties": {
+        "code": { "type": "string" },
+        "listenerIdentity": { "type": ["string", "null"] },
+        "identityStable": { "type": "boolean" },
+        "attemptCodes": { "type": "array", "items": { "type": "string" } },
+        "repeatedFailure": { "type": "boolean" },
+        "processes": { "type": "array", "items": { "type": "object" } },
+        "stale": { "type": "null" },
+        "staleAssessment": { "type": "string" }
+      }
+    }
+  },
+  "$defs": {
+    "endpoint": {
+      "type": "object",
+      "required": ["schema", "host", "port", "listener"],
+      "properties": {
+        "schema": { "const": "ui-audit.server-endpoint-observation.v1" },
+        "host": { "type": "string" },
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+        "observedAt": { "type": "string" },
+        "elapsedMs": { "type": "number", "minimum": 0 },
+        "inspectError": { "type": ["string", "null"] },
+        "listener": {
+          "type": "object",
+          "required": ["up", "listeners"],
+          "properties": {
+            "up": { "type": ["boolean", "null"] },
+            "identity": { "type": "string" },
+            "listeners": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["localAddress", "localPort", "pid", "process"],
+                "properties": {
+                  "localAddress": { "type": "string" },
+                  "localPort": { "type": "integer" },
+                  "pid": { "type": "integer" },
+                  "state": { "type": ["string", "null"] },
+                  "process": {
+                    "type": ["object", "null"],
+                    "properties": {
+                      "pid": { "type": "integer" },
+                      "name": { "type": ["string", "null"] },
+                      "executablePath": { "type": ["string", "null"] },
+                      "commandLine": { "type": "string" },
+                      "creationDate": { "type": ["string", "null"] },
+                      "ageMs": { "type": ["number", "null"], "minimum": 0 }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

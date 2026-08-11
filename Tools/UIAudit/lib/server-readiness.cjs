@@ -91,6 +91,7 @@ function classifyRequestError(error, url, startedAt) {
 
 function requestOnce(url, options, startedAt) {
   return new Promise(resolve => {
+    const requestStartedAt = Date.now();
     const parsed = new URL(url);
     const transport = parsed.protocol === 'https:' ? https : http;
     const remainingMs = Math.max(1, Number(options.timeoutMs) - (Date.now() - startedAt));
@@ -121,10 +122,11 @@ function requestOnce(url, options, startedAt) {
       response.on('end', () => finish({
         response,
         body: Buffer.concat(chunks).toString('utf8'),
+        elapsedMs: Date.now() - requestStartedAt,
       }));
-      response.on('error', error => finish({ error }));
+      response.on('error', error => finish({ error, elapsedMs: Date.now() - requestStartedAt }));
     });
-    request.on('error', error => finish({ error }));
+    request.on('error', error => finish({ error, elapsedMs: Date.now() - requestStartedAt }));
     request.setTimeout(remainingMs, () => {
       const error = new Error(`route readiness timed out after ${options.timeoutMs}ms`);
       error.code = 'UIAUDIT_ROUTE_TIMEOUT';
@@ -134,7 +136,7 @@ function requestOnce(url, options, startedAt) {
       const error = new Error(`route readiness timed out after ${options.timeoutMs}ms`);
       error.code = 'UIAUDIT_ROUTE_TIMEOUT';
       request.destroy(error);
-      finish({ error });
+      finish({ error, elapsedMs: Date.now() - requestStartedAt });
     }, remainingMs + 25);
     request.end();
   });
@@ -154,32 +156,38 @@ async function probeRouteUrl(url, readiness = {}) {
   };
   let currentUrl = String(url);
   let redirects = 0;
+  const requests = [];
   while (true) {
-    if (Date.now() - startedAt >= options.timeoutMs) return probeFailure('ROUTE_URL_TIMEOUT', currentUrl, startedAt);
+    if (Date.now() - startedAt >= options.timeoutMs) return probeFailure('ROUTE_URL_TIMEOUT', currentUrl, startedAt, { requests });
     const outcome = await requestOnce(currentUrl, options, startedAt);
-    if (outcome.error) return classifyRequestError(outcome.error, currentUrl, startedAt);
+    if (outcome.error) {
+      requests.push({ method: 'GET', url: currentUrl, elapsedMs: outcome.elapsedMs, networkCode: outcome.error.code || null });
+      return { ...classifyRequestError(outcome.error, currentUrl, startedAt), requests };
+    }
     const { response, body } = outcome;
     const statusCode = Number(response.statusCode || 0);
     const location = response.headers.location;
+    const responseContentType = String(response.headers['content-type'] || '').toLowerCase();
+    requests.push({ method: 'GET', url: currentUrl, elapsedMs: outcome.elapsedMs, statusCode, contentType: responseContentType });
     if (statusCode >= 300 && statusCode < 400 && location) {
-      if (redirects >= options.maxRedirects) return probeFailure('TOO_MANY_REDIRECTS', currentUrl, startedAt, { statusCode });
+      if (redirects >= options.maxRedirects) return probeFailure('TOO_MANY_REDIRECTS', currentUrl, startedAt, { statusCode, requests });
       currentUrl = new URL(location, currentUrl).toString();
       redirects += 1;
       continue;
     }
-    const contentType = String(response.headers['content-type'] || '').toLowerCase();
+    const contentType = responseContentType;
     if (!options.acceptedStatus.includes(statusCode)) {
-      return probeFailure('HTTP_STATUS_NOT_READY', currentUrl, startedAt, { statusCode, contentType, redirects });
+      return probeFailure('HTTP_STATUS_NOT_READY', currentUrl, startedAt, { statusCode, contentType, redirects, requests });
     }
     if (options.contentTypeIncludes.length && !options.contentTypeIncludes.some(value => contentType.includes(String(value).toLowerCase()))) {
-      return probeFailure('ROUTE_CONTENT_TYPE_NOT_READY', currentUrl, startedAt, { statusCode, contentType, redirects });
+      return probeFailure('ROUTE_CONTENT_TYPE_NOT_READY', currentUrl, startedAt, { statusCode, contentType, redirects, requests });
     }
     const lowerBody = body.toLowerCase();
     const missingAll = options.bodyIncludesAll.filter(value => !lowerBody.includes(String(value).toLowerCase()));
     const anyMatched = !options.bodyIncludesAny.length || options.bodyIncludesAny.some(value => lowerBody.includes(String(value).toLowerCase()));
     if (missingAll.length || !anyMatched) {
       return probeFailure('ROUTE_CONTENT_NOT_READY', currentUrl, startedAt, {
-        statusCode, contentType, redirects, missingMarkers: missingAll,
+        statusCode, contentType, redirects, missingMarkers: missingAll, requests,
       });
     }
     const requiredResources = [];
@@ -187,12 +195,15 @@ async function probeRouteUrl(url, readiness = {}) {
       const resourceUrl = new URL(String(requiredPath), currentUrl).toString();
       const resourceOutcome = await requestOnce(resourceUrl, { ...options, method: 'HEAD' }, startedAt);
       if (resourceOutcome.error) {
-        return { ...classifyRequestError(resourceOutcome.error, resourceUrl, startedAt), requiredResource: resourceUrl };
+        requests.push({ method: 'HEAD', url: resourceUrl, elapsedMs: resourceOutcome.elapsedMs, networkCode: resourceOutcome.error.code || null });
+        return { ...classifyRequestError(resourceOutcome.error, resourceUrl, startedAt), requiredResource: resourceUrl, requests };
       }
       const resourceStatus = Number(resourceOutcome.response.statusCode || 0);
-      requiredResources.push({ url: resourceUrl, statusCode: resourceStatus });
+      const resource = { url: resourceUrl, method: 'HEAD', elapsedMs: resourceOutcome.elapsedMs, statusCode: resourceStatus };
+      requiredResources.push(resource);
+      requests.push(resource);
       if (!options.acceptedStatus.includes(resourceStatus)) {
-        return probeFailure('ROUTE_RESOURCE_NOT_READY', resourceUrl, startedAt, { statusCode: resourceStatus, requiredResource: resourceUrl });
+        return probeFailure('ROUTE_RESOURCE_NOT_READY', resourceUrl, startedAt, { statusCode: resourceStatus, requiredResource: resourceUrl, requests });
       }
     }
     return {
@@ -207,6 +218,7 @@ async function probeRouteUrl(url, readiness = {}) {
       redirects,
       bytesInspected: Buffer.byteLength(body),
       requiredResources,
+      requests,
       elapsedMs: Date.now() - startedAt,
     };
   }

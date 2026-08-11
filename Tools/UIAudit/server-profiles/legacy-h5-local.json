@@ -19,6 +19,11 @@
     "acceptedStatus": [200],
     "contentTypeIncludes": ["text/html"],
     "bodyIncludesAll": ["egret-main-player", "js/bundle.js"],
-    "requiredHeadPaths": ["/js/bundle.js"]
+    "requiredHeadPaths": ["/js/bundle.js"],
+    "transientRetry": {
+      "maxAttempts": 2,
+      "backoffMs": [300],
+      "codes": ["ROUTE_URL_TIMEOUT", "CONNECTION_RESET"]
+    }
   }
 }

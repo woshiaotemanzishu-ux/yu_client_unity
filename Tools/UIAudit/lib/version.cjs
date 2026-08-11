@@ -1,7 +1,7 @@
 'use strict';
 
 const TOOL_NAME = '@shenxiao/ui-audit';
-const TOOL_VERSION = '1.1.6';
+const TOOL_VERSION = '1.1.7';
 const ROUTE_SCHEMA_VERSION = 1;
 const REPORT_SCHEMA_VERSION = 1;
 const RUNTIME_NODE_SCHEMA_VERSION = 3;
@@ -11,6 +11,7 @@ const POPUP_POLICY_SCHEMA_VERSION = 1;
 const PROTOCOL_POLICY_SCHEMA_VERSION = 2;
 const SERVER_PROFILE_SCHEMA_VERSION = 1;
 const PROTOCOL_TRACE_SCHEMA_VERSION = 3;
+const SERVER_OBSERVATION_SCHEMA_VERSION = 1;
 
 function versionInfo() {
   return {
@@ -26,6 +27,7 @@ function versionInfo() {
       protocolPolicy: PROTOCOL_POLICY_SCHEMA_VERSION,
       serverProfile: SERVER_PROFILE_SCHEMA_VERSION,
       protocolTrace: PROTOCOL_TRACE_SCHEMA_VERSION,
+      serverObservation: SERVER_OBSERVATION_SCHEMA_VERSION,
     },
   };
 }
@@ -42,5 +44,6 @@ module.exports = {
   PROTOCOL_POLICY_SCHEMA_VERSION,
   SERVER_PROFILE_SCHEMA_VERSION,
   PROTOCOL_TRACE_SCHEMA_VERSION,
+  SERVER_OBSERVATION_SCHEMA_VERSION,
   versionInfo,
 };

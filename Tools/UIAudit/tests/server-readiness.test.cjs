@@ -36,6 +36,41 @@ test('bounded route readiness verifies HTML markers and required resources witho
     assert.equal(result.pass, true);
     assert.equal(result.code, 'ROUTE_READY');
     assert.equal(result.requiredResources[0].statusCode, 200);
+    assert.deepEqual(result.requests.map(value => value.method), ['GET', 'HEAD']);
+    assert.equal(result.requests.every(value => Number.isInteger(value.elapsedMs)), true);
+  } finally {
+    await close(server);
+  }
+});
+
+test('a bounded GET timeout preserves request timing evidence', async () => {
+  const server = await listen(() => {});
+  try {
+    const result = await probeRouteUrl(`http://127.0.0.1:${server.address().port}/index.html`, { timeoutMs: 75 });
+    assert.equal(result.code, 'ROUTE_URL_TIMEOUT');
+    assert.equal(result.requests.length, 1);
+    assert.equal(result.requests[0].method, 'GET');
+    assert.equal(result.requests[0].networkCode, 'UIAUDIT_ROUTE_TIMEOUT');
+    assert.ok(result.requests[0].elapsedMs >= 50);
+  } finally {
+    await close(server);
+  }
+});
+
+test('a required resource HEAD timeout identifies the exact resource', async () => {
+  const server = await listen((request, response) => {
+    if (request.url === '/js/bundle.js') return;
+    response.writeHead(200, { 'content-type': 'text/html' });
+    response.end('<egret-main-player></egret-main-player><script src="js/bundle.js"></script>');
+  });
+  try {
+    const port = server.address().port;
+    const result = await probeRouteUrl(`http://127.0.0.1:${port}/index.html`, {
+      timeoutMs: 100, bodyIncludesAll: ['egret-main-player'], requiredHeadPaths: ['/js/bundle.js'],
+    });
+    assert.equal(result.code, 'ROUTE_URL_TIMEOUT');
+    assert.equal(result.requiredResource, `http://127.0.0.1:${port}/js/bundle.js`);
+    assert.deepEqual(result.requests.map(value => value.method), ['GET', 'HEAD']);
   } finally {
     await close(server);
   }

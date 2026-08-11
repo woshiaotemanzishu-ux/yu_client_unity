@@ -14,7 +14,7 @@ const {
   resolvedServerProfile,
   probeRouteUrl,
 } = require('./server-readiness.cjs');
-const { serverRecovery } = require('./server-lifecycle.cjs');
+const { serverRecovery, serverStatus } = require('./server-lifecycle.cjs');
 
 const DEFAULT_EDGE_PATHS = [
   'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
@@ -171,11 +171,31 @@ async function runPreflight(options = {}) {
     ? { pass: true, profileId: serverProfile.id, cwd: serverProfile.cwd, staticRoot: serverProfile.staticRoot, url: serverProfile.url }
     : { pass: !localRoute, code: 'SERVER_PROFILE_NOT_FOUND', url: route.url });
   const readinessOptions = { ...(serverProfile && serverProfile.readiness || {}), ...(route.readiness || {}), ...(options.routeReadiness || {}) };
-  const routeProbe = await (options.probeRouteUrl || probeRouteUrl)(route.url, readinessOptions);
+  let routeProbe;
+  let serverContext = null;
+  if (serverProfile) {
+    serverContext = await (options.serverStatus || serverStatus)({
+      repoRoot,
+      profile: rawServerProfile,
+      url: route.url,
+      readiness: readinessOptions,
+      probeRouteUrl: options.probeRouteUrl,
+      inspectEndpoint: options.inspectEndpoint,
+      inspectProcess: options.inspectProcess,
+      sleep: options.sleep,
+      runtimeDirectory: options.runtimeDirectory,
+    });
+    routeProbe = serverContext.probe;
+  } else {
+    routeProbe = await (options.probeRouteUrl || probeRouteUrl)(route.url, readinessOptions);
+  }
   const readinessDetail = {
     ...routeProbe,
     profileId: serverProfile && serverProfile.id || null,
-    recovery: serverProfile ? serverRecovery(serverProfile) : null,
+    serverCode: serverContext && serverContext.code || null,
+    ownership: serverContext && serverContext.ownership || null,
+    observation: serverContext && serverContext.observation || null,
+    recovery: serverContext ? serverContext.recovery : serverProfile ? serverRecovery(serverProfile) : null,
   };
   add(ROUTE_URL_CHECK_ID, routeProbe.pass, readinessDetail);
 

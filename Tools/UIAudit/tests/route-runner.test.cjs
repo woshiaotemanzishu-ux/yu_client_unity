@@ -36,6 +36,10 @@ test('failed route readiness creates no run and starts no browser session', asyn
       sessionFactory: () => { sessions += 1; throw new Error('must not construct browser session'); },
       preflightOptions: {
         puppeteerPackage: __filename,
+        inspectEndpoint: () => ({
+          schema: 'ui-audit.server-endpoint-observation.v1', host: '127.0.0.1', port: 8091,
+          listener: { up: false, identity: '', listeners: [] },
+        }),
         probeRouteUrl: async url => ({ pass: false, ready: false, code: 'SERVER_NOT_RUNNING', category: 'server-lifecycle', url }),
       },
     }), /UI_AUDIT_PREFLIGHT_FAILED/);
