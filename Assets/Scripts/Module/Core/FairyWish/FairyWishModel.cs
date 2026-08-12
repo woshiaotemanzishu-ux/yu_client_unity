@@ -2,7 +2,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Shenxiao.Framework.Res;
+using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
+using Shenxiao.Generated.UI.FairyWish;
+using UnityEngine;
 
 namespace Shenxiao.Module.Core.FairyWish
 {
@@ -31,12 +34,50 @@ namespace Shenxiao.Module.Core.FairyWish
             public readonly List<NodeEntry> NodeList = new List<NodeEntry>();
         }
 
+        public enum EntryRedState
+        {
+            Bubble = 1,
+            RedDot = 2,
+            Hidden = 3,
+        }
+
+        public readonly struct EntryTouchResult
+        {
+            public readonly int FairyId;
+            public readonly bool Send51302;
+            public readonly EntryRedState State;
+            public EntryTouchResult(int fairyId, bool send51302, EntryRedState state)
+            {
+                FairyId = fairyId;
+                Send51302 = send51302;
+                State = state;
+            }
+        }
+
+        public enum OperateKind
+        {
+            Loading,
+            PurchaseRequired,
+            ActivateNode,
+            NodeConditionBlocked,
+            Maxed,
+        }
+
+        public readonly struct OperateState
+        {
+            public readonly OperateKind Kind;
+            public readonly int NodeId;
+            public bool CanSend51301 => Kind == OperateKind.ActivateNode;
+            public OperateState(OperateKind kind, int nodeId) { Kind = kind; NodeId = nodeId; }
+        }
+
         private readonly Dictionary<int, FairyEntry> _fairies = new Dictionary<int, FairyEntry>();
 
         /// <summary>51303 recv-only 点击次数推送落地(对标老端 red_info,fairyId → times)。红点态本身
         /// (2/3 三值语义)耦合 OutWardBaseModel.UpdateOutWardStrongerRed(fairy_id-1000),本轮不实现该耦合,
         /// TODO(PK2 遗留,可检索 "FairyWish 红点耦合"):UI 落地时对接 Pet/OutWard 系统的红点管理。</summary>
         private readonly Dictionary<int, int> _clickTimes = new Dictionary<int, int>();
+        private readonly Dictionary<int, EntryRedState> _entryRed = new Dictionary<int, EntryRedState>();
 
         public IReadOnlyDictionary<int, FairyEntry> Fairies => _fairies;
 
@@ -49,6 +90,7 @@ namespace Shenxiao.Module.Core.FairyWish
                 foreach ((int nodeId, int isActivate, int combat) in nodeList) e.NodeList.Add(new NodeEntry(nodeId, isActivate, combat));
             }
             _fairies[fairyId] = e;
+            if (!_entryRed.ContainsKey(fairyId)) _entryRed[fairyId] = EntryRedState.RedDot;
         }
 
         /// <summary>51301 强化节点成功后单条套值(对标 updateNodeInfo,调用方已确认 code==1,此处不再复判):
@@ -70,7 +112,11 @@ namespace Shenxiao.Module.Core.FairyWish
         public void ApplyClickPush(List<(int FairyId, int Times)> clickList)
         {
             if (clickList == null) return;
-            foreach ((int fairyId, int times) in clickList) _clickTimes[fairyId] = times;
+            foreach ((int fairyId, int times) in clickList)
+            {
+                _clickTimes[fairyId] = times;
+                if (GetEntryRedState(fairyId) != EntryRedState.Hidden) _entryRed[fairyId] = EntryRedState.RedDot;
+            }
         }
 
         public FairyEntry GetFairy(int fairyId) => _fairies.TryGetValue(fairyId, out FairyEntry e) ? e : null;
@@ -78,10 +124,53 @@ namespace Shenxiao.Module.Core.FairyWish
         /// <summary>缺数据一律返回 0(对标老端 click_list 未含该 fairy_id 时的未定义态降级)。</summary>
         public int GetClickTimes(int fairyId) => _clickTimes.TryGetValue(fairyId, out int t) ? t : 0;
 
+        public EntryRedState GetEntryRedState(int fairyId)
+            => _entryRed.TryGetValue(fairyId, out EntryRedState state) ? state : EntryRedState.RedDot;
+
+        /// <summary>
+        /// 对标老端 OutWardBaseView.OnEnterFairyWish：仅 Bubble(1) 首次触碰发 51302 并转 RedDot(2)；
+        /// 其余入口触碰不发 51302，直接转 Hidden(3)。购买/充值与 51301 节点激活均不在此接口。
+        /// </summary>
+        public EntryTouchResult ConfirmEntryTouch(int fairyId)
+        {
+            EntryRedState before = GetEntryRedState(fairyId);
+            bool send = before == EntryRedState.Bubble;
+            EntryRedState after = send ? EntryRedState.RedDot : EntryRedState.Hidden;
+            _entryRed[fairyId] = after;
+            return new EntryTouchResult(fairyId, send, after);
+        }
+
+        public void SetEntryRedStateForAuthority(int fairyId, EntryRedState state)
+        {
+            if (fairyId > 0) _entryRed[fairyId] = state;
+        }
+
+        public OperateState GetOperateState(int fairyId, int nodeId, int roleLevel)
+        {
+            FairyEntry entry = GetFairy(fairyId);
+            if (entry == null) return new OperateState(OperateKind.Loading, nodeId);
+            if (entry.IsBuy == 0) return new OperateState(OperateKind.PurchaseRequired, nodeId);
+            int target = nodeId > 0 ? nodeId : GetFirstInactiveNode(entry);
+            if (target <= 0) return new OperateState(OperateKind.Maxed, 0);
+            int needLevel = FairyWishConfigs.GetNodeOpenLevel(fairyId, target);
+            return new OperateState(needLevel <= 0 || roleLevel >= needLevel
+                ? OperateKind.ActivateNode : OperateKind.NodeConditionBlocked, target);
+        }
+
+        private static int GetFirstInactiveNode(FairyEntry entry)
+        {
+            int candidate = 0;
+            for (int i = 0; i < entry.NodeList.Count; i++)
+                if (entry.NodeList[i].IsActivate == 0 && (candidate == 0 || entry.NodeList[i].NodeId < candidate))
+                    candidate = entry.NodeList[i].NodeId;
+            return candidate;
+        }
+
         public void Reset()
         {
             _fairies.Clear();
             _clickTimes.Clear();
+            _entryRed.Clear();
         }
     }
 
@@ -92,12 +181,51 @@ namespace Shenxiao.Module.Core.FairyWish
     /// </summary>
     public static class FairyWishConfigs
     {
+        public sealed class FairyRow
+        {
+            public int Id;
+            public string Name;
+            public int Shape;
+            public int OpenLevel;
+            public int OpenDay;
+        }
+
         private static JObject _fairy;
         private static JObject _node;
 
         public static bool IsLoaded => _fairy != null && _node != null;
         public static int FairyCount => _fairy?.Count ?? 0;
         public static int NodeCount => _node?.Count ?? 0;
+
+        public static FairyRow GetFairy(int fairyId)
+        {
+            JObject row = _fairy?[fairyId.ToString()] as JObject;
+            return row == null ? null : new FairyRow
+            {
+                Id = row.Value<int?>("id") ?? fairyId,
+                Name = row.Value<string>("name") ?? string.Empty,
+                Shape = row.Value<int?>("shape") ?? 0,
+                OpenLevel = row.Value<int?>("open_lv") ?? 0,
+                OpenDay = row.Value<int?>("open_day") ?? 0,
+            };
+        }
+
+        public static int GetNodeOpenLevel(int fairyId, int nodeId)
+        {
+            JObject row = _node?[fairyId + "@" + nodeId] as JObject;
+            string raw = row?.Value<string>("condition");
+            if (string.IsNullOrEmpty(raw) || raw == "[]") return 0;
+            try
+            {
+                Shenxiao.Framework.Net.ErlangTerm term = Shenxiao.Framework.Net.ErlangParser.Parse(raw);
+                if (term?.Items == null) return 0;
+                foreach (Shenxiao.Framework.Net.ErlangTerm tuple in term.Items)
+                    if (tuple.IsCollection && tuple.Items != null && tuple.Items.Count >= 2
+                        && tuple.Items[0].As<string>() == "lv") return tuple.Items[1].As<int>();
+            }
+            catch (System.Exception e) { GameLog.Warn("FairyWish", "node condition parse failed fairy={0} node={1}: {2}", fairyId, nodeId, e.Message); }
+            return 0;
+        }
 
         public static async Task EnsureLoaded()
         {
@@ -136,6 +264,75 @@ namespace Shenxiao.Module.Core.FairyWish
             _node = JObject.Parse(asset.text);
             ResManager.Release(asset);
             GameLog.Info("FairyWish", "config_fairy_node={0}", _node.Count);
+        }
+    }
+
+    /// <summary>复用现有 FairyWishModule.prefab，负责 51300 查询与弹窗生命周期。</summary>
+    public static class FairyWishFlow
+    {
+        private static GameObject _root;
+        private static FairyWishViewBind _view;
+        private static int _epoch;
+        private static bool _loading;
+
+        public static void Open(int fairyId)
+        {
+            if (fairyId <= 0) return;
+            _ = OpenAsync(fairyId, ++_epoch);
+        }
+
+        public static void Close()
+        {
+            _epoch++;
+            if (_view != null && _view.IsShown) _view.Hide();
+            if (_root != null) _root.SetActive(false);
+        }
+
+        private static async Task OpenAsync(int fairyId, int epoch)
+        {
+            await FairyWishConfigs.EnsureLoaded();
+            FairyWishController.Instance.Init();
+            FairyWishController.Instance.RequestInfo(fairyId);
+            if (!await EnsureViewAsync() || epoch != _epoch) return;
+            _root.SetActive(true);
+            _view.Show(fairyId);
+            _view.transform.SetAsLastSibling();
+        }
+
+        private static async Task<bool> EnsureViewAsync()
+        {
+            if (_root != null && _view != null) return true;
+            if (_loading) return false;
+            _loading = true;
+            try
+            {
+                string key = GameResPath.GetUIPrefab("fairyWish", "FairyWishModule");
+                _root = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Popup));
+                if (_root == null)
+                {
+                    GameLog.Error("FairyWish", "FairyWishModule load failed: {0}", key);
+                    return false;
+                }
+
+                _root.name = "FairyWishModule(Runtime)";
+                foreach (BaseView child in _root.GetComponentsInChildren<BaseView>(true))
+                    child.gameObject.SetActive(false);
+                _view = _root.GetComponentInChildren<FairyWishViewBind>(true);
+                if (_view == null)
+                {
+                    GameLog.Error("FairyWish", "FairyWishModule missing FairyWishViewBind");
+                    ResManager.ReleaseInstance(_root);
+                    _root = null;
+                    return false;
+                }
+
+                _root.SetActive(false);
+                return true;
+            }
+            finally
+            {
+                _loading = false;
+            }
         }
     }
 }

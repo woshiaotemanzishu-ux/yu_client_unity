@@ -26,6 +26,7 @@ namespace Shenxiao.Common.UI3D
         private const float ART_FOV = 60f;
         private const float ROOT_SCALE = 1.1f;         // default_model_scale = 1.1
         private const float BODY_SCALE_MUL = 5f;       // Set3DLocalScale(transform, 5 * data.scale, ...)
+        private const float ART_REFERENCE_HEIGHT = 1.7657f; // 1400 idle 紧致蒙皮高度，仅用于构图中心估算
         private const float BASE_Y = -5f;              // pos_y = ... - 5(模型根在相机中心下方 5,再加 position.y 配置)
         public const float MODEL_YAW = 180f;           // 默认 rotate = (0, 180, 0),模型转身面向相机
         private const RenderTextureFormat MODEL_RT_FORMAT = RenderTextureFormat.ARGBHalf;
@@ -245,7 +246,7 @@ namespace Shenxiao.Common.UI3D
             if (!_isArt || _model == null || _modelRoot == null || _modelYaw == null) return;
             _modelYaw.localRotation = Quaternion.Euler(0f, _artYaw, 0f);
             _model.transform.localScale = Vector3.one * (BODY_SCALE_MUL * _artScaleParam);
-            float stageHeight = 2.33f * BODY_SCALE_MUL * _artScaleParam * ROOT_SCALE;
+            float stageHeight = ART_REFERENCE_HEIGHT * BODY_SCALE_MUL * _artScaleParam * ROOT_SCALE;
             _modelRoot.localPosition = new Vector3(0f, -stageHeight * 0.5f, 0f);
             ApplyArtCameraPitch(_artPitch);
             if (_img != null && _container != null)

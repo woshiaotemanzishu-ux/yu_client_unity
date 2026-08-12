@@ -26,6 +26,8 @@ namespace Shenxiao.Module.Core.Dress
 
         public static void Close()
         {
+            // cold 加载尚未完成时也要取消本次展示，避免宿主已关闭后异步弹窗迟到。
+            _pendingSkillId = 0;
             if (_view != null && _view.IsShown) _view.Hide();
             if (_moduleRoot != null) _moduleRoot.SetActive(false);
         }
@@ -44,6 +46,7 @@ namespace Shenxiao.Module.Core.Dress
             await SkillConfigs.EnsureLoaded();
             if (!await EnsureViewAsync()) return;
             int skillId = _pendingSkillId;
+            if (skillId <= 0) return;
             string name = SkillConfigs.GetName(skillId);
             if (string.IsNullOrWhiteSpace(name))
             {

@@ -19,9 +19,6 @@ namespace Shenxiao.Module.Core.Scene
     public static class MainRoleFlow
     {
         private const string ACTION_RUN = "run";
-        // 新美术模板保持统一的 0/0/1 资源规范；正式地图与旧场景角色的体量差在场景侧统一校准。
-        // 0.85 表示相对模板原始体量缩小 15%，只作用于主角，不影响选角/创角/资产预览及 NPC。
-        private const float NEW_ART_MAIN_ROLE_SCENE_SCALE = 0.85f;
         private static readonly string[] FIRST_SCREEN_ACTIONS = { "idle", ACTION_RUN };
 
         private static GameObject _sceneRoot;
@@ -120,9 +117,8 @@ namespace Shenxiao.Module.Core.Scene
 
             // 视觉:模型进 3D 合成台(专用相机 → RT → Scene 层 RawImage),压在地图之上、HUD 之下。
             // 不能直接摆世界里——根 Canvas 是 ScreenSpaceOverlay,不透明地图会盖住任何世界 3D 物体。
-            bool isNewArtModel = model.GetComponentInChildren<ArtModelRenderProfile>(true) != null;
-            float sceneScale = isNewArtModel ? NEW_ART_MAIN_ROLE_SCENE_SCALE : 1f;
-            SceneCharacterStage.SetMainRole(model, sceneScale);
+            // 美术模型以 1400 为体量参照统一交付，场景不再对新模型额外缩小。
+            SceneCharacterStage.SetMainRole(model);
 
             // 逻辑:MainRoleAgent 挂在轻量逻辑节点上,跨层驱动合成台里的模型(转向/动作/相机跟随/上报)。
             _mainRoleRoot = new GameObject("MainRole_" + role.RoleId);
@@ -138,8 +134,8 @@ namespace Shenxiao.Module.Core.Scene
             // 首屏只阻塞 idle/run。技能动作在画面揭开后静默预热，避免 WebGL 在 55% 处
             // 一次性反序列化整套职业技能与特效，造成“网络已结束但页面像卡死”的长停顿。
             _ = PrepareFirstCombatInBackgroundAsync(model, role.Career, spec.ClotheRes, version);
-            GameLog.Info("Scene", "main role ready: roleId={0} pos=({1},{2}) clothe={3} sceneScale={4:0.###}",
-                role.RoleId, role.X, role.Y, spec.ClotheRes, sceneScale);
+            GameLog.Info("Scene", "main role ready: roleId={0} pos=({1},{2}) clothe={3} sceneScale=1",
+                role.RoleId, role.X, role.Y, spec.ClotheRes);
         }
 
         private static async Task PrepareFirstCombatInBackgroundAsync(GameObject model, int career,

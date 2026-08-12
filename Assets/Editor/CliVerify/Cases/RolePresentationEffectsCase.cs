@@ -70,7 +70,7 @@ namespace Shenxiao.EditorTools
                     ownedStage = CliVerify.Stage.Create();
 
                 role = new GameObject("RoleEffectsProbe");
-                SceneCharacterStage.SetMainRole(role, 0.85f);
+                SceneCharacterStage.SetMainRole(role);
                 GameObject detached = SceneCharacterStage.MainRoleDetachedEffectHost;
                 GameObject attachedHost = SceneCharacterStage.MainRoleAttachedEffectHost;
                 Transform tilt = role.transform.parent;

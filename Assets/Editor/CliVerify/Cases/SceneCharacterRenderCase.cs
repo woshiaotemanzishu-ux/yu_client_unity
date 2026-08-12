@@ -53,7 +53,7 @@ namespace Shenxiao.EditorTools
                 PlayFirst(npc);
                 PlayFirst(monster);
 
-                SceneCharacterStage.SetMainRole(main, 0.85f);
+                SceneCharacterStage.SetMainRole(main);
                 npcTilt = SceneCharacterStage.AddSceneCharacter(npc);
                 monsterTilt = SceneCharacterStage.AddSceneCharacter(monster, 0.8f);
                 SceneCharacterStage.SetSceneCharacterPixelOffset(npcTilt, new Vector2(-180f, 0f));

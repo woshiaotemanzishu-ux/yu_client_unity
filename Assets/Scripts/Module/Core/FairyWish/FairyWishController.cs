@@ -59,13 +59,19 @@ namespace Shenxiao.Module.Core.FairyWish
             GameLog.Info("FairyWish", "request 51301 fairyId={0} nodeId={1}", fairyId, nodeId);
         }
 
-        /// <summary>购买仙灵(对标 pet/OutWardBaseView.ts:411)。发 "i"(FairyId);**send-only,发后不等回包**,
-        /// 回执改走后续 <see cref="Proto.FAIRYWISH_INFO"/> 主动推送,严禁阻塞等待本号 ack。</summary>
-        public void RequestBuy(int fairyId)
+        /// <summary>入口首次触碰红点确认(对标 pet/OutWardBaseView.ts:410-416)。51302 不是购买/激活协议；
+        /// 仅 Model 从 Bubble(1) 转 RedDot(2) 时发送，后续入口触碰转 Hidden(3) 且不重发。</summary>
+        public FairyWishModel.EntryTouchResult ConfirmEntryTouch(int fairyId)
         {
-            if (fairyId <= 0) return;
-            SendFmt(Proto.FAIRYWISH_BUY, "i", fairyId);
-            GameLog.Info("FairyWish", "request 51302 buy fairyId={0}(fire-and-forget,无回包)", fairyId);
+            if (fairyId <= 0) return default;
+            FairyWishModel.EntryTouchResult result = FairyWishModel.Instance.ConfirmEntryTouch(fairyId);
+            if (result.Send51302)
+            {
+                SendFmt(Proto.FAIRYWISH_BUY, "i", fairyId);
+                GameLog.Info("FairyWish", "request 51302 entry-touch fairyId={0}(send-only,非购买)", fairyId);
+            }
+            EventDispatcher.Emit(GlobalEvent.EVT_FAIRYWISH_UPDATE, fairyId);
+            return result;
         }
 
         /// <summary>51300:FairyId:32, IsBuy:8, NodeList[u16×{NodeId:32,IsActivate:8,Combat:32}]。</summary>

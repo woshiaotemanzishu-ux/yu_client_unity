@@ -157,13 +157,15 @@ namespace Shenxiao.EditorTools
                 Shenxiao.Framework.Net.Proto.FAIRYWISH_CLICK_PUSH,
             }, null);
 
-            // 51302 send-only:公开方法存在且直接调用不抛(headless 无连接下 NetManager.SendFmt 安全 no-op)。
-            MethodInfo buyMethod = ctrl.GetType().GetMethod("RequestBuy", BindingFlags.Public | BindingFlags.Instance);
-            bool buyMethodOk = buyMethod != null;
-            bool buyNoThrow = true;
-            try { Shenxiao.Module.Core.FairyWish.FairyWishController.Instance.RequestBuy(1001); }
-            catch (System.Exception e) { buyNoThrow = false; Debug.LogError("CLIVERIFY cheaptrio fairywish RequestBuy threw: " + e); }
-            Debug.Log("CLIVERIFY cheaptrio fairywish 51302 buyMethodOk=" + buyMethodOk + " noThrow=" + buyNoThrow);
+            // 51302 是入口红点确认，不是购买/激活。仅 Bubble 态第一次触碰发送，之后状态机不再发送。
+            MethodInfo touchMethod = ctrl.GetType().GetMethod("ConfirmEntryTouch", BindingFlags.Public | BindingFlags.Instance);
+            bool touchMethodOk = touchMethod != null;
+            Shenxiao.Module.Core.FairyWish.FairyWishModel.Instance.SetEntryRedStateForAuthority(1001,
+                Shenxiao.Module.Core.FairyWish.FairyWishModel.EntryRedState.Bubble);
+            bool touchNoThrow = true;
+            try { Shenxiao.Module.Core.FairyWish.FairyWishController.Instance.ConfirmEntryTouch(1001); }
+            catch (System.Exception e) { touchNoThrow = false; Debug.LogError("CLIVERIFY cheaptrio fairywish ConfirmEntryTouch threw: " + e); }
+            Debug.Log("CLIVERIFY cheaptrio fairywish 51302 touchMethodOk=" + touchMethodOk + " noThrow=" + touchNoThrow);
 
             Shenxiao.Module.Core.FairyWish.FairyWishModel model = Shenxiao.Module.Core.FairyWish.FairyWishModel.Instance;
             model.Reset();
@@ -227,9 +229,9 @@ namespace Shenxiao.EditorTools
             Shenxiao.Framework.Event.EventDispatcher.Off(Shenxiao.Framework.Event.GlobalEvent.EVT_FAIRYWISH_UPDATE, onUpdate);
             model.Reset();
 
-            bool pass = configOk && regOk && buyMethodOk && buyNoThrow && !anyThrew
+            bool pass = configOk && regOk && touchMethodOk && touchNoThrow && !anyThrew
                 && b51300 && b51300Empty && b51301Ok && b51301FailNoThrow && b51301Unchanged && b51303 && updateCount > 0;
-            Debug.Log("CLIVERIFY cheaptrio fairywish VERDICT config=" + configOk + " reg=" + regOk + " buy=" + buyMethodOk
+            Debug.Log("CLIVERIFY cheaptrio fairywish VERDICT config=" + configOk + " reg=" + regOk + " touch=" + touchMethodOk
                 + " p51300=" + b51300 + " p51301=" + b51301Ok + " p51303=" + b51303 + " updateEvents=" + updateCount + " pass=" + pass);
             return pass;
         }

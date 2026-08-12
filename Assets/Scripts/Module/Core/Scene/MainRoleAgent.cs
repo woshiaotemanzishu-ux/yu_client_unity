@@ -557,8 +557,8 @@ namespace Shenxiao.Module.Core.Scene
                 if (this == null || epoch != _taskSpeedEpoch || !_taskSpeedRequested || !_autoMoving) return;
 
                 // 任务跑动拖尾是按老模型世界单位制作的角色整体特效，不属于某个动作骨架。
-                // 新动作 prefab 内部的 root 会被 landingOffset 后移并继承 landingScale，挂在那里会
-                // 变成缩小且脱离人物的“尾巴”；使用场景台稳定宿主才能与老模型保持同一空间口径。
+                // 新动作 prefab 内部的 root 会被 landingOffset 后移，挂在那里会变成脱离人物的“尾巴”；
+                // 使用场景台稳定宿主才能与老模型保持同一空间口径。
                 GameObject host = SceneCharacterStage.MainRoleAttachedEffectHost;
                 if (host == null) host = _model; // 非标准测试/降级场景仍保持可用，且不再递归命中内部 root
                 GameObject effect = await EffectBinder.AttachOne(host, "", "other_effect",

@@ -1,0 +1,217 @@
+{
+  "route": "mainui.role.outward-wing.v1",
+  "baseline": {
+    "authority": "当前老 H5 在同账号、同状态、同 viewport 下的最终真实运行表现是唯一验收权威。",
+    "account": "111111/111111",
+    "viewports": ["720x1280", "1920x1080"],
+    "scope": {
+      "include": "MainUI → 角色 → 一级页签垂神翼影（OutWard type_id=3）及其适用子控件、条件状态、模型特效、协议、关闭重开与资源生命周期。",
+      "exclude": ["人物页及其专用 Prefab/代码/视觉/台账", "OutWardShellView", "其他 OutWard 页面级验收", "未授权写事务的真实提交"]
+    },
+    "transaction_boundary": {
+      "read_protocols": [16002, 16006, 16011, 16028, 51300],
+      "write_protocols_inventory_only": [16003, 16005, 16008, 16009, 16010, 16020, 16029, 16030, 51302],
+      "policy": "本轮没有消费/破坏性写入授权；实现可接线，但真实 UI 仅验确认面并保持禁发，事务叶标 blocked。"
+    },
+    "implementation": "RoleModule.prefab 已人工接管；目标内容复用 PetModule.prefab/OutWardBaseView，只允许 fix-view 增量修复。",
+    "revision": {
+      "version": 1,
+      "reason": "历史 57 节点仅作候选词表；按当前老端源码、Unity Prefab/Bind、配置重新调和，并补齐独立路线的导航、资源、协议、共享组件和生命周期叶子。老 H5 运行树因 RESOURCE_TOOL_PREVIEW_STALE_STATE 待复核；若运行树改变节点集合或父子关系，保留本版并初始化 v2。"
+    },
+    "historical_candidate": {
+      "path": "output/ui_route_audit/2026-08-10_role_full_tabs_v1/route-manifest-v3.json",
+      "candidate_nodes": 57,
+      "reuse": "names-only",
+      "statuses_reused": false,
+      "topology_reused": false
+    }
+  },
+  "nodes": [
+    {
+      "id": "mainui.role.outward-wing.v1", "type": "page", "risk": "read-only", "parent": null,
+      "control_inventory": [
+        {"id":"navigation","kind":"route-navigation","child":"mainui.role.outward-wing.v1.navigation"},
+        {"id":"header","kind":"state-group","child":"mainui.role.outward-wing.v1.header"},
+        {"id":"model","kind":"dynamic-3d","child":"mainui.role.outward-wing.v1.model"},
+        {"id":"property","kind":"popup","child":"mainui.role.outward-wing.v1.property"},
+        {"id":"skills","kind":"item-list","child":"mainui.role.outward-wing.v1.skills"},
+        {"id":"crystal","kind":"item-list","child":"mainui.role.outward-wing.v1.crystal"},
+        {"id":"materials","kind":"item-list","child":"mainui.role.outward-wing.v1.materials"},
+        {"id":"base-appearance","kind":"state-toggle","child":"mainui.role.outward-wing.v1.base-appearance"},
+        {"id":"illusion","kind":"subpage","child":"mainui.role.outward-wing.v1.illusion"},
+        {"id":"level-system","kind":"subpage","child":"mainui.role.outward-wing.v1.level-system"},
+        {"id":"one-key-up","kind":"primary-action","child":"mainui.role.outward-wing.v1.one-key-up"},
+        {"id":"fairy-wish","kind":"conditional-entry","child":"mainui.role.outward-wing.v1.fairy-wish"},
+        {"id":"resources","kind":"resource-state","child":"mainui.role.outward-wing.v1.resources"},
+        {"id":"protocol","kind":"protocol-boundary","child":"mainui.role.outward-wing.v1.protocol"},
+        {"id":"lifecycle","kind":"route-lifecycle","child":"mainui.role.outward-wing.v1.lifecycle"},
+        {"id":"shared-component","kind":"shared-component","child":"mainui.role.outward-wing.v1.shared-component"}
+      ],
+      "note": "专项目标页根；人物仅作为导航起点存在，不是本路线待验节点。"
+    },
+
+    {"id":"mainui.role.outward-wing.v1.navigation","type":"page","risk":"read-only","parent":"mainui.role.outward-wing.v1","control_inventory":[
+      {"id":"mainui-entry","kind":"navigation","child":"mainui.role.outward-wing.v1.navigation.mainui-entry"},
+      {"id":"parent-window","kind":"read","child":"mainui.role.outward-wing.v1.navigation.parent-window"},
+      {"id":"primary-tab","kind":"navigation","child":"mainui.role.outward-wing.v1.navigation.primary-tab"},
+      {"id":"person-freeze-boundary","kind":"protected-boundary","child":"mainui.role.outward-wing.v1.navigation.person-freeze-boundary"}
+    ]},
+    {"id":"mainui.role.outward-wing.v1.navigation.mainui-entry","type":"navigation","risk":"read-only","parent":"mainui.role.outward-wing.v1.navigation"},
+    {"id":"mainui.role.outward-wing.v1.navigation.parent-window","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.navigation"},
+    {"id":"mainui.role.outward-wing.v1.navigation.primary-tab","type":"navigation","risk":"read-only","parent":"mainui.role.outward-wing.v1.navigation","note":"RoleFlow index=1, type_id=3, label=垂神翼影。"},
+    {"id":"mainui.role.outward-wing.v1.navigation.person-freeze-boundary","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.navigation","note":"人物页禁止修改、禁止重跑；只证明切出后不再作为目标页。"},
+
+    {"id":"mainui.role.outward-wing.v1.header","type":"page","risk":"read-only","parent":"mainui.role.outward-wing.v1","control_inventory":[
+      {"id":"name-stage","kind":"read","child":"mainui.role.outward-wing.v1.header.name-stage"},
+      {"id":"combat","kind":"read","child":"mainui.role.outward-wing.v1.header.combat"},
+      {"id":"role-visibility","kind":"read","child":"mainui.role.outward-wing.v1.header.role-visibility"}
+    ]},
+    {"id":"mainui.role.outward-wing.v1.header.name-stage","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.header"},
+    {"id":"mainui.role.outward-wing.v1.header.combat","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.header"},
+    {"id":"mainui.role.outward-wing.v1.header.role-visibility","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.header","note":"角色外显隐藏星条、前后浏览、自动购买、灵宠装备组。"},
+
+    {"id":"mainui.role.outward-wing.v1.model","type":"page","risk":"read-only","parent":"mainui.role.outward-wing.v1","control_inventory":[
+      {"id":"asset","kind":"read","child":"mainui.role.outward-wing.v1.model.asset"},
+      {"id":"placement","kind":"read","child":"mainui.role.outward-wing.v1.model.placement"},
+      {"id":"effect","kind":"dynamic-effect","child":"mainui.role.outward-wing.v1.model.effect"},
+      {"id":"dynamic","kind":"render-texture-pixels","child":"mainui.role.outward-wing.v1.model.dynamic"},
+      {"id":"lifecycle","kind":"read","child":"mainui.role.outward-wing.v1.model.lifecycle"}
+    ]},
+    {"id":"mainui.role.outward-wing.v1.model.asset","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.model"},
+    {"id":"mainui.role.outward-wing.v1.model.placement","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.model"},
+    {"id":"mainui.role.outward-wing.v1.model.effect","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.model"},
+    {"id":"mainui.role.outward-wing.v1.model.dynamic","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.model","note":"必须有实际 RT 像素、双时点差异，Handle/Renderer 存在不算完成。"},
+    {"id":"mainui.role.outward-wing.v1.model.lifecycle","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.model"},
+
+    {"id":"mainui.role.outward-wing.v1.property","type":"page","risk":"read-only","parent":"mainui.role.outward-wing.v1","control_inventory":[
+      {"id":"open","kind":"navigation","child":"mainui.role.outward-wing.v1.property.open"},
+      {"id":"content","kind":"read","child":"mainui.role.outward-wing.v1.property.content"},
+      {"id":"close","kind":"return","child":"mainui.role.outward-wing.v1.property.close"}
+    ]},
+    {"id":"mainui.role.outward-wing.v1.property.open","type":"navigation","risk":"read-only","parent":"mainui.role.outward-wing.v1.property"},
+    {"id":"mainui.role.outward-wing.v1.property.content","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.property","note":"PetProptityView 属性行对应 16002 attr_list。"},
+    {"id":"mainui.role.outward-wing.v1.property.close","type":"return","risk":"read-only","parent":"mainui.role.outward-wing.v1.property"},
+
+    {"id":"mainui.role.outward-wing.v1.skills","type":"page","risk":"read-only","parent":"mainui.role.outward-wing.v1","control_inventory":[
+      {"id":"display","kind":"read","child":"mainui.role.outward-wing.v1.skills.display"},
+      {"id":"detail","kind":"navigation","child":"mainui.role.outward-wing.v1.skills.detail"}
+    ]},
+    {"id":"mainui.role.outward-wing.v1.skills.display","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.skills","note":"type=3 当前配置为 4 个默认技能；已解锁/未解锁均显示，锁态置灰，保持弧形槽位。"},
+    {"id":"mainui.role.outward-wing.v1.skills.detail","type":"navigation","risk":"read-only","parent":"mainui.role.outward-wing.v1.skills"},
+
+    {"id":"mainui.role.outward-wing.v1.crystal","type":"page","risk":"read-only","parent":"mainui.role.outward-wing.v1","control_inventory":[
+      {"id":"display","kind":"read","child":"mainui.role.outward-wing.v1.crystal.display"},
+      {"id":"detail","kind":"navigation","child":"mainui.role.outward-wing.v1.crystal.detail"},
+      {"id":"use","kind":"transaction","child":"mainui.role.outward-wing.v1.crystal.use"}
+    ]},
+    {"id":"mainui.role.outward-wing.v1.crystal.display","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.crystal","note":"3 个晶石槽；16011 次数/上限 + 背包数量。"},
+    {"id":"mainui.role.outward-wing.v1.crystal.detail","type":"navigation","risk":"read-only","parent":"mainui.role.outward-wing.v1.crystal"},
+    {"id":"mainui.role.outward-wing.v1.crystal.use","type":"transaction","risk":"destructive-write","parent":"mainui.role.outward-wing.v1.crystal","note":"16010；本轮未授权真实消费。"},
+
+    {"id":"mainui.role.outward-wing.v1.materials","type":"page","risk":"read-only","parent":"mainui.role.outward-wing.v1","control_inventory":[
+      {"id":"display","kind":"read","child":"mainui.role.outward-wing.v1.materials.display"},
+      {"id":"detail","kind":"navigation","child":"mainui.role.outward-wing.v1.materials.detail"}
+    ]},
+    {"id":"mainui.role.outward-wing.v1.materials.display","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.materials","note":"3 个 config_mount_prop type=1 材料槽，真实背包数量。"},
+    {"id":"mainui.role.outward-wing.v1.materials.detail","type":"navigation","risk":"read-only","parent":"mainui.role.outward-wing.v1.materials"},
+
+    {"id":"mainui.role.outward-wing.v1.base-appearance","type":"page","risk":"read-only","parent":"mainui.role.outward-wing.v1","control_inventory":[
+      {"id":"state","kind":"read","child":"mainui.role.outward-wing.v1.base-appearance.state"},
+      {"id":"toggle","kind":"transaction","child":"mainui.role.outward-wing.v1.base-appearance.toggle"}
+    ]},
+    {"id":"mainui.role.outward-wing.v1.base-appearance.state","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.base-appearance"},
+    {"id":"mainui.role.outward-wing.v1.base-appearance.toggle","type":"transaction","risk":"reversible-write","parent":"mainui.role.outward-wing.v1.base-appearance","note":"16003 type=1；未授权时只验状态/禁发。"},
+
+    {"id":"mainui.role.outward-wing.v1.illusion","type":"page","risk":"read-only","parent":"mainui.role.outward-wing.v1","control_inventory":[
+      {"id":"open","kind":"navigation","child":"mainui.role.outward-wing.v1.illusion.open"},
+      {"id":"list-scroll","kind":"scroll-list","child":"mainui.role.outward-wing.v1.illusion.list-scroll"},
+      {"id":"select-model","kind":"dynamic-3d","child":"mainui.role.outward-wing.v1.illusion.select-model"},
+      {"id":"wear","kind":"transaction","child":"mainui.role.outward-wing.v1.illusion.wear"},
+      {"id":"activate","kind":"transaction","child":"mainui.role.outward-wing.v1.illusion.activate"},
+      {"id":"stage-up","kind":"transaction","child":"mainui.role.outward-wing.v1.illusion.stage-up"},
+      {"id":"star-up","kind":"transaction","child":"mainui.role.outward-wing.v1.illusion.star-up"},
+      {"id":"close","kind":"return","child":"mainui.role.outward-wing.v1.illusion.close"}
+    ]},
+    {"id":"mainui.role.outward-wing.v1.illusion.open","type":"navigation","risk":"read-only","parent":"mainui.role.outward-wing.v1.illusion"},
+    {"id":"mainui.role.outward-wing.v1.illusion.list-scroll","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.illusion"},
+    {"id":"mainui.role.outward-wing.v1.illusion.select-model","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.illusion"},
+    {"id":"mainui.role.outward-wing.v1.illusion.wear","type":"transaction","risk":"reversible-write","parent":"mainui.role.outward-wing.v1.illusion","note":"16003；未授权真实写入。"},
+    {"id":"mainui.role.outward-wing.v1.illusion.activate","type":"transaction","risk":"destructive-write","parent":"mainui.role.outward-wing.v1.illusion","note":"16008；未授权真实写入。"},
+    {"id":"mainui.role.outward-wing.v1.illusion.stage-up","type":"transaction","risk":"destructive-write","parent":"mainui.role.outward-wing.v1.illusion","note":"16009；未授权真实消费。"},
+    {"id":"mainui.role.outward-wing.v1.illusion.star-up","type":"transaction","risk":"destructive-write","parent":"mainui.role.outward-wing.v1.illusion","note":"16020；未授权真实消费。"},
+    {"id":"mainui.role.outward-wing.v1.illusion.close","type":"return","risk":"read-only","parent":"mainui.role.outward-wing.v1.illusion"},
+
+    {"id":"mainui.role.outward-wing.v1.level-system","type":"page","risk":"read-only","parent":"mainui.role.outward-wing.v1","control_inventory":[
+      {"id":"open","kind":"navigation","child":"mainui.role.outward-wing.v1.level-system.open"},
+      {"id":"summary","kind":"read","child":"mainui.role.outward-wing.v1.level-system.summary"},
+      {"id":"skills","kind":"item-list","child":"mainui.role.outward-wing.v1.level-system.skills"},
+      {"id":"level-up","kind":"transaction","child":"mainui.role.outward-wing.v1.level-system.level-up"},
+      {"id":"skill-up","kind":"transaction","child":"mainui.role.outward-wing.v1.level-system.skill-up"},
+      {"id":"return","kind":"return","child":"mainui.role.outward-wing.v1.level-system.return"}
+    ]},
+    {"id":"mainui.role.outward-wing.v1.level-system.open","type":"navigation","risk":"read-only","parent":"mainui.role.outward-wing.v1.level-system"},
+    {"id":"mainui.role.outward-wing.v1.level-system.summary","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.level-system"},
+    {"id":"mainui.role.outward-wing.v1.level-system.skills","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.level-system"},
+    {"id":"mainui.role.outward-wing.v1.level-system.level-up","type":"transaction","risk":"destructive-write","parent":"mainui.role.outward-wing.v1.level-system","note":"16029；未授权真实消费。"},
+    {"id":"mainui.role.outward-wing.v1.level-system.skill-up","type":"transaction","risk":"destructive-write","parent":"mainui.role.outward-wing.v1.level-system","note":"16030；未授权真实消费。"},
+    {"id":"mainui.role.outward-wing.v1.level-system.return","type":"return","risk":"read-only","parent":"mainui.role.outward-wing.v1.level-system"},
+
+    {"id":"mainui.role.outward-wing.v1.one-key-up","type":"page","risk":"read-only","parent":"mainui.role.outward-wing.v1","control_inventory":[
+      {"id":"present","kind":"read","child":"mainui.role.outward-wing.v1.one-key-up.present"},
+      {"id":"submit","kind":"transaction","child":"mainui.role.outward-wing.v1.one-key-up.submit"}
+    ]},
+    {"id":"mainui.role.outward-wing.v1.one-key-up.present","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.one-key-up"},
+    {"id":"mainui.role.outward-wing.v1.one-key-up.submit","type":"transaction","risk":"destructive-write","parent":"mainui.role.outward-wing.v1.one-key-up","note":"16005；未授权真实消费。"},
+
+    {"id":"mainui.role.outward-wing.v1.fairy-wish","type":"page","risk":"read-only","parent":"mainui.role.outward-wing.v1","control_inventory":[
+      {"id":"visibility","kind":"conditional-state","child":"mainui.role.outward-wing.v1.fairy-wish.visibility"},
+      {"id":"open","kind":"navigation","child":"mainui.role.outward-wing.v1.fairy-wish.open"}
+    ]},
+    {"id":"mainui.role.outward-wing.v1.fairy-wish.visibility","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.fairy-wish","note":"type=3 对应 config_fairy id=1003，受等级与开服天数控制。"},
+    {"id":"mainui.role.outward-wing.v1.fairy-wish.open","type":"navigation","risk":"read-only","parent":"mainui.role.outward-wing.v1.fairy-wish","note":"51300 为详情读；51302 红点/购买语义未获写授权，必须禁发。"},
+
+    {"id":"mainui.role.outward-wing.v1.resources","type":"page","risk":"read-only","parent":"mainui.role.outward-wing.v1","control_inventory":[
+      {"id":"config-parity","kind":"read","child":"mainui.role.outward-wing.v1.resources.config-parity"},
+      {"id":"prefab-bind-identity","kind":"read","child":"mainui.role.outward-wing.v1.resources.prefab-bind-identity"},
+      {"id":"asset-closure","kind":"read","child":"mainui.role.outward-wing.v1.resources.asset-closure"},
+      {"id":"ready-stability","kind":"read","child":"mainui.role.outward-wing.v1.resources.ready-stability"}
+    ]},
+    {"id":"mainui.role.outward-wing.v1.resources.config-parity","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.resources"},
+    {"id":"mainui.role.outward-wing.v1.resources.prefab-bind-identity","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.resources"},
+    {"id":"mainui.role.outward-wing.v1.resources.asset-closure","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.resources"},
+    {"id":"mainui.role.outward-wing.v1.resources.ready-stability","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.resources","note":"350ms、1000ms、ready 三态；粉块/占位/残影不算 ready。"},
+
+    {"id":"mainui.role.outward-wing.v1.protocol","type":"page","risk":"read-only","parent":"mainui.role.outward-wing.v1","control_inventory":[
+      {"id":"required-reads","kind":"read-protocol","child":"mainui.role.outward-wing.v1.protocol.required-reads"},
+      {"id":"write-boundary","kind":"protocol-boundary","child":"mainui.role.outward-wing.v1.protocol.write-boundary"}
+    ]},
+    {"id":"mainui.role.outward-wing.v1.protocol.required-reads","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.protocol","note":"16002/16006/16011/16028 均必须以 type_id=3 发送并收到权威状态。"},
+    {"id":"mainui.role.outward-wing.v1.protocol.write-boundary","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.protocol","note":"未授权路线证明 16003/16005/16008/16009/16010/16020/16029/16030/51302 均未误发。"},
+
+    {"id":"mainui.role.outward-wing.v1.lifecycle","type":"page","risk":"read-only","parent":"mainui.role.outward-wing.v1","control_inventory":[
+      {"id":"cold-ready","kind":"cold-lifecycle","child":"mainui.role.outward-wing.v1.lifecycle.cold-ready"},
+      {"id":"warm-ready","kind":"warm-lifecycle","child":"mainui.role.outward-wing.v1.lifecycle.warm-ready"},
+      {"id":"close-reopen","kind":"lifecycle","child":"mainui.role.outward-wing.v1.lifecycle.close-reopen"},
+      {"id":"return-chain","kind":"return-chain","child":"mainui.role.outward-wing.v1.lifecycle.return-chain"},
+      {"id":"viewport-mobile","kind":"visual-viewport","child":"mainui.role.outward-wing.v1.lifecycle.viewport-mobile"},
+      {"id":"viewport-wide","kind":"visual-viewport","child":"mainui.role.outward-wing.v1.lifecycle.viewport-wide"},
+      {"id":"performance","kind":"performance","child":"mainui.role.outward-wing.v1.lifecycle.performance"}
+    ]},
+    {"id":"mainui.role.outward-wing.v1.lifecycle.cold-ready","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.lifecycle"},
+    {"id":"mainui.role.outward-wing.v1.lifecycle.warm-ready","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.lifecycle"},
+    {"id":"mainui.role.outward-wing.v1.lifecycle.close-reopen","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.lifecycle"},
+    {"id":"mainui.role.outward-wing.v1.lifecycle.return-chain","type":"return","risk":"read-only","parent":"mainui.role.outward-wing.v1.lifecycle"},
+    {"id":"mainui.role.outward-wing.v1.lifecycle.viewport-mobile","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.lifecycle"},
+    {"id":"mainui.role.outward-wing.v1.lifecycle.viewport-wide","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.lifecycle"},
+    {"id":"mainui.role.outward-wing.v1.lifecycle.performance","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.lifecycle"},
+
+    {"id":"mainui.role.outward-wing.v1.shared-component","type":"page","risk":"read-only","parent":"mainui.role.outward-wing.v1","control_inventory":[
+      {"id":"identity","kind":"shared-component-identity","child":"mainui.role.outward-wing.v1.shared-component.identity"},
+      {"id":"consumers","kind":"consumer-impact","child":"mainui.role.outward-wing.v1.shared-component.consumers"},
+      {"id":"state-matrix","kind":"component-state-matrix","child":"mainui.role.outward-wing.v1.shared-component.state-matrix"}
+    ]},
+    {"id":"mainui.role.outward-wing.v1.shared-component.identity","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.shared-component","note":"PetModule.prefab/OutWardBaseView GUID 与 Bind 身份链。"},
+    {"id":"mainui.role.outward-wing.v1.shared-component.consumers","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.shared-component","note":"PetFlow type1/2；RoleFlow type3/4/5/12。人物页不是直接消费者。"},
+    {"id":"mainui.role.outward-wing.v1.shared-component.state-matrix","type":"read","risk":"read-only","parent":"mainui.role.outward-wing.v1.shared-component","note":"目标 type3；代表样本预定高频 type1 与同形态 type4，运行态未获 Unity 授权时保持 needs-runtime-verify。"}
+  ]
+}

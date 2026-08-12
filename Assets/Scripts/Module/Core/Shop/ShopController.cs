@@ -265,10 +265,12 @@ namespace Shenxiao.Module.Core.Shop
                 TipsManager.Toast("购买成功");
                 // 对标老端 Fire(BUY_GOODS_SUCCESS)不带 key_id——本端用 0 作哨兵(始终非法 key_id,不会误命中任何 Item)。
                 EventDispatcher.Emit(GlobalEvent.EVT_SHOP_BUY_SUCCESS, 0);
+                EventDispatcher.Emit(GlobalEvent.EVT_SHOP_QUICK_BUY_RESULT, res);
                 GameLog.Info("Shop", "15304 快速购买成功 goods_id={0} num={1} buy_type={2}", goodsId, num, buyType);
             }
             else
             {
+                EventDispatcher.Emit(GlobalEvent.EVT_SHOP_QUICK_BUY_RESULT, res);
                 TipsManager.Toast("购买失败(" + res + ")");
                 GameLog.Warn("Shop", "15304 快速购买失败 goods_id={0} code={1}", goodsId, res);
             }

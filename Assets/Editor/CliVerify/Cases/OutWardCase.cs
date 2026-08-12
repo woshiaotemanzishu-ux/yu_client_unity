@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TMPro;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.EditorTools
 {
@@ -22,11 +24,151 @@ namespace Shenxiao.EditorTools
             {
                 Shenxiao.EditorTools.ConfigGen.ClientConfigSync.SyncIfStale(true);
                 await Shenxiao.Module.Core.OutWard.OutWardConfigs.EnsureLoaded();
+                await Shenxiao.Module.Core.Common.GoodsModel.EnsureLoaded();
+                await Shenxiao.Module.Core.Skill.SkillConfigs.EnsureLoaded();
+                await Shenxiao.Module.Core.Shop.ShopConfigs.EnsureLoaded();
                 if (!Shenxiao.Module.Core.OutWard.OutWardConfigs.IsLoaded)
                 {
                     Debug.LogError("CLIVERIFY FAIL config_mount_star not loaded");
                     return 3;
                 }
+
+                // 角色→垂神翼影(type_id=3)的静态配表闭包：4 个常驻技能、3 种培养材料、3 枚魔晶。
+                // 这里只保护配置/排序契约，不替代真实 RoleFlow 组合页、点击、模型与 Web 像素门禁。
+                IReadOnlyList<int> wingSkills = Shenxiao.Module.Core.OutWard.OutWardConfigs.GetDefaultSkillIds(3);
+                IReadOnlyList<int> wingMaterials = Shenxiao.Module.Core.OutWard.OutWardConfigs.GetTrainGoodsIds(3);
+                IReadOnlyList<int> wingCrystals = Shenxiao.Module.Core.OutWard.OutWardConfigs.GetCrystalGoodsIds(3);
+                bool WingIdsMatch(IReadOnlyList<int> actual, params int[] expected)
+                {
+                    if (actual == null || actual.Count != expected.Length) return false;
+                    for (int i = 0; i < expected.Length; i++)
+                        if (actual[i] != expected[i]) return false;
+                    return true;
+                }
+                bool wingConfigOk = WingIdsMatch(wingSkills, 59150004, 59150005, 59150006, 59150007)
+                    && WingIdsMatch(wingMaterials, 18020001, 18020002, 18020003)
+                    && WingIdsMatch(wingCrystals, 18010001, 18010002, 18010003);
+                bool sharedConsumerShapeConfigOk = Shenxiao.Module.Core.OutWard.OutWardConfigs.GetDefaultSkillIds(1).Count == 4
+                    && Shenxiao.Module.Core.OutWard.OutWardConfigs.GetDefaultSkillIds(4).Count == 4;
+                IReadOnlyList<int> wingLevelSkills = Shenxiao.Module.Core.OutWard.OutWardConfigs.GetLevelSkillIds(3);
+                bool wingLevelSkillConfigOk = WingIdsMatch(wingLevelSkills, 59150001, 59150002, 59150003);
+                var trainRows = new List<Shenxiao.Module.Core.OutWard.OutWardConfigs.TrainGoodsConfig>
+                {
+                    new Shenxiao.Module.Core.OutWard.OutWardConfigs.TrainGoodsConfig { GoodsId = 1, Type = 1, Exp = 10 },
+                    new Shenxiao.Module.Core.OutWard.OutWardConfigs.TrainGoodsConfig { GoodsId = 2, Type = 1, Exp = 30 },
+                    new Shenxiao.Module.Core.OutWard.OutWardConfigs.TrainGoodsConfig { GoodsId = 3, Type = 4, Exp = 999 },
+                };
+                var trainVo = new Shenxiao.Module.Core.OutWard.OutWardModel.OutWardVo
+                    { TypeId = 3, Stage = 1, Star = 1, Blessing = 20 };
+                var oneKeyZero = Shenxiao.Module.Core.OutWard.OutWardModel.ProjectOneKeyState(
+                    trainVo, 10, true, 100, trainRows, _ => 0);
+                var oneKeyPartial = Shenxiao.Module.Core.OutWard.OutWardModel.ProjectOneKeyState(
+                    trainVo, 10, true, 100, trainRows, id => id == 1 ? 2 : 0);
+                var oneKeyExact = Shenxiao.Module.Core.OutWard.OutWardModel.ProjectOneKeyState(
+                    trainVo, 10, true, 100, trainRows, id => id == 1 ? 2 : id == 2 ? 2 : 99);
+                var oneKeyOver = Shenxiao.Module.Core.OutWard.OutWardModel.ProjectOneKeyState(
+                    trainVo, 10, true, 100, trainRows, id => id == 2 ? 3 : 0);
+                var maxVo = new Shenxiao.Module.Core.OutWard.OutWardModel.OutWardVo
+                    { TypeId = 3, Stage = 10, Star = 10, Blessing = 0 };
+                var oneKeyMax = Shenxiao.Module.Core.OutWard.OutWardModel.ProjectOneKeyState(
+                    maxVo, 10, false, 100, trainRows, id => id == 2 ? 99 : 0);
+                bool oneKeyProjectionOk = oneKeyZero.Availability == Shenxiao.Module.Core.OutWard.OutWardModel.OneKeyAvailability.Insufficient
+                    && oneKeyZero.NeedBlessing == 80 && oneKeyZero.ProvidedExp == 0 && oneKeyZero.ShouldOpenQuickBuy && !oneKeyZero.ShowRedDot
+                    && oneKeyPartial.Availability == Shenxiao.Module.Core.OutWard.OutWardModel.OneKeyAvailability.Insufficient
+                    && oneKeyPartial.ProvidedExp == 20 && oneKeyPartial.ShouldOpenQuickBuy && !oneKeyPartial.CanSubmit
+                    && oneKeyExact.Availability == Shenxiao.Module.Core.OutWard.OutWardModel.OneKeyAvailability.Ready
+                    && oneKeyExact.ProvidedExp == 80 && oneKeyExact.CanSubmit && oneKeyExact.ShowRedDot
+                    && oneKeyOver.Availability == Shenxiao.Module.Core.OutWard.OutWardModel.OneKeyAvailability.Ready
+                    && oneKeyOver.ProvidedExp == 90 && oneKeyOver.CanSubmit
+                    && oneKeyMax.Availability == Shenxiao.Module.Core.OutWard.OutWardModel.OneKeyAvailability.MaxStage
+                    && !oneKeyMax.CanSubmit && !oneKeyMax.ShouldOpenQuickBuy && !oneKeyMax.ShowRedDot;
+                Debug.Log("CLIVERIFY outward wing type3 config skills=[" + string.Join(",", wingSkills)
+                    + "] materials=[" + string.Join(",", wingMaterials) + "] crystals=[" + string.Join(",", wingCrystals)
+                    + "] targetOk=" + wingConfigOk + " representativeShapeOk=" + sharedConsumerShapeConfigOk);
+
+                var effectState = new Shenxiao.Module.Core.OutWard.OutWardModel.EffectLifecycleState();
+                effectState.Begin(7, "wing/1");
+                bool effectStateOk = effectState.MarkAttached(7)
+                    && effectState.ObserveFrame(7, 12, 101)
+                    && effectState.ObserveFrame(7, 14, 202)
+                    && effectState.Phase == Shenxiao.Module.Core.OutWard.OutWardModel.EffectLifecyclePhase.FirstFrameReady
+                    && effectState.HasDynamicFrameChange;
+                effectState.Release(8);
+                effectStateOk &= effectState.Phase == Shenxiao.Module.Core.OutWard.OutWardModel.EffectLifecyclePhase.Released;
+
+                Shenxiao.Module.Core.FairyWish.FairyWishModel fairyModel = Shenxiao.Module.Core.FairyWish.FairyWishModel.Instance;
+                fairyModel.Reset();
+                fairyModel.SetEntryRedStateForAuthority(1003,
+                    Shenxiao.Module.Core.FairyWish.FairyWishModel.EntryRedState.Bubble);
+                var firstTouch = fairyModel.ConfirmEntryTouch(1003);
+                var secondTouch = fairyModel.ConfirmEntryTouch(1003);
+                fairyModel.ApplyInfo(1003, 0, new List<(int, int, int)>());
+                var purchaseState = fairyModel.GetOperateState(1003, 0, 999);
+                bool fairySemanticsOk = firstTouch.Send51302
+                    && firstTouch.State == Shenxiao.Module.Core.FairyWish.FairyWishModel.EntryRedState.RedDot
+                    && !secondTouch.Send51302
+                    && secondTouch.State == Shenxiao.Module.Core.FairyWish.FairyWishModel.EntryRedState.Hidden
+                    && purchaseState.Kind == Shenxiao.Module.Core.FairyWish.FairyWishModel.OperateKind.PurchaseRequired;
+
+                int[] expectedPolicies = { 15304, 16003, 16005, 16008, 16009, 16010, 16020, 16023, 16029, 16030, 51302 };
+                bool refreshMatrixOk = Shenxiao.Module.Core.OutWard.OutWardTransactionRefreshPolicies.All.Length == expectedPolicies.Length;
+                foreach (int command in expectedPolicies)
+                {
+                    Shenxiao.Module.Core.OutWard.OutWardTransactionRefreshPolicy policy =
+                        Shenxiao.Module.Core.OutWard.OutWardTransactionRefreshPolicies.Get(command);
+                    refreshMatrixOk &= policy != null && (command == 51302
+                        ? !policy.HasAcknowledgement
+                        : policy.HasAcknowledgement && !string.IsNullOrEmpty(policy.SuccessEvent)
+                            && !string.IsNullOrEmpty(policy.FailureEvent));
+                }
+                System.Type illusionViewType = typeof(Shenxiao.Module.Core.Pet.IllusionBaseView);
+                System.Type levelViewType = typeof(Shenxiao.Module.Core.Pet.OutwardLvSystemView);
+                bool productionSourceContractOk = illusionViewType.BaseType == typeof(Shenxiao.Generated.UI.Pet.IllusionBaseViewBind)
+                    && illusionViewType.GetMethod("Open", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance) != null
+                    && illusionViewType.GetMethod("Close", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance) != null
+                    && typeof(Shenxiao.Module.Core.OutWard.OutWardController).GetMethod("WearIllusion") != null
+                    && typeof(Shenxiao.Module.Core.OutWard.OutWardController).GetMethod("ActivateFigure") != null
+                    && typeof(Shenxiao.Module.Core.OutWard.OutWardController).GetMethod("UpgradeFigureStage") != null
+                    && typeof(Shenxiao.Module.Core.OutWard.OutWardController).GetMethod("UpgradeFigureStar") != null
+                    && levelViewType.BaseType == typeof(Shenxiao.Generated.UI.Pet.OutwardLvSystemBind)
+                    && levelViewType.GetMethod("Open", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance) != null
+                    && levelViewType.GetMethod("Close", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance) != null
+                    && typeof(Shenxiao.Module.Core.OutWard.OutWardController).GetMethod("TryLvSkillUp") != null;
+                bool productionReparentContractOk = VerifyProductionReparentContract();
+                bool illusionSemanticContractOk = VerifyIllusionSemanticContract();
+                Shenxiao.Module.Core.Shop.QuickBuyFlow.State quickBuyMin =
+                    Shenxiao.Module.Core.Shop.QuickBuyFlow.Project(18020001, 0, 2, 10, 10, 30, 25);
+                Shenxiao.Module.Core.Shop.QuickBuyFlow.State quickBuyPlus =
+                    Shenxiao.Module.Core.Shop.QuickBuyFlow.Project(18020001, 2, 2, 10, 10, 30, 25);
+                Shenxiao.Module.Core.Shop.QuickBuyFlow.State quickBuyMax =
+                    Shenxiao.Module.Core.Shop.QuickBuyFlow.Project(18020001, 2, 1, 10, 10, 30, 25);
+                Shenxiao.Module.Core.Shop.QuickBuyFlow.State quickBuyFail =
+                    Shenxiao.Module.Core.Shop.QuickBuyFlow.Project(18020001, 3, 2, 10, 10, 30, 25);
+                bool calculatorProjectionOk =
+                    Shenxiao.Module.Core.Common.CalculatorFlow.ProjectDigit(12, 3, 200) == 123
+                    && Shenxiao.Module.Core.Common.CalculatorFlow.ProjectDigit(12, 9, 100) == 100
+                    && Shenxiao.Module.Core.Common.CalculatorFlow.ProjectBackspace(123) == 12;
+                bool quickBuySourceRouteOk =
+                    Shenxiao.Module.Core.Shop.QuickBuyFlow.ResolveGoodsSourceTab(140) == 1
+                    && Shenxiao.Module.Core.Shop.QuickBuyFlow.ResolveGoodsSourceTab(141) == 2
+                    && Shenxiao.Module.Core.Shop.QuickBuyFlow.ResolveGoodsSourceTab(53) == -1
+                    && typeof(Shenxiao.Module.Core.Shop.QuickBuySourceItem).GetMethod("SetData") != null
+                    && Shenxiao.Module.Core.Common.GoodsModel.GetGoodsSourceEntries(18020001).Count == 2
+                    && Shenxiao.Module.Core.Common.GoodsModel.GetGoodsSourceEntries(18020001)[0].Id == 140
+                    && Shenxiao.Module.Core.Common.GoodsModel.GetGoodsSourceEntries(18020001)[1].Id == 141;
+                bool quickBuyContractOk = quickBuyMin.Count == 1 && quickBuyMin.TotalPrice == 10
+                    && quickBuyPlus.CanBuy && quickBuyPlus.MaxAffordable == 2
+                    && quickBuyMax.CanBuy && quickBuyMax.MaxAffordable == 3
+                    && !quickBuyFail.CanBuy && quickBuyFail.BlockReason == "bound-gold-insufficient"
+                    && Shenxiao.Module.Core.Shop.ShopConfigs.GetQuickBuyPrice(18020001) != null
+                    && calculatorProjectionOk && quickBuySourceRouteOk;
+                Debug.Log("CLIVERIFY outward pure states levelSkillCfg=" + wingLevelSkillConfigOk
+                    + " oneKey=" + oneKeyProjectionOk + " effect=" + effectStateOk
+                    + " fairy51302=" + fairySemanticsOk + " refreshMatrix=" + refreshMatrixOk
+                    + " productionSource=" + productionSourceContractOk
+                    + " productionReparent=" + productionReparentContractOk
+                    + " illusionSemantic=" + illusionSemanticContractOk
+                    + " quickBuy=" + quickBuyContractOk);
 
                 Shenxiao.Module.Core.OutWard.OutWardController ctrl = Shenxiao.Module.Core.OutWard.OutWardController.Instance;
                 ctrl.Init();
@@ -479,9 +621,14 @@ namespace Shenxiao.EditorTools
                     && model.LastStarFightPreview.NextStarPower == 0;
                 Debug.Log("CLIVERIFY outward clear preview reset=" + clearPreviewOk);
 
-                bool pass = infoOk && starUpOk && starUpFailNoThrow && lvPanelOk && lvUpOk && lvUpFailNoThrow && rowOk && starBtnOk
+                bool pass = wingConfigOk && sharedConsumerShapeConfigOk && wingLevelSkillConfigOk && oneKeyProjectionOk
+                    && effectStateOk && fairySemanticsOk && refreshMatrixOk && productionSourceContractOk
+                    && productionReparentContractOk && illusionSemanticContractOk && quickBuyContractOk
+                    && infoOk && starUpOk && starUpFailNoThrow && lvPanelOk && lvUpOk && lvUpFailNoThrow && rowOk && starBtnOk
                     && illusionPass && clearPreviewOk;
-                Debug.Log("CLIVERIFY outward VERDICT infoOk=" + infoOk + " starUpOk=" + starUpOk
+                Debug.Log("CLIVERIFY outward VERDICT wingConfigOk=" + wingConfigOk
+                    + " sharedConsumerShapeConfigOk=" + sharedConsumerShapeConfigOk
+                    + " infoOk=" + infoOk + " starUpOk=" + starUpOk
                     + " starUpFailNoThrow=" + starUpFailNoThrow + " lvPanelOk=" + lvPanelOk + " lvUpOk=" + lvUpOk
                     + " lvUpFailNoThrow=" + lvUpFailNoThrow + " rowOk=" + rowOk + " starBtnOk=" + starBtnOk
                     + " illusionPass=" + illusionPass + " pass=" + pass);
@@ -494,6 +641,127 @@ namespace Shenxiao.EditorTools
             {
                 stage.Dispose();
             }
+        }
+
+        private static bool VerifyProductionReparentContract()
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/UI/Pet/PetModule.prefab");
+            if (prefab == null) return false;
+            Shenxiao.Module.Core.Pet.IllusionBaseView prefabIllusion =
+                prefab.GetComponentInChildren<Shenxiao.Module.Core.Pet.IllusionBaseView>(true);
+            Shenxiao.Module.Core.Pet.OutwardLvSystemView prefabLevel =
+                prefab.GetComponentInChildren<Shenxiao.Module.Core.Pet.OutwardLvSystemView>(true);
+            if (prefabIllusion == null || prefabIllusion.gameObject.activeSelf
+                || prefabLevel == null || prefabLevel.gameObject.activeSelf) return false;
+
+            GameObject instance = Object.Instantiate(prefab);
+            GameObject sharedHost = new GameObject("OutWardCase.SharedHost", typeof(RectTransform));
+            try
+            {
+                Shenxiao.Module.Core.Pet.OutWardBaseView outward =
+                    instance.GetComponentInChildren<Shenxiao.Module.Core.Pet.OutWardBaseView>(true);
+                Shenxiao.Module.Core.Pet.IllusionBaseView illusion =
+                    instance.GetComponentInChildren<Shenxiao.Module.Core.Pet.IllusionBaseView>(true);
+                Shenxiao.Module.Core.Pet.OutwardLvSystemView level =
+                    instance.GetComponentInChildren<Shenxiao.Module.Core.Pet.OutwardLvSystemView>(true);
+                Shenxiao.Generated.UI.Common.FairyWishEnterBtnBind fairy =
+                    instance.GetComponentInChildren<Shenxiao.Generated.UI.Common.FairyWishEnterBtnBind>(true);
+                if (outward == null || illusion == null || level == null || fairy == null || fairy.img_btn == null
+                    || fairy.img_red == null || fairy.box_pop == null || fairy.effect_con == null
+                    || fairy.htmlContent == null || level.lv_skill_group == null || level.lv_exp_group == null
+                    || level.btn_group3 == null || level.img_btn_group3 == null || level.goods_group == null
+                    || level._tpl_PetRoundItem == null || level._tpl_BaseAwardItem == null) return false;
+                Transform originalParent = illusion.transform.parent;
+                Transform levelOriginalParent = level.transform.parent;
+                const System.Reflection.BindingFlags privateInstance =
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+                typeof(Shenxiao.Module.Core.Pet.OutWardBaseView).GetField("_illusionView", privateInstance)
+                    ?.SetValue(outward, null);
+                typeof(Shenxiao.Module.Core.Pet.OutWardBaseView).GetField("_illusionOriginalParent", privateInstance)
+                    ?.SetValue(outward, null);
+                typeof(Shenxiao.Module.Core.Pet.OutWardBaseView).GetField("_illusionOriginalSiblingIndex", privateInstance)
+                    ?.SetValue(outward, -1);
+                typeof(Shenxiao.Module.Core.Pet.OutWardBaseView).GetField("_levelSystemView", privateInstance)
+                    ?.SetValue(outward, null);
+                typeof(Shenxiao.Module.Core.Pet.OutWardBaseView).GetField("_levelSystemOriginalParent", privateInstance)
+                    ?.SetValue(outward, null);
+                typeof(Shenxiao.Module.Core.Pet.OutWardBaseView).GetField("_levelSystemOriginalSiblingIndex", privateInstance)
+                    ?.SetValue(outward, -1);
+                instance.SetActive(false);
+                bool inactiveRootCapture = outward.CaptureSiblingIllusion() && !illusion.gameObject.activeSelf;
+                bool inactiveLevelCapture = outward.CaptureSiblingLevelSystem() && !level.gameObject.activeSelf;
+                outward.transform.SetParent(sharedHost.transform, false);
+                bool moved = outward.PrepareIllusionHost(sharedHost.transform)
+                    && illusion.transform.parent == sharedHost.transform;
+                bool levelMoved = outward.PrepareLevelSystemHost()
+                    && level.transform.parent == outward.donw_group_2;
+                outward.RestoreCapturedIllusion();
+                outward.RestoreCapturedLevelSystem();
+                bool restored = illusion.transform.parent == originalParent && !illusion.gameObject.activeSelf;
+                bool levelRestored = level.transform.parent == levelOriginalParent && !level.gameObject.activeSelf;
+                return inactiveRootCapture && inactiveLevelCapture && moved && levelMoved && restored && levelRestored;
+            }
+            finally
+            {
+                Object.DestroyImmediate(instance);
+                Object.DestroyImmediate(sharedHost);
+            }
+        }
+
+        private static bool VerifyIllusionSemanticContract()
+        {
+            var inactive = new Shenxiao.Module.Core.OutWard.OutWardModel.IllusionFigureState
+                { TypeId = 3, FigureId = 1, Activated = false, Stage = 0, Detail = null };
+            var activeMissing = new Shenxiao.Module.Core.OutWard.OutWardModel.IllusionFigureState
+                { TypeId = 3, FigureId = 1, Activated = true, Stage = 1, Detail = null };
+            bool requestGate = !Shenxiao.Module.Core.Pet.IllusionBaseView.ShouldRequestActivatedDetail(inactive)
+                && Shenxiao.Module.Core.Pet.IllusionBaseView.ShouldRequestActivatedDetail(activeMissing);
+            bool commandArgs = Shenxiao.Module.Core.Pet.IllusionBaseView.ResolveUnwearStage(null) == 1
+                && Shenxiao.Module.Core.Pet.IllusionBaseView.ResolveUnwearStage(
+                    new Shenxiao.Module.Core.OutWard.OutWardModel.OutWardVo { Stage = 6 }) == 6
+                && Shenxiao.Module.Core.Pet.IllusionBaseView.StageUpgradeGoodsId == 0;
+            bool wingMode = Shenxiao.Module.Core.Pet.IllusionBaseView.UsesGoodsBasedStage(3)
+                && !Shenxiao.Module.Core.Pet.IllusionBaseView.SupportsStarEntry(3);
+            bool gridProjection = Mathf.Approximately(
+                Shenxiao.Module.Core.Pet.IllusionBaseView.ComputeIllusionGridHeight(19), 700f);
+
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/UI/Pet/PetModule.prefab");
+            Shenxiao.Module.Core.Pet.IllusionBaseView view =
+                prefab?.GetComponentInChildren<Shenxiao.Module.Core.Pet.IllusionBaseView>(true);
+            GridLayoutGroup grid = view?.illusion_group?.GetComponent<GridLayoutGroup>();
+            ContentSizeFitter illusionFitter = view?.illusion_group?.GetComponent<ContentSizeFitter>();
+            ContentSizeFitter propFitter = view?.prop_group?.GetComponent<ContentSizeFitter>();
+            bool prefabLayout = view != null && view.illusion_scroller != null
+                && view.illusion_scroller.content == view.illusion_group
+                && grid != null && grid.constraint == GridLayoutGroup.Constraint.FixedColumnCount
+                && grid.constraintCount == 3 && grid.cellSize == new Vector2(220f, 94f)
+                && grid.spacing == new Vector2(4f, 7f)
+                && illusionFitter != null && illusionFitter.verticalFit == ContentSizeFitter.FitMode.PreferredSize
+                && view.prop_scroller != null && view.prop_scroller.content == view.prop_group
+                && propFitter != null && propFitter.verticalFit == ContentSizeFitter.FitMode.PreferredSize;
+
+            IReadOnlyList<int> figures = Shenxiao.Module.Core.OutWard.OutWardConfigs.GetFigureIds(3, 1);
+            if (figures.Count == 0) return false;
+            int figureId = figures[0];
+            var attrsInactive = Shenxiao.Module.Core.OutWard.OutWardModel.Instance
+                .GetIllusionAttributeRows(3, figureId, 0);
+            var attrsActive = Shenxiao.Module.Core.OutWard.OutWardModel.Instance
+                .GetIllusionAttributeRows(3, figureId, 1, new Shenxiao.Module.Core.OutWard.OutWardModel.FigureDetailVo
+                { TypeId = 3, Id = figureId, Stage = 1, Attrs = new List<(int attrId, long val)>() });
+            var skillsInactive = Shenxiao.Module.Core.OutWard.OutWardModel.Instance
+                .GetIllusionSkillRows(3, figureId, 1, 0);
+            var skillsActive = Shenxiao.Module.Core.OutWard.OutWardModel.Instance
+                .GetIllusionSkillRows(3, figureId, 1, 300);
+            bool attributeProjection = attrsInactive.Count > 0 && attrsActive.Count > 0
+                && attrsInactive[0].CurrentValue == 0 && !string.IsNullOrEmpty(attrsInactive[0].Name)
+                && !attrsInactive[0].Name.StartsWith("属性") && !string.IsNullOrEmpty(attrsInactive[0].NextText);
+            bool skillProjection = skillsInactive.Count > 0 && skillsActive.Count == skillsInactive.Count;
+            for (int i = 0; i < skillsInactive.Count && skillProjection; i++)
+                skillProjection &= skillsInactive[i].SkillId > 0 && !string.IsNullOrEmpty(skillsInactive[i].Name)
+                    && !string.IsNullOrEmpty(skillsInactive[i].Icon) && skillsInactive[i].Locked
+                    && !skillsActive[i].Locked;
+            return requestGate && commandArgs && wingMode && gridProjection && prefabLayout
+                && attributeProjection && skillProjection;
         }
     }
 }

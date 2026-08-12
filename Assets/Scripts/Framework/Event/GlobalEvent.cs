@@ -638,6 +638,7 @@ namespace Shenxiao.Framework.Event
         public const string EVT_SHOP_ONE_UPDATE = "EVT_SHOP_ONE_UPDATE";
         /// <summary>15302 购买成功(参数: int keyId;对标老端 BUY_GOODS_SUCCESS,驱动奖励飞图标——未接线,TODO)。</summary>
         public const string EVT_SHOP_BUY_SUCCESS = "EVT_SHOP_BUY_SUCCESS";
+        public const string EVT_SHOP_QUICK_BUY_RESULT = "EVT_SHOP_QUICK_BUY_RESULT";
         /// <summary>15305 神秘/神纹商店数据落地(参数: int mysteryType;对标老端 UPDATE_MYSTERY_SHOP_DATA)。</summary>
         public const string EVT_SHOP_MYSTERY_UPDATE = "EVT_SHOP_MYSTERY_UPDATE";
         /// <summary>15305 hit_num 变化 → 刷新特效(参数: int mysteryType;对标老端 SHOW_REFRESH_EFFECT;未接线,TODO)。</summary>
@@ -872,6 +873,9 @@ namespace Shenxiao.Framework.Event
         /// <summary>FairyWish(513xx)信息/强化节点/点击列表变化落地(51300/51301/51303,51302 send-only 不经此事件)。
         /// 参数: int fairyId(0=批量/未指定单体)。</summary>
         public const string EVT_FAIRYWISH_UPDATE = "EVT_FAIRYWISH_UPDATE";
+
+        /// <summary>垂神翼影写回包统一结果，成功与失败均发；参数: OutWardTransactionResult。</summary>
+        public const string EVT_OUTWARD_TRANSACTION_RESULT = "EVT_OUTWARD_TRANSACTION_RESULT";
 
         /// <summary>RedPacket(339xx)列表/新增/领完推送落地(33900错误码/33901列表/33907新增/33908领完)。
         /// 参数: long redEnvelopesId(0=整表刷新)。</summary>

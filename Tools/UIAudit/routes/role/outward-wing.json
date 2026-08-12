@@ -1,0 +1,166 @@
+{
+  "schema": 1,
+  "id": "mainui.role.outward-wing-type3",
+  "engine": "legacy-laya",
+  "url": "http://127.0.0.1:8091/index.html",
+  "legacyRoot": "E:/GitProject/yu_client",
+  "snapshotSource": "E:/GitProject/yu_client/tools/yu-resource-tool/frontend/src/utils/pageSnapshot.js",
+  "popupPolicy": "../../policies/startup-popups.json",
+  "protocolPolicy": "../../policies/protocols.json",
+  "viewport": { "width": 720, "height": 1280 },
+  "viewports": [
+    { "id": "mobile", "width": 720, "height": 1280 },
+    { "id": "wide", "width": 1920, "height": 1080 }
+  ],
+  "scope": {
+    "page": "WingsComponentView",
+    "typeId": 3,
+    "label": "垂神翼影",
+    "include": [
+      "MainUI到角色一级页签垂神翼影",
+      "OutWardBaseView中type_id=3适用的固定控件与条件状态",
+      "模型、常驻特效、资源ready、协议读快照",
+      "属性、技能、晶石、材料、基础形象、幻化、等级系统、仙灵祝福入口",
+      "关闭返回、cold/warm与两档viewport"
+    ],
+    "exclude": [
+      "角色一级页签人物及其专用页面",
+      "OutWardShellView",
+      "坐骑、剑魄同修、古法符相、殒锋天刃、玄穹云披的页面级验收",
+      "未获授权的培养、吞噬、穿戴、激活、升阶、升级或红点确认写事务"
+    ]
+  },
+  "session": {
+    "accountEnv": "UIAUDIT_ACCOUNT",
+    "passwordEnv": "UIAUDIT_PASSWORD",
+    "expectedAccount": "111111",
+    "singleSession": true,
+    "requireMainUi": true,
+    "itemUse": { "mode": "hard-stop" }
+  },
+  "authority": {
+    "runtime": "old-h5-same-account-same-state-same-viewport",
+    "historicalCandidateVocabulary": "output/ui_route_audit/2026-08-10_role_full_tabs_v1/route-manifest-v3.json",
+    "reusePolicy": "candidate-names-only-no-status-or-topology-reuse",
+    "legacyComponent": "E:/GitProject/yu_client/h5/src/pet/wings/WingsComponentView.ts",
+    "legacySharedView": "E:/GitProject/yu_client/h5/src/pet/OutWardBaseView.ts",
+    "legacyController": "E:/GitProject/yu_client/h5/src/commonController/OutWardController.ts",
+    "unityView": "Assets/Scripts/Module/Core/Pet/Views/OutWardBaseView.cs",
+    "unityBind": "Assets/Scripts/Generated/UI/Pet/OutWardBaseViewBind.cs",
+    "unityPrefab": "Assets/Prefabs/UI/Pet/PetModule.prefab"
+  },
+  "protocol": {
+    "semanticMap": [
+      { "cmd": 16002, "direction": "outbound", "fmt": "c", "args": [3], "classification": "read", "meaning": "翼影基础状态" },
+      { "cmd": 16006, "direction": "outbound", "fmt": "c", "args": [3], "classification": "read", "meaning": "翼影幻化状态" },
+      { "cmd": 16011, "direction": "outbound", "fmt": "c", "args": [3], "classification": "read", "meaning": "翼影升星与装备状态" },
+      { "cmd": 16028, "direction": "outbound", "fmt": "c", "args": [3], "classification": "read", "meaning": "翼影等级系统状态" },
+      { "cmd": 16003, "direction": "outbound", "classification": "write", "meaning": "幻化或恢复基础形象" },
+      { "cmd": 16005, "direction": "outbound", "classification": "write", "meaning": "一键培养" },
+      { "cmd": 16008, "direction": "outbound", "classification": "write", "meaning": "幻化激活" },
+      { "cmd": 16009, "direction": "outbound", "classification": "write", "meaning": "幻化升阶" },
+      { "cmd": 16010, "direction": "outbound", "classification": "write", "meaning": "晶石吞噬" },
+      { "cmd": 16020, "direction": "outbound", "classification": "write", "meaning": "幻化升星" },
+      { "cmd": 16029, "direction": "outbound", "classification": "write", "meaning": "等级系统升级" },
+      { "cmd": 16030, "direction": "outbound", "classification": "write", "meaning": "等级系统技能升级" },
+      { "cmd": 51300, "direction": "outbound", "classification": "read", "meaning": "仙灵祝福详情" },
+      { "cmd": 51302, "direction": "outbound", "classification": "write", "meaning": "仙灵祝福入口红点确认" }
+    ],
+    "assertions": {
+      "mode": "read-only",
+      "required": [
+        { "ruleId": "outward-base-read-16002", "direction": "outbound", "cmd": 16002, "fmt": "c", "args": [3], "min": 1 },
+        { "ruleId": "outward-illusion-read-16006", "direction": "outbound", "cmd": 16006, "fmt": "c", "args": [3], "min": 1 },
+        { "ruleId": "outward-star-read-16011", "direction": "outbound", "cmd": 16011, "fmt": "c", "args": [3], "min": 1 },
+        { "ruleId": "outward-level-read-16028", "direction": "outbound", "cmd": 16028, "fmt": "c", "args": [3], "min": 1 }
+      ],
+      "forbidden": [
+        { "direction": "outbound", "cmd": 16003 },
+        { "direction": "outbound", "cmd": 16005 },
+        { "direction": "outbound", "cmd": 16008 },
+        { "direction": "outbound", "cmd": 16009 },
+        { "direction": "outbound", "cmd": 16010 },
+        { "direction": "outbound", "cmd": 16020 },
+        { "direction": "outbound", "cmd": 16029 },
+        { "direction": "outbound", "cmd": 16030 },
+        { "direction": "outbound", "cmd": 51302 }
+      ]
+    }
+  },
+  "controls": [
+    { "id": "mainui-role-entry", "kind": "navigation", "risk": "read-only", "selector": { "source": "laya-stage", "skinIncludes": "/mainUI/texture/role.png", "expectedCount": 1 } },
+    { "id": "role-person-page", "kind": "frozen-sibling", "risk": "protected-do-not-run", "selector": { "source": "laya-stage", "view": "EquipmentView", "name": "EquipmentView", "expectedCount": 1 }, "routeAction": "navigation-origin-only" },
+    { "id": "role-wing-tab", "kind": "navigation", "risk": "read-only", "selector": { "source": "laya-stage", "name": "labelDisplay", "text": "垂神翼影", "expectedCount": 1 } },
+    { "id": "page-root", "kind": "page", "risk": "read-only", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "WingsComponentView", "expectedCount": 1 } },
+    { "id": "page-container", "kind": "container", "risk": "read-only", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "res", "expectedCount": 1 } },
+    { "id": "combat", "kind": "state", "risk": "read-only", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "_gp_fight", "expectedCount": 1 } },
+    { "id": "property-entry", "kind": "popup-entry", "risk": "read-only", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "proptity_btn", "expectedCount": 1 } },
+    { "id": "name", "kind": "state", "risk": "read-only", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "res_name", "expectedCount": 1 } },
+    { "id": "stage", "kind": "state", "risk": "read-only", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "res_stage", "expectedCount": 1 } },
+    { "id": "level-system-level", "kind": "conditional-state", "risk": "read-only", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "lvsystem_lv", "expectedCount": 1 } },
+    { "id": "star-group", "kind": "conditional-state", "risk": "read-only", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "star_group", "expectedCount": 1 } },
+    { "id": "bottom-group", "kind": "container", "risk": "read-only", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "bottom_group", "expectedCount": 1 } },
+    { "id": "one-key-up", "kind": "transaction", "risk": "destructive-write", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "lv_button", "expectedCount": 1 }, "routeAction": "forbidden-not-clicked", "forbiddenProtocols": [16005] },
+    { "id": "exp-group", "kind": "state", "risk": "read-only", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "exp_group", "expectedCount": 1 } },
+    { "id": "materials", "kind": "item-list", "risk": "read-only", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "material_group", "expectedCount": 1 } },
+    { "id": "select-button", "kind": "conditional-toggle", "risk": "write-confirmation-required", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "select_btn", "expectedCount": 1 }, "routeAction": "state-only-not-clicked", "forbiddenProtocols": [16003] },
+    { "id": "crystals", "kind": "item-list", "risk": "conditional-write", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "crystal_group", "expectedCount": 1 }, "routeAction": "inventory-only", "forbiddenProtocols": [16010] },
+    { "id": "skills", "kind": "item-list", "risk": "read-only", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "skill_group", "expectedCount": 1 } },
+    { "id": "base-appearance", "kind": "conditional-toggle", "risk": "write-confirmation-required", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "illu_group", "expectedCount": 1 }, "routeAction": "state-only-not-clicked", "forbiddenProtocols": [16003] },
+    { "id": "main-mode", "kind": "state-container", "risk": "read-only", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "donw_group_2", "expectedCount": 1 } },
+    { "id": "middle-group", "kind": "state-container", "risk": "read-only", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "middle_group", "expectedCount": 1 } },
+    { "id": "illusion-entry", "kind": "popup-entry", "risk": "read-only", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "illusion_btn", "expectedCount": 1 } },
+    { "id": "mode-tabs", "kind": "conditional-tabs", "risk": "read-only", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "tab_group", "expectedCount": 1 } },
+    { "id": "train-mode", "kind": "tab", "risk": "read-only", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "btn_group_1", "expectedCount": 1 } },
+    { "id": "level-system-mode", "kind": "tab", "risk": "read-only", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "btn_group_2", "expectedCount": 1 } },
+    { "id": "mode-switch", "kind": "conditional-tab-switch", "risk": "read-only", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "btn_switch", "expectedCount": 1 } },
+    { "id": "level-system-skill-tip", "kind": "conditional-state", "risk": "read-only", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "skillLevelLab", "expectedCount": 1 } },
+    { "id": "fairy-wish-entry", "kind": "conditional-popup-entry", "risk": "conditional-write", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "enter_btn", "expectedCount": 1 }, "routeAction": "inventory-only", "forbiddenProtocols": [51302] },
+    { "id": "effect-host", "kind": "effect-host", "risk": "read-only", "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "effect_group", "expectedCount": 1 } }
+  ],
+  "liveGates": [
+    { "id": "cold-warm-sampling", "status": "needs-live" },
+    { "id": "node-and-geometry", "status": "needs-live" },
+    { "id": "model-and-effect-dynamic", "status": "needs-live" },
+    { "id": "component-state-matrix", "status": "needs-live" },
+    { "id": "protocol-transport", "status": "needs-live" },
+    { "id": "same-viewport-old-unity-diff", "status": "blocked-unity-not-authorized", "viewports": ["720x1280", "1920x1080"] },
+    { "id": "write-transactions", "status": "blocked-not-authorized", "protocols": [16003, 16005, 16008, 16009, 16010, 16020, 16029, 16030, 51302] }
+  ],
+  "steps": [
+    { "action": "snapshot", "label": "00_mainui_ready" },
+    { "action": "click", "label": "01_open_role", "selector": { "source": "laya-stage", "skinIncludes": "/mainUI/texture/role.png", "expectedCount": 1 } },
+    { "action": "wait-view", "view": "EquipmentView", "visible": true, "timeoutMs": 15000 },
+    { "action": "snapshot", "label": "02_role_navigation_origin" },
+    { "action": "click", "label": "03_open_wing_cold", "selector": { "source": "laya-stage", "name": "labelDisplay", "text": "垂神翼影", "expectedCount": 1 }, "settleMs": 350 },
+    { "action": "snapshot", "label": "04_cold_target_350ms", "settleMs": 650, "samplingTargetMs": 350 },
+    { "action": "snapshot", "label": "05_cold_target_1000ms", "samplingTargetMs": 1000 },
+    { "action": "wait-view", "view": "WingsComponentView", "visible": true, "timeoutMs": 15000 },
+    { "action": "assert-nodes", "label": "06_assert_primary_nodes", "assertions": [
+      { "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "res" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "_gp_fight" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "proptity_btn" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "material_group" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "crystal_group" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "skill_group" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "illu_group" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "illusion_btn" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "btn_switch" }, "count": 1 },
+      { "selector": { "source": "laya-stage", "view": "WingsComponentView", "name": "enter_btn" }, "count": 1 }
+    ] },
+    { "action": "assert-protocol", "label": "07_assert_type3_reads", "assertions": { "mode": "read-only", "required": [
+      { "ruleId": "outward-base-read-16002", "direction": "outbound", "cmd": 16002, "fmt": "c", "args": [3], "min": 1 },
+      { "ruleId": "outward-illusion-read-16006", "direction": "outbound", "cmd": 16006, "fmt": "c", "args": [3], "min": 1 },
+      { "ruleId": "outward-star-read-16011", "direction": "outbound", "cmd": 16011, "fmt": "c", "args": [3], "min": 1 },
+      { "ruleId": "outward-level-read-16028", "direction": "outbound", "cmd": 16028, "fmt": "c", "args": [3], "min": 1 }
+    ], "forbidden": [
+      { "direction": "outbound", "cmd": 16003 }, { "direction": "outbound", "cmd": 16005 },
+      { "direction": "outbound", "cmd": 16008 }, { "direction": "outbound", "cmd": 16009 },
+      { "direction": "outbound", "cmd": 16010 }, { "direction": "outbound", "cmd": 16020 },
+      { "direction": "outbound", "cmd": 16029 }, { "direction": "outbound", "cmd": 16030 },
+      { "direction": "outbound", "cmd": 51302 }
+    ] } },
+    { "action": "snapshot", "label": "08_cold_ready_a", "settleMs": 300 },
+    { "action": "snapshot", "label": "09_cold_ready_b" }
+  ]
+}

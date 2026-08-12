@@ -1233,6 +1233,165 @@ namespace Shenxiao.Editor.AssetHub
                 (sourceFolder ?? "").Replace('\\', '/').TrimEnd('/'));
         }
 
+        [Serializable]
+        public sealed class ArtPartImportRequest
+        {
+            public string module;
+            public string folder;
+            public string sourceFolder;
+        }
+
+        private const string ArtModelBatchManifestPath =
+            "Assets/Editor/ArtImport/ArtModelBatchImport.json";
+
+        [Serializable]
+        private sealed class ArtPartImportManifest
+        {
+            public int version = 1;
+            public List<ArtPartImportRequest> parts = new List<ArtPartImportRequest>();
+        }
+
+        [MenuItem("神霄/美术/按白名单批量导入模型", priority = 30)]
+        public static void ImportApprovedArtModelBatch()
+        {
+            bool ok = ImportArtModelBatchManifest(ArtModelBatchManifestPath, out string summary);
+            if (ok)
+            {
+                Debug.Log("[ArtBatchImport] " + summary);
+                EditorUtility.DisplayDialog("批量导入完成", summary, "确定");
+            }
+            else
+            {
+                Debug.LogError("[ArtBatchImport] " + summary);
+                EditorUtility.DisplayDialog("批量导入未执行/已中止", summary, "确定");
+            }
+        }
+
+        public static bool ImportArtModelBatchManifest(string manifestPath, out string summary)
+        {
+            if (string.IsNullOrWhiteSpace(manifestPath) || !File.Exists(manifestPath))
+            {
+                summary = "批量导入清单不存在:" + manifestPath;
+                return false;
+            }
+
+            ArtPartImportManifest manifest;
+            try
+            {
+                manifest = JsonUtility.FromJson<ArtPartImportManifest>(File.ReadAllText(manifestPath));
+            }
+            catch (Exception exception)
+            {
+                summary = "批量导入清单解析失败:" + exception.Message;
+                return false;
+            }
+
+            if (manifest == null || manifest.version != 1)
+            {
+                summary = "批量导入清单 version 必须为 1";
+                return false;
+            }
+
+            return ImportAndConfigureBatch(manifest.parts, out summary);
+        }
+
+        /// <summary>资源管理器“选择目录并导入替换”的无 UI API：同一导入管线，并自动配置全部动作。</summary>
+        public static bool ImportAndConfigurePart(
+            string module, string folder, string sourceFolder, out string summary)
+        {
+            bool ok = EditorTools.ArtImport.ArtPrefabImporter.ImportPart(
+                module, folder, sourceFolder, out summary);
+            if (!ok) return false;
+
+            string id = PartIdFromFolder(module, folder);
+            if (string.IsNullOrEmpty(id))
+            {
+                summary += $";目录名必须为 {module}_数字ID，未写入替换配置";
+                return false;
+            }
+
+            int filled = AutoConfigureImportedPart(module, folder, id);
+            summary += $";自动配置 {filled} 个动作";
+            return true;
+        }
+
+        /// <summary>
+        /// 批量 API。先把整张清单全部做完只读单位预检，任意一项失败则一项也不覆盖；
+        /// 通过后才逐项走资源管理器原有的保 GUID 导入、结构检查和自动配置。
+        /// </summary>
+        public static bool ImportAndConfigureBatch(
+            IEnumerable<ArtPartImportRequest> requests, out string summary)
+        {
+            var batch = (requests ?? Enumerable.Empty<ArtPartImportRequest>())
+                .Where(request => request != null)
+                .ToList();
+            if (batch.Count == 0)
+            {
+                summary = "批量导入清单为空";
+                return false;
+            }
+
+            var normalized = new List<ArtPartImportRequest>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var preflight = new List<string>();
+            foreach (ArtPartImportRequest request in batch)
+            {
+                string module = (request.module ?? "").Trim().ToLowerInvariant();
+                string folder = (request.folder ?? "").Trim();
+                string key = module + "/" + folder;
+                if (!seen.Add(key))
+                {
+                    preflight.Add(key + ":清单重复");
+                    continue;
+                }
+
+                string source = (request.sourceFolder ?? "").Replace('\\', '/').TrimEnd('/');
+                if (source.Length == 0)
+                    source = $"{EditorTools.ArtImport.ArtPrefabImporter.GetPartPickerRoot(module)}/{folder}";
+                var item = new ArtPartImportRequest
+                {
+                    module = module,
+                    folder = folder,
+                    sourceFolder = source,
+                };
+                normalized.Add(item);
+                if (!EditorTools.ArtImport.ArtPrefabImporter.ValidatePartSource(
+                        module, folder, source, out string check))
+                    preflight.Add(check);
+            }
+
+            if (preflight.Count > 0)
+            {
+                summary = "批量导入预检失败，一项也未导入:\n- " + string.Join("\n- ", preflight);
+                return false;
+            }
+
+            var results = new List<string>();
+            foreach (ArtPartImportRequest request in normalized)
+            {
+                if (!ImportAndConfigurePart(request.module, request.folder, request.sourceFolder,
+                        out string itemSummary))
+                {
+                    results.Add(itemSummary);
+                    summary = "批量导入中止:\n- " + string.Join("\n- ", results);
+                    return false;
+                }
+                results.Add(itemSummary);
+            }
+
+            summary = $"批量导入完成({normalized.Count} 项):\n- " + string.Join("\n- ", results);
+            return true;
+        }
+
+        private static string PartIdFromFolder(string module, string folder)
+        {
+            string prefix = module + "_";
+            if (string.IsNullOrEmpty(folder)
+                || !folder.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return null;
+            string id = folder.Substring(prefix.Length);
+            return id.Length > 0 && id.All(char.IsDigit) ? id : null;
+        }
+
         private void QueueArtPartImport(
             (string module, string folder, string id) part, string sourceFolder)
         {
@@ -1244,12 +1403,11 @@ namespace Shenxiao.Editor.AssetHub
                 try
                 {
                     InvalidatePartCaches(part.folder);
-                    bool ok = EditorTools.ArtImport.ArtPrefabImporter.ImportPart(
+                    bool ok = ImportAndConfigurePart(
                         part.module, part.folder, sourceFolder, out string summary);
                     if (ok)
                     {
-                        int filled = AutoFillFromImported(part);
-                        ShowNotification(new GUIContent($"{summary};自动配置 {filled} 个动作"));
+                        ShowNotification(new GUIContent(summary));
                     }
                     else
                     {
@@ -1535,7 +1693,12 @@ namespace Shenxiao.Editor.AssetHub
         /// <summary>按已导入的 {id}@动作 prefab 自动填全部动作槽(已有配置的动作原样覆盖为导入件)。</summary>
         private int AutoFillFromImported((string module, string folder, string id) part)
         {
-            string targetDir = $"Assets/GameRes/object/{part.module}/{part.folder}";
+            return AutoConfigureImportedPart(part.module, part.folder, part.id);
+        }
+
+        public static int AutoConfigureImportedPart(string module, string folder, string id)
+        {
+            string targetDir = $"Assets/GameRes/object/{module}/{folder}";
             if (!Directory.Exists(targetDir)) return 0;
             var actions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (string p in Directory.GetFiles(targetDir, "*@*.prefab", SearchOption.TopDirectoryOnly))
@@ -1549,10 +1712,10 @@ namespace Shenxiao.Editor.AssetHub
             }
             if (actions.Count == 0) return 0;
 
-            string[] ids = LegacyReplacementIds(part.module, part.id);
-            ModelReplacementStore.SetActions(part.module, ids, actions);
+            string[] ids = LegacyReplacementIds(module, id);
+            ModelReplacementStore.SetActions(module, ids, actions);
             if (ids.Length > 1)
-                Debug.Log($"[ModelReplacement] {part.module}/{part.id} 老资源同模别名一并接管:" +
+                Debug.Log($"[ModelReplacement] {module}/{id} 老资源同模别名一并接管:" +
                           string.Join(",", ids));
             return actions.Count * ids.Length;
         }

@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "route": "mainui.role.outward-wing.function-production",
+  "started_at": "2026-08-12T10:26:47.904+08:00",
+  "updated_at": "2026-08-12T10:26:48.067+08:00",
+  "note": "",
+  "phases": [
+    {
+      "id": "contract-freeze",
+      "bucket": "legacy-inventory",
+      "kind": "active",
+      "started_at": "2026-08-12T10:26:48.067+08:00",
+      "ended_at": null,
+      "duration_ms": null,
+      "note": ""
+    }
+  ],
+  "events": [],
+  "summary": {
+    "closed_duration_ms": 0,
+    "active_ms": 0,
+    "wait_ms": 0,
+    "by_bucket_ms": {
+      "build-web": 0,
+      "component-matrix": 0,
+      "context-load": 0,
+      "diagnosis": 0,
+      "editor-cli": 0,
+      "environment-wait": 0,
+      "implementation": 0,
+      "legacy-inventory": 0,
+      "rework": 0,
+      "uiaudit-preflight": 0
+    },
+    "estimated_saved_ms": 0,
+    "recorded_failure_ms": 0,
+    "repeat_failure_count": 0,
+    "open_phase": "contract-freeze"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "nodes": [
+    {"id":"mainui.role.outward-wing.v1.navigation.mainui-entry","status":"needs-runtime-verify","runtime_gap":"公共 provider CAS blocker 未解除，尚未用账号 111111 从 MainUI 真实点击角色入口。"},
+    {"id":"mainui.role.outward-wing.v1.navigation.parent-window","status":"needs-runtime-verify","runtime_gap":"尚无老 H5 与 Unity 真实组合窗框运行证据。"},
+    {"id":"mainui.role.outward-wing.v1.navigation.primary-tab","status":"needs-runtime-verify","runtime_gap":"RoleFlow 静态索引 1/type_id=3 已核对；真实页签点击、选中态与页面身份待复验。"},
+    {"id":"mainui.role.outward-wing.v1.navigation.person-freeze-boundary","status":"needs-runtime-verify","runtime_gap":"人物页未修改也未重跑；需在目标页运行证据中证明仅作为导航过境且未被共享改动影响。"},
+
+    {"id":"mainui.role.outward-wing.v1.header.name-stage","status":"needs-runtime-verify","runtime_gap":"静态数据链已存在，当前账号真实阶名/阶数与像素待核对。"},
+    {"id":"mainui.role.outward-wing.v1.header.combat","status":"needs-runtime-verify","runtime_gap":"16002 combat 到 FightingShow 静态链已存在；当前账号真实数值和刷新待核对。"},
+    {"id":"mainui.role.outward-wing.v1.header.role-visibility","status":"needs-runtime-verify","runtime_gap":"show_type=1 静态显隐已核对，真实运行树与条件状态待核对。"},
+
+    {"id":"mainui.role.outward-wing.v1.model.asset","status":"needs-runtime-verify","runtime_gap":"config_mount_stage.ride_figure 与 UIModelStage 静态链已核对；RenderTexture 实际出帧待验证。"},
+    {"id":"mainui.role.outward-wing.v1.model.placement","status":"needs-runtime-verify","runtime_gap":"未获 Unity/真实 Web 授权，位置、比例、朝向、镜像待验证。"},
+    {"id":"mainui.role.outward-wing.v1.model.effect","status":"needs-runtime-verify","runtime_gap":"模型常驻特效与独立 UI 特效尚无两帧真实证据。"},
+    {"id":"mainui.role.outward-wing.v1.model.dynamic","status":"needs-runtime-verify","runtime_gap":"尚无相机 Render 完成、非透明像素和两时点像素差证据。"},
+    {"id":"mainui.role.outward-wing.v1.model.lifecycle","status":"needs-runtime-verify","runtime_gap":"关闭、切页、重开后的模型清理与恢复待真实运行验证。"},
+
+    {"id":"mainui.role.outward-wing.v1.property.open","status":"defect","note":"proptity_btn 仍绑定待开放桩；PetProptityView 业务 View/可编辑 Prefab 未落地。"},
+    {"id":"mainui.role.outward-wing.v1.property.content","status":"defect","note":"老端 attr_list 属性弹窗内容、布局和数据刷新在 Unity 缺失。"},
+    {"id":"mainui.role.outward-wing.v1.property.close","status":"defect","note":"目标属性弹窗不存在，遮罩/关闭/返回父页链无从成立。"},
+
+    {"id":"mainui.role.outward-wing.v1.skills.display","status":"needs-runtime-verify","runtime_gap":"已改为 config_mount_skill(type=1) 四槽常驻、16002 仅决定灰态；需真实 Prefab 点击与锁定/解锁像素验证。"},
+    {"id":"mainui.role.outward-wing.v1.skills.detail","status":"needs-runtime-verify","runtime_gap":"已复用 CommonModule/SkillTipsView 并补 cold-close 取消；四技能逐项身份、文案、关闭/重开待运行验证。"},
+
+    {"id":"mainui.role.outward-wing.v1.crystal.display","status":"needs-runtime-verify","runtime_gap":"三枚魔晶配置与 16011 计数静态链已核对；当前账号次数/红点/像素待验证。"},
+    {"id":"mainui.role.outward-wing.v1.crystal.detail","status":"defect","note":"不可直接使用状态应打开 PetCrystalView；当前只有日志硬停，详情/购买页未落地。"},
+    {"id":"mainui.role.outward-wing.v1.crystal.use","status":"blocked","blocked_reason":"16010 会消费真实魔晶；本轮未授权消费写入，且必须在正式 UI、权威回包、即时刷新和重开链中验证。"},
+
+    {"id":"mainui.role.outward-wing.v1.materials.display","status":"needs-runtime-verify","runtime_gap":"已改为 BaseAwardItem.SetData 共享身份链并恢复 0 隐藏、1 起显示；0/1/多数量状态待运行验证。"},
+    {"id":"mainui.role.outward-wing.v1.materials.detail","status":"needs-runtime-verify","runtime_gap":"共享格现已写入真实 goodsId；三格逐项 ItemTipsView 身份、背景和关闭链待运行验证。"},
+
+    {"id":"mainui.role.outward-wing.v1.base-appearance.state","status":"needs-runtime-verify","runtime_gap":"FigureStage 与 Stage 的 using/unuse 显隐静态链已核对；当前账号穿戴态待验证。"},
+    {"id":"mainui.role.outward-wing.v1.base-appearance.toggle","status":"needs-runtime-verify","runtime_gap":"已恢复老端 type=1 基础外观 16003 语义与一阶不可取消提示；真实点击/回包/即时刷新未执行。"},
+
+    {"id":"mainui.role.outward-wing.v1.illusion.open","status":"defect","note":"illusion_btn 仍是待开放桩；IllusionBaseView 业务 View/Prefab 缺失。"},
+    {"id":"mainui.role.outward-wing.v1.illusion.list-scroll","status":"defect","note":"19 个 type_id=3 幻化条目的真实 ScrollRect/裁切/末项链未实现。"},
+    {"id":"mainui.role.outward-wing.v1.illusion.select-model","status":"defect","note":"幻化选中模型预览与详情数据消费者未实现。"},
+    {"id":"mainui.role.outward-wing.v1.illusion.wear","status":"blocked","blocked_reason":"16003 幻化穿戴是持久状态写入；目标幻化 UI 尚缺且本轮无写入授权。"},
+    {"id":"mainui.role.outward-wing.v1.illusion.activate","status":"blocked","blocked_reason":"16008 激活会消耗材料并持久化；目标 UI 尚缺且本轮无消费授权。"},
+    {"id":"mainui.role.outward-wing.v1.illusion.stage-up","status":"blocked","blocked_reason":"16009 升阶会消耗材料并持久化；目标 UI 尚缺且本轮无消费授权。"},
+    {"id":"mainui.role.outward-wing.v1.illusion.star-up","status":"blocked","blocked_reason":"16020 升星会消耗材料并持久化；目标 UI 尚缺且本轮无消费授权。"},
+    {"id":"mainui.role.outward-wing.v1.illusion.close","status":"defect","note":"目标幻化页不存在，关闭/返回垂神翼影父页链未实现。"},
+
+    {"id":"mainui.role.outward-wing.v1.level-system.open","status":"defect","note":"select_2/btn_switch 仍是待开放桩；OutwardLvSystem 子页未落地。"},
+    {"id":"mainui.role.outward-wing.v1.level-system.summary","status":"defect","note":"16028 等级/经验/战力虽已入 Model，目标子页没有真实消费者。"},
+    {"id":"mainui.role.outward-wing.v1.level-system.skills","status":"defect","note":"type=4 的三个等级线技能状态/条件/详情未实现。"},
+    {"id":"mainui.role.outward-wing.v1.level-system.level-up","status":"blocked","blocked_reason":"16029 升级会消费材料并持久化；目标子页尚缺且本轮无消费授权。"},
+    {"id":"mainui.role.outward-wing.v1.level-system.skill-up","status":"blocked","blocked_reason":"16030 技能升级会消费材料并持久化；目标子页尚缺且本轮无消费授权。"},
+    {"id":"mainui.role.outward-wing.v1.level-system.return","status":"defect","note":"目标等级线子页不存在，返回培养线与状态恢复链未实现。"},
+
+    {"id":"mainui.role.outward-wing.v1.one-key-up.present","status":"needs-runtime-verify","runtime_gap":"lv_button 与 type_id=3 StarUpGeneric 静态绑定存在；按钮文案/材料状态/确认面待真实验证。"},
+    {"id":"mainui.role.outward-wing.v1.one-key-up.submit","status":"blocked","blocked_reason":"16005 一键提升会消费培养材料并改变阶星；本轮无消费写入授权，只能在真实确认/不足面后停。"},
+
+    {"id":"mainui.role.outward-wing.v1.fairy-wish.visibility","status":"defect","note":"_tpl_FairyWishEnterBtn 被固定隐藏，config_fairy 1003 的等级/开服日条件未接入。"},
+    {"id":"mainui.role.outward-wing.v1.fairy-wish.open","status":"defect","note":"FairyWishView 仍为 TODO 占位且无完整 Flow；51300/51302 页面链未接通。"},
+
+    {"id":"mainui.role.outward-wing.v1.resources.config-parity","status":"needs-runtime-verify","runtime_gap":"老端与 Unity 九张相关配置 SHA-256 静态一致；运行时实际加载键与当前 Player/catalog 待验证。"},
+    {"id":"mainui.role.outward-wing.v1.resources.prefab-bind-identity","status":"needs-runtime-verify","runtime_gap":"当前 PetModule/OutWardBaseView Bind 已静态核对；真实实例、共享 GUID 与运行克隆待 CLI 验证。"},
+    {"id":"mainui.role.outward-wing.v1.resources.asset-closure","status":"needs-runtime-verify","runtime_gap":"未运行两次 preflight、Addressables 解析与点击前后零新增资源门禁。"},
+    {"id":"mainui.role.outward-wing.v1.resources.ready-stability","status":"needs-runtime-verify","runtime_gap":"350ms、1000ms、ready 三时点首屏和无粉块/残影待真实 Web。"},
+
+    {"id":"mainui.role.outward-wing.v1.protocol.required-reads","status":"needs-runtime-verify","runtime_gap":"16002/16006/16011/16028 注册与静态链存在；同账号真实 trace 和 UI 消费待验证。"},
+    {"id":"mainui.role.outward-wing.v1.protocol.write-boundary","status":"blocked","blocked_reason":"16003/16005/16008/16009/16010/16020/16029/16030/51302 均需按叶子授权与正式 UI 验证；本轮禁止消费/破坏性写入。"},
+
+    {"id":"mainui.role.outward-wing.v1.lifecycle.cold-ready","status":"needs-runtime-verify","runtime_gap":"公共 provider CAS blocker 未解除，cold 首屏/交互 ready 未采集。"},
+    {"id":"mainui.role.outward-wing.v1.lifecycle.warm-ready","status":"needs-runtime-verify","runtime_gap":"同一有效会话 warm 重开未采集。"},
+    {"id":"mainui.role.outward-wing.v1.lifecycle.close-reopen","status":"needs-runtime-verify","runtime_gap":"技能详情 cold-cancel 已静态修复；整页弹窗、模型、事件清理和重开状态待运行验证。"},
+    {"id":"mainui.role.outward-wing.v1.lifecycle.return-chain","status":"needs-runtime-verify","runtime_gap":"从各只读详情返回、关角色窗、重开垂神翼影的完整路径未运行。"},
+    {"id":"mainui.role.outward-wing.v1.lifecycle.viewport-mobile","status":"needs-runtime-verify","runtime_gap":"720x1280 老端/Unity/overlay/diff 未采集。"},
+    {"id":"mainui.role.outward-wing.v1.lifecycle.viewport-wide","status":"needs-runtime-verify","runtime_gap":"1920x1080 老端/Unity/overlay/diff 未采集。"},
+    {"id":"mainui.role.outward-wing.v1.lifecycle.performance","status":"needs-runtime-verify","runtime_gap":"cold/warm、模型 ready 与资源零新增性能门禁未运行。"},
+
+    {"id":"mainui.role.outward-wing.v1.shared-component.identity","status":"needs-runtime-verify","runtime_gap":"OutWardBaseView/PetModule、BaseAwardItem、CommonModule/SkillTipsView 身份已静态列出；运行 GUID/实例证据待采。"},
+    {"id":"mainui.role.outward-wing.v1.shared-component.consumers","status":"needs-runtime-verify","runtime_gap":"已分组 PetFlow type1/2 与 RoleFlow type3/4/5/12；计划样本 type3、type1、type4 尚未运行。人物页不是直接消费者且保持冻结。"},
+    {"id":"mainui.role.outward-wing.v1.shared-component.state-matrix","status":"needs-runtime-verify","runtime_gap":"技能锁/解锁、材料0/1/多、详情cold/warm、基础外观using/unuse与两viewport矩阵尚未运行。"}
+  ]
+}

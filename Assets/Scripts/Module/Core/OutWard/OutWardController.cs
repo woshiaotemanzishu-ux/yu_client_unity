@@ -158,6 +158,14 @@ namespace Shenxiao.Module.Core.OutWard
             GameLog.Info("OutWard", "lvSkillUp 16030 type_id={0} skill_id={1}", typeId, skillId);
         }
 
+        /// <summary>生产技能行调用的资格闸；无具名控件时仍可静态验证命令接口，禁止越过等级条件直接发 16030。</summary>
+        public bool TryLvSkillUp(int typeId, int skillId, out string reason)
+        {
+            if (!OutWardModel.Instance.CanUpgradeLevelSkill(typeId, skillId, out _, out reason)) return false;
+            LvSkillUp(typeId, skillId);
+            return true;
+        }
+
         // =================================================================================
         // 幻化(Illusion,轮24 PI 增量)发送侧:16006 列表/16007 详情/16003 穿戴/16004 骑乘/16008 激活/
         // 16009 升阶/16010 用魔晶/16011 魔晶次数/16020 升星/16022+16027 战力预览/16024 自动购买。
@@ -302,11 +310,13 @@ namespace Shenxiao.Module.Core.OutWard
             List<(int rate, int rateNum)> ratios = r.ReadArray(ReadRatio);
             if (errcode != 1)
             {
+                EmitTransactionResult(Proto.OUTWARD_STAR_UP, typeId, 0, errcode);
                 TipsManager.Toast("提升失败(" + errcode + ")");   // 错误码表未移植,显码降级
                 GameLog.Info("OutWard", "16023 starUp fail errcode={0} type_id={1}", errcode, typeId);
                 return;
             }
             OutWardModel.Instance.Apply16023(typeId, stage, star, blessing, etime, autoBuy);
+            EmitTransactionResult(Proto.OUTWARD_STAR_UP, typeId, 0, errcode);
             GameLog.Info("OutWard", "16023 starUp ok type_id={0} → {1}阶{2}星 blessing={3}(+{4}) ratios={5} remaining={6}B",
                 typeId, stage, star, blessing, blessingPlus, ratios.Count, r.Remaining);
             RequestInfo(typeId);   // 对标老端成功后 REQUEST_PROTO 16002 联动刷属性
@@ -344,11 +354,13 @@ namespace Shenxiao.Module.Core.OutWard
             List<(int rate, int rateNum)> ratios = r.ReadArray(ReadRatio);
             if (errcode != 1)
             {
+                EmitTransactionResult(Proto.OUTWARD_LV_UP, typeId, 0, errcode);
                 TipsManager.Toast("提升失败(" + errcode + ")");   // 错误码表未移植,显码降级
                 GameLog.Info("OutWard", "16029 lvUp fail errcode={0} type_id={1}", errcode, typeId);
                 return;
             }
             OutWardModel.Instance.Apply16029(typeId, level, curExp, combat, skills);
+            EmitTransactionResult(Proto.OUTWARD_LV_UP, typeId, 0, errcode);
             GameLog.Info("OutWard", "16029 lvUp ok type_id={0} → level={1} curExp={2}(+{3}) combat={4} ratios={5} remaining={6}B",
                 typeId, level, curExp, addExp, combat, ratios.Count, r.Remaining);
             RequestInfo(typeId);   // 对标老端成功后 REQUEST_PROTO 16002 联动刷新
@@ -369,11 +381,13 @@ namespace Shenxiao.Module.Core.OutWard
             List<(int rate, int rateNum)> ratios = r.ReadArray(ReadRatio);
             if (errcode != 1)
             {
+                EmitTransactionResult(Proto.OUTWARD_STAR_UP_GENERIC, typeId, 0, errcode);
                 TipsManager.Toast("提升失败(" + errcode + ")");   // 错误码表未移植,显码降级
                 GameLog.Info("OutWard", "16005 starUpGeneric fail errcode={0} type_id={1}", errcode, typeId);
                 return;
             }
             OutWardModel.Instance.Apply16005(typeId, stage, star, blessing);
+            EmitTransactionResult(Proto.OUTWARD_STAR_UP_GENERIC, typeId, 0, errcode);
             GameLog.Info("OutWard", "16005 starUpGeneric ok type_id={0} → {1}阶{2}星 blessing={3}(+{4}) ratios={5} remaining={6}B",
                 typeId, stage, star, blessing, blessingPlus, ratios.Count, r.Remaining);
             RequestInfo(typeId);   // 对标老端成功后 REQUEST_PROTO 16002 联动刷属性
@@ -390,11 +404,13 @@ namespace Shenxiao.Module.Core.OutWard
             int level = r.ReadU8();
             if (errcode != 1)
             {
+                EmitTransactionResult(Proto.OUTWARD_LV_SKILL_UP, typeId, skillId, errcode);
                 TipsManager.Toast("提升失败(" + errcode + ")");   // 错误码表未移植,显码降级
                 GameLog.Info("OutWard", "16030 lvSkillUp fail errcode={0} type_id={1} skill_id={2}", errcode, typeId, skillId);
                 return;
             }
             OutWardModel.Instance.Apply16030(typeId, skillId, level);
+            EmitTransactionResult(Proto.OUTWARD_LV_SKILL_UP, typeId, skillId, errcode);
             GameLog.Info("OutWard", "16030 lvSkillUp ok type_id={0} skill_id={1} → level={2} remaining={3}B",
                 typeId, skillId, level, r.Remaining);
             RequestInfo(typeId);   // 对标老端成功后 REQUEST_PROTO 16002 联动刷新
@@ -448,11 +464,13 @@ namespace Shenxiao.Module.Core.OutWard
             long color = r.ReadU32();
             if (errcode != 1)
             {
+                EmitTransactionResult(Proto.OUTWARD_ILLUSION_WEAR, typeId, (int)args, errcode);
                 TipsManager.Toast("幻化失败(" + errcode + ")");   // 错误码表未移植,显码降级
                 GameLog.Info("OutWard", "16003 illusion wear fail errcode={0} type_id={1}", errcode, typeId);
                 return;
             }
             OutWardModel.Instance.ApplyIllusionWear(typeId, type, args);
+            EmitTransactionResult(Proto.OUTWARD_ILLUSION_WEAR, typeId, (int)args, errcode);
             GameLog.Info("OutWard", "16003 illusion wear ok type_id={0} type={1} args={2} color={3}", typeId, type, args, color);
             EventDispatcher.Emit(GlobalEvent.EVT_OUTWARD_ILLUSION_WEAR, typeId);
         }
@@ -548,10 +566,12 @@ namespace Shenxiao.Module.Core.OutWard
             long combat = r.ReadU32();
             if (errcode != 1)
             {
+                EmitTransactionResult(Proto.OUTWARD_FIGURE_ACTIVATE, typeId, figureId, errcode);
                 TipsManager.Toast("激活失败(" + errcode + ")");   // 错误码表未移植,显码降级
                 GameLog.Info("OutWard", "16008 activate fail errcode={0} type_id={1} id={2}", errcode, typeId, figureId);
                 return;
             }
+            EmitTransactionResult(Proto.OUTWARD_FIGURE_ACTIVATE, typeId, figureId, errcode);
             GameLog.Info("OutWard", "16008 activate ok type_id={0} id={1} combat={2}", typeId, figureId, combat);
             EventDispatcher.Emit(GlobalEvent.EVT_OUTWARD_FIGURE_ACTIVATED, typeId, figureId);
             RequestIllusionList(typeId);   // 对标老端成功后无条件 REQUEST_PROTO 16006(:163)
@@ -572,10 +592,12 @@ namespace Shenxiao.Module.Core.OutWard
             long goodsId = r.ReadU32();
             if (errcode != 1)
             {
+                EmitTransactionResult(Proto.OUTWARD_FIGURE_STAGE_UP, typeId, figureId, errcode);
                 TipsManager.Toast("升阶失败(" + errcode + ")");   // 错误码表未移植,显码降级
                 GameLog.Info("OutWard", "16009 stage up fail errcode={0} type_id={1} id={2}", errcode, typeId, figureId);
                 return;
             }
+            EmitTransactionResult(Proto.OUTWARD_FIGURE_STAGE_UP, typeId, figureId, errcode);
             GameLog.Info("OutWard", "16009 stage up ok type_id={0} id={1} stage={2} blessing={3}(+{4}) goods_id={5} ratios={6} remaining={7}B",
                 typeId, figureId, stage, blessing, blessingPlus, goodsId, ratios.Count, r.Remaining);
             EventDispatcher.Emit(GlobalEvent.EVT_OUTWARD_FIGURE_STAGE_UP, typeId, figureId);
@@ -591,10 +613,12 @@ namespace Shenxiao.Module.Core.OutWard
             long goodsId = r.ReadU32();
             if (errcode != 1)
             {
+                EmitTransactionResult(Proto.OUTWARD_CRYSTAL_USE, typeId, (int)goodsId, errcode);
                 TipsManager.Toast("使用失败(" + errcode + ")");   // 错误码表未移植,显码降级
                 GameLog.Info("OutWard", "16010 use crystal fail errcode={0} type_id={1} goods_id={2}", errcode, typeId, goodsId);
                 return;
             }
+            EmitTransactionResult(Proto.OUTWARD_CRYSTAL_USE, typeId, (int)goodsId, errcode);
             GameLog.Info("OutWard", "16010 use crystal ok type_id={0} goods_id={1}", typeId, goodsId);
             EventDispatcher.Emit(GlobalEvent.EVT_OUTWARD_CRYSTAL_UPDATE, typeId);
             RequestCrystalCounter(typeId);   // 对标老端成功后 SendFmtToGameImme 16011(:200)
@@ -635,11 +659,13 @@ namespace Shenxiao.Module.Core.OutWard
             int star = r.ReadU16();
             if (errcode != 1)
             {
+                EmitTransactionResult(Proto.OUTWARD_FIGURE_STAR_UP, typeId, figureId, errcode);
                 TipsManager.Toast("升星失败(" + errcode + ")");   // 错误码表未移植,显码降级
                 GameLog.Info("OutWard", "16020 star up fail errcode={0} type_id={1} id={2}", errcode, typeId, figureId);
                 return;
             }
             OutWardModel.Instance.PatchIllusionStar(typeId, figureId, star);
+            EmitTransactionResult(Proto.OUTWARD_FIGURE_STAR_UP, typeId, figureId, errcode);
             GameLog.Info("OutWard", "16020 star up ok type_id={0} id={1} star={2}", typeId, figureId, star);
             EventDispatcher.Emit(GlobalEvent.EVT_OUTWARD_FIGURE_STAR_UP, typeId, figureId);
             RequestIllusionList(typeId);        // 对标老端 On16020 补拉 16006(:244)
@@ -685,6 +711,12 @@ namespace Shenxiao.Module.Core.OutWard
             GameLog.Info("OutWard", "16027 star fight preview type_id={0} id={1} power={2} next_star_power={3} remaining={4}B",
                 typeId, figureId, power, nextStarPower, r.Remaining);
             EventDispatcher.Emit(GlobalEvent.EVT_OUTWARD_STAR_FIGHT_PREVIEW, typeId, figureId);
+        }
+
+        private static void EmitTransactionResult(int command, int typeId, int entityId, int code)
+        {
+            EventDispatcher.Emit(GlobalEvent.EVT_OUTWARD_TRANSACTION_RESULT,
+                new OutWardTransactionResult(command, typeId, entityId, code));
         }
 
         private static (int attrId, long val) ReadAttr(NetReader r)

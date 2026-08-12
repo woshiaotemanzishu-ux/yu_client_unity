@@ -333,6 +333,47 @@ namespace Shenxiao.EditorTools.ArtImport
         /// head_mount/rhand/wing/root 属于部件挂接能力，缺失时继续启用身体动作并在导入台账中明确告警，
         /// 不能因为一把武器暂时挂不上，就让已经可播放的 idle/create3 整体保持未配置状态。
         /// </summary>
+        /// <summary>复制完成后的 Unity 导入设置复核，防止源 FBX 单位正确但客户端 ModelImporter 又叠加倍率。</summary>
+        public static string[] ValidateImportedPartUnitSettings(string module, string folderName)
+        {
+            var issues = new List<string>();
+            string modelsFolder = $"Assets/GameRes/object/{module}/{folderName}/Models";
+            if (!Directory.Exists(modelsFolder))
+            {
+                issues.Add(modelsFolder + " 不存在");
+                return issues.ToArray();
+            }
+
+            string[] fbxFiles = Directory.GetFiles(modelsFolder, "*", SearchOption.TopDirectoryOnly)
+                .Where(path => string.Equals(Path.GetExtension(path), ".fbx",
+                    StringComparison.OrdinalIgnoreCase))
+                .Select(path => path.Replace('\\', '/'))
+                .OrderBy(path => path, StringComparer.OrdinalIgnoreCase).ToArray();
+            if (fbxFiles.Length == 0)
+            {
+                issues.Add(modelsFolder + " 下没有 FBX");
+                return issues.ToArray();
+            }
+
+            foreach (string path in fbxFiles)
+            {
+                if (!(AssetImporter.GetAtPath(path) is ModelImporter importer))
+                {
+                    issues.Add(path + " 不是可读取的 ModelImporter");
+                    continue;
+                }
+                if (Mathf.Abs(importer.fileScale - 0.01f) > 0.000001f
+                    || Mathf.Abs(importer.globalScale - 1f) > 0.0001f
+                    || !importer.useFileScale)
+                {
+                    issues.Add($"{path} 导入倍率异常:fileScale={importer.fileScale:0.######}," +
+                               $"globalScale={importer.globalScale:0.######},useFileScale={importer.useFileScale}" +
+                               "(应为 0.01/1/true)");
+                }
+            }
+            return issues.ToArray();
+        }
+
         public static string[] ValidateImportedPartStructure(string module, IEnumerable<string> prefabPaths)
         {
             var issues = new List<string>();
@@ -514,8 +555,9 @@ namespace Shenxiao.EditorTools.ArtImport
         // ---- ImportPart(泛化部件一键导入)专用;手动窗口路径不设,保持原行为 ----
         private string _forcedTargetFolder; // 目标夹名固定(role_1213/head_1213/weapon_1200),不再按源夹名猜
         private string _partId;             // 根 prefab 统一改名 {id}@{动作}.prefab(head@idle → 1213@idle)
-        private bool _sampleLanding = true; // 头饰/武器不采落点(2.33 身高归一只对角色本体有意义)
+        private bool _sampleLanding = true; // 头饰/武器不采落点；角色只采脚底落点，不再改变源模型体量
         private bool _checkRoleMounts;      // 角色本体导入后做挂点体检(head_mount/rhand/root),结果进台账
+        private bool _suppressCompletionDialog; // 资产管理/API 批量线只汇总一次，不逐模型弹“导入完成”
 
         // 可见入口统一在资产管理的当前模型条目;通用窗口只保留程序调用能力。
         public static void Open()
@@ -541,26 +583,163 @@ namespace Shenxiao.EditorTools.ArtImport
         }
 
         /// <summary>从用户选择的美术模型目录导入全部动作，并固定替换到指定部件条目的目标目录。</summary>
-        public static bool ImportPart(string module, string folderName, string sourceFolder, out string summary)
+        /// <summary>
+        /// 导入前只读检查。统一交付口径是 FBX SystemUnit=厘米(UnitScaleFactor=1)，Unity 侧应得到
+        /// fileScale=0.01/globalScale=1/useFileScale=true。这里先检查源目录，避免错误单位的整套模型
+        /// 已经覆盖进客户端后才发现问题。
+        /// </summary>
+        public static bool ValidatePartSource(
+            string module, string folderName, string sourceFolder, out string summary)
         {
             if (!IsPartModule(module))
             {
                 summary = $"未知部件模块 {module}(可选:{string.Join("/", PartTopDirs.Keys)})";
                 return false;
             }
+
             string folder = (sourceFolder ?? "").Replace('\\', '/').TrimEnd('/');
             if (!Directory.Exists(folder))
             {
                 summary = string.IsNullOrEmpty(folder) ? "没有选择模型目录" : $"模型目录不存在:{folder}";
                 return false;
             }
+
             string assetsRoot = $"{ArtProjectRoot}/Assets".TrimEnd('/');
             if (!folder.Equals(assetsRoot, StringComparison.OrdinalIgnoreCase)
                 && !folder.StartsWith(assetsRoot + "/", StringComparison.OrdinalIgnoreCase))
             {
-                summary = $"请选择当前 Art 项目 Assets 内的模型文件夹:\n{assetsRoot}\n\n当前选择:{folder}";
+                summary = $"请选择当前 Art 项目 Assets 内的模型文件夹\n{assetsRoot}\n\n当前选择:{folder}";
                 return false;
             }
+
+            if (!string.Equals(Path.GetFileName(folder), folderName, StringComparison.OrdinalIgnoreCase))
+            {
+                summary = $"目录条目不匹配:目标是 {folderName}，当前选择 {Path.GetFileName(folder)}。" +
+                          "为防止覆盖错模型，批量导入已停止。";
+                return false;
+            }
+
+            string[] prefabs = Directory.GetFiles(folder, "*@*.prefab", SearchOption.TopDirectoryOnly);
+            if (prefabs.Length == 0)
+            {
+                summary = $"{folderName} 根目录下没有 xxx@动作.prefab";
+                return false;
+            }
+
+            string modelsFolder = Path.Combine(folder, "Models");
+            string[] fbxFiles = Directory.Exists(modelsFolder)
+                ? Directory.GetFiles(modelsFolder, "*", SearchOption.TopDirectoryOnly)
+                    .Where(path => string.Equals(Path.GetExtension(path), ".fbx",
+                        StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(path => path, StringComparer.OrdinalIgnoreCase).ToArray()
+                : Array.Empty<string>();
+            if (fbxFiles.Length == 0)
+            {
+                summary = $"{folderName}/Models 下没有 FBX，无法确认 3ds Max 导出单位";
+                return false;
+            }
+
+            var issues = new List<string>();
+            foreach (string fbx in fbxFiles)
+            {
+                if (!TryReadFbxUnitScaleFactor(fbx, out double factor, out string error))
+                {
+                    issues.Add($"{Path.GetFileName(fbx)}:无法读取 UnitScaleFactor({error})");
+                    continue;
+                }
+                if (Math.Abs(factor - 1d) > 0.000001d)
+                    issues.Add($"{Path.GetFileName(fbx)}:UnitScaleFactor={factor:0.######}(应为 1，厘米)");
+            }
+
+            if (issues.Count > 0)
+            {
+                summary = $"{folderName} 导出单位不一致，禁止导入:\n- " + string.Join("\n- ", issues);
+                return false;
+            }
+
+            summary = $"{folderName}:源文件单位检查通过(FBX {fbxFiles.Length} 个，UnitScaleFactor=1)";
+            return true;
+        }
+
+        private static bool TryReadFbxUnitScaleFactor(
+            string path, out double factor, out string error)
+        {
+            factor = 0d;
+            error = "";
+            try
+            {
+                byte[] bytes = File.ReadAllBytes(path);
+                byte[] marker = System.Text.Encoding.ASCII.GetBytes("UnitScaleFactor");
+                int markerIndex = IndexOf(bytes, marker);
+                if (markerIndex < 0)
+                {
+                    error = "缺少 UnitScaleFactor";
+                    return false;
+                }
+
+                // 二进制 FBX 的 P 节点布局:
+                // UnitScaleFactor, S="double", S="Number", S="", D=<value>。
+                int cursor = markerIndex + marker.Length;
+                if (TryReadFbxStringProperty(bytes, ref cursor, out string valueType)
+                    && string.Equals(valueType, "double", StringComparison.OrdinalIgnoreCase)
+                    && TryReadFbxStringProperty(bytes, ref cursor, out _)
+                    && TryReadFbxStringProperty(bytes, ref cursor, out _)
+                    && cursor + 9 <= bytes.Length && bytes[cursor] == (byte)'D')
+                {
+                    factor = BitConverter.ToDouble(bytes, cursor + 1);
+                    return !double.IsNaN(factor) && !double.IsInfinity(factor);
+                }
+
+                // ASCII FBX 兼容路径。
+                string text = System.Text.Encoding.UTF8.GetString(bytes);
+                Match match = Regex.Match(text,
+                    @"UnitScaleFactor[^\r\n]*?,\s*([-+]?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?)\s*$",
+                    RegexOptions.Multiline);
+                if (match.Success && double.TryParse(match.Groups[1].Value,
+                        System.Globalization.NumberStyles.Float,
+                        System.Globalization.CultureInfo.InvariantCulture, out factor))
+                    return true;
+
+                error = "属性格式无法识别";
+                return false;
+            }
+            catch (Exception exception)
+            {
+                error = exception.Message;
+                return false;
+            }
+        }
+
+        private static bool TryReadFbxStringProperty(byte[] bytes, ref int cursor, out string value)
+        {
+            value = "";
+            if (cursor + 5 > bytes.Length || bytes[cursor] != (byte)'S') return false;
+            int length = BitConverter.ToInt32(bytes, cursor + 1);
+            cursor += 5;
+            if (length < 0 || cursor + length > bytes.Length) return false;
+            value = System.Text.Encoding.UTF8.GetString(bytes, cursor, length);
+            cursor += length;
+            return true;
+        }
+
+        private static int IndexOf(byte[] haystack, byte[] needle)
+        {
+            if (haystack == null || needle == null || needle.Length == 0) return -1;
+            for (int i = 0; i <= haystack.Length - needle.Length; i++)
+            {
+                int j = 0;
+                for (; j < needle.Length && haystack[i + j] == needle[j]; j++) { }
+                if (j == needle.Length) return i;
+            }
+            return -1;
+        }
+
+        public static bool ImportPart(string module, string folderName, string sourceFolder, out string summary)
+        {
+            if (!ValidatePartSource(module, folderName, sourceFolder, out summary))
+                return false;
+
+            string folder = (sourceFolder ?? "").Replace('\\', '/').TrimEnd('/');
             var tool = CreateInstance<ArtPrefabImporter>();
             try
             {
@@ -579,6 +758,7 @@ namespace Shenxiao.EditorTools.ArtImport
                 tool._partId = us >= 0 && us < folderName.Length - 1 ? folderName.Substring(us + 1) : folderName;
                 tool._sampleLanding = module == "role";
                 tool._checkRoleMounts = module == "role";
+                tool._suppressCompletionDialog = true;
 
                 Plan plan = tool.Scan();
                 if (plan.Files.Count == 0)
@@ -590,7 +770,8 @@ namespace Shenxiao.EditorTools.ArtImport
                 summary = $"{folderName}:新增 {plan.Files.Count(f => f.Action == FileAction.Add)}," +
                           $"替换 {plan.Files.Count(f => f.Action == FileAction.Replace)}," +
                           $"未变 {plan.Files.Count(f => f.Action == FileAction.SkipSame)}";
-                string[] structureIssues = ValidateImportedPartStructure(module, plan.RootPrefabDsts);
+                string[] structureIssues = ValidateImportedPartUnitSettings(module, folderName)
+                    .Concat(ValidateImportedPartStructure(module, plan.RootPrefabDsts)).ToArray();
                 if (structureIssues.Length > 0)
                 {
                     summary += ";模板结构检查失败:\n- " + string.Join("\n- ", structureIssues.Take(12));
@@ -1247,33 +1428,15 @@ namespace Shenxiao.EditorTools.ArtImport
                     }
 
                     RoleAssemblyProfileData assemblyProfile = _sampleLanding
-                        ? LoadRoleAssemblyProfile(rootPrefabs, landingSamples, notes)
+                        ? LoadRoleAssemblyProfile(rootPrefabs, notes)
                         : null;
-                    float canonicalLandingScale = 1f;
-                    if (assemblyProfile != null)
-                    {
-                        string canonicalPrefab = rootPrefabs.FirstOrDefault(path =>
-                            string.Equals(ActionFromPrefab(path), assemblyProfile.canonicalAction,
-                                StringComparison.OrdinalIgnoreCase));
-                        canonicalLandingScale = landingSamples[canonicalPrefab].scale;
-                    }
 
                     foreach (string dst in rootPrefabs)
                     {
-                        (bool hasLanding, Vector3 landing, float sampledScale) = landingSamples[dst];
-                        float landingScale = assemblyProfile != null ? canonicalLandingScale : sampledScale;
-                        float attachmentSpaceScale = assemblyProfile != null
-                            ? assemblyProfile.attachmentSpaceScale
-                            : 1f;
-                        if (assemblyProfile != null && hasLanding
-                            && Mathf.Abs(sampledScale / canonicalLandingScale - 1f) > 0.03f)
-                        {
-                            notes.Add($"动作体量统一 {Path.GetFileName(dst)}:姿势采样 scale={sampledScale:F6}," +
-                                      $"按 {assemblyProfile.canonicalAction} 固定为 {canonicalLandingScale:F6}");
-                        }
+                        var (hasLanding, landing, _) = landingSamples[dst];
                         string[] blendMats = AnalyzeBlendMaterials(dst, notes);
                         InjectProfile(dst, _renderMode == RenderMode.Dedicated, rendererIndex,
-                            hasLanding, landing, landingScale, attachmentSpaceScale, blendMats, notes);
+                            hasLanding, landing, 1f, 1f, blendMats, notes);
                     }
                 }
 
@@ -1299,12 +1462,15 @@ namespace Shenxiao.EditorTools.ArtImport
 
                 int added = plan.Files.Count(f => f.Action == FileAction.Add);
                 int replaced = plan.Files.Count(f => f.Action == FileAction.Replace);
-                EditorUtility.DisplayDialog("导入完成",
-                    $"新增 {added},替换 {replaced},未变 {plan.Files.Count(f => f.Action == FileAction.SkipSame)}," +
-                    $"去重 {plan.Files.Count(f => f.Action == FileAction.DedupDropped)}\n" +
-                    $"渲染模式:{_renderMode}(rendererIndex={rendererIndex})\n" +
-                    $"台账:{LedgerPath}" +
-                    (notes.Count > 0 ? $"\n注意事项 {notes.Count} 条,详见台账/Console" : ""), "好");
+                if (!_suppressCompletionDialog)
+                {
+                    EditorUtility.DisplayDialog("导入完成",
+                        $"新增 {added},替换 {replaced},未变 {plan.Files.Count(f => f.Action == FileAction.SkipSame)}," +
+                        $"去重 {plan.Files.Count(f => f.Action == FileAction.DedupDropped)}\n" +
+                        $"渲染模式:{_renderMode}(rendererIndex={rendererIndex})\n" +
+                        $"台账:{LedgerPath}" +
+                        (notes.Count > 0 ? $"\n注意事项 {notes.Count} 条,详见台账/Console" : ""), "好");
+                }
                 foreach (string n in notes) Debug.LogWarning("[ArtImport] " + n);
             }
             finally
@@ -1734,16 +1900,13 @@ namespace Shenxiao.EditorTools.ArtImport
         }
 
         /// <summary>
-        /// 落点/体量精确采样(按 prefab 自身):实例化后把【它自己的动作】用 SampleAnimation 拨到
-        /// 末帧,BakeMesh 紧致盒量出脚底中心与姿势包围盒高度。要点:
+        /// 落点精确采样(按 prefab 自身):实例化后把【它自己的动作】用 SampleAnimation 拨到
+        /// 末帧,BakeMesh 紧致盒量出脚底中心并记录姿势包围盒高度。要点:
         /// ① 不能用静态包围盒猜——嵌套 FBX 的默认姿势是绑定姿势,和动画停放点不是一回事;
-        /// ② 每个动作仍独立采落点；体量 scale 默认沿用本动作，带 role_assembly_profile 的角色则
-        ///    统一采用 canonicalAction，避免 death/跃起/披风等姿势包围盒把同一身体缩放成不同体型。
+        /// ② 每个动作仍独立采落点；源模型以 1400 为体量参照由美术统一，导入器不再按姿势包围盒缩放。
         /// </summary>
         private static (bool, Vector3, float) SamplePrefabLanding(string prefabPath, List<string> notes)
         {
-            const float TARGET_HEIGHT = 2.33f; // 老拼装角色的世界身高标准
-
             string roleFolder = Path.GetDirectoryName(prefabPath)?.Replace('\\', '/');
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             if (prefab == null || roleFolder == null) return (false, Vector3.zero, 1f);
@@ -1800,14 +1963,13 @@ namespace Shenxiao.EditorTools.ArtImport
                 Vector3 landing = pelvis != null && feetY < float.MaxValue
                     ? new Vector3(pelvis.position.x, feetY, pelvis.position.z)
                     : new Vector3(bounds.center.x, bounds.min.y, bounds.center.z); // 无标准骨骼才退回包围盒
-                float scale = TARGET_HEIGHT / bounds.size.y;
                 string msg = $"落点采样 {Path.GetFileName(prefabPath)}(按 {action} 末帧" +
                              $"{(clip != null ? "" : ",无clip默认姿势")}" +
                              $"{(pelvis != null ? ",骨骼锚点" : ",包围盒锚点")}):landing={landing} " +
-                             $"身高={bounds.size.y:F2} scale={scale:F2}";
+                             $"身高={bounds.size.y:F2} scale=1(保留源模型体量)";
                 Debug.Log("[ArtImport] " + msg);
                 notes.Add(msg); // 进台账,方便离线取证
-                return (true, landing, scale);
+                return (true, landing, 1f);
             }
             finally
             {
@@ -1817,24 +1979,13 @@ namespace Shenxiao.EditorTools.ArtImport
 
         private static RoleAssemblyProfileData LoadRoleAssemblyProfile(
             string[] rootPrefabs,
-            Dictionary<string, (bool hasLanding, Vector3 landing, float scale)> landingSamples,
             List<string> notes)
         {
             if (rootPrefabs == null || rootPrefabs.Length == 0) return null;
             string folder = Path.GetDirectoryName(rootPrefabs[0])?.Replace('\\', '/');
             string profilePath = string.IsNullOrEmpty(folder) ? null : $"{folder}/{RoleAssemblyProfileFile}";
             if (string.IsNullOrEmpty(profilePath) || !File.Exists(profilePath))
-            {
-                float[] validScales = landingSamples.Values
-                    .Where(sample => sample.hasLanding && sample.scale > 0.01f)
-                    .Select(sample => sample.scale).ToArray();
-                if (validScales.Length > 1 && validScales.Max() / validScales.Min() > 1.10f)
-                {
-                    notes.Add($"角色动作采样体量差异 {validScales.Max() / validScales.Min():F2}×，但缺少 " +
-                              $"{RoleAssemblyProfileFile}；请确认是否为姿势包围盒误差或骨架单位差异");
-                }
                 return null;
-            }
 
             try
             {
@@ -1842,27 +1993,25 @@ namespace Shenxiao.EditorTools.ArtImport
                     File.ReadAllText(profilePath));
                 if (profile == null || profile.version != 1
                     || string.IsNullOrWhiteSpace(profile.canonicalAction)
-                    || profile.attachmentSpaceScale < 0.01f)
+                    || Mathf.Abs(profile.attachmentSpaceScale - 1f) > 0.0001f)
                 {
                     notes.Add($"角色装配档案无效:{profilePath}(version=1、canonicalAction 非空、" +
-                              "attachmentSpaceScale>=0.01)");
+                              "统一尺寸批次 attachmentSpaceScale 必须为 1)");
                     return null;
                 }
 
                 string canonicalPrefab = rootPrefabs.FirstOrDefault(path =>
                     string.Equals(ActionFromPrefab(path), profile.canonicalAction,
                         StringComparison.OrdinalIgnoreCase));
-                if (canonicalPrefab == null || !landingSamples.TryGetValue(canonicalPrefab, out var canonical)
-                    || !canonical.hasLanding || canonical.scale < 0.01f)
+                if (canonicalPrefab == null)
                 {
-                    notes.Add($"角色装配档案 canonicalAction={profile.canonicalAction} 没有有效采样:" +
+                    notes.Add($"角色装配档案 canonicalAction={profile.canonicalAction} 没有对应动作:" +
                               profilePath);
                     return null;
                 }
 
                 notes.Add($"角色装配空间 {Path.GetFileName(folder)}:template={profile.skeletonTemplate}," +
-                          $"canonical={profile.canonicalAction},landingScale={canonical.scale:F6}," +
-                          $"attachmentSpaceScale={profile.attachmentSpaceScale:F6}");
+                          $"canonical={profile.canonicalAction},landingScale=1,attachmentSpaceScale=1");
                 return profile;
             }
             catch (Exception e)

@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "route": "mainui.role.outward-wing.experiment-v1",
+  "started_at": "2026-08-11T23:31:06.812+08:00",
+  "updated_at": "2026-08-11T23:31:13.721+08:00",
+  "note": "轻量生产实验；旧outward-wing.timing.json只读保留，历史context/manifest/75节点不计入本实验。",
+  "phases": [
+    {
+      "id": "diff-conflict-check",
+      "bucket": "context-load",
+      "kind": "active",
+      "started_at": "2026-08-11T23:31:13.721+08:00",
+      "ended_at": null,
+      "duration_ms": null,
+      "note": "只检查当前diff、目标文件冲突与实验边界；不重复历史调查。"
+    }
+  ],
+  "events": [],
+  "summary": {
+    "closed_duration_ms": 0,
+    "active_ms": 0,
+    "wait_ms": 0,
+    "by_bucket_ms": {
+      "build-web": 0,
+      "component-matrix": 0,
+      "context-load": 0,
+      "diagnosis": 0,
+      "editor-cli": 0,
+      "environment-wait": 0,
+      "implementation": 0,
+      "legacy-inventory": 0,
+      "rework": 0,
+      "uiaudit-preflight": 0
+    },
+    "estimated_saved_ms": 0,
+    "recorded_failure_ms": 0,
+    "repeat_failure_count": 0,
+    "open_phase": "diff-conflict-check"
+  }
+}

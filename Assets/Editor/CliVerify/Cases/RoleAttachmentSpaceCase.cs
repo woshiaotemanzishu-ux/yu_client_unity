@@ -10,15 +10,15 @@ using UnityEngine;
 namespace Shenxiao.EditorTools
 {
     /// <summary>
-    /// 角色骨架级附件空间回归：1201 保持自身天然体型，以 idle 固定全动作体量；1213 标准头饰挂到
-    /// 1201 时由角色档案统一换算，最终世界比例必须与挂到 1213 基准身体时一致。日志前缀
+    /// 角色统一尺寸回归：1201 与 1213 均保留美术源模型体量，角色动作与附件空间倍率固定为 1；
+    /// 同一标准头饰跨身体挂接后的世界比例必须一致。日志前缀
     /// "CLIVERIFY attachmentspace"。本用例只读现有导入产物，不重导、不改 Addressables。
     /// </summary>
     public static class RoleAttachmentSpaceCase
     {
         private const string Role1201Dir = "Assets/GameRes/object/role/role_1201";
         private const string Role1213Idle = "Assets/GameRes/object/role/role_1213/1213@idle.prefab";
-        private const float ExpectedAttachmentSpace = 0.26913473f;
+        private const float ExpectedNormalScale = 1f;
         [MenuItem("神霄/验证/1201 角色附件空间")]
         public static async void RunFromMenu()
         {
@@ -62,8 +62,8 @@ namespace Shenxiao.EditorTools
                 ArtModelRenderProfile profile = AssetDatabase.LoadAssetAtPath<GameObject>(path)
                     ?.GetComponent<ArtModelRenderProfile>();
                 bool actionOk = profile != null && profile.hasLanding
-                    && Nearly(profile.landingScale, idleProfile.landingScale)
-                    && Nearly(profile.attachmentSpaceScale, ExpectedAttachmentSpace);
+                    && Nearly(profile.landingScale, ExpectedNormalScale)
+                    && Nearly(profile.attachmentSpaceScale, ExpectedNormalScale);
                 if (!actionOk)
                 {
                     allActionsUnified = false;
@@ -72,15 +72,16 @@ namespace Shenxiao.EditorTools
                 }
             }
 
-            float effective1201 = idleProfile.landingScale * idleProfile.attachmentSpaceScale;
-            bool ratioOk = Nearly(idleProfile.attachmentSpaceScale, ExpectedAttachmentSpace)
-                           && Nearly(effective1201, referenceProfile.landingScale, 0.0002f);
-            bool bodyKept = Nearly(idleProfile.landingScale, 1.3540467f, 0.0002f)
+            bool profilesNormal = Nearly(idleProfile.landingScale, ExpectedNormalScale)
+                                  && Nearly(idleProfile.attachmentSpaceScale, ExpectedNormalScale)
+                                  && Nearly(referenceProfile.landingScale, ExpectedNormalScale)
+                                  && Nearly(referenceProfile.attachmentSpaceScale, ExpectedNormalScale);
+            bool bodyKept = Nearly(idleProfile.landingScale, ExpectedNormalScale)
                             && Nearly(idlePrefab.transform.localScale.x, 1f);
             Debug.Log($"CLIVERIFY attachmentspace profile actions={actionPrefabs.Length}," +
                       $"bodyLanding={idleProfile.landingScale:F7},attachment={idleProfile.attachmentSpaceScale:F8}," +
-                      $"effective={effective1201:F7},reference={referenceProfile.landingScale:F7}," +
-                      $"allActionsUnified={allActionsUnified},ratioOk={ratioOk},bodyKept={bodyKept}");
+                      $"referenceLanding={referenceProfile.landingScale:F7}," +
+                      $"allActionsUnified={allActionsUnified},profilesNormal={profilesNormal},bodyKept={bodyKept}");
 
             bool fallbackBefore = ResManager.EditorPreferFallback;
             GameObject role1201 = null;
@@ -97,7 +98,7 @@ namespace Shenxiao.EditorTools
                 Debug.Log($"CLIVERIFY attachmentspace runtime head1201={scale1201},head1213={scale1213}," +
                           $"runtimeOk={runtimeOk}");
 
-                bool pass = allActionsUnified && ratioOk && bodyKept && runtimeOk;
+                bool pass = allActionsUnified && profilesNormal && bodyKept && runtimeOk;
                 Debug.Log("CLIVERIFY attachmentspace VERDICT pass=" + pass);
                 return pass ? 0 : 3;
             }

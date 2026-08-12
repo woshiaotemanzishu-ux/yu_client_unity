@@ -81,9 +81,9 @@ namespace Shenxiao.Common.UI3D
         public static GameObject MainRoleDetachedEffectHost => _mainRoleDetachedEffects;
 
         /// <summary>
-        /// 跟随主角落点、yaw 与 2.5D 倾斜，但不继承模型体量归一缩放的稳定特效宿主。
+        /// 跟随主角落点、yaw 与 2.5D 倾斜，但不继承可选场景展示缩放的稳定特效宿主。
         /// 跑动拖尾等按老模型单位制作的循环特效必须挂这里，不能挂新动作 prefab 内部的 root：
-        /// 该 root 会随 ArtModelStager 的 landingOffset 后移，并把老特效再乘一次 landingScale。
+        /// 该 root 会随 ArtModelStager 的 landingOffset 后移，导致老特效脱离人物落点。
         /// </summary>
         public static GameObject MainRoleAttachedEffectHost => _mainRoleAttachedEffects;
 
@@ -142,7 +142,7 @@ namespace Shenxiao.Common.UI3D
 
             // 跑动拖尾既要跟随角色 yaw/倾斜，又必须继续使用老模型的世界单位。把稳定宿主放在模型
             // 容器根下可自动继承 Face() 的 yaw；反向抵消场景体量缩放后，外部老特效始终保持 scale=1。
-            // 混合模型的 idle/run/skill 子实例如何切换，都不会再把特效带进各自的 landingScale/root 空间。
+            // 混合模型的 idle/run/skill 子实例如何切换，都不会再把特效带进各自的 landingOffset/root 空间。
             _mainRoleAttachedEffects = new GameObject("MainRoleAttachedEffects");
             _mainRoleAttachedEffects.transform.SetParent(model.transform, false);
             _mainRoleAttachedEffects.transform.localPosition = Vector3.zero;

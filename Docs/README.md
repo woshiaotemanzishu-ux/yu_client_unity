@@ -12,10 +12,10 @@
 
 | 场景 | 必读文档 |
 |---|---|
-| 任意代码任务 | [Shenxiao重构实施方案](Shenxiao重构实施方案.md)、[Shenxiao编码规范](Shenxiao编码规范.md)、仓库根 [AGENTS.md](../AGENTS.md) |
+| 任意任务 | 先读仓库根 [AGENTS.md](../AGENTS.md)；架构变更再读 [Shenxiao重构实施方案](Shenxiao重构实施方案.md)，编码约定相关再读 [Shenxiao编码规范](Shenxiao编码规范.md) |
 | 查看当前完成度、范围和 blocker | [Shenxiao实施进度](Shenxiao实施进度.md) |
 | UI 转换、Prefab、Bind、运行时补图 | [LayaUI转换流水线](LayaUI转换流水线.md)、[UI模块SOP](UI模块SOP.md)、[Unity动态资源开发期可见化规范](Unity动态资源开发期可见化规范.md) |
-| UI 对接、UI 精修、老端对照验收、GM 采集账号准备 | [UI对接与精修工作流](UI对接与精修工作流.md)、[UIAudit 公共采集与探针基础设施](RuntimeCompare/UIAudit公共采集与探针基础设施-20260811.md)、[角色-垂神翼影运行态通用转换实验](RuntimeCompare/角色-垂神翼影运行态通用转换实验-20260812.md)、[人物与设置面板对标-经验与排障](人物与设置面板对标-经验与排障.md) |
+| UI 功能快接、视觉精修或最终验收 | 先读 [UI工作流](UI对接与精修工作流.md) 选择一种模式；只有最终验收再读 [UIAudit 公共采集与探针基础设施](RuntimeCompare/UIAudit公共采集与探针基础设施-20260811.md)，具体页面经验按需读取 |
 | UI 分辨率和锚点 | [UI分辨率适配手册](UI分辨率适配手册.md) |
 | 登录、网络和选服 | [Shenxiao登录链路](Shenxiao登录链路.md) |
 | 选角后、主界面、场景接管 | [Shenxiao进游戏链路](Shenxiao进游戏链路.md) |

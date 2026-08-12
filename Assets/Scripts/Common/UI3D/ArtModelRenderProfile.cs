@@ -35,10 +35,10 @@ namespace Shenxiao.Common.UI3D
         [Tooltip("create3 待机末帧的精确落点(美术场景坐标:脚底中心)")]
         public Vector3 landingOffset;
 
-        [Tooltip("体量归一系数(采样身高→老角色身高 2.33)")]
+        [Tooltip("历史体量归一字段。统一尺寸交付后固定为 1，仅为旧 Prefab 序列化兼容保留")]
         public float landingScale = 1f;
 
-        [Tooltip("角色本体的标准附件空间倍率。身体体型保持不变，头饰/武器/翅膀/背饰在挂接时统一乘此值；非角色或未标准化角色为 1")]
+        [Tooltip("角色本体的标准附件空间倍率。统一尺寸交付后固定为 1；仅显式批准的旧资源例外可使用其他值")]
         public float attachmentSpaceScale = 1f;
 
         [Tooltip("需要【半透渐变混合】的材质名(导入时分析贴图 alpha 直方图:有中间值=轻纱/雾状渐变," +

@@ -121,12 +121,11 @@ namespace Shenxiao.Common.UI3D
             inst.transform.SetParent(pivot.transform, false);
             if (profile.hasLanding)
             {
-                // 落点是美术场景坐标;换算成"相对本 prefab 根"的位移再缩放,把落点挪到 pivot 原点。
-                // 根自身的缩放要保留相乘(美术可能用根缩放做整体包装),覆盖掉=体量爆炸
+                // 落点是美术场景坐标；换算成“相对本 prefab 根”的位移，把落点挪到 pivot 原点。
+                // 体量以源 Prefab 为准，不再读取历史 landingScale 做二次归一。
                 Vector3 rootPos = sourcePrefab.transform.position;
-                inst.transform.localScale =
-                    sourcePrefab.transform.localScale * profile.landingScale;
-                inst.transform.localPosition = -(profile.landingOffset - rootPos) * profile.landingScale;
+                inst.transform.localScale = sourcePrefab.transform.localScale;
+                inst.transform.localPosition = -(profile.landingOffset - rootPos);
             }
             else
             {

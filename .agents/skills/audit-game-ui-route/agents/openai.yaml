@@ -1,4 +1,4 @@
 interface:
-  display_name: "UI 对接与精修"
-  short_description: "老端对照、逐叶修复并验收功能、状态、视觉、模型与性能"
-  default_prompt: "使用 $audit-game-ui-route 对指定页面执行完整 UI 对接/精修流程，并沿功能树逐叶修复和验收。"
+  display_name: "UI 最终验收"
+  short_description: "对已完成页面执行真实运行、完整控件树、逐叶事务和视觉最终验收"
+  default_prompt: "使用 $audit-game-ui-route 对这个已完成开发的页面做最终运行验收，只报告证据和缺陷，不在验收中修复。"

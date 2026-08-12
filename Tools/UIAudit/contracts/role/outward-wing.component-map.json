@@ -1,0 +1,785 @@
+{
+  "schema": "shenxiao.ui-function-component-map.v1",
+  "contract": "Tools/UIAudit/contracts/role/outward-wing.function-contract.json",
+  "route": "角色/垂神翼影(type_id=3)",
+  "mappedAt": "2026-08-12T13:35:00+08:00",
+  "mappingCount": 59,
+  "protocolImplementation": {
+    "contracted": {
+      "count": 18,
+      "items": [
+        15304,
+        16002,
+        16003,
+        16005,
+        16006,
+        16007,
+        16008,
+        16009,
+        16010,
+        16011,
+        16020,
+        16022,
+        16027,
+        16028,
+        16029,
+        16030,
+        51300,
+        51302
+      ]
+    },
+    "transportOrCodecImplemented": {
+      "count": 18,
+      "items": [
+        15304,
+        16002,
+        16003,
+        16005,
+        16006,
+        16007,
+        16008,
+        16009,
+        16010,
+        16011,
+        16020,
+        16022,
+        16027,
+        16028,
+        16029,
+        16030,
+        51300,
+        51302
+      ]
+    },
+    "controllerModelImplemented": {
+      "count": 18,
+      "items": [
+        15304,
+        16002,
+        16003,
+        16005,
+        16006,
+        16007,
+        16008,
+        16009,
+        16010,
+        16011,
+        16020,
+        16022,
+        16027,
+        16028,
+        16029,
+        16030,
+        51300,
+        51302
+      ]
+    },
+    "uiSemanticClosed": {
+      "count": 18,
+      "items": [
+        15304,
+        16002,
+        16003,
+        16005,
+        16006,
+        16007,
+        16008,
+        16009,
+        16010,
+        16011,
+        16020,
+        16022,
+        16027,
+        16028,
+        16029,
+        16030,
+        51300,
+        51302
+      ],
+      "pendingItems": []
+    },
+    "type3Forbidden": [
+      16013,
+      16021,
+      16024,
+      18202
+    ],
+    "note": "51302由FairyWishEnterBtnBind.img_btn语义闭环；16030由OutwardLvSystemView具名技能行闭环；15304由QuickBuy完整直接子控件、CalculatorFlow与140/141独立来源条目静态闭环，仍待运行验收。"
+  },
+  "summary": {
+    "mappedLogic": 56,
+    "logicGap": 0,
+    "missingProductionView": 0,
+    "missingProductionConsumer": 0,
+    "missingNamedPrefabControl": 0,
+    "notApplicable": 3
+  },
+  "items": [
+    {
+      "id": "ow.nav.mainui-role",
+      "legacy": "MainUI role icon -> RoleView",
+      "legacyEvent": "RoleView open/close",
+      "protocol": [],
+      "unityNamed": "MainUIRouter[role] -> RoleFlow.Toggle",
+      "unityLogic": "RoleBootstrap/RoleFlow",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.nav.type3-tab",
+      "legacy": "RoleView WingsComponentView",
+      "legacyEvent": "OPEN_MOUNTPET_VIEW(type=3)",
+      "protocol": [
+        16002,
+        16006,
+        16011,
+        16028
+      ],
+      "unityNamed": "RoleFlow TabContent[1] -> OutWardBaseView.SetType(3)",
+      "unityLogic": "RoleFlow.OpenOutwardTab/OutWardController.RequestPanelData",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.main.header-name-stage",
+      "legacy": "OutWardBaseView.SetStage",
+      "legacyEvent": "UPDATE_OUTWARD_DATA",
+      "protocol": [
+        16002
+      ],
+      "unityNamed": "res_name,res_stage,lvsystem_lv",
+      "unityLogic": "Refresh/GetStageName",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.main.combat",
+      "legacy": "fight_item.SetFightValue",
+      "legacyEvent": "UPDATE_OUTWARD_DATA",
+      "protocol": [
+        16002,
+        16028
+      ],
+      "unityNamed": "_gp_fight/_lb_fighting",
+      "unityLogic": "SetCombat",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.main.property-open",
+      "legacy": "proptity_btn",
+      "legacyEvent": "属性弹窗点击",
+      "protocol": [],
+      "unityNamed": "proptity_btn",
+      "unityLogic": "OpenProperty -> OutWardPropertyFlow.Show",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.main.property-content",
+      "legacy": "PetProptityView attr_list",
+      "legacyEvent": "SetData",
+      "protocol": [
+        16002,
+        16028
+      ],
+      "unityNamed": "CommonModule/PropertyTipsViewBind",
+      "unityLogic": "OutWardPropertyFlow.Render",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.main.property-close",
+      "legacy": "PetProptityView mask/close",
+      "legacyEvent": "CLOSE",
+      "protocol": [],
+      "unityNamed": "PropertyTipsViewBind._Image1",
+      "unityLogic": "OutWardPropertyFlow.Close",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.main.model",
+      "legacy": "WingsComponentView.SetModel/res",
+      "legacyEvent": "SetStage/ChangeFigure",
+      "protocol": [
+        16002,
+        16003
+      ],
+      "unityNamed": "res",
+      "unityLogic": "RefreshOutwardModel/UIModelStage/RT ready",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.main.effect",
+      "legacy": "AddUIEffect/model always effect",
+      "legacyEvent": "model/effect lifecycle",
+      "protocol": [],
+      "unityNamed": "effect_group + model instance",
+      "unityLogic": "EffectLifecycleState Begin/Attached/ObserveFrame/Released，双帧 fingerprint 推进动态态",
+      "runtimePending": "真实双时点像素验收按总控暂停",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.main.skills-display",
+      "legacy": "skill_group/GetDefaultSkillList",
+      "legacyEvent": "UPDATE_OUTWARD_DATA",
+      "protocol": [
+        16002
+      ],
+      "unityNamed": "skill_group/PetRoundItemBind[]",
+      "unityLogic": "SetSkills",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.main.skill-detail",
+      "legacy": "PetSkillView",
+      "legacyEvent": "skill item click",
+      "protocol": [],
+      "unityNamed": "PetRoundItemBind.click_group -> CommonModule/SkillTipsView",
+      "unityLogic": "OnSkillSlot/DressSkillTipFlow",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.main.crystal-display",
+      "legacy": "crystal_group/SetCrystalData",
+      "legacyEvent": "UPDATE_CRYSTAL_DATA",
+      "protocol": [
+        16011
+      ],
+      "unityNamed": "crystal_group/PetRoundItemBind[]",
+      "unityLogic": "SetCrystals",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.main.crystal-detail",
+      "legacy": "PetCrystalView",
+      "legacyEvent": "crystal item click(read branch)",
+      "protocol": [],
+      "unityNamed": "PetRoundItemBind.click_group -> ItemTipsView",
+      "unityLogic": "OnCrystalSlot(empty/full branch)",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.main.crystal-use",
+      "legacy": "UseOutWardItem",
+      "legacyEvent": "crystal item click(write branch)",
+      "protocol": [
+        16010,
+        16011,
+        16002
+      ],
+      "unityNamed": "PetRoundItemBind.click_group",
+      "unityLogic": "OnCrystalSlot -> UseCrystal",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.main.materials-display",
+      "legacy": "material_group/BaseAwardItem",
+      "legacyEvent": "bag/update outward",
+      "protocol": [
+        16002
+      ],
+      "unityNamed": "material_group/BaseAwardItem[]",
+      "unityLogic": "SetMaterials",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.main.material-detail",
+      "legacy": "BaseAwardItem item tip",
+      "legacyEvent": "item click",
+      "protocol": [],
+      "unityNamed": "BaseAwardItem shared click",
+      "unityLogic": "BaseAwardItem.SetData",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.main.auto",
+      "legacy": "autoGp",
+      "legacyEvent": "type1/2 only",
+      "protocol": [
+        16024
+      ],
+      "unityNamed": "autoGp,_Image14,autoImg",
+      "unityLogic": "SetAutoBuy/ToggleAutoBuy type guard",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.main.one-key-state",
+      "legacy": "lv_button/lv_btn_reddot/QuickBuy",
+      "legacyEvent": "bag + UPDATE_OUTWARD_DATA",
+      "protocol": [
+        16002
+      ],
+      "unityNamed": "lv_button,lv_button_img,lv_button_text,lv_btn_reddot",
+      "unityLogic": "GetOneKeyState 投影 Ready/Insufficient/MaxStage、QuickBuy、红点并阻止错误16005",
+      "uiBlocker": "QuickBuy production View missing",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.main.one-key-submit",
+      "legacy": "OnOneKeyUPBtnClick/UpFunc",
+      "legacyEvent": "click -> authoritative refresh",
+      "protocol": [
+        16005,
+        16002
+      ],
+      "unityNamed": "lv_button_img",
+      "unityLogic": "OnLvButton -> StarUpGeneric(3)",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.main.quick-buy-open",
+      "legacy": "OutWardBaseView.OnOneKeyUPBtnClick材料不足→QuickBuyView",
+      "legacyEvent": "CanLvUp=false且auto_buy=0时打开传递弹窗",
+      "protocol": [],
+      "unityNamed": "OutWardBaseView.lv_button_img→CommonModule/QuickBuyViewBind",
+      "unityLogic": "GetOneKeyState.ShouldOpenQuickBuy→QuickBuyFlow.Show(first type=1 material)",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.quick-buy.quantity",
+      "legacy": "QuickBuyView.reduce_btn/increase_btn/max_btn",
+      "legacyEvent": "NumChange/SetCurNum/SetAllPrice",
+      "protocol": [],
+      "unityNamed": "QuickBuyViewBind.reduce_btn/increase_btn/max_btn/cur_show_num/total_label",
+      "unityLogic": "QuickBuyFlow.Project/ChangeCount/SetMax/Refresh",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.quick-buy.currency",
+      "legacy": "QuickBuyView.diamond_group/binddiamond_group",
+      "legacyEvent": "SetBuyType",
+      "protocol": [],
+      "unityNamed": "QuickBuyViewBind.diamond_group/binddiamond_group/price_label/total_label",
+      "unityLogic": "QuickBuyFlow.SelectBuyType/Project/Refresh",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.quick-buy.purchase",
+      "legacy": "QuickBuyView.buy_btn",
+      "legacyEvent": "SHOP_REQUEST_PROTO 15304 then Close",
+      "protocol": [
+        15304
+      ],
+      "unityNamed": "QuickBuyViewBind.buy_btn",
+      "unityLogic": "QuickBuyFlow.Buy→ShopController.QuickBuy；成功/失败事件矩阵；待专用账号事务验证",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.quick-buy.close-refresh",
+      "legacy": "QuickBuyView.close_btn/15304 callback",
+      "legacyEvent": "Close并由权威背包/货币态刷新父页",
+      "protocol": [
+        15304
+      ],
+      "unityNamed": "QuickBuyViewBind.close_btn",
+      "unityLogic": "QuickBuyFlow.Close/Reset + OutWardBaseView.OnQuickBuySuccess",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.quick-buy.recharge",
+      "legacy": "QuickBuyView.recharge_btn→OpenFun(21)",
+      "legacyEvent": "open recharge then close QuickBuy",
+      "protocol": [],
+      "unityNamed": "QuickBuyViewBind.recharge_btn",
+      "unityLogic": "QuickBuyFlow.OpenRecharge→VipBootstrap/MainUIRouter(recharge)；未注册时不关闭、不进占位页",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.quick-buy.calculator",
+      "legacy": "QuickBuyView.num_touch→OPEN_CALCULATOR_VIEW",
+      "legacyEvent": "max_num + num_change_fun callback",
+      "protocol": [],
+      "unityNamed": "QuickBuyViewBind.num_touch + CommonModule/CalculatorViewBind",
+      "unityLogic": "CalculatorFlow.Attach/Show：0-9、退格、确认/背景关闭、max上限、ChangeCount回调",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.quick-buy.getway-list",
+      "legacy": "QuickBuyView.SetIconData/getway_url/icon_scroller",
+      "legacyEvent": "OpenFun.OpenIcon + OpenFunHandler(id,args)",
+      "protocol": [],
+      "unityNamed": "QuickBuyViewBind.other_group/icon_scroller/icon_group/_tpl_QuickBuySourceItem；QuickBuySourceItem.icon/label",
+      "unityLogic": "GoodsModel来源→两个独立QuickBuySourceItem→ResolveGoodsSourceTab(140/141)→ShopFlow.OpenTab(1/2)；老端本路线无goodsId参数",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.main.base-state",
+      "legacy": "illu_group/using_gp/unuse_gp",
+      "legacyEvent": "UPDATE_OUTWARD_DATA/ILLUSION_OUTWARD",
+      "protocol": [
+        16002,
+        16003
+      ],
+      "unityNamed": "illu_group,using_gp,unuse_gp,preview_image",
+      "unityLogic": "SetBaseAppearanceState",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.main.base-toggle",
+      "legacy": "base appearance click",
+      "legacyEvent": "ILLUSION_OUTWARD",
+      "protocol": [
+        16003
+      ],
+      "unityNamed": "illu_group",
+      "unityLogic": "OnBaseAppearanceClick/WearIllusion",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.main.illusion-red",
+      "legacy": "illu_red/ShowIlluRed",
+      "legacyEvent": "figure/bag/red updates",
+      "protocol": [
+        16006,
+        16007
+      ],
+      "unityNamed": "illu_red",
+      "unityLogic": "GetIllusionRedState 枚举全部职业 FigureState 并聚合 CanActivate/CanStageUp/CanStarUp",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.illusion.open",
+      "legacy": "WingsComponentView.OnIllusionBtnClick -> WingsIllusionView",
+      "legacyEvent": "OPEN_VIEW",
+      "protocol": [
+        16006
+      ],
+      "unityNamed": "OutWardBaseView.illusion_btn -> PetModule/IllusionBaseView",
+      "unityLogic": "CaptureSiblingIllusion/PrepareIllusionHost -> IllusionBaseView.Open/RequestIllusionList",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.illusion.list",
+      "legacy": "IllusionBaseView.illusion_scroller/illusion_group",
+      "legacyEvent": "ILLU_DATA_LIST",
+      "protocol": [
+        16006,
+        16007
+      ],
+      "unityNamed": "IllusionBaseViewBind.illusion_scroller/illusion_group/_tpl_IllusionItem",
+      "unityLogic": "IllusionBaseView.RebuildList <- GetIllusionRedState/FigureBriefVo",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.illusion.select",
+      "legacy": "IllusionItem click callback",
+      "legacyEvent": "selection + detail",
+      "protocol": [
+        16007
+      ],
+      "unityNamed": "IllusionItemBind.click_bg/select_bg",
+      "unityLogic": "SelectFigure -> RequestFigureDetail/RequestFightPreview/GetIllusionFigureState",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.illusion.model-effect",
+      "legacy": "IllusionBaseView.res/effect/effect_group",
+      "legacyEvent": "selection model refresh",
+      "protocol": [],
+      "unityNamed": "IllusionBaseViewBind.res/effect/effect_group",
+      "unityLogic": "RefreshSelected -> epoch keyed ResManager load -> ClientOutWardPos -> UIModelStage.PlaceInstance -> EffectBinder.AttachAlways???/Hide/Close/Dispose??",
+      "mapStatus": "mapped",
+      "runtimePending": "??????ready?????????C"
+    },
+    {
+      "id": "ow.illusion.attributes",
+      "legacy": "prop_scroller/prop_group",
+      "legacyEvent": "SetPropData",
+      "protocol": [
+        16007
+      ],
+      "unityNamed": "IllusionBaseViewBind.prop_scroller/prop_group/_tpl_IllusionPropItem",
+      "unityLogic": "RebuildAttributes <- FigureDetailVo.Attrs/GetFigureStageRow",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.illusion.skills",
+      "legacy": "skill_group/PetSkillView",
+      "legacyEvent": "SetSkillData",
+      "protocol": [
+        16007
+      ],
+      "unityNamed": "IllusionBaseViewBind.skill_group/_tpl_PetRoundItem(PrefabInstance)",
+      "unityLogic": "RebuildSkills <- FigureDetailVo.Skills/GetSkillRow，最多3行",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.illusion.state-locked",
+      "legacy": "locked preview/activation condition",
+      "legacyEvent": "select locked item",
+      "protocol": [],
+      "unityNamed": "proview_bg/right_group/source_text/upstage_btn",
+      "unityLogic": "RefreshSelected <- Configured/ConditionsMet/CanActivate；source_text保留老端解锁提示语义",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.illusion.state-active-current",
+      "legacy": "active/current/using state group",
+      "legacyEvent": "ILLUSION_OUTWARD + list refresh",
+      "protocol": [
+        16003,
+        16006
+      ],
+      "unityNamed": "illu_group/unillu_btn/illusion_btn/IllusionItemBind.using_tip",
+      "unityLogic": "RefreshSelected <- Activated/Current",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.illusion.wear",
+      "legacy": "illusion_btn",
+      "legacyEvent": "ILLUSION_OUTWARD",
+      "protocol": [
+        16003
+      ],
+      "unityNamed": "IllusionBaseViewBind.illusion_btn",
+      "unityLogic": "Activated&&!Current -> WearIllusion(type=2)",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.illusion.unwear",
+      "legacy": "unillu_btn",
+      "legacyEvent": "ILLUSION_OUTWARD",
+      "protocol": [
+        16003
+      ],
+      "unityNamed": "IllusionBaseViewBind.unillu_btn",
+      "unityLogic": "Current -> WearIllusion(type=1)",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.illusion.activate",
+      "legacy": "activation submit",
+      "legacyEvent": "active illusion",
+      "protocol": [
+        16008,
+        16006
+      ],
+      "unityNamed": "upstage_btn/upstage_lb/stage_reddot",
+      "unityLogic": "未激活态 CanActivate -> ActivateFigure；激活后同按钮切换升阶语义",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.illusion.stage-state",
+      "legacy": "use_goods_group/use_exp_group",
+      "legacyEvent": "selection/detail/bag",
+      "protocol": [
+        16007
+      ],
+      "unityNamed": "use_goods_group/upstage_group/use_exp_group/exp_item_group",
+      "unityLogic": "RefreshSelected <- HasNextStage/CanStageUp",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.illusion.stage-submit",
+      "legacy": "upstage_btn/exp_upstage_btn",
+      "legacyEvent": "EVOLUTION_OUTWARD_FIGURE",
+      "protocol": [
+        16009,
+        16006,
+        16007
+      ],
+      "unityNamed": "upstage_btn/exp_upstage_btn",
+      "unityLogic": "CanStageUp -> UpgradeFigureStage",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.illusion.star-open",
+      "legacy": "OutwardStarView entry",
+      "legacyEvent": "open star popup",
+      "protocol": [
+        16027
+      ],
+      "unityNamed": "resolve_btn/resolve_red",
+      "unityLogic": "HasStarSystem -> RequestStarFightPreview；type3配置无星级行时隐藏",
+      "mapStatus": "not-applicable"
+    },
+    {
+      "id": "ow.illusion.star-submit",
+      "legacy": "OutwardStarView.upBtn",
+      "legacyEvent": "upgrade star",
+      "protocol": [
+        16020,
+        16006,
+        16007
+      ],
+      "unityNamed": "resolve_btn(条件入口)/IllusionBaseView.SubmitStarSelected",
+      "unityLogic": "CanStarUp -> UpgradeFigureStar；type3配置不可达不呈现提交态",
+      "mapStatus": "not-applicable"
+    },
+    {
+      "id": "ow.illusion.close",
+      "legacy": "WingsIllusionView close/back",
+      "legacyEvent": "close -> train main",
+      "protocol": [],
+      "unityNamed": "shared BaseWindow close + PetModule/IllusionBaseView root",
+      "unityLogic": "IllusionBaseView.Close；OutWardBaseView OnHide/Dispose RestoreIllusionHost",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.level.train-tab",
+      "legacy": "btn_group_1/select_1",
+      "legacyEvent": "ChooseView(tab=1)",
+      "protocol": [],
+      "unityNamed": "btn_group_1/select_1/down_group_1",
+      "unityLogic": "SetLevelMode(false)/RestoreTrainContainers",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.level.switch",
+      "legacy": "btn_switch + btn_group_2/select_2",
+      "legacyEvent": "GetLvSystemOpenState/ChooseView",
+      "protocol": [
+        16028
+      ],
+      "unityNamed": "btn_switch/btn_group_2/select_2/donw_group_2 -> PetModule/OutwardLvSystem(default inactive)",
+      "unityLogic": "CaptureSiblingLevelSystem/SetLevelMode -> reparent to donw_group_2 -> OutwardLvSystemView.Open/16028 -> restore",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.level.summary",
+      "legacy": "lv_system_info level/exp/combat/attr",
+      "legacyEvent": "UPDATE_LV_SYSTEM_INFO",
+      "protocol": [
+        16028,
+        16029
+      ],
+      "unityNamed": "res_stage,lvsystem_lv,_gp_fight,exp_group,level_text,level_value",
+      "unityLogic": "RenderLevelState/OpenProperty(LvAttrs)",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.level.skills",
+      "legacy": "RenderSkillLvTips 3 skill rows",
+      "legacyEvent": "skill_list update",
+      "protocol": [
+        16028,
+        16030
+      ],
+      "unityNamed": "OutwardLvSystemView.lv_skill_group/_tpl_PetRoundItem -> 3x PetRoundItemBind.click_group/up_arrow1",
+      "unityLogic": "GetLevelSkillRows -> name/icon/level/red; click_group??; CanUpgradeLevelSkill/TryLvSkillUp",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.level.level-up",
+      "legacy": "AutoLvUp/lv_button",
+      "legacyEvent": "LV_UP",
+      "protocol": [
+        16029,
+        16002
+      ],
+      "unityNamed": "OutwardLvSystemView.img_btn_group3/lb_btn_group3/img_btn_group3_red/lv_exp_group/goods_group/maxGp",
+      "unityLogic": "??type=4???HasLevel?? -> ??/??/?? -> LvUp16029 -> transaction result?????",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.level.skill-up",
+      "legacy": "skill row upgrade",
+      "legacyEvent": "SKILL_LV_UP",
+      "protocol": [
+        16030,
+        16002
+      ],
+      "unityNamed": "3x PetRoundItemBind.up_arrow1 (named serialized child)",
+      "unityLogic": "row.CanUpgrade controls hit/red -> TryLvSkillUp -> 16030",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.fairy.visibility",
+      "legacy": "enter_btn/FairyWishEnterBtn",
+      "legacyEvent": "role level/open day/fairy update",
+      "protocol": [],
+      "unityNamed": "enter_btn + FairyWishEnterBtnBind.img_btn/img_red/box_pop/effect_con/htmlContent",
+      "unityLogic": "RefreshFairyWishEntry 投影开放条件与 Bubble/RedDot/Hidden；不调用子Bind.Show",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.fairy.open-query",
+      "legacy": "enter_btn click -> FairyWishView",
+      "legacyEvent": "open query",
+      "protocol": [
+        51300
+      ],
+      "unityNamed": "FairyWishEnterBtnBind.img_btn 唯一点击面",
+      "unityLogic": "ConfirmEntryTouch -> FairyWishFlow.Open(1003)/RequestInfo/close chain",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.fairy.red-confirm",
+      "legacy": "OutWardBaseView entry ON_TOUCH_ICON",
+      "legacyEvent": "入口 red_info 1→2 发51302；2/3→3不发",
+      "protocol": [
+        51302
+      ],
+      "unityNamed": "FairyWishEnterBtnBind.img_btn/img_red/box_pop；FairyWishView._btn_operate明确排除51302",
+      "unityLogic": "EntryRedState/ConfirmEntryTouch；Bubble条件发51302，强类型入口即时刷新",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.lifecycle.initial-reads",
+      "legacy": "OPEN_MOUNTPET_VIEW/GameStart",
+      "legacyEvent": "initial read set",
+      "protocol": [
+        16002,
+        16006,
+        16011,
+        16028
+      ],
+      "unityNamed": "OutWardBaseView.SetType",
+      "unityLogic": "RequestPanelData/事件订阅退订",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.lifecycle.cold-warm-model",
+      "legacy": "Load/Show/Close/Reopen model",
+      "legacyEvent": "view lifecycle",
+      "protocol": [],
+      "unityNamed": "res",
+      "unityLogic": "epoch/modelKey/loadPending/placed/RT ready/Dispose",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.lifecycle.failure-refresh",
+      "legacy": "all transaction callbacks",
+      "legacyEvent": "success/fail then parent refresh",
+      "protocol": [
+        16003,
+        16005,
+        16008,
+        16009,
+        16010,
+        16020,
+        16029,
+        16030,
+        51302,
+        15304
+      ],
+      "unityNamed": "IllusionBaseView + OutwardLvSystemView + parent OutWardBaseView + QuickBuyViewBind named state controls",
+      "unityLogic": "OutWardTransactionRefreshPolicies + ShopController 15304 success/failure events -> consumer immediate refresh; runtime writes need dedicated account",
+      "mapStatus": "mapped"
+    },
+    {
+      "id": "ow.audio.page",
+      "legacy": "无页面专属音调用",
+      "legacyEvent": "generic click only",
+      "protocol": [],
+      "unityNamed": "公共UI点击音",
+      "unityLogic": "无专属消费者",
+      "mapStatus": "not-applicable"
+    }
+  ],
+  "missingProductionNodes": {},
+  "logicBlockers": [],
+  "restoration": {
+    "sourceCommit": "a1d417820bb39f29c27e4e64e4bdeda21eff84ee",
+    "prefabRoot": "Assets/Prefabs/UI/Pet/PetModule.prefab",
+    "consumer": [
+      "Assets/Scripts/Module/Core/Pet/Views/IllusionBaseView.cs",
+      "Assets/Scripts/Module/Core/Pet/Views/OutWardBaseView.cs"
+    ],
+    "graftEvidence": "Tools/UIAudit/contracts/role/outward-wing.graft-report.json",
+    "resolution": "404 历史文档确定性重映射；Illusion 根默认 inactive；Fairy live 强类型 Bind；18 项结构缺口归零",
+    "levelSystem": {
+      "sourceCommit": "a1d417820bb39f29c27e4e64e4bdeda21eff84ee",
+      "ownedClosureDocuments": 83,
+      "prefabRoot": "PetModule/OutwardLvSystem",
+      "consumer": "Assets/Scripts/Module/Core/Pet/Views/OutwardLvSystemView.cs",
+      "graftEvidence": "Tools/UIAudit/contracts/role/outward-wing.level-system-graft-report.json",
+      "defaultActive": false
+    }
+  }
+}

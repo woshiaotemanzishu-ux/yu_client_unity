@@ -75,6 +75,9 @@ namespace Shenxiao.Module.Core.Shop
 
         public static void Open() => _ = OpenAsync();
 
+        /// <summary>按既有商城标签精确打开；用于老端OpenFun 140/141等已确认映射，不负责猜测商品定位。</summary>
+        public static void OpenTab(int index) => _ = OpenAsync(index);
+
         public static void Close()
         {
             if (_bulkPurchaseView != null) _bulkPurchaseView.Hide();
@@ -118,11 +121,15 @@ namespace Shenxiao.Module.Core.Shop
             GameLog.Info("Shop", "商城子窗 [{0}] 未移植 View,待对接", viewTypeName);
         }
 
-        private static async Task OpenAsync()
+        private static async Task OpenAsync(int requestedTab = DefaultTab)
         {
             if (_frameRoot != null)
             {
-                if (_window != null) _window.Show();
+                if (_window != null)
+                {
+                    _window.Show();
+                    _window.SelectShared(requestedTab);
+                }
                 return;
             }
 
@@ -178,7 +185,7 @@ namespace Shenxiao.Module.Core.Shop
             backgroundImages[9] = GameResPath.GetBigBgPath("ui_bg_1.jpg");
 
             _window.Show();
-            _window.ConfigureShared(ShopTabs.Length, ReparentCommon, OnShopTab, DefaultTab, IsShopTabEnabled, overrides,
+            _window.ConfigureShared(ShopTabs.Length, ReparentCommon, OnShopTab, requestedTab, IsShopTabEnabled, overrides,
                 ShopTabs, null, backgroundImages[DefaultTab], null, upImages, downImages, backgroundImages);
             GameLog.Info("Shop", "商城多标签窗打开(BaseWindowSkinView 共享内容,{0} 标签,默认 tab{1} {2})", ShopTabs.Length, DefaultTab, ShopTabs[DefaultTab]);
         }

@@ -1,0 +1,185 @@
+{
+  "schema": 1,
+  "route": "mainui.role.outward-wing.v1",
+  "started_at": "2026-08-11T20:55:00+08:00",
+  "updated_at": "2026-08-11T22:52:00+08:00",
+  "note": "由本任务阶段记录回填开始时间；后续命令原子记录。",
+  "phases": [
+    {
+      "id": "context-load",
+      "bucket": "context-load",
+      "kind": "active",
+      "started_at": "2026-08-11T20:55:00+08:00",
+      "ended_at": "2026-08-11T21:20:00+08:00",
+      "duration_ms": 1500000,
+      "note": "完整读取 AGENTS、迁移经验、项目 MEMORY、两项技能及直接 references。"
+    },
+    {
+      "id": "legacy-inventory",
+      "bucket": "legacy-inventory",
+      "kind": "active",
+      "started_at": "2026-08-11T21:20:00+08:00",
+      "ended_at": "2026-08-11T21:55:00+08:00",
+      "duration_ms": 2100000,
+      "note": "调和历史候选、老端源码、Unity Prefab/Bind、当前同源配置与消费者。"
+    },
+    {
+      "id": "preflight-diagnosis",
+      "bucket": "uiaudit-preflight",
+      "kind": "active",
+      "started_at": "2026-08-11T21:55:00+08:00",
+      "ended_at": "2026-08-11T22:05:00+08:00",
+      "duration_ms": 600000,
+      "note": "只读检查 UIDAudit 版本/服务状态；CAS 字段缺失后硬停，未进入页面 preflight。"
+    },
+    {
+      "id": "root-cause-and-topology",
+      "bucket": "diagnosis",
+      "kind": "active",
+      "started_at": "2026-08-11T22:05:00+08:00",
+      "ended_at": "2026-08-11T22:30:00+08:00",
+      "duration_ms": 1500000,
+      "note": "建立 schema 6 v1 75 节点拓扑并定位七类静态根因。"
+    },
+    {
+      "id": "static-fix-batch-1",
+      "bucket": "implementation",
+      "kind": "active",
+      "started_at": "2026-08-11T22:30:00+08:00",
+      "ended_at": "2026-08-11T22:45:00+08:00",
+      "duration_ms": 900000,
+      "note": "技能常驻槽/灰态/详情、材料共享 API、基础外观 16003、详情 cold-cancel。"
+    },
+    {
+      "id": "matrix-and-ledger-results",
+      "bucket": "component-matrix",
+      "kind": "active",
+      "started_at": "2026-08-11T22:45:00+08:00",
+      "ended_at": "2026-08-11T22:49:30+08:00",
+      "duration_ms": 270000,
+      "note": "记录OutWardBaseView/BaseAwardItem/SkillTipsView消费者分组、静态结果与精确blocked叶。"
+    },
+    {
+      "id": "offline-cli-verify",
+      "bucket": "editor-cli",
+      "kind": "active",
+      "started_at": "2026-08-11T22:49:30+08:00",
+      "ended_at": "2026-08-11T22:50:00+08:00",
+      "duration_ms": 30000,
+      "note": "仅离线dotnet增量编译、JSON/schema6/timing校验；不启动Unity，不能产生业务VERDICT。"
+    },
+    {
+      "id": "remaining-prefab-closure",
+      "bucket": "diagnosis",
+      "kind": "active",
+      "started_at": "2026-08-11T22:50:00+08:00",
+      "ended_at": "2026-08-11T22:51:00+08:00",
+      "duration_ms": 60000,
+      "note": "核对FairyWish独立Prefab/TODO与属性、魔晶详情、幻化、等级线仅Bind无Prefab的安全实现边界。"
+    },
+    {
+      "id": "provider-cas-blocker",
+      "bucket": "environment-wait",
+      "kind": "wait",
+      "started_at": "2026-08-11T22:51:00+08:00",
+      "ended_at": "2026-08-11T22:51:34+08:00",
+      "duration_ms": 34000,
+      "note": "安全静态工作已耗尽，等待主任务确认旧provider PID11300的CAS恢复路径已生效；本任务不重试/重启。"
+    }
+  ],
+  "events": [
+    {
+      "at": "2026-08-11T21:55:00+08:00",
+      "category": "estimate",
+      "detail": "发现阶段初估总主动工时10-16小时：静态调和/实现6-10小时，获授权后的Unity与真实Web3-5小时；当时剩余9-15小时。",
+      "duration_ms": 0,
+      "estimated_saved_ms": 0,
+      "fingerprint": null
+    },
+    {
+      "at": "2026-08-11T21:55:00+08:00",
+      "category": "saved-work",
+      "detail": "复用历史57项候选名称词表，重新核对拓扑但免去从零命名，估算节省枚举时间50分钟。",
+      "duration_ms": 0,
+      "estimated_saved_ms": 3000000,
+      "fingerprint": null
+    },
+    {
+      "at": "2026-08-11T21:25:00+08:00",
+      "category": "failure",
+      "detail": "命令在Unity仓库内按h5/src及错误OutWardConfigs路径检索失败；分类=路径漂移；获得新信息=老H5位于兄弟仓库yu_client且配置类在Core/OutWard，后续未重复。",
+      "duration_ms": 120000,
+      "estimated_saved_ms": 0,
+      "fingerprint": "legacy-source-path-drift"
+    },
+    {
+      "at": "2026-08-11T21:45:00+08:00",
+      "category": "failure",
+      "detail": "广域rg动作扫描约24秒超时；分类=检索范围过宽；获得新信息=需收窄到OutWard/Pet域；未重复同命令。",
+      "duration_ms": 24000,
+      "estimated_saved_ms": 0,
+      "fingerprint": "broad-rg-timeout"
+    },
+    {
+      "at": "2026-08-11T22:00:00+08:00",
+      "category": "blocker",
+      "detail": "UIAudit status硬停：7074/8091旧provider PID11300缺providerPid/controlPid/previewPid/generation/threadAlive/socketBound/httpReady，8091 ECONNREFUSED；未重试、未重启，等待公共工具CAS恢复路径。",
+      "duration_ms": 0,
+      "estimated_saved_ms": 0,
+      "fingerprint": "preview-provider-cas-required-pid11300"
+    },
+    {
+      "at": "2026-08-11T22:18:00+08:00",
+      "category": "failure",
+      "detail": "ConvertFrom-Json -AsHashtable不受当前PowerShell支持，随后foreach直接接管道出现解析错误；分类=本机PowerShell兼容/命令写法；获得新信息=改用PSObject.Properties与中间数组。",
+      "duration_ms": 30000,
+      "estimated_saved_ms": 0,
+      "fingerprint": "powershell-json-enumeration"
+    },
+    {
+      "at": "2026-08-11T22:38:00+08:00",
+      "category": "failure",
+      "detail": "dotnet build --no-restore因Temp/obj/Assembly-CSharp/project.assets.json缺失而失败；分类=本地NuGet中间文件缺失；获得新信息=需常规restore；restore后编译0错误，未重复。",
+      "duration_ms": 1000,
+      "estimated_saved_ms": 0,
+      "fingerprint": "dotnet-assets-missing"
+    },
+    {
+      "at": "2026-08-11T22:51:00+08:00",
+      "category": "scope-correction",
+      "detail": "属性/魔晶详情/幻化/等级线只有生成Bind且无可编辑Prefab；FairyWishModule虽存在但View仍TODO且无完整Flow。没有当前老H5运行树时停止手造视觉/壳接线，保留defect。",
+      "duration_ms": 0,
+      "estimated_saved_ms": 0,
+      "fingerprint": null
+    },
+    {
+      "at": "2026-08-11T22:52:00+08:00",
+      "category": "failure",
+      "detail": "尝试用AJV离线校验route时模块未安装；分类=校验依赖不存在；获得新信息=UIAudit无node_modules且使用内置validateRoute；改调内置校验后通过，未触发provider。",
+      "duration_ms": 300,
+      "estimated_saved_ms": 0,
+      "fingerprint": "uiaudit-ajv-not-installed"
+    }
+  ],
+  "summary": {
+    "closed_duration_ms": 6994000,
+    "active_ms": 6960000,
+    "wait_ms": 34000,
+    "by_bucket_ms": {
+      "build-web": 0,
+      "component-matrix": 270000,
+      "context-load": 1500000,
+      "diagnosis": 1560000,
+      "editor-cli": 30000,
+      "environment-wait": 34000,
+      "implementation": 900000,
+      "legacy-inventory": 2100000,
+      "rework": 0,
+      "uiaudit-preflight": 600000
+    },
+    "estimated_saved_ms": 3000000,
+    "recorded_failure_ms": 175300,
+    "repeat_failure_count": 0,
+    "open_phase": null
+  }
+}
