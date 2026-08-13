@@ -376,6 +376,10 @@
         public const int TASK_UPDATE_ONE = 30001;
         public const int TASK_LATEST_FINISHED = 30005;
 
+        /// <summary>每日任务刷新通知(S2C-only,空 payload)。服务端完成每日任务刷新后通知客户端；
+        /// 客户端按老端顺序重新拉取三类 30010 循环进度与 30000 任务全量。</summary>
+        public const int TASK_DAILY_REFRESH_NOTIFY = 30009;
+
         /// <summary>循环任务进度(同号 C2S/S2C)。C2S: task_type:u8；
         /// S2C: task_type:u8, finish_num:u8, all_num:u8。对标老端 TaskController.On30010 / pt_300。</summary>
         public const int TASK_CIRCLE_PROGRESS = 30010;
