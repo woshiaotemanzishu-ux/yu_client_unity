@@ -98,6 +98,7 @@ namespace Shenxiao.Module.Core.Tasks
         private readonly Dictionary<int, List<TaskVo>> _hasReceiveTaskList = new Dictionary<int, List<TaskVo>>();
         private readonly Dictionary<int, List<TaskVo>> _canTaskList = new Dictionary<int, List<TaskVo>>();
         private readonly Dictionary<int, List<TaskVo>> _allTaskList = new Dictionary<int, List<TaskVo>>();
+        private readonly Dictionary<int, CircleTaskProgress> _circleTaskProgress = new Dictionary<int, CircleTaskProgress>();
 
         private TaskFinishView _finishView; // 完成弹层(懒建复用,对标老端 TaskFinishView)
 
@@ -206,6 +207,7 @@ namespace Shenxiao.Module.Core.Tasks
             _hasReceiveTaskList.Clear();
             _canTaskList.Clear();
             _allTaskList.Clear();
+            _circleTaskProgress.Clear();
             MainLineTaskVo = null;
             NowSelectTaskId = 0;
         }
@@ -235,6 +237,21 @@ namespace Shenxiao.Module.Core.Tasks
             Replace(_hasReceiveTaskList, hasReceiveTaskList);
             Replace(_allTaskList, allTaskList);
             RefreshMainLineTaskVo();
+        }
+
+        /// <summary>读取 30010 下发的服务端权威进度。</summary>
+        public bool TryGetCircleTaskProgress(int taskType, out CircleTaskProgress progress)
+            => _circleTaskProgress.TryGetValue(taskType, out progress);
+
+        /// <summary>
+        /// 落地 30010 的日常、仙宗和使魔任务进度。老端随后由 30011 承担客户端任务条的触发动作；
+        /// 在 30011 尚未迁移前不合成可点击任务，避免产生只有展示、无法操作的伪功能。
+        /// </summary>
+        public void SetCircleTaskProgress(int taskType, int finishNum, int allNum)
+        {
+            if (taskType != GUILD && taskType != DAILY && taskType != EUDAEMON_TASK) return;
+
+            _circleTaskProgress[taskType] = new CircleTaskProgress(taskType, finishNum, allNum);
         }
 
         public void UpdateTask(int taskId, List<TaskVo> tips)
@@ -1161,6 +1178,20 @@ namespace Shenxiao.Module.Core.Tasks
             public int SortSubIndex;
             public int SameTypeOrderIndex;
             public List<TaskVo> TipsList;
+        }
+
+        public sealed class CircleTaskProgress
+        {
+            public int TaskType { get; }
+            public int FinishNum { get; }
+            public int AllNum { get; }
+
+            public CircleTaskProgress(int taskType, int finishNum, int allNum)
+            {
+                TaskType = taskType;
+                FinishNum = finishNum;
+                AllNum = allNum;
+            }
         }
 
         public sealed class TaskGuideStep

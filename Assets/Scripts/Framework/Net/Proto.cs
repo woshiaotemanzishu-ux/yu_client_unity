@@ -376,6 +376,10 @@
         public const int TASK_UPDATE_ONE = 30001;
         public const int TASK_LATEST_FINISHED = 30005;
 
+        /// <summary>循环任务进度(同号 C2S/S2C)。C2S: task_type:u8；
+        /// S2C: task_type:u8, finish_num:u8, all_num:u8。对标老端 TaskController.On30010 / pt_300。</summary>
+        public const int TASK_CIRCLE_PROGRESS = 30010;
+
         /// <summary>接受任务(对话 TRIGGER 节点点击)。发 "i"(task_id)。对标老端
         /// DialogueController.AcceptTask → TaskModel.Fire(REQUEST_CCMD_EVENT, 30003) → SendFmtToGame(30003,"i",task_id)。
         /// 成功后服务端推 30001 刷新该任务,客户端无需解 30003 回包即可见状态变化。</summary>

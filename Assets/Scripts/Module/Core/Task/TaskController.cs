@@ -38,6 +38,7 @@ namespace Shenxiao.Module.Core.Tasks
             RegisterProtocal(Proto.CC_TASK_ACCEPT, On30003);
             RegisterProtocal(Proto.CC_TASK_FINISH, On30004);
             RegisterProtocal(Proto.TASK_LATEST_FINISHED, On30005);
+            RegisterProtocal(Proto.TASK_CIRCLE_PROGRESS, On30010);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
             EventDispatcher.On(GlobalEvent.EVT_COLLECT_ENDED, OnCollectEnded);
             TaskSystemAutoPilot.Init(); // 测试专用代行器(-shenxiaoPlaySmoke 门控),见该类头注释
@@ -82,8 +83,12 @@ namespace Shenxiao.Module.Core.Tasks
             _loginKickoffDone = false;
             _startupTaskListRequested = true;   // 从这个请求之后的首个 30000 才允许点火
             TaskModel.Instance.ClearData();
+            SendFmt(Proto.TASK_CIRCLE_PROGRESS, "c", TaskModel.GUILD);
+            SendFmt(Proto.TASK_CIRCLE_PROGRESS, "c", TaskModel.DAILY);
+            SendFmt(Proto.TASK_CIRCLE_PROGRESS, "c", TaskModel.EUDAEMON_TASK);
             SendFmt(Proto.TASK_LIST);
-            GameLog.Info("Task", "request task list proto={0}", Proto.TASK_LIST);
+            GameLog.Info("Task", "request circle progress types={0}/{1}/{2}, then task list proto={3}",
+                TaskModel.GUILD, TaskModel.DAILY, TaskModel.EUDAEMON_TASK, Proto.TASK_LIST);
         }
 
         // 冷启动点火(活服实证修复):登录后 30000 全量到达时,若开着自动任务且当前主线任务半途(如上次
@@ -178,6 +183,22 @@ namespace Shenxiao.Module.Core.Tasks
             GameLog.Info("Task", "30005 newest finish task id={0}", taskId);
             EventDispatcher.Emit(GlobalEvent.EVT_TASK_LIST_UPDATED);
             EventDispatcher.Emit(GlobalEvent.EVT_GAME_START_FLAG_READY, "30005");
+        }
+
+        private void On30010(NetReader r)
+        {
+            if (r.Remaining < 3)
+            {
+                GameLog.Warn("Task", "30010 circle progress too short remaining={0}", r.Remaining);
+                return;
+            }
+
+            int taskType = r.ReadU8();
+            int finishNum = r.ReadU8();
+            int allNum = r.ReadU8();
+            TaskModel.Instance.SetCircleTaskProgress(taskType, finishNum, allNum);
+            GameLog.Info("Task", "30010 circle progress type={0} finish={1} all={2}", taskType, finishNum, allNum);
+            EventDispatcher.Emit(GlobalEvent.EVT_TASK_CIRCLE_PROGRESS_UPDATED, taskType);
         }
 
         private void On30003(NetReader r)
