@@ -10,12 +10,27 @@ namespace Shenxiao.Module.Core.Reincarnation
         private ReincarnationModel() { }
         public IReadOnlyList<uint> ActiveIds => _activeIds;
         public bool HasData { get; private set; }
+        public byte CurrentStage { get; private set; }
+        public bool HasStage { get; private set; }
         public void ReplaceData(List<uint> activeIds)
         {
             _activeIds.Clear();
             if (activeIds != null) _activeIds.AddRange(activeIds);
             HasData = true;
         }
-        public void Reset() { _activeIds.Clear(); HasData = false; }
+        public bool SetCurrentStage(byte stage)
+        {
+            bool changed = !HasStage || CurrentStage != stage;
+            CurrentStage = stage;
+            HasStage = true;
+            return changed;
+        }
+        public void Reset()
+        {
+            _activeIds.Clear();
+            HasData = false;
+            CurrentStage = 0;
+            HasStage = false;
+        }
     }
 }

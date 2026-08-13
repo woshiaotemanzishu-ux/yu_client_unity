@@ -509,6 +509,8 @@
         /// <summary>战斗属性/战力更新(攻防血等重算后服务端推,对标老端 RoleController.On13033 → ReadFrom13033)。
         /// 回包首 "l"=战力,后接战斗属性块;本端目前只取战力驱动「战力提升」弹层(后续属性块按需扩展)。</summary>
         public const int ROLE_BATTLE_UPDATE = 13033;
+        /// <summary>转生阶段更新(S2C-only):turn_stage:u8。客户端严禁发送；同步转生模型及主角 Figure.Raw。</summary>
+        public const int REINCARNATION_STAGE_UPDATE = 13041;
         /// <summary>切换 PK(战斗)模式(对标老端 PkStatusController.ts:29 SendFmtToGame(13012,"c",type))。
         /// 发 "c"(目标 pk_status);回包 "ici"(error_code, pk_status, remain_time):
         /// code==1 且 remain==0 → 切换成功;code==1 且 remain>0 → 进入和平切换冷却(peace_cd_time);其余为错误码。</summary>
